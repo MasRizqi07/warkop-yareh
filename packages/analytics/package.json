@@ -1,0 +1,14 @@
+{
+  "name": "@warkop-yareh/analytics",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "posthog-node": "^3.6.3",
+    "posthog-js": "^1.111.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

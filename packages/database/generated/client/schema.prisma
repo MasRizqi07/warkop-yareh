@@ -1,0 +1,798 @@
+// ============================================
+// WARKOP YA'REH — DATABASE SCHEMA
+// PostgreSQL via Prisma ORM
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Auth & Users ----
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  phone          String?        @unique
+  name           String
+  avatar         String?
+  passwordHash   String?
+  role           Role           @default(CUSTOMER)
+  membershipTier MembershipTier @default(BRONZE)
+  loyaltyPoints  Int            @default(0)
+  referralCode   String         @unique @default(cuid())
+  referredBy     String?
+  branchId       String?
+  branch         Branch?        @relation(fields: [branchId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+
+  orders               Order[]
+  reservations         Reservation[]
+  reviews              Review[]
+  eventRegistrations   EventRegistration[]
+  loyaltyTransactions  LoyaltyTransaction[]
+  notifications        Notification[]
+  communityMemberships CommunityMembership[]
+  communityPosts       CommunityPost[]
+  sessions             Session[]
+  userDevices          UserDevice[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([membershipTier])
+  @@index([branchId])
+  @@map("users")
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  CASHIER
+  KITCHEN
+  MANAGER
+  ADMIN
+  OWNER
+  SUPERADMIN
+}
+
+enum OrderType {
+  DINE_IN
+  TAKE_AWAY
+  DRIVE_THRU
+  DELIVERY
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  CLEANING
+  MAINTENANCE
+}
+
+enum MembershipTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+// ---- Branches ----
+
+model Branch {
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  address      String
+  city         String
+  province     String
+  postalCode   String?
+  phone        String?
+  email        String?
+  latitude     Float?
+  longitude    Float?
+  isMainBranch Boolean   @default(false)
+  isActive     Boolean   @default(true)
+  capacity     Int       @default(0)
+  features     String[]  @default([])
+  weekdayHours String    @default("07:00-24:00")
+  weekendHours String    @default("07:00-01:00")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  users        User[]
+  products     BranchProduct[]
+  orders       Order[]
+  reservations Reservation[]
+  tables       Table[]
+  events       Event[]
+
+  @@index([city])
+  @@index([isActive])
+  @@map("branches")
+}
+
+// ---- Products ----
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  icon      String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  description     String
+  price           Int
+  originalPrice   Int?
+  image           String?
+  categoryId      String
+  category        Category  @relation(fields: [categoryId], references: [id])
+  tags            String[]  @default([])
+  isPopular       Boolean   @default(false)
+  isNew           Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  rating          Float     @default(0)
+  reviewCount     Int       @default(0)
+  preparationTime Int       @default(5)
+  calories        Int?
+  ingredients     String[]  @default([])
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  branchProducts BranchProduct[]
+  orderItems     OrderItem[]
+  reviews        Review[]
+  customizations ProductCustomization[]
+
+  @@index([categoryId])
+  @@index([isPopular])
+  @@index([isActive])
+  @@map("products")
+}
+
+model ProductCustomization {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  options   Json // [{label: string, price: number}]
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@map("product_customizations")
+}
+
+model BranchProduct {
+  id            String  @id @default(cuid())
+  branchId      String
+  branch        Branch  @relation(fields: [branchId], references: [id])
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  isAvailable   Boolean @default(true)
+  priceOverride Int?
+
+  @@unique([branchId, productId])
+  @@map("branch_products")
+}
+
+// ---- Orders ----
+
+model Order {
+  id                  String        @id @default(cuid())
+  orderNumber         String        @unique // Format: CNB-YYYYMMDD-XXXX
+  userId              String?
+  user                User?         @relation(fields: [userId], references: [id])
+  branchId            String?
+  branch              Branch?       @relation(fields: [branchId], references: [id])
+  tableId             String?
+  table               Table?        @relation(fields: [tableId], references: [id])
+  type                OrderType     @default(DINE_IN)
+  status              OrderStatus   @default(PENDING)
+  subtotal            Int
+  tax                 Int           @default(0)
+  discount            Int           @default(0)
+  total               Int
+  paymentStatus       PaymentStatus @default(UNPAID)
+  pickupTime          DateTime?
+  notes               String?
+  customerName        String? // Guest orders (no account)
+  customerPhone       String?
+  loyaltyPointsEarned Int           @default(0)
+  loyaltyPointsUsed   Int           @default(0)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  deletedAt           DateTime?
+
+  items    OrderItem[]
+  payment  Payment?
+  feedback OrderFeedback?
+
+  @@index([userId])
+  @@index([branchId])
+  @@index([tableId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product @relation(fields: [productId], references: [id])
+  quantity       Int
+  unitPrice      Int
+  totalPrice     Int
+  customizations Json?
+  notes          String?
+
+  // Audited Price Snapshot Fields
+  snapshotName  String
+  snapshotPrice Int
+  snapshotTax   Int    @default(0)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  SERVED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum PaymentMethod {
+  CASH
+  QRIS
+  DEBIT
+  CREDIT_CARD
+  E_WALLET
+}
+
+// ---- Payment (Midtrans Integration) ----
+
+model Payment {
+  id              String        @id @default(cuid())
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id])
+  method          PaymentMethod
+  status          PaymentStatus @default(UNPAID)
+  amount          Int
+  midtransToken   String? // Snap token for online payment
+  midtransOrderId String?       @unique
+  reference       String?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+  @@map("payments")
+}
+
+// ---- Reservations ----
+
+model Table {
+  id        String      @id @default(cuid())
+  branchId  String
+  branch    Branch      @relation(fields: [branchId], references: [id])
+  number    String // "Table 1", "Meeting Room A", etc.
+  name      String // Display name same as number
+  type      TableType   @default(INDOOR)
+  capacity  Int
+  zone      String?
+  qrCode    String      @unique @default(cuid())
+  status    TableStatus @default(AVAILABLE)
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  reservations Reservation[]
+  orders       Order[]
+  waiterCalls  WaiterCall[]
+
+  @@unique([branchId, number])
+  @@index([branchId])
+  @@index([status])
+  @@map("tables")
+}
+
+enum TableType {
+  INDOOR
+  OUTDOOR
+  VIP
+  MEETING_ROOM
+}
+
+model Reservation {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id])
+  branchId        String
+  branch          Branch            @relation(fields: [branchId], references: [id])
+  tableId         String?
+  table           Table?            @relation(fields: [tableId], references: [id])
+  date            DateTime
+  startTime       String
+  endTime         String
+  guestCount      Int
+  status          ReservationStatus @default(PENDING)
+  specialRequests String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([branchId])
+  @@index([date])
+  @@index([status])
+  @@map("reservations")
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+// ---- Events ----
+
+model Event {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  description     String
+  longDescription String?
+  image           String?
+  date            DateTime
+  startTime       String
+  endTime         String
+  location        String
+  branchId        String
+  branch          Branch        @relation(fields: [branchId], references: [id])
+  category        EventCategory @default(COMMUNITY)
+  capacity        Int
+  registered      Int           @default(0)
+  price           Int           @default(0)
+  isFree          Boolean       @default(true)
+  isOnline        Boolean       @default(false)
+  tags            String[]      @default([])
+  status          EventStatus   @default(UPCOMING)
+  speakers        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  registrations EventRegistration[]
+
+  @@index([branchId])
+  @@index([date])
+  @@index([status])
+  @@index([category])
+  @@map("events")
+}
+
+enum EventCategory {
+  WORKSHOP
+  MUSIC
+  COMMUNITY
+  BUSINESS
+  ART
+  TECH
+  FOOD
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model EventRegistration {
+  id         String                  @id @default(cuid())
+  eventId    String
+  event      Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User                    @relation(fields: [userId], references: [id])
+  status     EventRegistrationStatus @default(REGISTERED)
+  ticketCode String                  @unique @default(cuid())
+  paidAmount Int                     @default(0)
+  createdAt  DateTime                @default(now())
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_registrations")
+}
+
+enum EventRegistrationStatus {
+  REGISTERED
+  WAITLISTED
+  CANCELLED
+  ATTENDED
+}
+
+// ---- Community ----
+
+model CommunityGroup {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  image       String?
+  category    String
+  isActive    Boolean   @default(true)
+  tags        String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  memberships CommunityMembership[]
+  posts       CommunityPost[]
+
+  @@index([category])
+  @@map("community_groups")
+}
+
+model CommunityMembership {
+  id       String              @id @default(cuid())
+  userId   String
+  user     User                @relation(fields: [userId], references: [id])
+  groupId  String
+  group    CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  role     CommunityMemberRole @default(MEMBER)
+  joinedAt DateTime            @default(now())
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+  @@map("community_memberships")
+}
+
+enum CommunityMemberRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+model CommunityPost {
+  id        String         @id @default(cuid())
+  authorId  String
+  author    User           @relation(fields: [authorId], references: [id])
+  groupId   String
+  group     CommunityGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  content   String
+  image     String?
+  likes     Int            @default(0)
+  comments  Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([groupId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("community_posts")
+}
+
+// ---- Loyalty ----
+
+model LoyaltyTransaction {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  type        LoyaltyType
+  points      Int
+  description String
+  orderId     String?
+  expiresAt   DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("loyalty_transactions")
+}
+
+enum LoyaltyType {
+  EARNED
+  REDEEMED
+  EXPIRED
+  BONUS
+  REFERRAL
+}
+
+model Reward {
+  id          String         @id @default(cuid())
+  name        String
+  description String
+  image       String?
+  pointsCost  Int
+  category    String
+  tier        MembershipTier @default(BRONZE)
+  isAvailable Boolean        @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([isAvailable])
+  @@index([tier])
+  @@map("rewards")
+}
+
+// ---- Reviews ----
+
+model Review {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  productId  String?
+  product    Product? @relation(fields: [productId], references: [id])
+  branchId   String?
+  rating     Int
+  comment    String
+  images     String[] @default([])
+  helpful    Int      @default(0)
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([productId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+// ---- Notifications ----
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  ORDER
+  EVENT
+  LOYALTY
+  COMMUNITY
+  PROMO
+  SYSTEM
+}
+
+// ---- Blog ----
+
+model BlogPost {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  excerpt      String
+  content      String
+  image        String?
+  authorName   String
+  authorAvatar String?
+  authorRole   String?
+  category     String
+  tags         String[]  @default([])
+  readTime     Int       @default(5)
+  isPublished  Boolean   @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([isPublished])
+  @@index([category])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+// ---- Audit Log ----
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ---- Transactional Outbox (Event-Driven) ----
+
+model OutboxEvent {
+  id            String    @id @default(cuid())
+  aggregateType String
+  aggregateId   String
+  eventType     String
+  payload       Json
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+
+  @@index([processedAt, createdAt])
+  @@map("outbox_events")
+}
+
+// ---- Sessions (Refresh Token Rotation) ----
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ---- User Devices (Push Notifications) ----
+
+model UserDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceToken String   @unique
+  platform    String // "web" | "android" | "ios"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("user_devices")
+}
+
+// ---- Franchise (Phase 4) ----
+
+model FranchiseAgreement {
+  id             String          @id @default(cuid())
+  branchId       String          @unique
+  ownerName      String
+  ownerEmail     String
+  companyName    String?
+  agreementStart DateTime
+  agreementEnd   DateTime?
+  monthlyFee     Int
+  revenueShare   Float           @default(0)
+  status         FranchiseStatus @default(ACTIVE)
+  terms          Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  billings FranchiseBilling[]
+
+  @@index([status])
+  @@map("franchise_agreements")
+}
+
+enum FranchiseStatus {
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+  PENDING
+}
+
+model FranchiseBilling {
+  id            String             @id @default(cuid())
+  agreementId   String
+  agreement     FranchiseAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  period        String // "2026-07"
+  amount        Int
+  revenueAmount Int                @default(0)
+  status        BillingStatus      @default(PENDING)
+  paidAt        DateTime?
+  dueDate       DateTime
+  invoiceUrl    String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([agreementId, period])
+  @@index([status])
+  @@index([dueDate])
+  @@map("franchise_billings")
+}
+
+enum BillingStatus {
+  PENDING
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+// ---- Operations (Phase 1 Pivot) ----
+
+model WaiterCall {
+  id         String         @id @default(cuid())
+  tableId    String
+  table      Table          @relation(fields: [tableId], references: [id])
+  type       WaiterCallType
+  status     CallStatus     @default(PENDING)
+  resolvedAt DateTime?
+  createdAt  DateTime       @default(now())
+
+  @@index([tableId])
+  @@index([status])
+  @@map("waiter_calls")
+}
+
+enum WaiterCallType {
+  CALL_WAITER
+  REQUEST_BILL
+  NEED_ASSISTANCE
+}
+
+enum CallStatus {
+  PENDING
+  RESOLVED
+}
+
+model OrderFeedback {
+  id               String   @id @default(cuid())
+  orderId          String   @unique
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productRating    Int // 1-5
+  serviceRating    Int // 1-5
+  atmosphereRating Int // 1-5
+  comment          String?
+  createdAt        DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_feedbacks")
+}

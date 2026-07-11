@@ -1,0 +1,2 @@
+# In .eslintignore or eslint.config ignore patterns:
+packages/database/generated/**
