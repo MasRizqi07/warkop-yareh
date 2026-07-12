@@ -1,24 +1,21 @@
 import { Controller, Get, Post, Patch, Param, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { BranchService } from '../../application/services/branch.service';
+import { CreateBranchDto, UpdateBranchDto } from '../dtos/branch.dto';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { Public } from '../../../../common/decorators/public.decorator';
 
 @Controller('api/v1/branches')
+@ApiTags('Branches')
 export class BranchController {
   constructor(private readonly branchService: BranchService) {}
 
   @Post()
   @Roles('ADMIN', 'OWNER', 'SUPERADMIN')
+  @ApiOperation({ summary: 'Create a new branch' })
   async create(
     @Body()
-    body: {
-      name: string;
-      address: string;
-      phone?: string;
-      latitude?: number;
-      longitude?: number;
-      operatingHours?: string;
-    },
+    body: CreateBranchDto,
   ) {
     const data = await this.branchService.createBranch(body);
     return { data };
@@ -40,18 +37,11 @@ export class BranchController {
 
   @Patch(':id')
   @Roles('ADMIN', 'OWNER', 'SUPERADMIN')
+  @ApiOperation({ summary: 'Update branch details' })
   async update(
     @Param('id') id: string,
     @Body()
-    body: Partial<{
-      name: string;
-      address: string;
-      phone: string;
-      latitude: number;
-      longitude: number;
-      operatingHours: string;
-      isActive: boolean;
-    }>,
+    body: UpdateBranchDto,
   ) {
     const data = await this.branchService.updateBranch(id, body);
     return { data };

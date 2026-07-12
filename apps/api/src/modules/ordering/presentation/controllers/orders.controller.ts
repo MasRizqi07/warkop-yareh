@@ -7,6 +7,8 @@ import {
   Body,
   Query,
   UseGuards,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrderingService } from '../../application/services/ordering.service';
@@ -51,10 +53,66 @@ export class OrdersController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get order details by ID' })
-  async getOrder(@Param('id') id: string) {
+  async getOrder(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string; role: string; branchId: string },
+  ) {
     const order = await this.orderingService.getOrder(id);
+    if (!order) {
+      throw new \u004E\u006F\u0074\u0046\u006F\u0075\u006E\u0064\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('Order not found');
+    }
+
+    const isEmployee = ['STAFF', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role);
+    const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
+
+    if (!isSuperAdmin) {
+      if (isEmployee) {
+        if (order.branchId !== user.branchId) {
+          throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only access orders from your own branch');
+        }
+      } else {
+        if (order.userId !== user.id) {
+          throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only access your own orders');
+        }
+      }
+    }
+
     return { data: order };
+  }
+
+  @Get(':id/payment-status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get order payment status' })
+  async getPaymentStatus(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string; role: string; branchId: string },
+  ) {
+    const order = await this.orderingService.getOrder(id);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const isEmployee = ['STAFF', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role);
+    const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
+
+    if (!isSuperAdmin) {
+      if (isEmployee) {
+        if (order.branchId !== user.branchId) {
+          throw new ForbiddenException('You can only access orders from your own branch');
+        }
+      } else {
+        if (order.userId !== user.id) {
+          throw new ForbiddenException('You can only access your own orders');
+        }
+      }
+    }
+
+    const status = await this.orderingService.getPaymentStatusFromMidtrans(id);
+    return { data: { paymentStatus: status } };
   }
 
   @Get()

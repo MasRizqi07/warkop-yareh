@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
 import { PaymentModule } from './infrastructure/payment/payment.module';
 import { AuthModule } from './infrastructure/auth/auth.module';
 import { RolesGuard } from './common/guards/roles.guard';
+import { TenantIsolationInterceptor } from './common/interceptors/tenant-isolation.interceptor';
 
 import { JwtAuthGuard } from './infrastructure/auth/jwt-auth.guard';
 
@@ -57,6 +58,10 @@ import { TablesModule } from './modules/tables/tables.module';
   ],
   controllers: [],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TenantIsolationInterceptor,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

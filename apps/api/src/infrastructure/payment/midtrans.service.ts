@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as midtransClient from 'midtrans-client';
 
@@ -59,7 +59,7 @@ export class MidtransService {
 
     if (isPlaceholderKey) {
       if (isProductionEnv) {
-        throw new Error(
+        throw new InternalServerErrorException(
           'Midtrans Error: Cannot generate Snap token in production with missing or placeholder MIDTRANS_SERVER_KEY.',
         );
       }
@@ -86,7 +86,7 @@ export class MidtransService {
       const transaction = await this.snap.createTransaction(transactionDetails);
       return transaction;
     } catch (error: any) {
-      throw new Error(`Midtrans Error: ${error.message}`);
+      throw new BadRequestException(`Midtrans Error: ${error.message}`);
     }
   }
 }

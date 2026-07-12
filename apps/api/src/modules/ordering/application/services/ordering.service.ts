@@ -1,7 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, forwardRef } from '@nestjs/common';
 import type { IOrderingRepository } from '../../domain/repositories/ordering.repository.interface';
 import { EventsGateway } from '../../../websockets/events.gateway';
 import { Order } from '../../domain/entities/order.entity';
+import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
 
 @Injectable()
 export class OrderingService {
@@ -9,6 +10,8 @@ export class OrderingService {
     @Inject('IOrderingRepository')
     private readonly orderingRepo: IOrderingRepository,
     private readonly eventsGateway: EventsGateway,
+    @Inject(forwardRef(() => MidtransService))
+    private readonly midtransService: MidtransService,
   ) {}
 
   async createOrder(data: {
@@ -131,6 +134,21 @@ export class OrderingService {
     this.eventsGateway.broadcastPaymentUpdated(order);
 
     return order;
+  }
+
+  async getPaymentStatusFromMidtrans(orderId: string) {
+    try {
+      if (!this.midtransService.coreApi) {
+        return 'PAYMENT_PENDING';
+      }
+      const status = await this.midtransService.coreApi.transaction.status(orderId);
+      // Determine mapped status based on Midtrans response if necessary,
+      // but returning raw Midtrans transaction_status works too, or just map it:
+      return status.transaction_status || 'PAYMENT_PENDING';
+    } catch (error) {
+      // Gracefully handle Midtrans error/unreachable (Task 7)
+      return 'PAYMENT_PENDING';
+    }
   }
 
   async createFeedback(

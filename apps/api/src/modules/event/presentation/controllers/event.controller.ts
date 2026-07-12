@@ -2,26 +2,14 @@ import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { EventService } from '../../application/services/event.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import { CreateEventDto } from '../dtos/event.dto';
 
 @Controller('api/v1/events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @Post()
-  async createEvent(
-    @Body()
-    body: {
-      title: string;
-      description?: string;
-      branchId: string;
-      date: string;
-      startTime: string;
-      endTime: string;
-      location?: string;
-      capacity: number;
-      price?: number;
-    },
-  ) {
+  async createEvent(@Body() body: CreateEventDto) {
     const data = await this.eventService.createEvent(body);
     return { data };
   }

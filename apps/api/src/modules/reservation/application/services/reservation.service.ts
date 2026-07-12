@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 @Injectable()
@@ -86,7 +86,27 @@ export class ReservationService {
     return { data, total };
   }
 
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: string, user?: { id: string; role: string; branchId: string }) {
+    const reservation = await this.prisma.reservation.findUnique({ where: { id } });
+    if (!reservation) {
+      throw new \u004E\u006F\u0074\u0046\u006F\u0075\u006E\u0064\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('Reservation not found');
+    }
+
+    if (user) {
+      const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
+      const isEmployee = ['STAFF', 'MANAGER', 'OWNER'].includes(user.role);
+
+      if (!isSuperAdmin) {
+        if (isEmployee) {
+          if (reservation.branchId !== user.branchId) {
+            throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only update reservations for your own branch');
+          }
+        } else if (reservation.userId !== user.id) {
+          throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only update your own reservations');
+        }
+      }
+    }
+
     return this.prisma.reservation.update({
       where: { id },
       data: { status: status as any },

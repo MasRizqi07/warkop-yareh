@@ -9,7 +9,7 @@ async function request(path, method = 'GET', body = null, token = null) {
     const options = {
       hostname: 'localhost',
       port: 4000,
-      path: '/api/v1/api/v1' + path,
+      path: '/api/v1' + path,
       method,
       headers: {
         'Content-Type': 'application/json',

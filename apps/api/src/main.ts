@@ -56,7 +56,7 @@ async function bootstrap() {
   });
 
   // ── Global Prefix ─────────────────────────────────────────────────────────
-  app.setGlobalPrefix('api/v1');
+  // app.setGlobalPrefix('api/v1'); // Removed to avoid double prefixing
 
   // ── Global Pipes ──────────────────────────────────────────────────────────
   app.useGlobalPipes(

@@ -8,7 +8,9 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { TableService } from '../../application/services/table.service';
 import { TableStatus } from '@warkop-yareh/database';
@@ -37,7 +39,15 @@ export class TableController {
   @Roles('STAFF', 'CASHIER', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN')
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get all tables for a branch (Staff/Admin)' })
-  async getTablesByBranch(@Param('branchId') branchId: string) {
+  async getTablesByBranch(
+    @Param('branchId') branchId: string,
+    @CurrentUser() user: { id: string; role: string; branchId: string },
+  ) {
+    if (!['SUPERADMIN', 'ADMIN'].includes(user.role)) {
+      if (user.branchId !== branchId) {
+        throw new ForbiddenException('You can only access tables from your own branch');
+      }
+    }
     const tables = await this.tableService.getTablesByBranch(branchId);
     return { data: tables };
   }

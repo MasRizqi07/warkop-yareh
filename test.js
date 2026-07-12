@@ -31,16 +31,16 @@ async function request(path, method = 'GET', body = null, token = null) {
 async function run() {
   try {
     // 1. Register Customer
-    const cus = await request('/api/v1/api/v1/auth/register', 'POST', { name: 'Customer', email: 'cus7@test.com', password: 'password' });
+    const cus = await request('/api/v1/auth/register', 'POST', { name: 'Customer', email: 'cus7@test.com', password: 'password' });
     console.log('Customer Register:', cus.status);
     console.log(JSON.stringify(cus.data, null, 2));
 
-    const cusLog = await request('/api/v1/api/v1/auth/login', 'POST', { email: 'cus7@test.com', password: 'password' });
+    const cusLog = await request('/api/v1/auth/login', 'POST', { email: 'cus7@test.com', password: 'password' });
     const cusToken = cusLog.data?.data?.accessToken;
     console.log('Customer Token:', cusToken ? 'RECEIVED' : 'FAILED');
 
     // 2. Register Admin
-    const adm = await request('/api/v1/api/v1/auth/register', 'POST', { name: 'Admin', email: 'adm8@test.com', password: 'password' });
+    const adm = await request('/api/v1/auth/register', 'POST', { name: 'Admin', email: 'adm8@test.com', password: 'password' });
     console.log('Admin Register:', adm.status);
     const admId = adm.data?.data?.id || adm.data?.id;
     console.log('Admin ID:', admId);
@@ -51,18 +51,18 @@ async function run() {
     console.log('Admin role updated in DB.');
 
     // 4. Login Admin
-    const admLog = await request('/api/v1/api/v1/auth/login', 'POST', { email: 'adm8@test.com', password: 'password' });
+    const admLog = await request('/api/v1/auth/login', 'POST', { email: 'adm8@test.com', password: 'password' });
     const admToken = admLog.data?.data?.accessToken;
     console.log('Admin Token:', admToken ? 'RECEIVED' : 'FAILED');
 
     // 5. Customer hits Admin endpoint
     console.log('--- CUSTOMER HITS ADMIN ENDPOINT ---');
-    const cusHit = await request('/api/v1/api/v1/products', 'POST', {}, cusToken);
+    const cusHit = await request('/api/v1/products', 'POST', {}, cusToken);
     console.log('Status:', cusHit.status, cusHit.data);
 
     // 6. Admin hits Admin endpoint
     console.log('--- ADMIN HITS ADMIN ENDPOINT ---');
-    const admHit = await request('/api/v1/api/v1/products', 'POST', {}, admToken);
+    const admHit = await request('/api/v1/products', 'POST', {}, admToken);
     console.log('Status:', admHit.status, admHit.data);
 
   } catch(e) {

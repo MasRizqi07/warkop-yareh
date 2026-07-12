@@ -1,24 +1,20 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { FranchiseService } from '../../application/services/franchise.service';
+import { CreateAgreementDto, GenerateBillingDto } from '../dtos/franchise.dto';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 
+@ApiTags('Franchise')
 @Controller('api/v1/franchise')
 @Roles('ADMIN', 'OWNER', 'SUPERADMIN')
 export class FranchiseController {
   constructor(private readonly franchiseService: FranchiseService) {}
 
   @Post('agreements')
+  @ApiOperation({ summary: 'Create a new franchise agreement' })
   async createAgreement(
     @Body()
-    body: {
-      ownerName: string;
-      ownerEmail: string;
-      branchId: string;
-      royaltyPercentage?: number;
-      monthlyFee: number;
-      agreementStart: string;
-      agreementEnd?: string;
-    },
+    body: CreateAgreementDto,
   ) {
     const data = await this.franchiseService.createAgreement(body);
     return { data };
@@ -37,14 +33,10 @@ export class FranchiseController {
   }
 
   @Post('billings')
-  async createBilling(
+  @ApiOperation({ summary: 'Generate billing for an agreement' })
+  async generateBilling(
     @Body()
-    body: {
-      agreementId: string;
-      period: string;
-      amount: number;
-      dueDate: string;
-    },
+    body: GenerateBillingDto,
   ) {
     const data = await this.franchiseService.createBilling(body);
     return { data };

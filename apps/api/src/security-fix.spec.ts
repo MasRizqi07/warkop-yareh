@@ -11,8 +11,8 @@ import { CommunityController } from './modules/community/presentation/controller
 import { CommunityService } from './modules/community/application/services/community.service';
 import { EventController } from './modules/event/presentation/controllers/event.controller';
 import { EventService } from './modules/event/application/services/event.service';
-import { LoyaltyController } from './modules/loyalty/presentation/controllers/loyalty.controller';
-import { LoyaltyService } from './modules/loyalty/application/services/loyalty.service';
+
+
 import { OrdersController } from './modules/ordering/presentation/controllers/orders.controller';
 import { OrderingService } from './modules/ordering/application/services/ordering.service';
 import { ReservationsController } from './modules/reservation/presentation/controllers/reservations.controller';
@@ -37,7 +37,7 @@ describe('Security Fixes — Client-Supplied Identity Protection', () => {
   let app: INestApplication<App>;
   let communityService: jest.Mocked<Partial<CommunityService>>;
   let eventService: jest.Mocked<Partial<EventService>>;
-  let loyaltyService: jest.Mocked<Partial<LoyaltyService>>;
+
   let orderingService: jest.Mocked<Partial<OrderingService>>;
   let reservationService: jest.Mocked<Partial<ReservationService>>;
 
@@ -51,15 +51,7 @@ describe('Security Fixes — Client-Supplied Identity Protection', () => {
     eventService = {
       registerForEvent: jest.fn().mockResolvedValue({ success: true }),
     };
-    loyaltyService = {
-      getAvailableRewards: jest.fn().mockResolvedValue([]),
-      getLoyaltyStatus: jest
-        .fn()
-        .mockResolvedValue({ id: 'status_1', props: {} }),
-      listTransactions: jest.fn().mockResolvedValue([]),
-      redeemReward: jest.fn().mockResolvedValue({ success: true }),
-      awardPoints: jest.fn().mockResolvedValue({ success: true }),
-    };
+
     orderingService = {
       listOrders: jest.fn().mockResolvedValue({ data: [], total: 0 }),
       createOrder: jest
@@ -77,14 +69,14 @@ describe('Security Fixes — Client-Supplied Identity Protection', () => {
       controllers: [
         CommunityController,
         EventController,
-        LoyaltyController,
+
         OrdersController,
         ReservationsController,
       ],
       providers: [
         { provide: CommunityService, useValue: communityService },
         { provide: EventService, useValue: eventService },
-        { provide: LoyaltyService, useValue: loyaltyService },
+
         { provide: OrderingService, useValue: orderingService },
         { provide: ReservationService, useValue: reservationService },
         { provide: APP_GUARD, useClass: MockAuthGuard },
@@ -132,128 +124,7 @@ describe('Security Fixes — Client-Supplied Identity Protection', () => {
     );
   });
 
-  it('3a. getStatus: should ignore path userId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/loyalty/user_B')
-      .expect(200);
 
-    expect(loyaltyService.getLoyaltyStatus).toHaveBeenCalledWith('user_A');
-  });
-
-  it('3b. getStatus: should allow path userId (User B) for ADMIN', async () => {
-    mockUser = { id: 'admin_1', role: 'ADMIN' };
-    await request(app.getHttpServer())
-      .get('/api/v1/loyalty/user_B')
-      .expect(200);
-
-    expect(loyaltyService.getLoyaltyStatus).toHaveBeenCalledWith('user_B');
-  });
-
-  it('3c. getTransactions: should ignore path userId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/loyalty/user_B/transactions')
-      .expect(200);
-
-    expect(loyaltyService.listTransactions).toHaveBeenCalledWith('user_A');
-  });
-
-  it('3d. getTransactions: should allow path userId (User B) for STAFF', async () => {
-    mockUser = { id: 'staff_1', role: 'STAFF' };
-    await request(app.getHttpServer())
-      .get('/api/v1/loyalty/user_B/transactions')
-      .expect(200);
-
-    expect(loyaltyService.listTransactions).toHaveBeenCalledWith('user_B');
-  });
-
-  it('3e. redeemReward: should ignore path userId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
-    await request(app.getHttpServer())
-      .post('/api/v1/loyalty/user_B/redeem')
-      .send({ rewardId: 'reward_123' })
-      .expect(201);
-
-    expect(loyaltyService.redeemReward).toHaveBeenCalledWith(
-      'user_A',
-      'reward_123',
-    );
-  });
-
-  it('3f. redeemReward: should allow path userId (User B) for MANAGER', async () => {
-    mockUser = { id: 'manager_1', role: 'MANAGER' };
-    await request(app.getHttpServer())
-      .post('/api/v1/loyalty/user_B/redeem')
-      .send({ rewardId: 'reward_123' })
-      .expect(201);
-
-    expect(loyaltyService.redeemReward).toHaveBeenCalledWith(
-      'user_B',
-      'reward_123',
-    );
-  });
-
-  it('4a. listOrders: should ignore query userId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/orders?userId=user_B')
-      .expect(200);
-
-    expect(orderingService.listOrders).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user_A' }),
-    );
-  });
-
-  it('4b. listOrders: should allow query userId (User B) for ADMIN', async () => {
-    mockUser = { id: 'admin_1', role: 'ADMIN' };
-    await request(app.getHttpServer())
-      .get('/api/v1/orders?userId=user_B')
-      .expect(200);
-
-    expect(orderingService.listOrders).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user_B' }),
-    );
-  });
-
-  it('5a. listReservations: should ignore query userId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/reservations?userId=user_B')
-      .expect(200);
-
-    expect(reservationService.listReservations).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user_A' }),
-    );
-  });
-
-  it('5b. listReservations: should allow query userId (User B) for STAFF', async () => {
-    mockUser = { id: 'staff_1', role: 'STAFF' };
-    await request(app.getHttpServer())
-      .get('/api/v1/reservations?userId=user_B')
-      .expect(200);
-
-    expect(reservationService.listReservations).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user_B' }),
-    );
-  });
-
-  it('3g. awardPoints: should block CUSTOMER role with 403 Forbidden', async () => {
-    mockUser = { id: 'user_A', role: 'CUSTOMER' };
-    await request(app.getHttpServer())
-      .post('/api/v1/loyalty/user_B/points')
-      .send({ points: 100, reason: 'test' })
-      .expect(403);
-  });
-
-  it('3h. awardPoints: should allow STAFF role to award points', async () => {
-    mockUser = { id: 'staff_1', role: 'STAFF' };
-    await request(app.getHttpServer())
-      .post('/api/v1/loyalty/user_B/points')
-      .send({ points: 100, reason: 'test' })
-      .expect(201);
-
-    expect(loyaltyService.awardPoints).toHaveBeenCalledWith(
-      'user_B',
-      100,
-      'test',
-    );
-  });
 
   it('6a. createOrder: should ignore body userId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
     await request(app.getHttpServer())

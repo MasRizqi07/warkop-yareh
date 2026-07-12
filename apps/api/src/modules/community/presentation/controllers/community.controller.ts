@@ -8,17 +8,21 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CommunityService } from '../../application/services/community.service';
+import { CreateGroupDto, CreatePostDto } from '../dtos/community.dto';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 
+@ApiTags('community')
 @Controller('api/v1/community')
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 
   @Post('groups')
+  @ApiOperation({ summary: 'Create a new community group' })
   async createGroup(
-    @Body() body: { name: string; description?: string; category?: string },
+    @Body() body: CreateGroupDto,
   ) {
     const data = await this.communityService.createGroup(body);
     return { data };
@@ -41,9 +45,10 @@ export class CommunityController {
   }
 
   @Post('posts')
+  @ApiOperation({ summary: 'Create a post in a group' })
   async createPost(
     @CurrentUser() user: any,
-    @Body() body: { groupId: string; authorId: string; content: string },
+    @Body() body: CreatePostDto,
   ) {
     const isEmployee = [
       'STAFF',

@@ -3,11 +3,13 @@ import { OrderingService } from './ordering.service';
 import { EventsGateway } from '../../../websockets/events.gateway';
 import { BadRequestException } from '@nestjs/common';
 import { IOrderingRepository } from '../../domain/repositories/ordering.repository.interface';
+import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
 
 describe('OrderingService', () => {
   let service: OrderingService;
   let mockOrderingRepo: jest.Mocked<IOrderingRepository>;
   let mockEventsGateway: jest.Mocked<EventsGateway>;
+  let mockMidtransService: jest.Mocked<MidtransService>;
 
   beforeEach(async () => {
     mockOrderingRepo = {
@@ -28,11 +30,16 @@ describe('OrderingService', () => {
       broadcastTableUpdated: jest.fn(),
     } as unknown as jest.Mocked<EventsGateway>;
 
+    mockMidtransService = {
+      getTransactionStatus: jest.fn(),
+    } as unknown as jest.Mocked<MidtransService>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrderingService,
         { provide: 'IOrderingRepository', useValue: mockOrderingRepo },
         { provide: EventsGateway, useValue: mockEventsGateway },
+        { provide: MidtransService, useValue: mockMidtransService },
       ],
     }).compile();
 

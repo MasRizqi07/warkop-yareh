@@ -42,7 +42,7 @@ async function run() {
     console.log(beforeStr.toString());
 
     console.log('\n--- 2. CREATING SNAP TRANSACTION ---');
-    const snap = await request('/api/v1/api/v1/payments/midtrans/snap', 'POST', {
+    const snap = await request('/api/v1/payments/midtrans/snap', 'POST', {
       orderId,
       grossAmount: 50000,
     });
@@ -63,7 +63,7 @@ async function run() {
       signature_key: signature,
     };
 
-    const wh = await request('/api/v1/api/v1/payments/midtrans/webhook', 'POST', webhookPayload);
+    const wh = await request('/api/v1/payments/midtrans/webhook', 'POST', webhookPayload);
     console.log('Webhook status:', wh.status, wh.data);
 
     console.log('\n--- 4. QUERYING ORDER AFTER WEBHOOK ---');

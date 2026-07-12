@@ -47,7 +47,7 @@ async function run() {
 
     // Get a valid token
     console.log('\n--- GETTING VALID TOKEN ---');
-    const login = await request('/api/v1/api/v1/auth/login', 'POST', { email: 'cus7@test.com', password: 'password' });
+    const login = await request('/api/v1/auth/login', 'POST', { email: 'cus7@test.com', password: 'password' });
     const token = login.data?.data?.accessToken;
     console.log('Token fetched:', !!token);
 

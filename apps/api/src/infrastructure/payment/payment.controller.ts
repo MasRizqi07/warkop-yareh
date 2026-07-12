@@ -6,6 +6,7 @@ import {
   Headers,
   BadRequestException,
   Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { MidtransService } from './midtrans.service';
@@ -18,6 +19,7 @@ import { Public } from '../../common/decorators/public.decorator';
 export class PaymentController {
   constructor(
     private readonly midtransService: MidtransService,
+    @Inject(forwardRef(() => OrderingService))
     private readonly orderingService: OrderingService,
   ) {}
 

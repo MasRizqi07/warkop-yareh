@@ -10,6 +10,7 @@ import {
 import { ReservationService } from '../../application/services/reservation.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import { CreateReservationDto, UpdateReservationStatusDto } from '../dtos/reservation.dto';
 
 @Controller('api/v1')
 export class ReservationsController {
@@ -18,17 +19,7 @@ export class ReservationsController {
   @Post('reservations')
   async create(
     @CurrentUser() user: { id: string; role: string },
-    @Body()
-    body: {
-      branchId: string;
-      tableId?: string;
-      date: string;
-      startTime: string;
-      endTime: string;
-      guestCount: number;
-      specialRequests?: string;
-      userId?: string;
-    },
+    @Body() body: CreateReservationDto,
   ) {
     const isEmployee = [
       'STAFF',
@@ -73,11 +64,13 @@ export class ReservationsController {
   @Patch('reservations/:id/status')
   async updateStatus(
     @Param('id') id: string,
-    @Body() body: { status: string },
+    @Body() body: UpdateReservationStatusDto,
+    @CurrentUser() user: { id: string; role: string; branchId: string },
   ) {
     const reservation = await this.reservationService.updateStatus(
       id,
       body.status,
+      user,
     );
     return { data: reservation };
   }
