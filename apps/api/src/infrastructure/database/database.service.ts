@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@warkop-yareh/database';
 import { tenantContext } from './tenant-context';
 
@@ -7,6 +7,8 @@ export class DatabaseService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
+  private readonly logger = new Logger(DatabaseService.name);
+
   constructor() {
     super();
     const self = this;
@@ -48,14 +50,37 @@ export class DatabaseService
       await self.$disconnect();
     };
 
-    return extended as unknown as this;
+    const extendedProxy = extended as unknown as this;
+    
+    // Bind lifecycle hooks to the proxy so NestJS can call them
+    // @ts-ignore
+    extendedProxy.onModuleInit = async () => {
+      await self.$connect();
+      
+      try {
+        await extendedProxy.$transaction(async (tx) => {
+          await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
+        });
+        self.logger.log('Database role api_user check passed successfully.');
+      } catch (error: any) {
+        if (error?.message?.includes('permission denied to set role') || error?.code === 'P2010' || String(error).includes('permission denied')) {
+          const msg = `FATAL: The database role does not have membership in 'api_user'. Run: GRANT api_user TO <role>; See docs/deployment.md for details.`;
+          self.logger.error(msg);
+          console.error(msg);
+          process.exit(1);
+        }
+        throw error;
+      }
+    };
+    
+    // @ts-ignore
+    extendedProxy.onModuleDestroy = async () => {
+      await self.$disconnect();
+    };
+
+    return extendedProxy;
   }
 
-  async onModuleInit() {
-    await this.$connect();
-  }
-
-  async onModuleDestroy() {
-    await this.$disconnect();
-  }
+  async onModuleInit() {}
+  async onModuleDestroy() {}
 }

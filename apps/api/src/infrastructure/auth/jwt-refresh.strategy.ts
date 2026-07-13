@@ -2,7 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
-import { DatabaseService } from '../database/database.service';
+import { RawDatabaseService } from '../database/raw-database.service';
 import { JwtPayload } from './jwt.strategy';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor(private readonly databaseService: DatabaseService) {
+  constructor(private readonly databaseService: RawDatabaseService) {
     super({
       // Look for the refresh token in the httpOnly cookie
       jwtFromRequest: ExtractJwt.fromExtractors([

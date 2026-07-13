@@ -3,6 +3,8 @@ import { EventService } from '../../application/services/event.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import { CreateEventDto } from '../dtos/event.dto';
+import { Public } from '../../../../common/decorators/public.decorator';
+import { tenantContext } from '../../../../infrastructure/database/tenant-context';
 
 @Controller('api/v1/events')
 export class EventController {
@@ -15,6 +17,7 @@ export class EventController {
   }
 
   @Get()
+  @Public()
   async listEvents(
     @Query('branchId') branchId?: string,
     @Query('page') pageStr?: string,
@@ -22,12 +25,24 @@ export class EventController {
   ) {
     const page = pageStr ? parseInt(pageStr, 10) : 1;
     const limit = limitStr ? parseInt(limitStr, 10) : 10;
-    const { data, total } = await this.eventService.listEvents(
-      branchId,
-      page,
-      limit,
-    );
-    return paginate(data, total, page, limit);
+    
+    // Evaluate the list query under the specified read-only tenant context so that RLS isolates
+    // events to ONLY the given branch (or fails/returns empty if the branch doesn't exist).
+    // The query executes gracefully through the standard database service middleware.
+    return new Promise((resolve, reject) => {
+      tenantContext.run({ branchId, userId: undefined, role: undefined }, async () => {
+        try {
+          const { data, total } = await this.eventService.listEvents(
+            branchId,
+            page,
+            limit,
+          );
+          resolve(paginate(data, total, page, limit));
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
   }
 
   @Post(':eventId/register')

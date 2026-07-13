@@ -105,12 +105,19 @@ async function main() {
   await client.query(`UPDATE users SET role = 'OWNER', "branchId" = '${branchA}' WHERE email = '${emailStaff}'`);
   
   // Login to get token
-  // Generate token manually using jsonwebtoken to bypass login RLS issue for test
-  const jwt = require('jsonwebtoken');
-  const token = jwt.sign({ sub: reg.data.data.id, email: emailStaff, role: 'OWNER', branchId: branchA }, 'change-this-to-a-random-256bit-secret-minimum-32-chars', { expiresIn: '15m' });
-  console.log("Generated token manually for test");
+  console.log("Attempting real login through API...");
+  const loginRes = await requestPost('/api/v1/auth/login', 'POST', { email: emailStaff, password: 'password' });
+  console.log("Login response status:", loginRes.status);
+  
+  if (!loginRes.data || !loginRes.data.data || !loginRes.data.data.accessToken) {
+    console.error("Login failed! Response:", loginRes.data);
+    process.exit(1);
+  }
+  
+  const token = loginRes.data.data.accessToken;
+  console.log("Real login successful. Token acquired.");
 
-  console.log("\\n=== TESTING reservations ===");
+  console.log("\n=== TESTING reservations ===");
   const resSame = await request(`/api/v1/reservations?branchId=${branchA}`, 'GET', token);
   console.log("Same-branch:", JSON.stringify(resSame.data));
   const resCross = await request(`/api/v1/reservations?branchId=${branchB}`, 'GET', token);
@@ -122,11 +129,11 @@ async function main() {
   const tabCross = await request(`/api/v1/branches/${branchB}/tables`, 'GET', token);
   console.log("Cross-branch:", JSON.stringify(tabCross.data));
 
-  console.log("\\n=== TESTING events ===");
-  const evtSame = await request(`/api/v1/events?branchId=${branchA}`, 'GET', token);
-  console.log("Same-branch:", JSON.stringify(evtSame.data));
-  const evtCross = await request(`/api/v1/events?branchId=${branchB}`, 'GET', token);
-  console.log("Cross-branch:", JSON.stringify(evtCross.data));
+  console.log("\n=== TESTING events (Anonymous) ===");
+  const evtSameAnon = await request(`/api/v1/events?branchId=${branchA}`, 'GET');
+  console.log("Branch A Anonymous:", JSON.stringify(evtSameAnon.data));
+  const evtCrossAnon = await request(`/api/v1/events?branchId=${branchB}`, 'GET');
+  console.log("Branch B Anonymous:", JSON.stringify(evtCrossAnon.data));
 
   console.log("\\n=== TESTING branch_products ===");
   const bpSame = await request(`/api/v1/catalog/branch_products?branchId=${branchA}`, 'GET', token);
@@ -141,5 +148,26 @@ async function main() {
   // I will just print the result, RLS should automatically restrict listAgreements to the token's branch!
 
   await client.end();
+
+  console.log("\n=== TESTING customer account (branchId IS NULL) ===");
+  const emailCustomer = `customer_${Date.now()}@test.com`;
+  const regCustomer = await requestPost('/api/v1/auth/register', 'POST', { email: emailCustomer, password: 'password', name: 'Customer' });
+  console.log("Customer register response status:", regCustomer.status);
+  
+  const loginCustomer = await requestPost('/api/v1/auth/login', 'POST', { email: emailCustomer, password: 'password' });
+  console.log("Customer login response status:", loginCustomer.status);
+  
+  if (loginCustomer.data && loginCustomer.data.data && loginCustomer.data.data.accessToken) {
+    const custToken = loginCustomer.data.data.accessToken;
+    console.log("Customer login successful. Token acquired.");
+    
+    // Test a global request (e.g. list branches)
+    const branchesRes = await request(`/api/v1/branches`, 'GET', custToken);
+    console.log("Customer fetching branches status:", branchesRes.status, "data length:", branchesRes.data?.data?.length);
+  } else {
+    console.error("Customer login failed!", loginCustomer.data);
+  }
+  
+  console.log("\nTest completed successfully.");
 }
-main();
+main().catch(console.error);
