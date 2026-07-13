@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { Clock, Play, CheckCircle2, CheckSquare } from 'lucide-react';
+import { canTransitionOrder } from '../../lib/order-logic';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
 
@@ -55,7 +56,7 @@ const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (i
   const { timeString, statusColor } = useKitchenTimer(order.createdAt);
 
   let nextAction = null;
-  if (order.status === 'PENDING') {
+  if (canTransitionOrder(order.status, 'PREPARING')) {
     nextAction = (
       <button 
         onClick={() => onUpdateStatus(order.id, 'PREPARING')}
@@ -64,7 +65,7 @@ const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (i
         <Play className="w-4 h-4" /> Start Preparing
       </button>
     );
-  } else if (order.status === 'PREPARING') {
+  } else if (canTransitionOrder(order.status, 'READY')) {
     nextAction = (
       <button 
         onClick={() => onUpdateStatus(order.id, 'READY')}
@@ -73,7 +74,7 @@ const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (i
         <CheckSquare className="w-4 h-4" /> Mark Ready
       </button>
     );
-  } else if (order.status === 'READY') {
+  } else if (canTransitionOrder(order.status, 'SERVED')) {
     nextAction = (
       <button 
         onClick={() => onUpdateStatus(order.id, 'SERVED')}

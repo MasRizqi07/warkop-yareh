@@ -16,9 +16,8 @@ export class TenantIsolationInterceptor implements NestInterceptor {
   ): Observable<any> {
     const req = context.switchToHttp().getRequest();
     const user = req.user;
-    
-    // Fallback to header if unauthenticated (e.g., for public branch endpoints)
-    const branchId = user?.branchId || req.headers['x-branch-id'];
+    // Only trust branchId from authenticated user token
+    const branchId = user?.branchId;
 
     return new Observable((subscriber) => {
       tenantContext.run(

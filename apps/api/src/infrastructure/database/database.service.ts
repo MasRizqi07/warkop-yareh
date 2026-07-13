@@ -16,16 +16,18 @@ export class DatabaseService
         $allModels: {
           async $allOperations({ model, operation, args, query }) {
             const tenant = tenantContext.getStore();
+            console.log(`[RLS] ${model}.${operation} tenant:`, tenant);
             if (!tenant || (!tenant.branchId && !tenant.userId)) {
               return query(args);
             }
             
             return self.$transaction(async (tx) => {
+              await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
               if (tenant.branchId) {
-                await tx.$executeRawUnsafe(`SELECT set_config('app.current_branch_id', '${tenant.branchId}', true)`);
+                await tx.$executeRawUnsafe(`SELECT set_config('app.current_branch_id', $1, true)`, tenant.branchId);
               }
               if (tenant.userId) {
-                await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_id', '${tenant.userId}', true)`);
+                await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_id', $1, true)`, tenant.userId);
               }
               // @ts-ignore
               return tx[model][operation](args);

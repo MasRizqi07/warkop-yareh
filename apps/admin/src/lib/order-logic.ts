@@ -1,8 +1,10 @@
 export function canTransitionOrder(currentStatus: string, newStatus: string): boolean {
   const transitions: Record<string, string[]> = {
-    'PENDING': ['PREPARING', 'CANCELLED'],
+    'PENDING': ['CONFIRMED', 'PREPARING', 'CANCELLED'],
+    'CONFIRMED': ['PREPARING', 'CANCELLED'],
     'PREPARING': ['READY', 'CANCELLED'],
-    'READY': ['COMPLETED'],
+    'READY': ['SERVED', 'COMPLETED', 'CANCELLED'],
+    'SERVED': ['COMPLETED'],
     'COMPLETED': [],
     'CANCELLED': []
   };
