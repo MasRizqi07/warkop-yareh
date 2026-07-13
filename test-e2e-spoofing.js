@@ -40,6 +40,32 @@ async function request(path, method = 'GET', body = null, token = null) {
 async function run() {
   console.log('--- STARTING E2E SPOOFING VERIFICATION TEST ---');
   try {
+    // Seed foreign keys if they do not exist
+    await prisma.branch.upsert({
+      where: { id: 'branch_123' },
+      update: {},
+      create: {
+        id: 'branch_123',
+        name: 'Spoof Test Branch',
+        slug: 'spoof-branch',
+        address: 'Test Addr',
+        city: 'Test City',
+        province: 'Test Prov'
+      }
+    });
+
+    await prisma.communityGroup.upsert({
+      where: { id: 'group_123' },
+      update: {},
+      create: {
+        id: 'group_123',
+        name: 'Spoof Test Group',
+        slug: 'spoof-group',
+        description: 'Test Description',
+        category: 'TECH'
+      }
+    });
+
     const email = `test-spoof-${Date.now()}@example.com`;
 
     // 1. Register UserA

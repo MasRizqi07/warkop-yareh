@@ -29,6 +29,9 @@ export class DatabaseService
               if (tenant.userId) {
                 await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_id', $1, true)`, tenant.userId);
               }
+              if (tenant.role) {
+                await tx.$executeRawUnsafe(`SELECT set_config('app.current_user_role', $1, true)`, tenant.role);
+              }
               // @ts-ignore
               return tx[model][operation](args);
             });
