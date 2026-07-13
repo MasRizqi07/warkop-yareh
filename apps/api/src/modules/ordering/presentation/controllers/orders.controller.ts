@@ -62,20 +62,22 @@ export class OrdersController {
   ) {
     const order = await this.orderingService.getOrder(id);
     if (!order) {
-      throw new \u004E\u006F\u0074\u0046\u006F\u0075\u006E\u0064\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('Order not found');
+      throw new NotFoundException('Order not found');
     }
 
-    const isEmployee = ['STAFF', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role);
-    const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
+    if (user) {
+      const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
+      const isEmployee = ['STAFF', 'MANAGER', 'OWNER'].includes(user.role);
 
-    if (!isSuperAdmin) {
-      if (isEmployee) {
-        if (order.branchId !== user.branchId) {
-          throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only access orders from your own branch');
-        }
-      } else {
-        if (order.userId !== user.id) {
-          throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only access your own orders');
+      if (!isSuperAdmin) {
+        if (isEmployee) {
+          if (order.branchId !== user.branchId) {
+            throw new ForbiddenException('You can only access orders from your own branch');
+          }
+        } else {
+          if (order.userId !== user.id) {
+            throw new ForbiddenException('You can only access your own orders');
+          }
         }
       }
     }

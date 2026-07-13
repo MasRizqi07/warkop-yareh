@@ -89,7 +89,7 @@ export class ReservationService {
   async updateStatus(id: string, status: string, user?: { id: string; role: string; branchId: string }) {
     const reservation = await this.prisma.reservation.findUnique({ where: { id } });
     if (!reservation) {
-      throw new \u004E\u006F\u0074\u0046\u006F\u0075\u006E\u0064\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('Reservation not found');
+      throw new NotFoundException('Reservation not found');
     }
 
     if (user) {
@@ -99,10 +99,18 @@ export class ReservationService {
       if (!isSuperAdmin) {
         if (isEmployee) {
           if (reservation.branchId !== user.branchId) {
-            throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only update reservations for your own branch');
+            throw new ForbiddenException('You can only update reservations for your own branch');
           }
-        } else if (reservation.userId !== user.id) {
-          throw new \u0046\u006F\u0072\u0062\u0069\u0064\u0064\u0065\u006E\u0045\u0078\u0063\u0065\u0070\u0074\u0069\u006F\u006E('You can only update your own reservations');
+        } else {
+          if (reservation.userId !== user.id) {
+            throw new ForbiddenException('You can only update your own reservations');
+          }
+          if (status !== 'CANCELLED') {
+            throw new ForbiddenException('Customers can only cancel their reservations');
+          }
+          if (reservation.status === 'COMPLETED' || reservation.status === 'CANCELLED') {
+            throw new ForbiddenException('Cannot cancel a completed or already cancelled reservation');
+          }
         }
       }
     }
