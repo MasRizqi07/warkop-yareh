@@ -25,10 +25,15 @@ import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { Public } from '../../../../common/decorators/public.decorator';
 
+import { DatabaseService } from '../../../../infrastructure/database/database.service';
+
 @ApiTags('catalog')
 @Controller('api/v1')
 export class CatalogController {
-  constructor(private readonly catalogService: CatalogService) {}
+  constructor(
+    private readonly catalogService: CatalogService,
+    private readonly prisma: DatabaseService
+  ) {}
 
   @Get('catalog')
   @Public()
@@ -43,6 +48,15 @@ export class CatalogController {
   async getFullCatalog(@Query('branchId') branchId?: string) {
     const catalog = await this.catalogService.getFullCatalog(branchId);
     return { data: catalog };
+  }
+
+  @Get('catalog/branch_products')
+  @ApiOperation({ summary: 'List all branch products directly' })
+  async listBranchProducts(@Query('branchId') branchId?: string) {
+    const data = await this.prisma.branchProduct.findMany({
+      where: branchId ? { branchId } : undefined
+    });
+    return { data };
   }
 
   @Get('categories')

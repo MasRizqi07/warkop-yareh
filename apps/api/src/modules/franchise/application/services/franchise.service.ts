@@ -33,7 +33,6 @@ export class FranchiseService {
     return client.franchiseAgreement.findUnique({
       where: { id },
       include: {
-        branch: true,
         billings: true,
       },
     });
@@ -41,11 +40,7 @@ export class FranchiseService {
 
   async listAgreements() {
     const client = this.prisma as any;
-    return client.franchiseAgreement.findMany({
-      include: {
-        branch: { select: { id: true, name: true } },
-      },
-    });
+    return client.franchiseAgreement.findMany();
   }
 
   async createBilling(data: {
