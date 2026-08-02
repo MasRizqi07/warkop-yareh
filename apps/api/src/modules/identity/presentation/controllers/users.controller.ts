@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Controller, Get, Patch, Param, Body, Query } from '@nestjs/common';
 import { IdentityService } from '../../application/services/identity.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';

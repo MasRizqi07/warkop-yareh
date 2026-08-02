@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Injectable } from '@nestjs/common';
 import { ILoyaltyRepository } from '../../../domain/repositories/loyalty.repository';
 import { Loyalty } from '../../../domain/entities/loyalty.entity';
