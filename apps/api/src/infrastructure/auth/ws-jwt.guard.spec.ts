@@ -1,18 +1,15 @@
 import { WsJwtGuard } from './ws-jwt.guard';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { WsException } from '@nestjs/websockets';
 import { ExecutionContext } from '@nestjs/common';
 
 describe('WsJwtGuard', () => {
   let guard: WsJwtGuard;
   let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     jwtService = { verify: jest.fn() } as any;
-    configService = { get: jest.fn().mockReturnValue('test-secret') } as any;
-    guard = new WsJwtGuard(jwtService, configService);
+    guard = new WsJwtGuard(jwtService);
   });
 
   it('should throw WsException if no token is provided', async () => {

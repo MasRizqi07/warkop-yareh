@@ -21,9 +21,7 @@ export class CommunityController {
 
   @Post('groups')
   @ApiOperation({ summary: 'Create a new community group' })
-  async createGroup(
-    @Body() body: CreateGroupDto,
-  ) {
+  async createGroup(@Body() body: CreateGroupDto) {
     const data = await this.communityService.createGroup(body);
     return { data };
   }
@@ -46,10 +44,7 @@ export class CommunityController {
 
   @Post('posts')
   @ApiOperation({ summary: 'Create a post in a group' })
-  async createPost(
-    @CurrentUser() user: any,
-    @Body() body: CreatePostDto,
-  ) {
+  async createPost(@CurrentUser() user: any, @Body() body: CreatePostDto) {
     const isEmployee = [
       'STAFF',
       'CASHIER',

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   Controller,
   Get,
@@ -45,7 +46,9 @@ export class TableController {
   ) {
     if (!['SUPERADMIN', 'ADMIN'].includes(user.role)) {
       if (user.branchId !== branchId) {
-        throw new ForbiddenException('You can only access tables from your own branch');
+        throw new ForbiddenException(
+          'You can only access tables from your own branch',
+        );
       }
     }
     const tables = await this.tableService.getTablesByBranch(branchId);

@@ -110,7 +110,7 @@ export default function TablesDashboardPage() {
       socket.emit('joinCashier'); // Admin rooms hear table updates
     });
 
-    socket.on('table.updated', (updatedTable: any) => {
+    socket.on('table.updated', (updatedTable: Partial<Table> & { id: string }) => {
       setTables(prev => prev.map(t => t.id === updatedTable.id ? { ...t, ...updatedTable } : t));
     });
 

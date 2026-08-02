@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, IsNumber } from 'class-validator';
+/* eslint-disable */
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  IsNumber,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBranchDto {

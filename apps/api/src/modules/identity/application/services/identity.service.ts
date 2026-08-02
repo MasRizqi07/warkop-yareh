@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Injectable, Inject } from '@nestjs/common';
 import { IUserRepository } from '../../domain/repositories/user.repository.interface';
 

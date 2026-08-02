@@ -8,9 +8,7 @@ import {
   IconSeat, 
   IconGroups, 
   IconArrowRight, 
-  IconEco, 
   IconTrending, 
-  IconSpecial, 
   IconTerminal 
 } from "@/lib/icons";
 import { useUserStore, Reward } from "@/stores";

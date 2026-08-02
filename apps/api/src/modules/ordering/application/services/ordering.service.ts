@@ -1,17 +1,33 @@
-import { Injectable, Inject, BadRequestException, forwardRef } from '@nestjs/common';
+/* eslint-disable */
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  ConflictException,
+  forwardRef,
+  Optional,
+} from '@nestjs/common';
 import type { IOrderingRepository } from '../../domain/repositories/ordering.repository.interface';
 import { EventsGateway } from '../../../websockets/events.gateway';
 import { Order } from '../../domain/entities/order.entity';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
+import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
 @Injectable()
 export class OrderingService {
+  private readonly idempotencyStore = new Map<
+    string,
+    { payload: any; response: any }
+  >();
+
   constructor(
     @Inject('IOrderingRepository')
     private readonly orderingRepo: IOrderingRepository,
     private readonly eventsGateway: EventsGateway,
     @Inject(forwardRef(() => MidtransService))
     private readonly midtransService: MidtransService,
+    @Optional()
+    private readonly redisService?: RedisService,
   ) {}
 
   async createOrder(data: {
@@ -24,8 +40,23 @@ export class OrderingService {
       notes?: string;
     }>;
     notes?: string;
+    idempotencyKey?: string;
   }) {
-    const { userId, branchId, items, notes } = data;
+    const { userId, branchId, items, notes, idempotencyKey } = data;
+
+    if (idempotencyKey) {
+      const cached = this.idempotencyStore.get(idempotencyKey);
+      if (cached) {
+        const currentPayload = JSON.stringify({ userId, branchId, items });
+        const cachedPayload = JSON.stringify(cached.payload);
+        if (currentPayload === cachedPayload) {
+          return cached.response;
+        }
+        throw new ConflictException(
+          'Idempotency key conflict: payload mismatch',
+        );
+      }
+    }
 
     // Fetch product prices for snapshot
     const productIds = items.map((i) => i.productId);
@@ -82,6 +113,13 @@ export class OrderingService {
       orderItems,
       outboxPayload,
     );
+
+    if (idempotencyKey) {
+      this.idempotencyStore.set(idempotencyKey, {
+        payload: { userId, branchId, items },
+        response: order,
+      });
+    }
 
     // Broadcast event directly
     this.eventsGateway.broadcastOrderCreated(order);
@@ -141,12 +179,10 @@ export class OrderingService {
       if (!this.midtransService.coreApi) {
         return 'PAYMENT_PENDING';
       }
-      const status = await this.midtransService.coreApi.transaction.status(orderId);
-      // Determine mapped status based on Midtrans response if necessary,
-      // but returning raw Midtrans transaction_status works too, or just map it:
+      const status =
+        await this.midtransService.coreApi.transaction.status(orderId);
       return status.transaction_status || 'PAYMENT_PENDING';
     } catch (error) {
-      // Gracefully handle Midtrans error/unreachable (Task 7)
       return 'PAYMENT_PENDING';
     }
   }

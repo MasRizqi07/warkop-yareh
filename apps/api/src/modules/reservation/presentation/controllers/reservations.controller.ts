@@ -10,7 +10,10 @@ import {
 import { ReservationService } from '../../application/services/reservation.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
-import { CreateReservationDto, UpdateReservationStatusDto } from '../dtos/reservation.dto';
+import {
+  CreateReservationDto,
+  UpdateReservationStatusDto,
+} from '../dtos/reservation.dto';
 
 @Controller('api/v1')
 export class ReservationsController {

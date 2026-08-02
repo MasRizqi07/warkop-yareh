@@ -54,7 +54,7 @@ export default function OrderTrackingPage() {
       socket.emit("joinOrder", { orderId: id });
     });
 
-    socket.on("order.updated", (order: any) => {
+    socket.on("order.updated", (order: { status?: string }) => {
       const index = TIMELINE.findIndex(t => t.status === order.status);
       if (index !== -1) setCurrentStatusIndex(index);
     });

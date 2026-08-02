@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, ShoppingBag, Eye, CheckCircle2, AlertCircle, Coffee } from "lucide-react";
+import { Search, Eye } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
 interface Order {
