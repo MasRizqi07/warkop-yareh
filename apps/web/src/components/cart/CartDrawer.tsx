@@ -123,7 +123,7 @@ export function CartDrawer() {
                               )}
                             {item.notes && (
                               <p className="text-xs italic text-on-surface-variant/60 mt-0.5">
-                                Notes: "{item.notes}"
+                                Notes: &quot;{item.notes}&quot;
                               </p>
                             )}
                             <p className="text-sm text-primary-fixed mt-1">

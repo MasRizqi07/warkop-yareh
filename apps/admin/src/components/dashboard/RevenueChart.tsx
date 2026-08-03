@@ -49,7 +49,7 @@ export function RevenueChart() {
               tickLine={false}
             />
             <Tooltip 
-              formatter={(value: any) => [`Rp ${(Number(value)/1000000).toFixed(2)}M`, "Revenue"]} 
+              formatter={(value) => [`Rp ${(Number(value || 0)/1000000).toFixed(2)}M`, "Revenue"]} 
               contentStyle={{ 
                 backgroundColor: "var(--surface-elevated)", 
                 borderColor: "var(--border-default)",

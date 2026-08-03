@@ -32,8 +32,9 @@ export default function LoginPage() {
       
       setAuth(user, accessToken);
       router.push('/'); // Redirect to home or dashboard after login
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Invalid email or password');
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
+      setError(errorMsg || 'Invalid email or password');
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +145,7 @@ export default function LoginPage() {
         </motion.div>
 
         <p className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/register" className="font-medium text-brand-600 hover:text-brand-500 flex items-center justify-center gap-1 mt-2">
             Create account <ArrowRight className="h-4 w-4" />
           </Link>

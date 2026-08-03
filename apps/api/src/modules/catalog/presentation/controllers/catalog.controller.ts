@@ -32,7 +32,7 @@ import { DatabaseService } from '../../../../infrastructure/database/database.se
 export class CatalogController {
   constructor(
     private readonly catalogService: CatalogService,
-    private readonly prisma: DatabaseService
+    private readonly prisma: DatabaseService,
   ) {}
 
   @Get('catalog')
@@ -54,7 +54,7 @@ export class CatalogController {
   @ApiOperation({ summary: 'List all branch products directly' })
   async listBranchProducts(@Query('branchId') branchId?: string) {
     const data = await this.prisma.branchProduct.findMany({
-      where: branchId ? { branchId } : undefined
+      where: branchId ? { branchId } : undefined,
     });
     return { data };
   }

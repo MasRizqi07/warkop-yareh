@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageSquare, Users, ShieldAlert, Heart, User, ArrowRight, Trash } from "lucide-react";
+import { MessageSquare, Users, Heart, User, Trash } from "lucide-react";
 
 interface CommunityGroup {
   id: string;

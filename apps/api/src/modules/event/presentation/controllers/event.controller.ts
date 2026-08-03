@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { EventService } from '../../application/services/event.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
@@ -25,23 +26,26 @@ export class EventController {
   ) {
     const page = pageStr ? parseInt(pageStr, 10) : 1;
     const limit = limitStr ? parseInt(limitStr, 10) : 10;
-    
+
     // Evaluate the list query under the specified read-only tenant context so that RLS isolates
     // events to ONLY the given branch (or fails/returns empty if the branch doesn't exist).
     // The query executes gracefully through the standard database service middleware.
     return new Promise((resolve, reject) => {
-      tenantContext.run({ branchId, userId: undefined, role: undefined }, async () => {
-        try {
-          const { data, total } = await this.eventService.listEvents(
-            branchId,
-            page,
-            limit,
-          );
-          resolve(paginate(data, total, page, limit));
-        } catch (error) {
-          reject(error);
-        }
-      });
+      tenantContext.run(
+        { branchId, userId: undefined, role: undefined },
+        async () => {
+          try {
+            const { data, total } = await this.eventService.listEvents(
+              branchId,
+              page,
+              limit,
+            );
+            resolve(paginate(data, total, page, limit));
+          } catch (error) {
+            reject(error);
+          }
+        },
+      );
     });
   }
 

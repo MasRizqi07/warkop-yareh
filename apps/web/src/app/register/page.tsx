@@ -32,8 +32,9 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push('/login');
       }, 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Registration failed. Please try again.');
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
+      setError(errorMsg || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -30,8 +30,9 @@ export default function OTPPage() {
       await api.post('/auth/otp/send', { email });
       setStep('code');
       setMessage('A 6-digit code has been sent to your email.');
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to send OTP. Please try again.');
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
+      setError(errorMsg || 'Failed to send OTP. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -45,9 +46,6 @@ export default function OTPPage() {
     try {
       const response = await api.post('/auth/otp/verify', { email, code });
       
-      // Wait, we need to get user profile since verify just returns accessToken
-      // But /auth/me isn't returning immediately with the OTP endpoint. 
-      // Actually let's fetch /auth/me after getting the token.
       const { accessToken } = response.data.data;
       
       const meResponse = await api.get('/auth/me', {
@@ -56,8 +54,9 @@ export default function OTPPage() {
       
       setAuth(meResponse.data.data, accessToken);
       router.push('/');
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Invalid or expired OTP code.');
+    } catch (err: unknown) {
+      const errorMsg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
+      setError(errorMsg || 'Invalid or expired OTP code.');
     } finally {
       setIsLoading(false);
     }

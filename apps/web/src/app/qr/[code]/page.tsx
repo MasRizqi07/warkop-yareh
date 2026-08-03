@@ -29,8 +29,9 @@ export default function QRScanPage() {
 
         // Redirect to menu
         router.push('/');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Invalid QR Code or Table is Inactive');
+      } catch (err: unknown) {
+        const errorMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+        setError(errorMsg || 'Invalid QR Code or Table is Inactive');
       }
     }
 

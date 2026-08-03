@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Search, Calendar, Users, Plus, MapPin, Tag, MoreVertical, Edit, UserCheck } from "lucide-react";
+import { Search, Calendar, Plus, MapPin } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
 interface CommunityEvent {

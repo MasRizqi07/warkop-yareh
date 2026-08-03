@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsInt, Min, IsDateString, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  Min,
+  IsDateString,
+  IsNotEmpty,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateReservationDto {

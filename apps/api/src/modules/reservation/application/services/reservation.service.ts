@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 @Injectable()
@@ -86,8 +90,14 @@ export class ReservationService {
     return { data, total };
   }
 
-  async updateStatus(id: string, status: string, user?: { id: string; role: string; branchId: string }) {
-    const reservation = await this.prisma.reservation.findUnique({ where: { id } });
+  async updateStatus(
+    id: string,
+    status: string,
+    user?: { id: string; role: string; branchId: string },
+  ) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+    });
     if (!reservation) {
       throw new NotFoundException('Reservation not found');
     }
@@ -99,17 +109,28 @@ export class ReservationService {
       if (!isSuperAdmin) {
         if (isEmployee) {
           if (reservation.branchId !== user.branchId) {
-            throw new ForbiddenException('You can only update reservations for your own branch');
+            throw new ForbiddenException(
+              'You can only update reservations for your own branch',
+            );
           }
         } else {
           if (reservation.userId !== user.id) {
-            throw new ForbiddenException('You can only update your own reservations');
+            throw new ForbiddenException(
+              'You can only update your own reservations',
+            );
           }
           if (status !== 'CANCELLED') {
-            throw new ForbiddenException('Customers can only cancel their reservations');
+            throw new ForbiddenException(
+              'Customers can only cancel their reservations',
+            );
           }
-          if (reservation.status === 'COMPLETED' || reservation.status === 'CANCELLED') {
-            throw new ForbiddenException('Cannot cancel a completed or already cancelled reservation');
+          if (
+            reservation.status === 'COMPLETED' ||
+            reservation.status === 'CANCELLED'
+          ) {
+            throw new ForbiddenException(
+              'Cannot cancel a completed or already cancelled reservation',
+            );
           }
         }
       }

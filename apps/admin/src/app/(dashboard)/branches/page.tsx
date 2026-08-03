@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, MapPin, Phone, Clock, Plus, Settings2 } from "lucide-react";
+import { MapPin, Phone, Clock, Plus, Settings2 } from "lucide-react";
 
 interface Branch {
   id: string;
@@ -14,7 +14,7 @@ interface Branch {
 }
 
 export default function BranchesPage() {
-  const [branches, setBranches] = useState<Branch[]>([
+  const [branches] = useState<Branch[]>([
     { id: "BR-01", name: "Warkop Ya'reh Darmo", city: "Surabaya", address: "Jl. Raya Darmo No. 42", phone: "+62 811-2345-678", hours: "07:00 - 24:00", isActive: true },
     { id: "BR-02", name: "Warkop Ya'reh Dharmahusada", city: "Surabaya", address: "Jl. Dharmahusada Indah Timur No. 15", phone: "+62 811-8765-432", hours: "07:00 - 23:00", isActive: true },
     { id: "BR-03", name: "Warkop Ya'reh Gubeng", city: "Surabaya", address: "Jl. Gubeng Pojok No. 8", phone: "+62 811-3456-789", hours: "08:00 - 22:00", isActive: false },

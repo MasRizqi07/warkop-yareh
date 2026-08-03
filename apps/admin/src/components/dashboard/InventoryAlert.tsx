@@ -71,7 +71,7 @@ export function InventoryAlert() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border-default)]/50">
-            {inventoryItems.map((item, i) => (
+            {inventoryItems.map((item) => (
               <tr key={item.id} className="group hover:bg-[var(--surface-secondary)]/50 transition-colors motion-safe:card-hover">
                 <td className="py-4">
                   <div className="flex items-center gap-3">

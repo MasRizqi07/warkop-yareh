@@ -14,7 +14,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { SITE, NAV_LINKS } from "@/lib/constants";
-import { fadeInUp, staggerContainer, staggerItem, VIEWPORT } from "@/lib/animations";
+import { staggerContainer, staggerItem, VIEWPORT } from "@/lib/animations";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();

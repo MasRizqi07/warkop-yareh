@@ -1,7 +1,6 @@
 import { RolesGuard } from './roles.guard';
 import { Reflector } from '@nestjs/core';
-import { ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { Role } from '@warkop-yareh/types';
+import { ExecutionContext } from '@nestjs/common';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;

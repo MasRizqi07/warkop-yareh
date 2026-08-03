@@ -54,7 +54,7 @@ export function RecentOrders() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border-default)]/50">
-            {recentOrders.map((order, i) => (
+            {recentOrders.map((order) => (
               <tr key={order.id} className={`group hover:bg-[var(--surface-secondary)]/50 transition-colors motion-safe:card-hover`}>
                 <td className="py-4 font-mono text-xs font-semibold text-[var(--text-primary)]">{order.id}</td>
                 <td className="py-4 font-sans text-sm font-medium text-[var(--text-primary)]">{order.customer}</td>

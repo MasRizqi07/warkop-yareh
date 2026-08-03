@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Settings, Save, Shield, Percent, Info, BellRing } from "lucide-react";
+import { Save, Percent, Info } from "lucide-react";
 
 export default function SettingsPage() {
   const [taxRate, setTaxRate] = useState("11");

@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   Query,
+  Headers,
   UseGuards,
   NotFoundException,
   ForbiddenException,
@@ -34,6 +35,7 @@ export class OrdersController {
   async createOrder(
     @CurrentUser() user: { id: string; role: string },
     @Body() body: CreateOrderDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ) {
     const isEmployee = [
       'STAFF',
@@ -48,6 +50,7 @@ export class OrdersController {
     const order = await this.orderingService.createOrder({
       ...body,
       userId: resolvedUserId,
+      idempotencyKey: idempotencyKey || (body as any).idempotencyKey,
     });
     return { data: order };
   }
@@ -72,7 +75,9 @@ export class OrdersController {
       if (!isSuperAdmin) {
         if (isEmployee) {
           if (order.branchId !== user.branchId) {
-            throw new ForbiddenException('You can only access orders from your own branch');
+            throw new ForbiddenException(
+              'You can only access orders from your own branch',
+            );
           }
         } else {
           if (order.userId !== user.id) {
@@ -98,13 +103,21 @@ export class OrdersController {
       throw new NotFoundException('Order not found');
     }
 
-    const isEmployee = ['STAFF', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role);
+    const isEmployee = [
+      'STAFF',
+      'MANAGER',
+      'ADMIN',
+      'OWNER',
+      'SUPERADMIN',
+    ].includes(user.role);
     const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
 
     if (!isSuperAdmin) {
       if (isEmployee) {
         if (order.branchId !== user.branchId) {
-          throw new ForbiddenException('You can only access orders from your own branch');
+          throw new ForbiddenException(
+            'You can only access orders from your own branch',
+          );
         }
       } else {
         if (order.userId !== user.id) {
