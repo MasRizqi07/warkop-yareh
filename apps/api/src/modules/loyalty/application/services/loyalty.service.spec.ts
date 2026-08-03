@@ -69,6 +69,50 @@ describe('LoyaltyService', () => {
       );
     });
 
+    it('should prevent points race condition when 2 concurrent redemptions occur for user with points for only 1 reward', async () => {
+      let currentPoints = 200;
+      mockPrisma.$transaction.mockImplementation(async (cb: any, options: any) => {
+        if (options?.isolationLevel !== 'Serializable') {
+          throw new Error('Transaction isolation level must be Serializable');
+        }
+        const txMock = {
+          user: {
+            findUnique: jest.fn().mockImplementation(() => {
+              return { ...mockUser, loyaltyPoints: currentPoints };
+            }),
+            update: jest.fn().mockImplementation(({ data }: any) => {
+              if (data.loyaltyPoints?.decrement) {
+                if (currentPoints < data.loyaltyPoints.decrement) {
+                  throw new BadRequestException('Insufficient loyalty points');
+                }
+                currentPoints -= data.loyaltyPoints.decrement;
+              }
+              return { ...mockUser, loyaltyPoints: currentPoints };
+            }),
+          },
+          reward: {
+            findUnique: jest.fn().mockResolvedValue(mockReward),
+          },
+          loyaltyTransaction: { create: jest.fn() },
+          outboxEvent: { create: jest.fn() },
+        };
+        return cb(txMock);
+      });
+
+      const results = await Promise.allSettled([
+        service.redeemReward('user-1', 'reward-1'),
+        service.redeemReward('user-1', 'reward-1'),
+      ]);
+
+      const fulfilled = results.filter((r) => r.status === 'fulfilled');
+      const rejected = results.filter((r) => r.status === 'rejected');
+
+      expect(fulfilled).toHaveLength(1);
+      expect(rejected).toHaveLength(1);
+      expect((rejected[0] as PromiseRejectedResult).reason).toBeInstanceOf(BadRequestException);
+      expect(currentPoints).toBe(0); // Balance did NOT drop negative!
+    });
+
     it('should throw BadRequestException when user has insufficient loyalty points', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         ...mockUser,
