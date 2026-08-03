@@ -14,8 +14,7 @@ export class FranchiseService {
     agreementStart: string;
     agreementEnd?: string;
   }) {
-    const client = this.prisma as any;
-    return client.franchiseAgreement.create({
+    return this.prisma.franchiseAgreement.create({
       data: {
         ownerName: data.ownerName,
         ownerEmail: data.ownerEmail,
@@ -29,8 +28,7 @@ export class FranchiseService {
   }
 
   async getAgreement(id: string) {
-    const client = this.prisma as any;
-    return client.franchiseAgreement.findUnique({
+    return this.prisma.franchiseAgreement.findUnique({
       where: { id },
       include: {
         billings: true,
@@ -39,8 +37,7 @@ export class FranchiseService {
   }
 
   async listAgreements() {
-    const client = this.prisma as any;
-    return client.franchiseAgreement.findMany();
+    return this.prisma.franchiseAgreement.findMany();
   }
 
   async createBilling(data: {
@@ -49,8 +46,7 @@ export class FranchiseService {
     amount: number;
     dueDate: string;
   }) {
-    const client = this.prisma as any;
-    return client.franchiseBilling.create({
+    return this.prisma.franchiseBilling.create({
       data: {
         agreementId: data.agreementId,
         period: data.period,

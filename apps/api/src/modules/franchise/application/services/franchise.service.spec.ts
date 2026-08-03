@@ -53,7 +53,7 @@ describe('FranchiseService', () => {
     expect(createRes.id).toBe('agr-1');
 
     const getRes = await service.getAgreement('agr-1');
-    expect(getRes.id).toBe('agr-1');
+    expect(getRes?.id).toBe('agr-1');
 
     const listRes = await service.listAgreements();
     expect(listRes).toHaveLength(1);
