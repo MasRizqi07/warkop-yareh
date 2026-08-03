@@ -29,23 +29,21 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter @warkop-yareh/database db:generate
 
-      - name: Database Migrations
+      - name: Run Database Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: pnpm --filter @warkop-yareh/database db:migrate
+        run: pnpm --filter @warkop-yareh/database run db:migrate:deploy
 
-      - name: Build and Deploy API (ECS Fargate)
+      - name: Deploy API to Railway
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          echo "Deploying NestJS API container..."
-          # docker build -t warkop-yareh-api -f apps/api/Dockerfile .
-          # docker push ...
+          npm i -g @railway/cli
+          railway up --service api --detach
 
-      - name: Build and Deploy Frontend (Vercel)
+      - name: Deploy Frontend to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          echo "Deploying Next.js applications to Vercel..."
-          # pnpm vercel deploy --prod --token=$VERCEL_TOKEN
+          npm i -g vercel
+          vercel deploy --prod --token=$VERCEL_TOKEN --cwd apps/web --yes
