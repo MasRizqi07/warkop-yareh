@@ -76,4 +76,38 @@ describe('CommunityController (E2E / Controller)', () => {
       expect.objectContaining({ authorId: 'user_A' }),
     );
   });
+
+  it('listGroups: should list community groups with category filter', async () => {
+    communityService.listGroups = jest.fn().mockResolvedValue([]);
+
+    await request(app.getHttpServer())
+      .get('/api/v1/community/groups?category=Coffee')
+      .expect(200);
+
+    expect(communityService.listGroups).toHaveBeenCalledWith('Coffee');
+  });
+
+  it('createGroup: should allow STAFF/MANAGER/ADMIN to create a group', async () => {
+    mockUser = { id: 'admin_1', role: 'ADMIN' };
+    communityService.createGroup = jest.fn().mockResolvedValue({ id: 'group_new', name: 'Coffee Lovers' });
+
+    await request(app.getHttpServer())
+      .post('/api/v1/community/groups')
+      .send({ name: 'Coffee Lovers', category: 'Coffee' })
+      .expect(201);
+
+    expect(communityService.createGroup).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Coffee Lovers' }),
+    );
+  });
+
+  it('listPosts: should list posts for a group with pagination', async () => {
+    communityService.listPosts = jest.fn().mockResolvedValue({ data: [], total: 0 });
+
+    await request(app.getHttpServer())
+      .get('/api/v1/community/groups/group_123/posts?page=1&limit=10')
+      .expect(200);
+
+    expect(communityService.listPosts).toHaveBeenCalledWith('group_123', 1, 10);
+  });
 });

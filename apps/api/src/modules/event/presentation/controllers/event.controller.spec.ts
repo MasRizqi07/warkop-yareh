@@ -64,4 +64,45 @@ describe('EventController (E2E / Controller)', () => {
       'event_123',
     );
   });
+
+  it('listEvents: should list events with pagination and optional branchId', async () => {
+    eventService.listEvents = jest.fn().mockResolvedValue({ data: [], total: 0 });
+
+    await request(app.getHttpServer())
+      .get('/api/v1/events?page=1&limit=10&branchId=branch_1')
+      .expect(200);
+
+    expect(eventService.listEvents).toHaveBeenCalledWith('branch_1', 1, 10);
+  });
+
+  it('createEvent: should allow STAFF/MANAGER/ADMIN to create an event', async () => {
+    mockUser = { id: 'admin_1', role: 'ADMIN' };
+    eventService.createEvent = jest.fn().mockResolvedValue({ id: 'event_new', title: 'Live Music' });
+
+    await request(app.getHttpServer())
+      .post('/api/v1/events')
+      .send({
+        title: 'Live Music',
+        branchId: 'branch_1',
+        date: '2026-08-15',
+        startTime: '19:00',
+        endTime: '22:00',
+        capacity: 50,
+      })
+      .expect(201);
+
+    expect(eventService.createEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Live Music', capacity: 50 }),
+    );
+  });
+
+  it('listRegistrations: should list registrations for an event', async () => {
+    eventService.listRegistrations = jest.fn().mockResolvedValue([]);
+
+    await request(app.getHttpServer())
+      .get('/api/v1/events/event_123/registrations')
+      .expect(200);
+
+    expect(eventService.listRegistrations).toHaveBeenCalledWith('event_123');
+  });
 });

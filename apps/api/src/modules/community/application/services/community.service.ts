@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 @Injectable()
@@ -33,13 +37,20 @@ export class CommunityService {
   }
 
   async joinGroup(userId: string, groupId: string) {
-    return this.prisma.communityMembership.create({
-      data: {
-        userId,
-        groupId,
-        role: 'MEMBER',
-      },
-    });
+    try {
+      return await this.prisma.communityMembership.create({
+        data: {
+          userId,
+          groupId,
+          role: 'MEMBER',
+        },
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2002') {
+        throw new ConflictException('Already a member of this group');
+      }
+      throw error;
+    }
   }
 
   async createPost(data: {
@@ -48,6 +59,17 @@ export class CommunityService {
     content: string;
   }) {
     return this.prisma.$transaction(async (tx: any) => {
+      const membership = await tx.communityMembership.findFirst({
+        where: {
+          userId: data.authorId,
+          groupId: data.groupId,
+        },
+      });
+
+      if (!membership) {
+        throw new ForbiddenException('Must be a member of the group to post');
+      }
+
       const post = await tx.communityPost.create({
         data: {
           groupId: data.groupId,

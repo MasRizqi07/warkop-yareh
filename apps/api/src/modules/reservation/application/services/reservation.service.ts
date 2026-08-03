@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
@@ -20,6 +21,33 @@ export class ReservationService {
     specialRequests?: string;
   }) {
     return this.prisma.$transaction(async (tx: any) => {
+      if (data.tableId) {
+        const startDate = new Date(data.date);
+        startDate.setUTCHours(0, 0, 0, 0);
+        const endDate = new Date(data.date);
+        endDate.setUTCHours(23, 59, 59, 999);
+
+        const existing = await tx.reservation.findMany({
+          where: {
+            tableId: data.tableId,
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
+            status: { not: 'CANCELLED' },
+          },
+        });
+
+        const hasOverlap = existing.some((res: any) => {
+          return data.startTime < res.endTime && data.endTime > res.startTime;
+        });
+
+        if (hasOverlap) {
+          throw new ConflictException(
+            'Table is already reserved for this time slot',
+          );
+        }
+      }
       const reservation = await tx.reservation.create({
         data: {
           userId: data.userId,
