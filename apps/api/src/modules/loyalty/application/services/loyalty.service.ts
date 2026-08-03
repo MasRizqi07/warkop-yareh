@@ -64,49 +64,52 @@ export class LoyaltyService {
   }
 
   async redeemReward(userId: string, rewardId: string) {
-    return this.prisma.$transaction(async (tx: any) => {
-      const user = await tx.user.findUnique({ where: { id: userId } });
-      const reward = await tx.reward.findUnique({ where: { id: rewardId } });
+    return this.prisma.$transaction(
+      async (tx: any) => {
+        const user = await tx.user.findUnique({ where: { id: userId } });
+        const reward = await tx.reward.findUnique({ where: { id: rewardId } });
 
-      if (!user || !reward) {
-        throw new BadRequestException('User or Reward not found');
-      }
+        if (!user || !reward) {
+          throw new BadRequestException('User or Reward not found');
+        }
 
-      if (!reward.isAvailable) {
-        throw new BadRequestException('Reward is not available');
-      }
+        if (!reward.isAvailable) {
+          throw new BadRequestException('Reward is not available');
+        }
 
-      if (user.loyaltyPoints < reward.pointsCost) {
-        throw new BadRequestException('Insufficient loyalty points');
-      }
+        if (user.loyaltyPoints < reward.pointsCost) {
+          throw new BadRequestException('Insufficient loyalty points');
+        }
 
-      const updatedUser = await tx.user.update({
-        where: { id: userId },
-        data: {
-          loyaltyPoints: { decrement: reward.pointsCost },
-        },
-      });
+        const updatedUser = await tx.user.update({
+          where: { id: userId },
+          data: {
+            loyaltyPoints: { decrement: reward.pointsCost },
+          },
+        });
 
-      const transaction = await tx.loyaltyTransaction.create({
-        data: {
-          userId,
-          points: -reward.pointsCost,
-          type: 'REDEEMED',
-          description: `Redeemed reward: ${reward.name}`,
-        },
-      });
+        const transaction = await tx.loyaltyTransaction.create({
+          data: {
+            userId,
+            points: -reward.pointsCost,
+            type: 'REDEEMED',
+            description: `Redeemed reward: ${reward.name}`,
+          },
+        });
 
-      await tx.outboxEvent.create({
-        data: {
-          aggregateType: 'Reward',
-          aggregateId: rewardId,
-          eventType: 'RewardRedeemed',
-          payload: { userId, rewardId, pointsSpent: reward.pointsCost },
-        },
-      });
+        await tx.outboxEvent.create({
+          data: {
+            aggregateType: 'Reward',
+            aggregateId: rewardId,
+            eventType: 'RewardRedeemed',
+            payload: { userId, rewardId, pointsSpent: reward.pointsCost },
+          },
+        });
 
-      return { user: updatedUser, transaction };
-    });
+        return { user: updatedUser, transaction };
+      },
+      { isolationLevel: 'Serializable' },
+    );
   }
 
   async listTransactions(userId: string) {
