@@ -1,44 +1,57 @@
 name: CI
 
 on:
-  push:
-    branches: ["main"]
   pull_request:
-    branches: ["main"]
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-  build:
-    name: Build and Test
+  ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
+      # This is the exact step that was silently missing before: the repo's
+      # committed generated/client is Windows-only. Without a fresh
+      # `prisma generate` here, every test that touches PrismaService fails
+      # on this runner with PrismaClientInitializationError — same failure
+      # Claude hit auditing this branch locally. Do NOT delete this step
+      # even after generated/client is gitignored (see follow-up below).
       - name: Generate Prisma Client
-        run: pnpm --filter @warkop-yareh/database generate
+        run: pnpm --filter @warkop-yareh/database run generate
 
       - name: Typecheck
-        run: pnpm run typecheck
+        run: pnpm turbo run typecheck
 
       - name: Lint
-        run: pnpm run lint
-
-      - name: Build
-        run: pnpm run build
+        run: pnpm turbo run lint
 
       - name: Test
-        run: pnpm test
+        run: pnpm turbo run test
+        env:
+          # Dummy values only — no real DB/Redis container here because every
+          # spec Claude inspected mocks PrismaService directly. If a real
+          # integration/e2e suite against a live Postgres gets added later,
+          # add a `services: postgres:` block then — not before (YAGNI).
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci_placeholder
+          JWT_SECRET: ci-placeholder-secret-not-for-real-use-min-32-chars
+          JWT_REFRESH_SECRET: ci-placeholder-refresh-secret-not-for-real-use
+          NODE_ENV: test
