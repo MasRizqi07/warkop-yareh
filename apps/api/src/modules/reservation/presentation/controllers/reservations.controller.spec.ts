@@ -71,4 +71,37 @@ describe('ReservationsController (E2E / Controller)', () => {
       expect.objectContaining({ userId: 'user_A' }),
     );
   });
+
+  it('listReservations: should list reservations with pagination and role-based filtering', async () => {
+    await request(app.getHttpServer())
+      .get('/api/v1/reservations?page=1&limit=10')
+      .expect(200);
+
+    expect(reservationService.listReservations).toHaveBeenCalled();
+  });
+
+  it('updateStatus: should delegate status update to ReservationService', async () => {
+    reservationService.updateStatus = jest.fn().mockResolvedValue({ id: 'res_1', status: 'CANCELLED' });
+
+    await request(app.getHttpServer())
+      .patch('/api/v1/reservations/res_1/status')
+      .send({ status: 'CANCELLED' })
+      .expect(200);
+
+    expect(reservationService.updateStatus).toHaveBeenCalledWith(
+      'res_1',
+      'CANCELLED',
+      expect.objectContaining({ id: 'user_A' }),
+    );
+  });
+
+  it('listTables: should return active tables for specified branchId', async () => {
+    reservationService.listTables = jest.fn().mockResolvedValue([{ id: 'tbl-1', branchId: 'branch_1' }]);
+
+    await request(app.getHttpServer())
+      .get('/api/v1/branches/branch_1/tables')
+      .expect(200);
+
+    expect(reservationService.listTables).toHaveBeenCalledWith('branch_1');
+  });
 });

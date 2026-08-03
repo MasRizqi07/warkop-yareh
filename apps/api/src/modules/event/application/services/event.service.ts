@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 @Injectable()
@@ -51,39 +56,52 @@ export class EventService {
   }
 
   async registerForEvent(userId: string, eventId: string) {
-    return this.prisma.$transaction(async (tx: any) => {
-      const event = await tx.event.findUnique({
-        where: { id: eventId },
-        include: { _count: { select: { registrations: true } } },
-      });
+    return this.prisma.$transaction(
+      async (tx: any) => {
+        const event = await tx.event.findUnique({
+          where: { id: eventId },
+        });
 
-      if (!event) {
-        throw new BadRequestException('Event not found');
-      }
+        if (!event) {
+          throw new NotFoundException('Event not found');
+        }
 
-      if (event._count.registrations >= event.capacity) {
-        throw new BadRequestException('Event is fully booked');
-      }
+        const registrationCount = await tx.eventRegistration.count({
+          where: { eventId, status: 'REGISTERED' },
+        });
 
-      const registration = await tx.eventRegistration.create({
-        data: {
-          userId,
-          eventId,
-          status: 'REGISTERED',
-        },
-      });
+        if (registrationCount >= event.capacity) {
+          throw new BadRequestException('Event is fully booked');
+        }
 
-      await tx.outboxEvent.create({
-        data: {
-          aggregateType: 'EventRegistration',
-          aggregateId: registration.id,
-          eventType: 'EventRegistered',
-          payload: { registrationId: registration.id, eventId, userId },
-        },
-      });
+        try {
+          const registration = await tx.eventRegistration.create({
+            data: {
+              userId,
+              eventId,
+              status: 'REGISTERED',
+            },
+          });
 
-      return registration;
-    });
+          await tx.outboxEvent.create({
+            data: {
+              aggregateType: 'EventRegistration',
+              aggregateId: registration.id,
+              eventType: 'EventRegistered',
+              payload: { registrationId: registration.id, eventId, userId },
+            },
+          });
+
+          return registration;
+        } catch (error: any) {
+          if (error?.code === 'P2002') {
+            throw new ConflictException('Already registered for this event');
+          }
+          throw error;
+        }
+      },
+      { isolationLevel: 'Serializable' },
+    );
   }
 
   async listRegistrations(eventId: string) {
