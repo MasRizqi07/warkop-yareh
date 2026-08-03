@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
+import { Prisma } from '@warkop-yareh/database';
 
 @Injectable()
 export class LoyaltyService {
@@ -19,7 +20,7 @@ export class LoyaltyService {
   }
 
   async awardPoints(userId: string, points: number, reason: string) {
-    return this.prisma.$transaction(async (tx: any) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const user = await tx.user.update({
         where: { id: userId },
         data: {
@@ -65,7 +66,7 @@ export class LoyaltyService {
 
   async redeemReward(userId: string, rewardId: string) {
     return this.prisma.$transaction(
-      async (tx: any) => {
+      async (tx: Prisma.TransactionClient) => {
         const user = await tx.user.findUnique({ where: { id: userId } });
         const reward = await tx.reward.findUnique({ where: { id: rewardId } });
 

@@ -62,6 +62,35 @@ describe('FranchiseController (E2E / Controller)', () => {
       .expect(403);
   });
 
+  it('POST /api/v1/franchise/agreements should return 403 Forbidden for CUSTOMER role', async () => {
+    mockUser = { id: 'user_A', role: 'CUSTOMER' };
+
+    await request(app.getHttpServer())
+      .post('/api/v1/franchise/agreements')
+      .send({
+        ownerName: 'Budi',
+        ownerEmail: 'budi@example.com',
+        branchId: 'branch_1',
+        monthlyFee: 5000000,
+        agreementStart: '2026-01-01',
+      })
+      .expect(403);
+  });
+
+  it('POST /api/v1/franchise/billings should return 403 Forbidden for STAFF role', async () => {
+    mockUser = { id: 'staff_1', role: 'STAFF' };
+
+    await request(app.getHttpServer())
+      .post('/api/v1/franchise/billings')
+      .send({
+        agreementId: 'agr_1',
+        period: '2026-08',
+        amount: 5000000,
+        dueDate: '2026-08-10',
+      })
+      .expect(403);
+  });
+
   it('GET /api/v1/franchise/agreements should allow ADMIN role', async () => {
     mockUser = { id: 'admin_1', role: 'ADMIN' };
 
