@@ -1,0 +1,531 @@
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ══════════════════════════════════════════
+   WARKOP YA'REH — DESIGN TOKENS v2.0
+   ══════════════════════════════════════════ */
+
+:root {
+  /* ── Tier 1 Primitives ── */
+  /* Coffee ramp */
+  --coffee-100: #ffdcbf;
+  --coffee-300: #f7bb82;
+  --coffee-500: #9c6b3a;
+  --coffee-700: #663d10;
+  --coffee-900: #2d1600;
+
+  /* Cream / secondary ramp */
+  --cream-100: #ffdf9f;
+  --cream-300: #e6c278;
+  --cream-500: #5e4505;
+  --cream-900: #261a00;
+
+  /* Gold / tertiary ramp (loyalty, highlights) */
+  --gold-100: #ffddb8;
+  --gold-300: #ffb95f;
+  --gold-500: #f59e0b;
+  --gold-700: #a56800;
+
+  /* Neutrals */
+  --neutral-0: #ffffff;
+  --neutral-50: #f8fafc;
+  --neutral-100: #e5e1e4;
+  --neutral-800: #313032;
+  --neutral-900: #201f21;
+  --neutral-950: #0e0e10;
+
+  /* Status */
+  --red-500: #ffb4ab;
+  --red-container: #93000a;
+  --green-500: #22c55e;
+  --amber-500: #eab308;
+
+  /* ── Tier 2 Semantic (Default: Dark Theme Signature) ── */
+  --bg-canvas: var(--neutral-950);
+  --bg-surface: var(--neutral-900);
+  --bg-surface-raised: #2a2a2c;
+  --bg-surface-overlay: #353437;
+
+  --text-primary: var(--neutral-100);
+  --text-secondary: #d5c3b6;
+  --text-on-brand: var(--coffee-900);
+
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong: #51453a;
+
+  --accent-fill: var(--coffee-300);
+  --accent-fill-hover: var(--coffee-100);
+  --accent-container: var(--coffee-500);
+  --accent-container-text: var(--neutral-0);
+
+  --secondary-fill: var(--cream-300);
+  --secondary-container: var(--cream-500);
+
+  --gold-highlight: var(--gold-300);
+  --gold-container: var(--gold-700);
+
+  --danger-fill: var(--red-500);
+  --danger-container: var(--red-container);
+
+  --glass-bg: rgba(10,10,12,0.85);
+  --glass-border: rgba(255,255,255,0.10);
+
+  /* ── Tier 3 Component Tokens ── */
+  --button-primary-bg: var(--accent-fill);
+  --button-primary-text: var(--text-on-brand);
+  --button-primary-bg-hover: var(--accent-fill-hover);
+
+  --card-bg: var(--bg-surface-raised);
+  --card-border: var(--border-default);
+
+  --input-bg: var(--bg-surface-overlay);
+  --input-focus-ring: var(--gold-highlight);
+
+  --badge-status-queue: var(--gold-container);
+  --badge-status-done: var(--green-500);
+  --badge-status-critical: var(--danger-fill);
+
+  /* ── Legacy Mappings & Aliases ── */
+  --surface-base: var(--bg-canvas);
+  --surface-primary: var(--bg-canvas);
+  --surface-secondary: var(--bg-surface);
+  --surface-tertiary: var(--bg-surface-overlay);
+  --surface-elevated: var(--bg-surface-raised);
+  --surface-raised: var(--bg-surface-raised);
+  --surface-overlay: var(--bg-surface-overlay);
+  --surface-sheet: var(--bg-surface-overlay);
+  --surface-glass: var(--glass-bg);
+  --surface-border: var(--border-default);
+  --surface-divider: var(--border-default);
+  --border-subtle: var(--border-default);
+
+  --text-tertiary: var(--neutral-800);
+  --text-inverse: var(--neutral-0);
+  --text-brand: var(--accent-fill);
+
+  --color-primary: var(--accent-fill);
+  --color-accent: var(--gold-highlight);
+  --interactive-primary: var(--accent-fill);
+  --interactive-primary-hover: var(--accent-fill-hover);
+  --interactive-secondary: var(--bg-surface-overlay);
+  --interactive-secondary-hover: var(--bg-surface-raised);
+}
+
+/* ── Dark Theme Overrides ── */
+[data-theme="dark"],
+.dark {
+  --bg-canvas: var(--neutral-950);
+  --bg-surface: var(--neutral-900);
+  --bg-surface-raised: #2a2a2c;
+  --bg-surface-overlay: #353437;
+
+  --text-primary: var(--neutral-100);
+  --text-secondary: #d5c3b6;
+  --text-on-brand: var(--coffee-900);
+
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong: #51453a;
+
+  --accent-fill: var(--coffee-300);
+  --accent-fill-hover: var(--coffee-100);
+  --accent-container: var(--coffee-500);
+  --accent-container-text: var(--neutral-0);
+
+  --secondary-fill: var(--cream-300);
+  --secondary-container: var(--cream-500);
+
+  --gold-highlight: var(--gold-300);
+  --gold-container: var(--gold-700);
+
+  --danger-fill: var(--red-500);
+  --danger-container: var(--red-container);
+
+  --glass-bg: rgba(10,10,12,0.85);
+  --glass-border: rgba(255,255,255,0.10);
+}
+
+/* ── Light Theme Overrides ── */
+[data-theme="light"],
+.light {
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #ffffff;
+  --bg-surface-overlay: #f1f5f9;
+
+  --text-primary: #0f172a;
+  --text-secondary: #51453a;
+  --text-on-brand: #ffffff;
+
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --accent-fill: var(--coffee-500);
+  --accent-fill-hover: var(--coffee-700);
+  --accent-container: var(--coffee-100);
+  --accent-container-text: var(--coffee-900);
+
+  --secondary-fill: var(--cream-500);
+  --secondary-container: #fff3d9;
+
+  --gold-highlight: var(--gold-500);
+  --gold-container: var(--gold-100);
+
+  --danger-fill: #dc2626;
+  --danger-container: #fee2e2;
+
+  --glass-bg: rgba(255,255,255,0.80);
+  --glass-border: rgba(15,23,42,0.08);
+}
+
+@theme {
+  /* ── Coffee Brown (Primary) ── */
+  --color-primary-50:  #FDF6F0;
+  --color-primary-100: #FAEBE0;
+  --color-primary-200: #F5D4BB;
+  --color-primary-300: #EAAE88;
+  --color-primary-400: #DC8050;
+  --color-primary-500: #C4622D;
+  --color-primary-600: #A8491E;
+  --color-primary-700: #8B3516;
+  --color-primary-800: #6E2511;
+  --color-primary-900: #4F190C;
+
+  /* ── Cream Beige (Secondary) ── */
+  --color-secondary-50:  #FEFCF7;
+  --color-secondary-100: #FDF8ED;
+  --color-secondary-200: #FAF0D7;
+  --color-secondary-300: #F5E3B4;
+  --color-secondary-400: #EED086;
+  --color-secondary-500: #E3B95A;
+  --color-secondary-600: #C99C3A;
+  --color-secondary-700: #A67D27;
+  --color-secondary-800: #826018;
+  --color-secondary-900: #5C430E;
+
+  /* ── Premium Gold (Accent) ── */
+  --color-accent-50:  #FFFDF0;
+  --color-accent-100: #FFF9D6;
+  --color-accent-200: #FFF0A3;
+  --color-accent-300: #FFE366;
+  --color-accent-400: #FFD033;
+  --color-accent-500: #FFBA00;
+  --color-accent-600: #CC9400;
+  --color-accent-700: #996E00;
+  --color-accent-800: #664A00;
+  --color-accent-900: #332500;
+
+  /* ── Slate Neutral ── */
+  --color-neutral-0:   #FFFFFF;
+  --color-neutral-50:  #F8F9FA;
+  --color-neutral-100: #F1F3F5;
+  --color-neutral-200: #E9ECEF;
+  --color-neutral-300: #DEE2E6;
+  --color-neutral-400: #CED4DA;
+  --color-neutral-500: #ADB5BD;
+  --color-neutral-600: #868E96;
+  --color-neutral-700: #495057;
+  --color-neutral-800: #343A40;
+  --color-neutral-850: #212529;
+  --color-neutral-900: #141517;
+  --color-neutral-950: #0C0D0E;
+
+  /* ── Functional Colors ── */
+  --color-success-50:  #ECFDF5;
+  --color-success-500: #10B981;
+  --color-success-600: #059669;
+  --color-warning-50:  #FFFBEB;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-error-50:    #FFF1F2;
+  --color-error-500:   #F43F5E;
+  --color-error-600:   #E11D48;
+  --color-info-500:    #3B82F6;
+  --color-info-600:    #2563EB;
+
+  /* ── Brand Alias Colors ── */
+  --color-java-green:    #22C55E;
+  --color-coffee-bean:   #2D1B0E;
+  --color-roasted-black: #1A1614;
+  --color-steam-white:   #FDFAF3;
+  --color-background: var(--surface-base);
+
+  /* ── Custom Token Maps ── */
+  --color-bg-canvas: var(--bg-canvas);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-raised: var(--bg-surface-raised);
+  --color-bg-surface-overlay: var(--bg-surface-overlay);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-on-brand: var(--text-on-brand);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-fill-hover: var(--accent-fill-hover);
+  --color-accent-container: var(--accent-container);
+  --color-accent-container-text: var(--accent-container-text);
+  --color-secondary-fill: var(--secondary-fill);
+  --color-secondary-container: var(--secondary-container);
+  --color-gold-highlight: var(--gold-highlight);
+  --color-gold-container: var(--gold-container);
+  --color-danger-fill: var(--danger-fill);
+  --color-danger-container: var(--danger-container);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+
+  --color-button-primary-bg: var(--button-primary-bg);
+  --color-button-primary-text: var(--button-primary-text);
+  --color-button-primary-bg-hover: var(--button-primary-bg-hover);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-input-bg: var(--input-bg);
+  --color-input-focus-ring: var(--input-focus-ring);
+  --color-badge-status-queue: var(--badge-status-queue);
+  --color-badge-status-done: var(--badge-status-done);
+  --color-badge-status-critical: var(--badge-status-critical);
+
+  /* ── Custom Theme Layouts ── */
+  --spacing-stack-sm: 8px;
+  --spacing-stack-md: 16px;
+  --spacing-stack-lg: 32px;
+
+  --radius-button: 8px;
+  --radius-input: 8px;
+  --radius-card: 16px;
+  --radius-modal: 16px;
+
+  /* ── Font Families ── */
+  --font-display: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  --font-heading: var(--font-geist-sans), system-ui, sans-serif;
+  --font-body: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Fira Code', monospace;
+  --font-accent: 'Playfair Display', Georgia, serif;
+
+  /* ── Type Scale — Perfect Fourth ×1.333 ── */
+  --text-display-2xl: clamp(3.5rem, 8vw, 7rem);
+  --text-display-xl:  clamp(2.75rem, 6vw, 5.25rem);
+  --text-display-lg:  clamp(2.25rem, 5vw, 4rem);
+  --text-h1: clamp(2rem, 4vw, 3rem);
+  --text-h2: clamp(1.5rem, 3vw, 2.25rem);
+  --text-h3: clamp(1.25rem, 2.5vw, 1.75rem);
+  --text-h4: 1.25rem;
+  --text-h5: 1.125rem;
+  --text-h6: 1rem;
+  --text-lg:   1.125rem;
+  --text-base: 1rem;
+  --text-sm:   0.875rem;
+  --text-xs:   0.75rem;
+
+  /* ── Line Heights ── */
+  --leading-display: 1.1;
+  --leading-heading: 1.25;
+  --leading-body:    1.6;
+  --leading-relaxed: 1.75;
+
+  /* ── Letter Spacing ── */
+  --tracking-display: -0.04em;
+  --tracking-heading: -0.025em;
+  --tracking-body:    0;
+  --tracking-label:   0.05em;
+  --tracking-caps:    0.1em;
+
+  /* ── Font Weights ── */
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+  --weight-black:     900;
+
+  /* ── Spacing Scale (4px base) ── */
+  --spacing-0:   0;
+  --spacing-1:   0.25rem;
+  --spacing-2:   0.5rem;
+  --spacing-3:   0.75rem;
+  --spacing-4:   1rem;
+  --spacing-5:   1.25rem;
+  --spacing-6:   1.5rem;
+  --spacing-8:   2rem;
+  --spacing-10:  2.5rem;
+  --spacing-12:  3rem;
+  --spacing-16:  4rem;
+  --spacing-20:  5rem;
+  --spacing-24:  6rem;
+  --spacing-32:  8rem;
+  --spacing-40:  10rem;
+  --spacing-48:  12rem;
+
+  /* ── Section Spacing ── */
+  --section-sm:  4rem;
+  --section-md:  6rem;
+  --section-lg:  8rem;
+  --section-xl:  10rem;
+
+  /* ── Container Widths ── */
+  --container-sm:  640px;
+  --container-md:  768px;
+  --container-lg:  1024px;
+  --container-xl:  1280px;
+  --container-2xl: 1440px;
+  --container-max: 1600px;
+
+  /* ── Light Mode Shadows ── */
+  --shadow-xs:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:   0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:   0 4px 8px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg:   0 8px 24px rgba(0,0,0,0.09), 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-xl:   0 16px 48px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
+  --shadow-2xl:  0 24px 64px rgba(0,0,0,0.16), 0 12px 24px rgba(0,0,0,0.10);
+
+  /* ── Brand Glow Shadows ── */
+  --shadow-glow-primary: 0 0 32px rgba(196, 98, 45, 0.35);
+  --shadow-glow-gold:    0 0 32px rgba(255, 186, 0, 0.3);
+  --shadow-glow-soft:    0 8px 32px rgba(196, 98, 45, 0.15);
+  --shadow-card-hover:   0 20px 60px rgba(0,0,0,0.12), 0 8px 24px rgba(196,98,45,0.08);
+
+  /* ── Border Radius ── */
+  --radius-none: 0;
+  --radius-xs:   0.125rem;
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-2xl:  1.25rem;
+  --radius-3xl:  1.5rem;
+  --radius-4xl:  2rem;
+  --radius-full: 9999px;
+
+  /* ── Animation ── */
+  --ease-spring:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo:  cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-enter:     cubic-bezier(0.0, 0.0, 0.2, 1.0);
+  --ease-exit:      cubic-bezier(0.4, 0.0, 1.0, 1.0);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1.0);
+  --duration-instant: 50ms;
+  --duration-micro:   150ms;
+  --duration-fast:    200ms;
+  --duration-normal:  300ms;
+  --duration-smooth:  400ms;
+  --duration-slow:    600ms;
+  --duration-very-slow: 800ms;
+}
+
+/* ── Elevation Level Classes ── */
+.elevation-l1 {
+  background-color: var(--bg-surface);
+  box-shadow: none;
+}
+
+.elevation-l2 {
+  background-color: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  box-shadow: none;
+  transition: transform var(--duration-normal) var(--ease-spring),
+              border-color var(--duration-normal) var(--ease-spring),
+              box-shadow var(--duration-normal) var(--ease-spring);
+}
+
+[data-theme="light"] .elevation-l2,
+.light .elevation-l2 {
+  box-shadow: var(--shadow-sm);
+}
+
+.elevation-l2:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-fill);
+}
+
+[data-theme="light"] .elevation-l2:hover,
+.light .elevation-l2:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.elevation-l3-glass {
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+/* ── Typography Scale Helpers ── */
+.font-headline-xl {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+@media (min-width: 768px) {
+  .font-headline-xl {
+    font-size: 48px;
+  }
+}
+
+.font-headline-lg {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.font-headline-md {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.font-body-lg {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.font-body-md {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.font-body-sm {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.font-label-md {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.font-label-sm {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* ── Spacing Aliases ── */
+.gap-stack-sm {
+  gap: var(--spacing-stack-sm);
+}
+.gap-stack-md {
+  gap: var(--spacing-stack-md);
+}
+.gap-stack-lg {
+  gap: var(--spacing-stack-lg);
+}
+
+.space-y-stack-sm > * + * {
+  margin-top: var(--spacing-stack-sm);
+}
+.space-y-stack-md > * + * {
+  margin-top: var(--spacing-stack-md);
+}
+.space-y-stack-lg > * + * {
+  margin-top: var(--spacing-stack-lg);
+}
+
