@@ -58,9 +58,9 @@ An item or feature in this roadmap is only marked as complete `[x]` when it sati
   - Loyalty Conversion: 35% signup rate.
   - System Reliability: 99.9% uptime.
 - **Key Deliverables**:
-  - [ ] Real-time order status tracking via Server-Sent Events (SSE).
-  - [ ] Branch-specific price overrides and product availability controls.
-  - [ ] Points ledger and loyalty tier tracking (Bronze, Silver, Gold, Platinum).
+  - [x] Real-time order status tracking via WebSockets (Socket.IO).
+  - [x] Branch-specific price overrides and product availability controls.
+  - [x] Points ledger and loyalty tier tracking (Bronze, Silver, Gold, Platinum).
   - [ ] Automated email and WhatsApp check-in confirmations.
 
 ---
@@ -75,7 +75,7 @@ An item or feature in this roadmap is only marked as complete `[x]` when it sati
   - System Reliability: 99.9% uptime.
 - **Key Deliverables**:
   - [ ] Edge caching of menu structures using Cloudflare Workers.
-  - [ ] **Community Domain launch**: Threaded discussion boards, user profiles with GitHub integration, local interest tags, and branch-specific networking systems.
+  - [ ] **Community Domain launch**: Threaded discussion boards, user profiles with GitHub integration, local interest tags, and branch-specific networking systems. *(partial: group creation, memberships, and posts done; GitHub integration, interest tags, and branch networking pending)*
   - [ ] **AI Concierge launch**: Google Gemini integration for conversational menu selections and up-selling recommendations.
   - [ ] Multi-region database read-replicas.
 
@@ -90,7 +90,7 @@ An item or feature in this roadmap is only marked as complete `[x]` when it sati
   - Provisioning Time: < 4 hours per branch.
   - System Reliability: 99.9% uptime.
 - **Key Deliverables**:
-  - [ ] **RLS Global Activation**: Row-level tenant isolation schemas forced globally in production database instances.
-  - [ ] Automated franchise provisioning tools.
-  - [ ] Business Intelligence (BI) gross sales reports.
-  - [ ] Multi-tenant billing and agreement tracking.
+  - [x] **RLS Global Activation**: Row-level tenant isolation schemas forced globally in production database instances.
+  - [ ] Automated franchise provisioning tools. *(partial: manual agreement creation exists, automated infra provisioning pending)*
+  - [ ] Business Intelligence (BI) gross sales reports. *(partial: basic revenue stats & category performance done, full BI suite pending)*
+  - [x] Multi-tenant billing and agreement tracking.
