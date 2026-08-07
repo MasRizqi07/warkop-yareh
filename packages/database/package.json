@@ -6,10 +6,11 @@
   "scripts": {
     "db:push": "prisma db push --schema=./prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema=./prisma/schema.prisma",
     "db:seed": "ts-node -e \"require('dotenv').config()\" ./prisma/seed.ts",
     "db:reset": "prisma migrate reset --schema=./prisma/schema.prisma",
     "db:studio": "prisma studio --schema=./prisma/schema.prisma",
-    "generate": "prisma generate --schema=./prisma/schema.prisma"
+    "db:generate": "prisma generate --schema=./prisma/schema.prisma"
   },
   "prisma": {
     "seed": "ts-node ./prisma/seed.ts"
