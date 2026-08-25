@@ -8,9 +8,12 @@ import { JwtRefreshStrategy } from './jwt-refresh.strategy';
   imports: [
     PassportModule,
     JwtModule.register({
-      secret:
-        process.env.JWT_SECRET ||
-        'change-this-to-a-random-256bit-secret-minimum-32-chars',
+      secret: (() => {
+        if (!process.env.JWT_SECRET) {
+          throw new Error('JWT_SECRET environment variable is required');
+        }
+        return process.env.JWT_SECRET;
+      })(),
       signOptions: { expiresIn: '15m' }, // Access token 15min per PRD
     }),
   ],

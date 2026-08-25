@@ -19,9 +19,12 @@ export class JwtRefreshStrategy extends PassportStrategy(
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey:
-        process.env.JWT_REFRESH_SECRET ||
-        'change-this-to-another-different-256bit-secret',
+      secretOrKey: (() => {
+        if (!process.env.JWT_REFRESH_SECRET) {
+          throw new Error('JWT_REFRESH_SECRET environment variable is required');
+        }
+        return process.env.JWT_REFRESH_SECRET;
+      })(),
       passReqToCallback: true,
     });
   }

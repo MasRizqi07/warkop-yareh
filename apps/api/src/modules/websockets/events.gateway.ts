@@ -37,7 +37,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const payload = this.jwtService.verify(authToken, {
-        secret: process.env.JWT_SECRET || 'fallback_secret',
+        secret: (() => {
+          if (!process.env.JWT_SECRET) {
+            throw new Error('JWT_SECRET environment variable is required');
+          }
+          return process.env.JWT_SECRET;
+        })(),
       });
       client.data.user = payload;
       this.logger.log(`Client connected: ${client.id}`);

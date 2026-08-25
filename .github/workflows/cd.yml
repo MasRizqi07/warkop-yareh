@@ -1,50 +1,45 @@
-name: CD
+name: CD — Database Migrations
+
+# Railway's native GitHub integration handles deploy (auto-build on push to main).
+# This workflow handles only what Railway can't: database migrations.
+# It runs AFTER CI passes, gated by workflow_run.
 
 on:
-  push:
-    branches: ["main"]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Production Deployment
+  migrate:
+    name: Run Database Migrations
     runs-on: ubuntu-latest
+    # Only run if CI passed (or manual dispatch)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm --filter @warkop-yareh/database db:generate
+        run: pnpm --filter @warkop-yareh/database run db:generate
 
-      - name: Run Database Migrations
+      - name: Run Database Migrations (production)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm --filter @warkop-yareh/database run db:migrate:deploy
-
-      - name: Deploy API to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          npm i -g @railway/cli
-          railway up --service api --detach
-
-      - name: Deploy Frontend to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          npm i -g vercel
-          vercel deploy --prod --token=$VERCEL_TOKEN --cwd apps/web --yes

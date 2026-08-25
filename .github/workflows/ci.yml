@@ -36,7 +36,7 @@ jobs:
       # Claude hit auditing this branch locally. Do NOT delete this step
       # even after generated/client is gitignored (see follow-up below).
       - name: Generate Prisma Client
-        run: pnpm --filter @warkop-yareh/database run generate
+        run: pnpm --filter @warkop-yareh/database run db:generate
 
       - name: Typecheck
         run: pnpm turbo run typecheck
@@ -57,4 +57,5 @@ jobs:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/ci_placeholder
           JWT_SECRET: ci-placeholder-secret-not-for-real-use-min-32-chars
           JWT_REFRESH_SECRET: ci-placeholder-refresh-secret-not-for-real-use
+          MIDTRANS_SERVER_KEY: ci-placeholder-midtrans-key
           NODE_ENV: test

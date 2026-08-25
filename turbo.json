@@ -20,7 +20,14 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "JWT_SECRET",
+        "JWT_REFRESH_SECRET",
+        "MIDTRANS_SERVER_KEY",
+        "NODE_ENV"
+      ]
     }
   }
 }

@@ -43,9 +43,12 @@ export class AuthService {
 
     // Refresh token lives for 7 days
     const refreshToken = this.jwtService.sign(payload, {
-      secret:
-        process.env.JWT_REFRESH_SECRET ||
-        'change-this-to-another-different-256bit-secret',
+      secret: (() => {
+        if (!process.env.JWT_REFRESH_SECRET) {
+          throw new Error('JWT_REFRESH_SECRET environment variable is required');
+        }
+        return process.env.JWT_REFRESH_SECRET;
+      })(),
       expiresIn: '7d',
     });
 

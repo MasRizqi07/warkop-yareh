@@ -50,7 +50,10 @@ export class PaymentController {
   @Post('webhook')
   @ApiOperation({ summary: 'Midtrans Webhook Callback' })
   async handleWebhook(@Body() body: any) {
-    const serverKey = process.env.MIDTRANS_SERVER_KEY || '';
+    if (!process.env.MIDTRANS_SERVER_KEY) {
+      throw new Error('MIDTRANS_SERVER_KEY environment variable is required');
+    }
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
 
     // Verify signature
     const signatureKey = crypto

@@ -43,13 +43,20 @@ async function bootstrap() {
   );
 
   // ── CORS ──────────────────────────────────────────────────────────────────
-  app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL ?? 'http://localhost:3000',
-      // Allow POS and Kitchen apps
+  const corsOrigins: string[] = [];
+  if (process.env.FRONTEND_URL) corsOrigins.push(process.env.FRONTEND_URL);
+  if (process.env.ADMIN_URL) corsOrigins.push(process.env.ADMIN_URL);
+  if (process.env.NODE_ENV !== 'production') {
+    // Allow localhost origins only in development
+    corsOrigins.push(
+      'http://localhost:3000',
+      'http://localhost:3001',
       'http://localhost:3002',
       'http://localhost:3003',
-    ],
+    );
+  }
+  app.enableCors({
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
