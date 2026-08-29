@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore } from "@/stores";
-import { products } from "@/data/mock";
+import { api } from "@/lib/api";
+import type { Product } from "@warkop-yareh/types";
 import { 
   IconLocation, 
   IconSearch, 
@@ -14,24 +15,115 @@ import {
   IconCart 
 } from "@/lib/icons";
 
+interface CategoryItem {
+  id: string;
+  label: string;
+}
+
+interface ApiCategory {
+  id?: string;
+  name: string;
+  slug?: string;
+}
+
+interface ApiProduct {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  image?: string;
+  category?: { slug?: string; name?: string };
+  categoryId?: string;
+  tags?: string[];
+  isPopular?: boolean;
+  isNew?: boolean;
+  rating?: number;
+  reviewCount?: number;
+  preparationTime?: number;
+  calories?: number;
+}
+
 export default function MenuPage() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [branch, setBranch] = useState("darmo");
+  const [branch, setBranch] = useState("coldnbrew-gubeng-001");
+  const [productsList, setProductsList] = useState<Product[]>([]);
+  const [categoriesList, setCategoriesList] = useState<CategoryItem[]>([
+    { id: "all", label: "All Menu" },
+  ]);
+  const [isLoading, setIsLoading] = useState(true);
   const { itemCount, addItem, toggleCart } = useCartStore();
   
   const count = itemCount();
 
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchCatalog() {
+      try {
+        setIsLoading(true);
+        const res = await api.get(`/catalog?branchId=${branch}`);
+        if (res.data?.data && isMounted) {
+          const { categories, products: rawProducts } = res.data.data;
+          
+          if (categories && Array.isArray(categories)) {
+            const apiCats: ApiCategory[] = categories;
+            setCategoriesList([
+              { id: "all", label: "All Menu" },
+              ...apiCats.map((c) => ({
+                id: c.slug || c.id || c.name.toLowerCase(),
+                label: c.name,
+              })),
+            ]);
+          }
+
+          if (rawProducts && Array.isArray(rawProducts)) {
+            const apiProds: ApiProduct[] = rawProducts;
+            const mapped: Product[] = apiProds.map((p) => ({
+              id: p.id,
+              name: p.name,
+              description: p.description || "",
+              price: p.price,
+              image:
+                p.image && p.image.startsWith("http")
+                  ? p.image
+                  : "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA",
+              category: p.category?.slug || p.category?.name || "espresso",
+              tags: p.tags || [],
+              isPopular: p.isPopular ?? false,
+              isNew: p.isNew ?? false,
+              rating: p.rating || 4.8,
+              reviewCount: p.reviewCount || 0,
+              preparationTime: p.preparationTime || 5,
+              calories: p.calories || 120,
+              branchAvailability: [branch],
+            }));
+            setProductsList(mapped);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load catalog:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    fetchCatalog();
+    return () => {
+      isMounted = false;
+    };
+  }, [branch]);
+
   // Filter products by category and search query
   const filteredProducts = useMemo(() => {
-    let result = [...products];
-
-    // Filter by branch availability if applicable
-    result = result.filter((p) => p.branchAvailability?.includes(branch) ?? true);
+    let result = [...productsList];
 
     // Filter by category
     if (activeCategory !== "all") {
-      result = result.filter((p) => p.category === activeCategory);
+      result = result.filter(
+        (p) =>
+          p.category?.toLowerCase() === activeCategory.toLowerCase() ||
+          p.tags?.some((t) => t.toLowerCase() === activeCategory.toLowerCase()),
+      );
     }
 
     // Filter by search
@@ -41,12 +133,12 @@ export default function MenuPage() {
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q) ||
-          p.tags?.some((t: string) => t.includes(q))
+          p.tags?.some((t: string) => t.toLowerCase().includes(q)),
       );
     }
 
     return result;
-  }, [search, activeCategory, branch]);
+  }, [search, activeCategory, productsList]);
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen">
@@ -73,6 +165,7 @@ export default function MenuPage() {
                   onChange={(e) => setBranch(e.target.value)}
                   className="bg-transparent border-none p-0 font-headline-md text-headline-md text-primary dark:text-primary-fixed focus:ring-0 cursor-pointer outline-none"
                 >
+                  <option value="coldnbrew-gubeng-001" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Gubeng (Surabaya)</option>
                   <option value="darmo" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Darmo</option>
                   <option value="dharmahusada" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Dharmahusada</option>
                 </select>
@@ -94,13 +187,7 @@ export default function MenuPage() {
 
         {/* Categories Bar */}
         <nav className="flex gap-4 mb-10 overflow-x-auto pb-4 custom-scroll no-scrollbar">
-          {[
-            { id: "all", label: "All Menu" },
-            { id: "coffee", label: "Coffee" },
-            { id: "non-coffee", label: "Non-Coffee" },
-            { id: "food", label: "Food" },
-            { id: "snacks", label: "Snacks" }
-          ].map((cat) => {
+          {categoriesList.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
@@ -200,8 +287,10 @@ export default function MenuPage() {
             ) : (
               <div className="col-span-full text-center py-24 glass-card rounded-2xl border border-white/5">
                 <IconSearchOff size={48} className="text-outline mb-2 mx-auto" />
-                <h3 className="text-lg font-bold">No items found</h3>
-                <p className="text-sm text-on-surface-variant/70 mt-1">Try another search keyword or category.</p>
+                <h3 className="text-lg font-bold">{isLoading ? "Loading menu..." : "No items found"}</h3>
+                <p className="text-sm text-on-surface-variant/70 mt-1">
+                  {isLoading ? "Fetching fresh products from kitchen..." : "Try another search keyword or category."}
+                </p>
               </div>
             )}
           </AnimatePresence>

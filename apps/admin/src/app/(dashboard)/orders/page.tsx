@@ -15,17 +15,76 @@ interface Order {
   type: "DINE-IN" | "TAKEAWAY";
 }
 
+interface ApiOrder {
+  id: string;
+  orderNumber: string;
+  customerName?: string;
+  user?: { name?: string };
+  items?: unknown[];
+  total?: number;
+  status?: "PENDING" | "PREPARING" | "READY" | "COMPLETED" | "CANCELLED";
+  createdAt: string;
+  type?: string;
+}
+
 export default function OrdersPage() {
   const [filter, setFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const orders: Order[] = [
-    { id: "1", orderNumber: "WY-20260611-1002", customerName: "Andi Wijaya", itemsCount: 3, total: "Rp 128,000", status: "PENDING", time: "2 mins ago", type: "DINE-IN" },
-    { id: "2", orderNumber: "WY-20260611-1001", customerName: "Siti Rahma", itemsCount: 1, total: "Rp 35,000", status: "PREPARING", time: "10 mins ago", type: "TAKEAWAY" },
-    { id: "3", orderNumber: "WY-20260611-0998", customerName: "Budi Santoso", itemsCount: 2, total: "Rp 75,000", status: "READY", time: "15 mins ago", type: "DINE-IN" },
-    { id: "4", orderNumber: "WY-20260611-0995", customerName: "Dewi Lestari", itemsCount: 4, total: "Rp 195,000", status: "COMPLETED", time: "1 hour ago", type: "DINE-IN" },
-    { id: "5", orderNumber: "WY-20260611-0990", customerName: "Eko Prasetyo", itemsCount: 2, total: "Rp 64,000", status: "CANCELLED", time: "2 hours ago", type: "TAKEAWAY" },
-  ];
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+      const res = await fetch(`${apiUrl}/orders`);
+      const json = await res.json();
+      const list: ApiOrder[] = json.data || [];
+
+      if (Array.isArray(list) && list.length > 0) {
+        const mapped: Order[] = list.map((o) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          customerName: o.customerName || o.user?.name || "Customer",
+          itemsCount: o.items?.length || 0,
+          total: `Rp ${(o.total || 0).toLocaleString("id-ID")}`,
+          status: o.status || "PENDING",
+          time: new Date(o.createdAt).toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          type: o.type === "DINE_IN" ? "DINE-IN" : "TAKEAWAY",
+        }));
+        setOrders(mapped);
+      } else {
+        setOrders([]);
+      }
+    } catch (err) {
+      console.error("Failed to load admin orders:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+      await fetch(`${apiUrl}/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      fetchOrders();
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
 
   const filteredOrders = orders.filter((order) => {
     const matchesFilter = filter === "ALL" || order.status === filter;
@@ -94,7 +153,7 @@ export default function OrdersPage() {
               {filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-xs text-[var(--text-tertiary)] font-sans">
-                    No orders found matching the filter criteria.
+                    {isLoading ? "Loading orders from server..." : "No orders found matching the filter criteria."}
                   </td>
                 </tr>
               ) : (
@@ -120,18 +179,34 @@ export default function OrdersPage() {
                         </button>
                         {order.status === "PENDING" && (
                           <button 
-                            onClick={() => alert(`Order ${order.orderNumber} accepted`)}
-                            className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] p-1.5 rounded-lg transition-colors"
+                            onClick={() => handleUpdateStatus(order.id, "CONFIRMED")}
+                            className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] px-2.5 py-1 text-xs rounded-lg transition-colors"
                           >
                             Accept
                           </button>
                         )}
+                        {order.status === "CONFIRMED" && (
+                          <button 
+                            onClick={() => handleUpdateStatus(order.id, "PREPARING")}
+                            className="bg-amber-600 text-white hover:bg-amber-500 px-2.5 py-1 text-xs rounded-lg transition-colors"
+                          >
+                            Prepare
+                          </button>
+                        )}
                         {order.status === "PREPARING" && (
                           <button 
-                            onClick={() => alert(`Order ${order.orderNumber} ready for pick up`)}
-                            className="bg-[var(--success-600)] text-white hover:bg-[var(--success-500)] p-1.5 rounded-lg transition-colors"
+                            onClick={() => handleUpdateStatus(order.id, "READY")}
+                            className="bg-[var(--success-600)] text-white hover:bg-[var(--success-500)] px-2.5 py-1 text-xs rounded-lg transition-colors"
                           >
                             Mark Ready
+                          </button>
+                        )}
+                        {order.status === "READY" && (
+                          <button 
+                            onClick={() => handleUpdateStatus(order.id, "COMPLETED")}
+                            className="bg-blue-600 text-white hover:bg-blue-500 px-2.5 py-1 text-xs rounded-lg transition-colors"
+                          >
+                            Complete
                           </button>
                         )}
                       </div>

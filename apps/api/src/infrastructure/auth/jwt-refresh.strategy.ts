@@ -21,7 +21,9 @@ export class JwtRefreshStrategy extends PassportStrategy(
       ignoreExpiration: false,
       secretOrKey: (() => {
         if (!process.env.JWT_REFRESH_SECRET) {
-          throw new Error('JWT_REFRESH_SECRET environment variable is required');
+          throw new Error(
+            'JWT_REFRESH_SECRET environment variable is required',
+          );
         }
         return process.env.JWT_REFRESH_SECRET;
       })(),

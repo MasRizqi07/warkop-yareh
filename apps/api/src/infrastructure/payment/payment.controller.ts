@@ -6,6 +6,7 @@ import {
   Req,
   Headers,
   BadRequestException,
+  NotFoundException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -31,19 +32,84 @@ export class PaymentController {
     @Body()
     body: {
       orderId: string;
-      grossAmount: number;
+      grossAmount?: number;
       customerDetails?: any;
-      itemDetails?: any;
     },
   ) {
-    const { orderId, grossAmount, customerDetails, itemDetails } = body;
+    const { orderId, grossAmount, customerDetails } = body;
+
+    if (!orderId) {
+      throw new BadRequestException('orderId is required');
+    }
+
+    // 1. Look up order from database
+    const order = await this.orderingService.getOrder(orderId);
+    if (!order) {
+      throw new NotFoundException(`Order not found: ${orderId}`);
+    }
+
+    if (order.paymentStatus === 'PAID') {
+      throw new BadRequestException('Order has already been paid');
+    }
+
+    // 2. Reject client-supplied grossAmount if it doesn't match the database total
+    if (grossAmount !== undefined && grossAmount !== order.total) {
+      throw new BadRequestException(
+        `Payment amount mismatch: provided ${grossAmount}, but stored order total is ${order.total}`,
+      );
+    }
+
+    // 3. Server-computed itemDetails from stored snapshot items
+    const itemDetails = (order.items || []).map((item: any) => ({
+      id: item.productId,
+      price: item.unitPrice,
+      quantity: item.quantity,
+      name: item.snapshotName || item.product?.name || 'Item',
+    }));
+
+    if (order.tax && order.tax > 0) {
+      itemDetails.push({
+        id: 'TAX-PPN',
+        price: order.tax,
+        quantity: 1,
+        name: 'PPN 11%',
+      });
+    }
+
+    if (order.discount && order.discount > 0) {
+      itemDetails.push({
+        id: 'DISCOUNT',
+        price: -order.discount,
+        quantity: 1,
+        name: 'Discount',
+      });
+    }
+
+    const resolvedCustomer = {
+      first_name:
+        order.customerName || order.user?.name || customerDetails?.firstName || 'Customer',
+      email:
+        order.user?.email || customerDetails?.email || 'customer@warkopyareh.com',
+      phone:
+        order.customerPhone || order.user?.phone || customerDetails?.phone || '08123456789',
+    };
+
+    // 4. Server-computed grossAmount strictly from order.total
     const transaction = await this.midtransService.createSnapTransaction({
-      orderId,
-      grossAmount,
-      customerDetails,
+      orderId: order.orderNumber || order.id,
+      grossAmount: order.total,
+      customerDetails: resolvedCustomer,
       itemDetails,
     });
-    return { data: transaction };
+
+    return {
+      data: {
+        ...transaction,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        grossAmount: order.total,
+      },
+    };
   }
 
   @Public()

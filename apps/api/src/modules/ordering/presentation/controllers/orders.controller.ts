@@ -45,7 +45,7 @@ export class OrdersController {
       'OWNER',
       'SUPERADMIN',
     ].includes(user.role);
-    const resolvedUserId = isEmployee ? body.userId : user.id;
+    const resolvedUserId = isEmployee ? body.userId || user.id : user.id;
 
     const order = await this.orderingService.createOrder({
       ...body,

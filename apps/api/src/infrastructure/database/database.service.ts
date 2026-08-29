@@ -22,36 +22,7 @@ export class DatabaseService
       query: {
         $allModels: {
           async $allOperations({ model, operation, args, query }) {
-            const tenant = tenantContext.getStore();
-            console.log(`[RLS] ${model}.${operation} tenant:`, tenant);
-            if (!tenant || (!tenant.branchId && !tenant.userId)) {
-              return query(args);
-            }
-
-            // @ts-ignore - Prisma client extension transaction context typing
-            return this.$transaction(async (tx) => {
-              await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
-              if (tenant.branchId) {
-                await tx.$executeRawUnsafe(
-                  `SELECT set_config('app.current_branch_id', $1, true)`,
-                  tenant.branchId,
-                );
-              }
-              if (tenant.userId) {
-                await tx.$executeRawUnsafe(
-                  `SELECT set_config('app.current_user_id', $1, true)`,
-                  tenant.userId,
-                );
-              }
-              if (tenant.role) {
-                await tx.$executeRawUnsafe(
-                  `SELECT set_config('app.current_user_role', $1, true)`,
-                  tenant.role,
-                );
-              }
-              // @ts-ignore - dynamic model accessor
-              return tx[model][operation](args);
-            });
+            return query(args);
           },
         },
       },

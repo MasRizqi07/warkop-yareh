@@ -119,9 +119,51 @@ export class AuthService {
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
     await this.redisService.set(`otp:${email}`, otp, 300); // 5 minutes TTL
 
-    // In dev, log it to console per PRD
-    console.log(`\n\n=== OTP for ${email}: ${otp} ===\n\n`);
-    // TODO: Send via SendGrid or WhatsApp API in production
+    // In dev / non-production environments only, log OTP to console for local development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n\n=== [DEV] OTP for ${email}: ${otp} ===\n\n`);
+    }
+
+    // Real OTP delivery via SendGrid when configured
+    if (process.env.SENDGRID_API_KEY) {
+      try {
+        const fromEmail =
+          process.env.SENDGRID_FROM_EMAIL || 'no-reply@warkopyareh.com';
+        await fetch('https://api.sendgrid.com/v3/mail/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+          },
+          body: JSON.stringify({
+            personalizations: [
+              {
+                to: [{ email }],
+                subject: "Your Warkop Ya'reh Verification Code",
+              },
+            ],
+            from: { email: fromEmail, name: "Warkop Ya'reh" },
+            content: [
+              {
+                type: 'text/html',
+                value: `
+                  <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #c4622d;">Warkop Ya'reh</h2>
+                    <p>Your 6-digit login verification code is:</p>
+                    <div style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #111; padding: 12px 0;">${otp}</div>
+                    <p style="color: #666; font-size: 12px;">This code is valid for 5 minutes. Do not share this code with anyone.</p>
+                  </div>
+                `,
+              },
+            ],
+          }),
+        });
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('[OTP Delivery Error]', err);
+        }
+      }
+    }
   }
 
   async verifyOtp(

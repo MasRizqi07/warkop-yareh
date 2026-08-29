@@ -6,7 +6,7 @@
  * Run: pnpm --filter @warkop-yareh/database db:seed
  */
 
-import { PrismaClient, Role, TableType, TableStatus } from '@warkop-yareh/database';
+import { PrismaClient, Role, TableType, TableStatus } from '../generated/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -135,7 +135,7 @@ async function main() {
       create: {
         ...productData,
         description: item.description,
-        categoryId: categoryMap[categorySlug],
+        categoryId: categoryMap[categorySlug]!,
         isPopular: item.isPopular ?? false,
         isNew: (item as { isNew?: boolean }).isNew ?? false,
         isActive: true,

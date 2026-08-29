@@ -8,6 +8,7 @@ describe('WsJwtGuard', () => {
   let jwtService: jest.Mocked<JwtService>;
 
   beforeEach(() => {
+    process.env.JWT_SECRET = 'test-jwt-secret-key-minimum-32-chars';
     jwtService = { verify: jest.fn() } as any;
     guard = new WsJwtGuard(jwtService);
   });
