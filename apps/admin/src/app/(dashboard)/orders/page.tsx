@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Eye } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { apiFetch } from "@/lib/api";
 
 interface Order {
   id: string;
@@ -36,9 +37,7 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
-      const res = await fetch(`${apiUrl}/orders`);
-      const json = await res.json();
+      const json = await apiFetch<{ data: ApiOrder[] }>("/orders");
       const list: ApiOrder[] = json.data || [];
 
       if (Array.isArray(list) && list.length > 0) {
@@ -74,10 +73,8 @@ export default function OrdersPage() {
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
-      await fetch(`${apiUrl}/orders/${orderId}/status`, {
+      await apiFetch(`/orders/${orderId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       fetchOrders();
@@ -179,18 +176,10 @@ export default function OrdersPage() {
                         </button>
                         {order.status === "PENDING" && (
                           <button 
-                            onClick={() => handleUpdateStatus(order.id, "CONFIRMED")}
-                            className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] px-2.5 py-1 text-xs rounded-lg transition-colors"
-                          >
-                            Accept
-                          </button>
-                        )}
-                        {order.status === "CONFIRMED" && (
-                          <button 
                             onClick={() => handleUpdateStatus(order.id, "PREPARING")}
-                            className="bg-amber-600 text-white hover:bg-amber-500 px-2.5 py-1 text-xs rounded-lg transition-colors"
+                            className="bg-[var(--accent-fill)] text-[var(--text-on-brand)] hover:brightness-110 px-2.5 py-1 text-xs rounded-lg transition-colors font-medium cursor-pointer"
                           >
-                            Prepare
+                            Accept & Prepare
                           </button>
                         )}
                         {order.status === "PREPARING" && (

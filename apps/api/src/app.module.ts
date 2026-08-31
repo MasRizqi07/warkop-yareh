@@ -24,6 +24,7 @@ import { BranchModule } from './modules/branch/branch.module';
 import { FranchiseModule } from './modules/franchise/franchise.module';
 import { WebsocketsModule } from './modules/websockets/websockets.module';
 import { TablesModule } from './modules/tables/tables.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { TablesModule } from './modules/tables/tables.module';
     FranchiseModule,
     WebsocketsModule,
     TablesModule,
+    AiModule,
   ],
   controllers: [],
   providers: [

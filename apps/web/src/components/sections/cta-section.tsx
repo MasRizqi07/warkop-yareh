@@ -15,10 +15,7 @@ export function CTASection() {
           initial="hidden"
           whileInView="visible"
           viewport={VIEWPORT.once}
-          className="relative rounded-[var(--radius-3xl)] p-10 md:p-16 overflow-hidden text-center"
-          style={{
-            background: "linear-gradient(135deg, #1C0A02 0%, #3D1A08 40%, #6B2E14 70%, #4A1F0A 100%)",
-          }}
+          className="relative rounded-[var(--radius-3xl)] p-10 md:p-16 overflow-hidden text-center bg-[var(--bg-surface-raised)] border border-[var(--border-default)]"
         >
           {/* Decorative */}
           <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -28,15 +25,15 @@ export function CTASection() {
           </div>
 
           <div className="relative z-10 max-w-2xl mx-auto">
-            <span className="label-caps text-[var(--color-primary-300)] mb-4 block">
+            <span className="label-caps text-[var(--accent-fill)] mb-4 block">
               Join Our Community
             </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-[var(--weight-extrabold)] text-white tracking-tight leading-tight mb-4">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-[var(--weight-extrabold)] text-[var(--text-primary)] tracking-tight leading-tight mb-4">
               Siap Bergabung dengan
               <br />
               <span className="text-gradient">3,000+ Member</span>?
             </h2>
-            <p className="text-[#EAAE88] text-base md:text-lg mb-8 leading-relaxed">
+            <p className="text-[var(--text-secondary)] text-base md:text-lg mb-8 leading-relaxed">
               Dapatkan akses eksklusif ke event, promo spesial, loyalty rewards, dan komunitas kreatif terbesar di Surabaya.
             </p>
 
@@ -45,7 +42,7 @@ export function CTASection() {
                 <motion.button
                   whileHover={{ scale: 1.02, boxShadow: "0 0 40px rgba(255, 255, 255, 0.15)" }}
                   whileTap={{ scale: 0.97 }}
-                  className="px-8 py-4 rounded-full bg-white text-[#6E2511] font-semibold text-sm shadow-xl flex items-center gap-2 group"
+                  className="px-8 py-4 rounded-full bg-[var(--accent-fill)] text-[var(--text-on-brand)] font-semibold text-sm shadow-xl flex items-center gap-2 group cursor-pointer"
                 >
                   Gabung Sekarang
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />

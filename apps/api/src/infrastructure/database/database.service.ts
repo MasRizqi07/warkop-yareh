@@ -22,7 +22,34 @@ export class DatabaseService
       query: {
         $allModels: {
           async $allOperations({ model, operation, args, query }) {
-            return query(args);
+            const tenant = tenantContext.getStore();
+            if (!tenant || (!tenant.branchId && !tenant.userId)) {
+              return query(args);
+            }
+
+            // Prisma client extension transaction context typing
+            return (this as any).$transaction(async (tx: any) => {
+              await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
+              if (tenant.branchId) {
+                await tx.$executeRawUnsafe(
+                  `SELECT set_config('app.current_branch_id', $1, true)`,
+                  tenant.branchId,
+                );
+              }
+              if (tenant.userId) {
+                await tx.$executeRawUnsafe(
+                  `SELECT set_config('app.current_user_id', $1, true)`,
+                  tenant.userId,
+                );
+              }
+              if (tenant.role) {
+                await tx.$executeRawUnsafe(
+                  `SELECT set_config('app.current_user_role', $1, true)`,
+                  tenant.role,
+                );
+              }
+              return tx[model][operation](args);
+            });
           },
         },
       },
@@ -39,12 +66,11 @@ export class DatabaseService
     const extendedProxy = extended as unknown as this;
 
     // Bind lifecycle hooks to the proxy so NestJS can call them
-    // @ts-ignore - custom prisma dynamic client property mapping
-    extendedProxy.onModuleInit = async () => {
+    (extendedProxy as any).onModuleInit = async () => {
       await this.$connect();
 
       try {
-        await extendedProxy.$transaction(async (tx) => {
+        await (extendedProxy as any).$transaction(async (tx: any) => {
           await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
         });
         this.logger.log('Database role api_user check passed successfully.');
@@ -63,8 +89,7 @@ export class DatabaseService
       }
     };
 
-    // @ts-ignore - custom prisma dynamic client property mapping
-    extendedProxy.onModuleDestroy = async () => {
+    (extendedProxy as any).onModuleDestroy = async () => {
       await this.$disconnect();
     };
 

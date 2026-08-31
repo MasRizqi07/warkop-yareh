@@ -18,14 +18,11 @@ function EventImage({ src, alt }: { src: string; alt: string }) {
       )}
       {status === "error" && (
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center"
-          style={{
-            background: "linear-gradient(135deg, #1C0A02 0%, #3D1A08 60%, #4A1F0A 100%)",
-          }}
+          className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--bg-surface-raised)] border border-[var(--border-default)]"
           aria-label={`Image unavailable for ${alt}`}
         >
-          <Coffee size={28} className="text-[var(--color-primary-300)] mb-1" />
-          <span className="text-[10px] text-[var(--color-primary-300)] font-medium">
+          <Coffee size={28} className="text-[var(--accent-fill)] mb-1" />
+          <span className="text-[10px] text-[var(--accent-fill)] font-medium">
             Event
           </span>
         </div>
@@ -148,13 +145,7 @@ export function EventsSection() {
                     <EventImage src={event.image} alt={event.title} />
                     {/* Category badge overlaid on image */}
                     <div className="absolute top-3 left-3 z-[2]">
-                      <span
-                        className="shrink-0 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm"
-                        style={{
-                          background: "rgba(196, 98, 45, 0.8)",
-                          color: "#ffffff",
-                        }}
-                      >
+                      <span className="shrink-0 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[var(--accent-fill)] text-[var(--text-on-brand)] shadow-sm">
                         {event.category}
                       </span>
                     </div>

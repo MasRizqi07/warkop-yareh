@@ -35,14 +35,11 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
       {/* Branded fallback on error */}
       {status === "error" && (
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center"
-          style={{
-            background: "linear-gradient(135deg, #1C0A02 0%, #3D1A08 60%, #4A1F0A 100%)",
-          }}
+          className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--bg-surface-raised)] border border-[var(--border-default)]"
           aria-label={`Image unavailable for ${alt}`}
         >
-          <Coffee size={32} className="text-[var(--color-primary-300)] mb-2" />
-          <span className="text-xs text-[var(--color-primary-300)] font-medium">
+          <Coffee size={32} className="text-[var(--accent-fill)] mb-2" />
+          <span className="text-xs text-[var(--accent-fill)] font-medium">
             Warkop Ya&apos;reh
           </span>
         </div>

@@ -14,6 +14,7 @@ import {
   IconPlus, 
   IconCart 
 } from "@/lib/icons";
+import { BaristaConciergeModal } from "@/components/ai/barista-concierge-modal";
 
 interface CategoryItem {
   id: string;
@@ -312,6 +313,9 @@ export default function MenuPage() {
           )}
         </button>
       </div>
+
+      {/* AI Barista Concierge Interactive Modal */}
+      <BaristaConciergeModal />
     </div>
   );
 }

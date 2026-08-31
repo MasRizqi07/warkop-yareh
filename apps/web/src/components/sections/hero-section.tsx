@@ -74,25 +74,16 @@ export function HeroSection() {
                 <motion.button
                   whileHover={{ scale: 1.03, boxShadow: "0 0 40px rgba(196, 98, 45, 0.5)" }}
                   whileTap={{ scale: 0.95 }}
-                  className="min-h-[48px] min-w-[160px] px-8 py-4 rounded-full text-white font-semibold text-sm transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DC8050]"
-                  style={{
-                    background: "linear-gradient(135deg, #C4622D 0%, #A8491E 100%)",
-                    boxShadow: "0 8px 32px rgba(196, 98, 45, 0.35), 0 2px 8px rgba(0,0,0,0.3)",
-                  }}
+                  className="min-h-[48px] min-w-[160px] px-8 py-4 rounded-full text-[var(--text-on-brand)] bg-[var(--accent-fill)] font-semibold text-sm transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-fill)] shadow-lg cursor-pointer"
                 >
                   Pesan Sekarang
                 </motion.button>
               </Link>
               <Link href="/menu">
                 <motion.button
-                  whileHover={{ scale: 1.03, backgroundColor: "rgba(255,255,255,0.18)" }}
+                  whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
-                  className="min-h-[48px] min-w-[160px] px-8 py-4 rounded-full text-white font-semibold text-sm transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.1)",
-                    border: "1.5px solid rgba(255,255,255,0.25)",
-                    backdropFilter: "blur(8px)",
-                  }}
+                  className="min-h-[48px] min-w-[160px] px-8 py-4 rounded-full text-[var(--text-primary)] font-semibold text-sm transition-all duration-200 border border-[var(--border-default)] bg-[var(--bg-surface-raised)] hover:bg-[var(--bg-surface-overlay)] cursor-pointer"
                 >
                   Jelajahi Menu
                 </motion.button>

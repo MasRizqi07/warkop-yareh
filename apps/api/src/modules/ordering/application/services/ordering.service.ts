@@ -15,11 +15,6 @@ import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
 @Injectable()
 export class OrderingService {
-  private readonly idempotencyStore = new Map<
-    string,
-    { payload: any; response: any }
-  >();
-
   constructor(
     @Inject('IOrderingRepository')
     private readonly orderingRepo: IOrderingRepository,
@@ -44,8 +39,13 @@ export class OrderingService {
   }) {
     const { userId, branchId, items, notes, idempotencyKey } = data;
 
-    if (idempotencyKey) {
-      const cached = this.idempotencyStore.get(idempotencyKey);
+    if (idempotencyKey && this.redisService) {
+      const cacheKey = `idempotency:order:${idempotencyKey}`;
+      const cached = await this.redisService.getJson<{
+        payload: any;
+        response: any;
+      }>(cacheKey);
+
       if (cached) {
         const currentPayload = JSON.stringify({ userId, branchId, items });
         const cachedPayload = JSON.stringify(cached.payload);
@@ -114,11 +114,16 @@ export class OrderingService {
       outboxPayload,
     );
 
-    if (idempotencyKey) {
-      this.idempotencyStore.set(idempotencyKey, {
-        payload: { userId, branchId, items },
-        response: order,
-      });
+    if (idempotencyKey && this.redisService) {
+      const cacheKey = `idempotency:order:${idempotencyKey}`;
+      await this.redisService.setJson(
+        cacheKey,
+        {
+          payload: { userId, branchId, items },
+          response: order,
+        },
+        86400,
+      );
     }
 
     // Broadcast event directly

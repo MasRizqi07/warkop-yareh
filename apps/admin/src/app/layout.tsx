@@ -1,6 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8f5f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#14110e" },
+  ],
+};
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-heading",
