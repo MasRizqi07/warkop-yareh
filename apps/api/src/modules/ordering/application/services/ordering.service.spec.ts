@@ -5,6 +5,7 @@ import { EventsGateway } from '../../../websockets/events.gateway';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { IOrderingRepository } from '../../domain/repositories/ordering.repository.interface';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
+import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
 describe('OrderingService', () => {
   let service: OrderingService;
@@ -35,12 +36,28 @@ describe('OrderingService', () => {
       getTransactionStatus: jest.fn(),
     } as unknown as jest.Mocked<MidtransService>;
 
+    const mockRedisStore = new Map<string, any>();
+    const mockRedisService = {
+      getJson: jest
+        .fn()
+        .mockImplementation((key: string) =>
+          Promise.resolve(mockRedisStore.get(key) || null),
+        ),
+      setJson: jest
+        .fn()
+        .mockImplementation((key: string, value: any) => {
+          mockRedisStore.set(key, value);
+          return Promise.resolve();
+        }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrderingService,
         { provide: 'IOrderingRepository', useValue: mockOrderingRepo },
         { provide: EventsGateway, useValue: mockEventsGateway },
         { provide: MidtransService, useValue: mockMidtransService },
+        { provide: RedisService, useValue: mockRedisService },
       ],
     }).compile();
 

@@ -99,7 +99,7 @@ export function Header() {
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {/* Theme Toggle */}
           <button
             onClick={() => {
@@ -107,7 +107,7 @@ export function Header() {
               toggleTheme();
               setTimeout(() => document.documentElement.classList.remove("transitioning"), 350);
             }}
-            className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200 cursor-pointer"
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -140,7 +140,7 @@ export function Header() {
           {/* Cart */}
           <button
             onClick={toggleCart}
-            className="relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200"
+            className="relative w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200 cursor-pointer"
             aria-label="Shopping Cart"
           >
             <IconCart size={20} className="text-[var(--text-secondary)]" />
@@ -159,7 +159,7 @@ export function Header() {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenu(!isMobileMenuOpen)}
-            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200"
+            className="lg:hidden w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200 cursor-pointer"
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
           >

@@ -58,33 +58,27 @@ export function MembershipCard() {
             {/* Tier Progression */}
             <div className="space-y-3">
               {[
-                { name: "Bronze", icon: Coffee, color: "#CD7F32", points: "0+" },
-                { name: "Silver", icon: Star, color: "#C0C0C0", points: "500+" },
-                { name: "Gold", icon: Crown, color: "#FFD700", points: "2,000+" },
-                { name: "Platinum", icon: Zap, color: "#E5E4E2", points: "5,000+" },
+                { name: "Bronze", icon: Coffee, colorClass: "text-[var(--accent-fill)] bg-[var(--accent-fill)]/15", points: "0+" },
+                { name: "Silver", icon: Star, colorClass: "text-[var(--text-secondary)] bg-[var(--text-secondary)]/15", points: "500+" },
+                { name: "Gold", icon: Crown, colorClass: "text-[var(--gold-highlight)] bg-[var(--gold-highlight)]/15", points: "2,000+" },
+                { name: "Platinum", icon: Zap, colorClass: "text-[var(--primary-fixed)] bg-[var(--primary-fixed)]/15", points: "5,000+" },
               ].map((tier, i) => (
                 <div
                   key={tier.name}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-raised)] border border-[var(--border-default)]"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface-raised)] border border-[var(--border-default)]"
                 >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${tier.color}20` }}
-                  >
-                    <tier.icon size={16} style={{ color: tier.color }} />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${tier.colorClass}`}>
+                    <tier.icon size={16} />
                   </div>
                   <div className="flex-1">
                     <span className="text-sm font-semibold text-[var(--text-primary)]">
                       {tier.name}
                     </span>
                   </div>
-                  <span className="text-xs text-[var(--text-tertiary)]">{tier.points} pts</span>
+                  <span className="text-xs text-[var(--text-secondary)]">{tier.points} pts</span>
                   {/* Progress dot */}
                   <div
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      backgroundColor: i <= 2 ? tier.color : "var(--border-default)",
-                    }}
+                    className={`w-2 h-2 rounded-full ${i <= 2 ? "bg-[var(--gold-highlight)]" : "bg-[var(--border-default)]"}`}
                   />
                 </div>
               ))}
@@ -111,12 +105,7 @@ export function MembershipCard() {
               className="relative w-full max-w-[400px] aspect-[16/10] cursor-pointer"
             >
               {/* Card */}
-              <div
-                className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
-                style={{
-                  background: "linear-gradient(135deg, #1C0A02 0%, #3D1A08 40%, #6B2E14 70%, #4A1F0A 100%)",
-                }}
-              >
+              <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-[var(--bg-surface-raised)] border border-[var(--border-default)]">
                 {/* Holographic shimmer */}
                 <div
                   className="absolute inset-0 shimmer opacity-30"
@@ -133,35 +122,35 @@ export function MembershipCard() {
                 <div className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="text-xs text-[#EAAE88] font-semibold tracking-widest uppercase mb-1">
+                      <div className="text-xs text-[var(--accent-fill)] font-semibold tracking-widest uppercase mb-1">
                         Warkop Ya&apos;reh
                       </div>
-                      <div className="text-lg font-bold text-white">Gold Member</div>
+                      <div className="text-lg font-bold text-[var(--text-primary)]">Gold Member</div>
                     </div>
-                    <Crown size={28} className="text-[var(--color-accent-500)]" />
+                    <Crown size={28} className="text-[var(--gold-highlight)]" />
                   </div>
 
                   <div>
-                    <div className="text-xs text-[#868E96] mb-1">Member Since 2024</div>
-                    <div className="text-2xl font-bold text-white tracking-wider">
+                    <div className="text-xs text-[var(--text-secondary)] mb-1">Member Since 2024</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)] tracking-wider">
                       •••• •••• •••• 4829
                     </div>
                   </div>
 
                   <div className="flex justify-between items-end">
                     <div>
-                      <div className="text-[10px] text-[#868E96] uppercase tracking-wider">
+                      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">
                         Points Balance
                       </div>
-                      <div className="text-xl font-bold text-[var(--color-accent-500)]">
+                      <div className="text-xl font-bold text-[var(--gold-highlight)]">
                         2,450
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] text-[#868E96] uppercase tracking-wider">
+                      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">
                         Next Tier
                       </div>
-                      <div className="text-sm font-semibold text-white">Platinum</div>
+                      <div className="text-sm font-semibold text-[var(--text-primary)]">Platinum</div>
                     </div>
                   </div>
                 </div>

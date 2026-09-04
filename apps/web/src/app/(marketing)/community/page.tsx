@@ -109,6 +109,28 @@ export default function CommunityPage() {
   ]);
 
   const [activeTab, setActiveTab] = useState("LATEST");
+  const [newPostContent, setNewPostContent] = useState("");
+  const [rsvpEvent, setRsvpEvent] = useState<EventItem | null>(null);
+
+  const handleCreatePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPostContent.trim()) return;
+
+    const newPost: PostItem = {
+      id: `post-${Date.now()}`,
+      name: "You (Member)",
+      role: "Digital Nomad @ Cold 'N Brew",
+      avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuCq6cTryqvkuKgZ0lkmA_xFa1WF_B1vRgMYChynAqbbTWrO5osTuHP9xRur-AM1i_hKaKS_zd9ALi6whNaf2_E_LCh4g-yIl7rC4UTGyeVQfFN6rGGf-DklIddLamqgW1XpIAgC_EMmWSwE_Ivf4fwzIC4m3jFg-QOSUnzcJ5gLf7lTUTujZfSr9_iuv6zNvSPIKxRsGh9VbC-ZiBjkPq7f-A1ZWMsMg3jVFwoitI7CB0rG9VTeiUcQ_w7lPb4DA6qieQmXBsTGVrw",
+      timeAgo: "Just now",
+      content: newPostContent,
+      likes: 1,
+      comments: 0,
+      isLiked: true,
+    };
+
+    setPosts([newPost, ...posts]);
+    setNewPostContent("");
+  };
 
   const handleEventAction = (id: string) => {
     setEvents(
@@ -117,7 +139,7 @@ export default function CommunityPage() {
           ? {
               ...ev,
               isRegistered: !ev.isRegistered,
-              actionText: ev.isRegistered ? ev.actionText.replace("ED", "") : ev.actionText + "ED",
+              actionText: ev.isRegistered ? "REGISTER" : "REGISTERED",
             }
           : ev
       )
@@ -136,6 +158,11 @@ export default function CommunityPage() {
           : post
       )
     );
+  };
+
+  const handleEventClick = (ev: EventItem) => {
+    setRsvpEvent(ev);
+    handleEventAction(ev.id);
   };
 
   return (
@@ -158,7 +185,10 @@ export default function CommunityPage() {
           <div className="flex gap-6 overflow-x-auto pb-6 custom-scroll snap-x">
             {events.map((ev) => (
               <div key={ev.id} className="flex-shrink-0 w-80 md:w-96 snap-start">
-                <div className="glass-card rounded-xl overflow-hidden group cursor-pointer transition-transform duration-300 hover:-translate-y-2">
+                <div 
+                  onClick={() => handleEventClick(ev)}
+                  className="glass-card rounded-xl overflow-hidden group cursor-pointer transition-transform duration-300 hover:-translate-y-2"
+                >
                   <div className="relative h-48 overflow-hidden">
                     <Image
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -182,7 +212,7 @@ export default function CommunityPage() {
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleEventAction(ev.id);
+                          handleEventClick(ev);
                         }}
                         className={ev.btnStyle}
                       >
@@ -249,6 +279,27 @@ export default function CommunityPage() {
               </div>
             </div>
 
+            {/* Post Creation Box */}
+            <form onSubmit={handleCreatePost} className="glass-card p-5 rounded-2xl border border-white/5 space-y-3">
+              <textarea
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                placeholder="Bagikan ide, cari teman coding, atau tawarkan review PR di meja warkop..."
+                rows={2}
+                className="w-full bg-surface-container rounded-xl p-3.5 text-xs text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all resize-none"
+              />
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-on-surface-variant/60">Tekan Kirim untuk berbagi dengan member lain</span>
+                <button
+                  type="submit"
+                  disabled={!newPostContent.trim()}
+                  className="px-5 py-2 rounded-xl bg-primary text-on-primary font-bold text-xs shadow-md disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                >
+                  Kirim Post
+                </button>
+              </div>
+            </form>
+
             {/* Feed Items */}
             <div className="space-y-6">
               {posts.map((post) => (
@@ -279,16 +330,16 @@ export default function CommunityPage() {
                         </div>
                       )}
                       <div className="flex gap-6 items-center">
-                        <button onClick={() => handleLike(post.id)} className="flex items-center gap-2 group/btn">
+                        <button onClick={() => handleLike(post.id)} className="flex items-center gap-2 group/btn cursor-pointer">
                           <IconLike size={20} className={`text-on-surface-variant group-hover/btn:text-primary transition-colors ${post.isLiked ? 'fill-primary text-primary' : ''}`} />
                           <span className={`font-receipt-label text-receipt-label ${post.isLiked ? 'text-primary' : 'text-on-surface-variant'}`}>{post.likes}</span>
                         </button>
-                        <button className="flex items-center gap-2 group/btn">
+                        <button className="flex items-center gap-2 group/btn cursor-pointer">
                           <IconComment size={20} className="text-on-surface-variant group-hover/btn:text-primary transition-colors" />
                           <span className="font-receipt-label text-receipt-label text-on-surface-variant">{post.comments}</span>
                         </button>
                         {!post.quote && (
-                          <button title="Share post" aria-label="Share post" className="flex items-center gap-2 group/btn">
+                          <button title="Share post" aria-label="Share post" className="flex items-center gap-2 group/btn cursor-pointer">
                             <IconShare size={20} className="text-on-surface-variant group-hover/btn:text-primary transition-colors" />
                           </button>
                         )}
@@ -301,6 +352,34 @@ export default function CommunityPage() {
           </div>
         </section>
       </main>
+
+      {/* Event RSVP Ticket Pass Modal */}
+      {rsvpEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setRsvpEvent(null)} />
+          <div className="relative w-full max-w-sm bg-surface-container border border-white/10 rounded-3xl p-6 shadow-2xl z-10 text-on-surface space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold">Event Pass Confirmed</span>
+              <h3 className="font-headline-md text-lg font-bold">{rsvpEvent.title}</h3>
+              <p className="text-xs text-on-surface-variant">{rsvpEvent.date} • {rsvpEvent.time}</p>
+            </div>
+            
+            <div className="p-4 bg-background rounded-2xl border border-dashed border-outline-variant flex flex-col items-center justify-center text-center gap-2">
+              <div className="w-32 h-32 bg-white p-2 rounded-xl flex items-center justify-center text-black font-mono text-xs font-bold shadow-sm">
+                [QR CODE PASS]
+              </div>
+              <span className="text-[10px] font-mono text-on-surface-variant font-bold">PASS-TOKEN: YAREH-{rsvpEvent.id.toUpperCase()}-774</span>
+            </div>
+
+            <button
+              onClick={() => setRsvpEvent(null)}
+              className="w-full py-3 bg-primary text-on-primary font-bold text-xs rounded-xl shadow-md cursor-pointer hover:brightness-110 active:scale-95 transition-all"
+            >
+              Simpan Pass ke Wallet
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

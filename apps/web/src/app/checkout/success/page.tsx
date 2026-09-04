@@ -1,18 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense } from "react";
 import { motion } from "framer-motion";
 import { IconCheck, IconPreparing } from "@/lib/icons";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export default function OrderSuccessPage() {
-  const [orderId, setOrderId] = useState("");
-
-  useEffect(() => {
-    // Generate a random order ID like WY-1A2B3C
-    const id = "WY-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    setOrderId(id);
-  }, []);
+function OrderSuccessContent() {
+  const searchParams = useSearchParams();
+  const orderNumber = searchParams.get("orderNumber") || searchParams.get("orderId") || "WY-CONFIRMED";
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen flex items-center justify-center p-6 relative">
@@ -45,8 +41,8 @@ export default function OrderSuccessPage() {
 
         <div className="bg-surface-container-highest/40 border border-white/5 rounded-2xl p-6 mb-8 flex flex-col gap-4">
           <div>
-            <span className="text-sm text-on-surface-variant block mb-1">Order ID</span>
-            <span className="font-code-lg text-2xl text-primary-fixed tracking-wider">{orderId || "..."}</span>
+            <span className="text-sm text-on-surface-variant block mb-1">Order Number</span>
+            <span className="font-code-lg text-2xl text-primary-fixed tracking-wider">{orderNumber}</span>
           </div>
           
           <div className="h-px w-full bg-white/5 my-2"></div>
@@ -67,5 +63,13 @@ export default function OrderSuccessPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <OrderSuccessContent />
+    </Suspense>
   );
 }

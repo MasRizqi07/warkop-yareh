@@ -18,14 +18,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     this.client = new Redis(redisUrl, {
       lazyConnect: true,
+      maxRetriesPerRequest: 1,
       retryStrategy: (times) => {
-        if (times > 5) {
-          this.logger.error(
-            'Redis connection failed after 5 retries. Falling back to in-memory cache.',
+        if (times > 3) {
+          this.logger.warn(
+            'Redis unavailable. Successfully activated in-memory cache fallback.',
           );
           return null;
         }
-        return Math.min(times * 100, 3000);
+        return Math.min(times * 100, 1000);
       },
     });
 
@@ -34,14 +35,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('✅ Redis connected');
     });
     this.client.on('error', (err: Error) => {
-      this.logger.error(`Redis error: ${err.message}`);
+      if (this.isConnected) {
+        this.logger.warn(`Redis connection interrupted: ${err.message}`);
+      }
     });
     this.client.on('close', () => {
       this.isConnected = false;
     });
 
-    void this.client.connect().catch((err) => {
-      this.logger.error(`Redis initial connect failed: ${err.message}`);
+    void this.client.connect().catch(() => {
+      // Handled by retryStrategy and fallback
     });
   }
 

@@ -274,7 +274,7 @@ export default function UsersDirectory() {
                       ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-sm shadow-amber-500/10"
                       : member.tier === "Silver"
                       ? "bg-neutral-600 text-white"
-                      : "bg-[#825426]/30 text-[#f7bb82]"
+                      : "bg-[var(--accent-container)] text-[var(--accent-container-text)]"
                   }`}>
                     {member.tier}
                   </span>

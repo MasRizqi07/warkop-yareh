@@ -22,6 +22,8 @@ describe('AuthService', () => {
   };
 
   beforeEach(async () => {
+    process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key-minimum-32-chars';
+    process.env.JWT_SECRET = 'test-jwt-secret-key-minimum-32-chars';
     const salt = await bcrypt.genSalt(10);
     mockUser.passwordHash = await bcrypt.hash('secret123', salt);
 

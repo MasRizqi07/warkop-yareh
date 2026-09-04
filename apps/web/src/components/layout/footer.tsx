@@ -20,9 +20,9 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-[#0C0D0E] text-[#E9ECEF] overflow-hidden">
+    <footer className="relative bg-[var(--bg-canvas)] text-[var(--text-primary)] border-t border-[var(--border-default)] overflow-hidden">
       {/* Brand gradient separator */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--color-primary-500)] to-transparent opacity-60" />
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--accent-fill)] to-transparent opacity-60" />
 
       {/* Noise texture */}
       <div className="absolute inset-0 bg-noise pointer-events-none" />
@@ -43,13 +43,13 @@ export function Footer() {
                 <Coffee className="w-5 h-5 text-white" />
               </div>
               <div>
-                <div className="font-bold text-white leading-none">WARKOP</div>
-                <div className="text-[9px] font-semibold tracking-[0.2em] text-[var(--color-primary-400)] leading-none mt-0.5">
+                <div className="font-bold text-[var(--text-primary)] leading-none">WARKOP</div>
+                <div className="text-[9px] font-semibold tracking-[0.2em] text-[var(--accent-fill)] leading-none mt-0.5">
                   YA&apos;REH
                 </div>
               </div>
             </Link>
-            <p className="text-sm text-[#ADB5BD] mb-6 leading-relaxed">
+            <p className="text-sm text-[var(--text-secondary)] mb-6 leading-relaxed">
               Platform digital ekosistem — kopi premium, coworking space,
               community hub di Wonokromo, Surabaya.
             </p>
@@ -69,7 +69,7 @@ export function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-[#868E96] hover:text-white transition-all duration-200 ${
+                  className={`w-10 h-10 rounded-xl bg-[var(--bg-surface-raised)] border border-[var(--border-default)] hover:bg-[var(--bg-surface-overlay)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all duration-200 ${
                     (social as { isWhatsApp?: boolean }).isWhatsApp ? "animate-pulse-ring" : ""
                   }`}
                   aria-label={social.label}
@@ -82,7 +82,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <motion.div variants={staggerItem}>
-            <h4 className="text-xs font-semibold text-white mb-5 uppercase tracking-widest">
+            <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-5 uppercase tracking-widest">
               Quick Links
             </h4>
             <ul className="space-y-3">
@@ -90,7 +90,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-[#ADB5BD] hover:text-[var(--color-primary-400)] transition-colors duration-200"
+                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-fill)] transition-colors duration-200"
                   >
                     {link.label}
                   </Link>
@@ -101,7 +101,7 @@ export function Footer() {
 
           {/* Services */}
           <motion.div variants={staggerItem}>
-            <h4 className="text-xs font-semibold text-white mb-5 uppercase tracking-widest">
+            <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-5 uppercase tracking-widest">
               Services
             </h4>
             <ul className="space-y-3">
@@ -114,7 +114,7 @@ export function Footer() {
                 "Catering",
               ].map((item) => (
                 <li key={item}>
-                  <span className="text-sm text-[#ADB5BD]">{item}</span>
+                  <span className="text-sm text-[var(--text-secondary)]">{item}</span>
                 </li>
               ))}
             </ul>
@@ -122,35 +122,35 @@ export function Footer() {
 
           {/* Contact */}
           <motion.div variants={staggerItem}>
-            <h4 className="text-xs font-semibold text-white mb-5 uppercase tracking-widest">
+            <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-5 uppercase tracking-widest">
               Visit Us
             </h4>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-[var(--color-primary-400)] mt-0.5 shrink-0" />
-                <span className="text-sm text-[#ADB5BD]">{SITE.address}</span>
+                <MapPin className="w-4 h-4 text-[var(--accent-fill)] mt-0.5 shrink-0" />
+                <span className="text-sm text-[var(--text-secondary)]">{SITE.address}</span>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-[var(--color-primary-400)] shrink-0" />
+                <Phone className="w-4 h-4 text-[var(--accent-fill)] shrink-0" />
                 <a
                   href={`tel:${SITE.phone}`}
-                  className="text-sm text-[#ADB5BD] hover:text-white transition-colors"
+                  className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   {SITE.phone}
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-[var(--color-primary-400)] shrink-0" />
+                <Mail className="w-4 h-4 text-[var(--accent-fill)] shrink-0" />
                 <a
                   href={`mailto:${SITE.email}`}
-                  className="text-sm text-[#ADB5BD] hover:text-white transition-colors"
+                  className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   {SITE.email}
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <Clock className="w-4 h-4 text-[var(--color-primary-400)] shrink-0" />
-                <div className="text-sm text-[#ADB5BD]">
+                <Clock className="w-4 h-4 text-[var(--accent-fill)] shrink-0" />
+                <div className="text-sm text-[var(--text-secondary)]">
                   <div>Weekday: {SITE.operatingHours.weekday}</div>
                   <div>Weekend: {SITE.operatingHours.weekend}</div>
                 </div>
@@ -160,11 +160,11 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[#868E96]">
+        <div className="pt-8 border-t border-[var(--border-default)] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-[var(--text-secondary)]">
             © {currentYear} {SITE.name}. All rights reserved.
           </p>
-          <p className="text-xs text-[#868E96] flex items-center gap-1">
+          <p className="text-xs text-[var(--text-secondary)] flex items-center gap-1">
             Made with <Heart className="w-3 h-3 text-[var(--color-error-500)] fill-[var(--color-error-500)]" /> in Surabaya
           </p>
         </div>

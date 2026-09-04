@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-variant": "#353437",
+          "on-error": "#690005",
+          "surface-card": "#18181c",
+          "secondary": "#ffb95f",
+          "on-tertiary": "#402d00",
+          "on-primary-container": "#fffdff",
+          "tertiary-fixed-dim": "#e6c278",
+          "on-error-container": "#ffdad6",
+          "text-muted": "#94a3b8",
+          "cream-beige": "#e8c47a",
+          "brand-coffee": "#9c6b3a",
+          "border-subtle": "rgba(255, 255, 255, 0.08)",
+          "on-secondary": "#472a00",
+          "on-tertiary-container": "#fffdff",
+          "accent-amber": "#f59e0b",
+          "on-primary-fixed-variant": "#663d10",
+          "surface-container-high": "#2a2a2c",
+          "on-background": "#e5e1e4",
+          "on-surface": "#e5e1e4",
+          "primary-container": "#9c6b3a",
+          "surface-tint": "#f7bb82",
+          "on-tertiary-fixed": "#261a00",
+          "on-primary": "#4a2800",
+          "surface-container": "#201f21",
+          "tertiary-container": "#8e7130",
+          "primary-fixed-dim": "#f7bb82",
+          "surface": "#131315",
+          "tertiary-fixed": "#ffdf9f",
+          "surface-dim": "#131315",
+          "outline": "#9d8e82",
+          "secondary-fixed": "#ffddb8",
+          "background": "#131315",
+          "text-primary": "#f8fafc",
+          "outline-variant": "#51453a",
+          "error-container": "#93000a",
+          "inverse-on-surface": "#313032",
+          "on-primary-fixed": "#2d1600",
+          "surface-bright": "#39393b",
+          "on-surface-variant": "#d5c3b6",
+          "inverse-surface": "#e5e1e4",
+          "secondary-fixed-dim": "#ffb95f",
+          "primary": "#f7bb82",
+          "on-tertiary-fixed-variant": "#5b4303",
+          "surface-container-low": "#1c1b1d",
+          "error": "#ffb4ab",
+          "on-secondary-fixed-variant": "#653e00",
+          "surface-secondary": "#111114",
+          "primary-fixed": "#ffdcbf",
+          "inverse-primary": "#825426",
+          "tertiary": "#e6c278",
+          "secondary-container": "#ee9800",
+          "surface-container-lowest": "#0e0e10",
+          "on-secondary-fixed": "#2a1700",
+          "canvas-obsidian": "#0a0a0c",
+          "surface-container-highest": "#353437"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-md": "1rem",
+          "space-3xl": "4rem",
+          "space-sm": "0.75rem",
+          "space-xs": "0.5rem",
+          "gutter-desktop": "1.5rem",
+          "space-lg": "1.5rem",
+          "margin-desktop": "3rem",
+          "space-2xl": "3rem",
+          "gutter-mobile": "1rem",
+          "space-xl": "2rem",
+          "margin-tablet": "2rem",
+          "space-xxs": "0.25rem",
+          "margin-mobile": "1rem"
+        },
+        "fontFamily": {
+          "body-lg": [
+            "inter"
+          ],
+          "label-sm": [
+            "inter"
+          ],
+          "body-md": [
+            "inter"
+          ],
+          "display-lg-mobile": [
+            "plusJakartaSans"
+          ],
+          "display-lg": [
+            "plusJakartaSans"
+          ],
+          "headline-lg": [
+            "plusJakartaSans"
+          ],
+          "headline-xl": [
+            "plusJakartaSans"
+          ],
+          "body-sm": [
+            "inter"
+          ],
+          "mono-meta": [
+            "jetbrainsMono"
+          ],
+          "label-md": [
+            "inter"
+          ],
+          "headline-md": [
+            "plusJakartaSans"
+          ],
+          "mono-badge": [
+            "jetbrainsMono"
+          ]
+        },
+        "fontSize": {
+          "body-lg": [
+            "18px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "500"
+            }
+          ],
+          "body-md": [
+            "15px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "display-lg-mobile": [
+            "36px",
+            {
+              "lineHeight": "44px",
+              "fontWeight": "800"
+            }
+          ],
+          "display-lg": [
+            "48px",
+            {
+              "lineHeight": "56px",
+              "fontWeight": "800"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "fontWeight": "700"
+            }
+          ],
+          "body-sm": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "mono-meta": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "500"
+            }
+          ],
+          "label-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "600"
+            }
+          ],
+          "mono-badge": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "fontWeight": "500"
+            }
+          ]
+        }
+      }
+    }
+  };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface select-none antialiased min-h-screen flex flex-col justify-between"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)]"><div class="h-20 w-full px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-max"><img alt="Brand logo. - Primary color: #9c6b3a
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VxOpmWOCCL9LQk98Vn8jwnvDL38lXhpROB7-9xnzlOrk_iEoLkZTJRADHtVsQCWOvrJZ2Rr4tKnVXh1yjzh8sDyRch2crVAGNHA7Msp_Gk3itTp4BQ1EavEuLW07fSrx-647n-MEbaiEc1anewoHwd6tgj6wpv31gcFN11fJ8j1ZwN37rutrQ41did441vMyf5rJ_3s7eriZ1vOJtHHO8D-sNba-KqHC9_6MMuEO8X7kr872S_AI213_U"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-primary tracking-tight">Warkop Ya'reh</span><span class="px-space-xs py-space-xxs rounded bg-surface-container font-mono-badge text-mono-badge text-accent-amber">POS-TERMINAL-01 (Gubeng 24H Sanctuary)</span></div><div class="flex items-center gap-space-xs mt-0.5"><span class="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-mono-meta text-mono-meta text-on-surface-variant">SHIFT #3 LATE NIGHT</span><span class="text-on-surface-variant font-mono-meta text-mono-meta">•</span><span class="font-mono-meta text-mono-meta text-secondary font-semibold">22:45:18 WIB</span></div></div></div><nav class="hidden xl:flex items-center gap-space-xs px-space-xs py-space-xxs rounded-xl bg-surface-container-lowest" data-active-classes="bg-primary-container text-on-primary-container font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)] rounded-lg"><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="register-kasir" href="#">Register / Kasir</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="table-map" href="#">Table Map</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="order-queue" href="#">Order Queue</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="shift-drawer" href="#">Shift &amp; Drawer (Active)</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="kitchen-display" href="#">Kitchen Display</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="receipt-history" href="#">Receipt History</a></nav><div class="flex items-center gap-space-sm min-w-max"><button class="flex items-center gap-space-xxs px-space-sm py-space-xs rounded-lg bg-surface-container-high hover:bg-error-container hover:text-on-error-container text-error transition-colors" title="Emergency Manager Call" type="button"><span class="material-symbols-outlined text-[20px]">sos</span><span class="font-label-sm text-label-sm uppercase font-bold tracking-wider hidden sm:inline">Help Call</span></button><div class="h-7 w-[1px] bg-surface-container-highest"></div><div class="flex items-center gap-space-xs"><div class="text-right hidden md:block"><div class="font-label-sm text-label-sm font-semibold text-on-surface">Budi Santoso</div><div class="font-mono-badge text-mono-badge text-text-muted">Head Barista / Lead</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(247,187,130,0.3)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-secondary transition-colors" title="Fast Lock POS / Switch Cashier" type="button"><span class="material-symbols-outlined text-[20px]">lock</span></button></div></div></div></header><main class="w-full pt-20 pb-12 bg-surface"><div class="flex flex-col w-full">
+<div class="w-full max-w-[1560px] mx-auto px-gutter-mobile sm:px-gutter-desktop py-space-sm sm:py-space-md flex flex-col gap-space-md">
+<!-- Active Shift Status & Cashier Header Card -->
+<div class="w-full bg-surface-card rounded-xl p-space-md sm:p-space-lg shadow-xl relative overflow-hidden">
+<div class="absolute -right-24 -top-24 w-80 h-80 bg-accent-amber/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-space-md relative z-10">
+<!-- Left: Operator Meta & Shift ID -->
+<div class="flex items-center gap-space-md">
+<div class="relative">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center shadow-inner">
+<span class="material-symbols-outlined text-accent-amber text-[30px]" style="font-variation-settings: 'FILL' 1;">badge</span>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-secondary border-2 border-surface-card shadow-[0_0_8px_rgba(255,185,95,0.8)]"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex flex-wrap items-center gap-space-xs sm:gap-space-sm">
+<h1 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">Rayhan Al-Farisi</h1>
+<span class="font-mono-badge text-mono-badge px-space-xs py-space-xxs rounded bg-surface-container text-cream-beige">ID: STF-2024-08</span>
+<span class="font-mono-badge text-mono-badge px-space-xs py-space-xxs rounded bg-amber-500/20 text-accent-amber animate-pulse">Closing Handover In-Progress</span>
+</div>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-space-xxs mt-space-xxs text-text-muted font-body-sm text-body-sm">
+<span class="text-on-surface-variant font-label-md text-label-md">Shift 2: Evening Sprint (15:00 - 23:00 WIB)</span>
+<span class="text-surface-variant">•</span>
+<span class="font-mono-meta text-mono-meta text-cream-beige flex items-center gap-space-xxs">
+<span class="material-symbols-outlined text-[16px]">point_of_sale</span> POS-01 (Front Bar &amp; Drive-thru)
+              </span>
+</div>
+</div>
+</div>
+<!-- Center: Shift Timer Telemetry -->
+<div class="flex flex-wrap items-center gap-space-md bg-surface-secondary px-space-md py-space-xs rounded-xl">
+<div class="flex flex-col">
+<span class="font-mono-badge text-mono-badge text-text-muted uppercase">Opened</span>
+<span class="font-mono-meta text-mono-meta text-text-primary font-semibold">15:00:00 WIB</span>
+</div>
+<div class="h-6 w-px bg-surface-container-high"></div>
+<div class="flex flex-col">
+<span class="font-mono-badge text-mono-badge text-text-muted uppercase">Elapsed</span>
+<span class="font-mono-meta text-mono-meta text-secondary font-bold" id="shift-timer">07h 45m 18s</span>
+</div>
+<div class="h-6 w-px bg-surface-container-high"></div>
+<div class="flex flex-col">
+<span class="font-mono-badge text-mono-badge text-text-muted uppercase">Live Clock</span>
+<span class="font-mono-meta text-mono-meta text-cream-beige font-semibold" id="live-clock">22:45:18 WIB</span>
+</div>
+</div>
+<!-- Right: Hardware Quick Utility Actions -->
+<div class="flex items-center gap-space-xs w-full xl:w-auto justify-end">
+<button class="flex-1 xl:flex-none flex items-center justify-center gap-space-xs px-space-md py-3 rounded-lg bg-surface-container-high hover:bg-surface-variant text-text-primary font-label-md text-label-md transition-all shadow-md active:scale-95" id="btn-pop-drawer" title="Hardware Kick Pulse via RJ11" type="button">
+<span class="material-symbols-outlined text-secondary text-[20px]">eject</span>
+<span class="whitespace-nowrap">Pop Drawer <span class="font-mono-badge text-mono-badge text-text-muted ml-1">[F2]</span></span>
+</button>
+<button class="flex items-center justify-center gap-space-xs px-space-md py-3 rounded-lg bg-surface-container-high hover:bg-surface-variant text-text-primary font-label-md text-label-md transition-all shadow-md active:scale-95" type="button">
+<span class="material-symbols-outlined text-text-muted text-[20px]">history_edu</span>
+<span class="hidden sm:inline">Audit Trail</span>
+</button>
+<button class="flex items-center justify-center gap-space-xs px-space-md py-3 rounded-lg bg-surface-container-high hover:bg-surface-variant text-text-primary font-label-md text-label-md transition-all shadow-md active:scale-95" type="button">
+<span class="material-symbols-outlined text-accent-amber text-[20px]">switch_account</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">[F12]</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Workspace: Split Grid (60% Reconciliation vs 40% Statistics) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md items-start">
+<!-- LEFT COLUMN: Physical Counting & Cash Drawer Balancing (7 cols = ~58-60%) -->
+<div class="xl:col-span-7 flex flex-col gap-space-md">
+<!-- System Expectation Ledger vs Calculation Overview -->
+<div class="bg-surface-card rounded-xl p-space-md shadow-xl">
+<div class="flex items-center justify-between pb-space-xs mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-brand-coffee text-[22px]">account_balance_wallet</span>
+<h2 class="font-headline-md text-headline-md text-text-primary tracking-tight">System Expected Cash in Drawer</h2>
+</div>
+<span class="font-mono-badge text-mono-badge px-space-xs py-space-xxs rounded bg-surface-container text-text-muted">Formula Engine Locked</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-xs text-left">
+<!-- Modal Awal -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-text-muted">Opening Float (Modal)</span>
+<div class="font-mono-meta text-mono-meta text-cream-beige font-semibold mt-space-xxs">Rp 500.000</div>
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">Manager Verified</span>
+</div>
+<!-- Total Penjualan Tunai -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-text-muted">+ Cash Sales (86 Tx)</span>
+<div class="font-mono-meta text-mono-meta text-secondary font-semibold mt-space-xxs">+Rp 3.480.000</div>
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">86 Bills Paid</span>
+</div>
+<!-- Petty Cash Out -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-text-muted">- Paid Outs / Ice</span>
+<div class="font-mono-meta text-mono-meta text-error font-semibold mt-space-xxs">-Rp 50.000</div>
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">Ref #PC-889</span>
+</div>
+<!-- Expected Total -->
+<div class="p-space-sm rounded-lg bg-surface-container-high shadow-[0_0_16px_rgba(245,158,11,0.1)] flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-accent-amber font-semibold">= Net Expected</span>
+<div class="font-mono-meta text-mono-meta text-accent-amber font-bold text-[15px] mt-space-xxs">Rp 3.930.000</div>
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">Target Baseline</span>
+</div>
+</div>
+</div>
+<!-- Physical Cash Counting Calculator Matrix -->
+<div class="bg-surface-card rounded-xl p-space-md sm:p-space-lg shadow-xl flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-xs">
+<div>
+<h3 class="font-headline-md text-headline-md text-text-primary tracking-tight">Physical Cash Counting Matrix</h3>
+<p class="font-body-sm text-body-sm text-text-muted">Touch denom cards to select and calculate physically present bank notes.</p>
+</div>
+<!-- Quick Reset or Auto-Fill for Testing -->
+<div class="flex items-center gap-space-xs">
+<button class="px-space-xs py-1 rounded bg-surface-container-high hover:bg-surface-variant text-text-muted hover:text-text-primary font-mono-badge text-mono-badge" id="btn-reset-counter" type="button">Zero All</button>
+<button class="px-space-xs py-1 rounded bg-brand-coffee/30 hover:bg-brand-coffee/50 text-cream-beige font-mono-badge text-mono-badge" id="btn-preset-balanced" type="button">Exact Match</button>
+</div>
+</div>
+<!-- Denomination Interactive Rows List + Side Numpad on Desktop -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- Denominations List (8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-space-xs" id="denom-rows-container">
+<!-- Rp 100.000 -->
+<div class="denom-row active-focus p-space-xs sm:p-space-sm rounded-xl bg-surface-container flex items-center justify-between gap-space-xs transition-all cursor-pointer" data-count="28" data-denom="100000">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-red-950/40 text-red-400 font-mono-badge text-mono-badge font-bold flex items-center justify-center shrink-0">100K</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-text-primary font-semibold truncate">Rp 100.000</div>
+<div class="font-mono-meta text-mono-meta text-text-muted subtotal">Rp 2.800.000</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs shrink-0">
+<button class="btn-minus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">-</button>
+<span class="count-display font-mono-meta text-mono-meta text-accent-amber font-bold w-9 text-center">28</span>
+<button class="btn-plus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">+</button>
+<button class="btn-plus5 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+5</button>
+<button class="btn-plus10 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+10</button>
+</div>
+</div>
+<!-- Rp 50.000 -->
+<div class="denom-row p-space-xs sm:p-space-sm rounded-xl bg-surface-container flex items-center justify-between gap-space-xs transition-all cursor-pointer" data-count="16" data-denom="50000">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-blue-950/40 text-blue-400 font-mono-badge text-mono-badge font-bold flex items-center justify-center shrink-0">50K</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-text-primary font-semibold truncate">Rp 50.000</div>
+<div class="font-mono-meta text-mono-meta text-text-muted subtotal">Rp 800.000</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs shrink-0">
+<button class="btn-minus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">-</button>
+<span class="count-display font-mono-meta text-mono-meta text-accent-amber font-bold w-9 text-center">16</span>
+<button class="btn-plus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">+</button>
+<button class="btn-plus5 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+5</button>
+<button class="btn-plus10 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+10</button>
+</div>
+</div>
+<!-- Rp 20.000 -->
+<div class="denom-row p-space-xs sm:p-space-sm rounded-xl bg-surface-container flex items-center justify-between gap-space-xs transition-all cursor-pointer" data-count="12" data-denom="20000">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-emerald-950/40 text-emerald-400 font-mono-badge text-mono-badge font-bold flex items-center justify-center shrink-0">20K</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-text-primary font-semibold truncate">Rp 20.000</div>
+<div class="font-mono-meta text-mono-meta text-text-muted subtotal">Rp 240.000</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs shrink-0">
+<button class="btn-minus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">-</button>
+<span class="count-display font-mono-meta text-mono-meta text-accent-amber font-bold w-9 text-center">12</span>
+<button class="btn-plus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">+</button>
+<button class="btn-plus5 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+5</button>
+<button class="btn-plus10 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+10</button>
+</div>
+</div>
+<!-- Rp 10.000 -->
+<div class="denom-row p-space-xs sm:p-space-sm rounded-xl bg-surface-container flex items-center justify-between gap-space-xs transition-all cursor-pointer" data-count="6" data-denom="10000">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-purple-950/40 text-purple-400 font-mono-badge text-mono-badge font-bold flex items-center justify-center shrink-0">10K</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-text-primary font-semibold truncate">Rp 10.000</div>
+<div class="font-mono-meta text-mono-meta text-text-muted subtotal">Rp 60.000</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs shrink-0">
+<button class="btn-minus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">-</button>
+<span class="count-display font-mono-meta text-mono-meta text-accent-amber font-bold w-9 text-center">6</span>
+<button class="btn-plus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">+</button>
+<button class="btn-plus5 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+5</button>
+<button class="btn-plus10 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+10</button>
+</div>
+</div>
+<!-- Rp 5.000 -->
+<div class="denom-row p-space-xs sm:p-space-sm rounded-xl bg-surface-container flex items-center justify-between gap-space-xs transition-all cursor-pointer" data-count="4" data-denom="5000">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-amber-950/40 text-amber-400 font-mono-badge text-mono-badge font-bold flex items-center justify-center shrink-0">5K</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-text-primary font-semibold truncate">Rp 5.000</div>
+<div class="font-mono-meta text-mono-meta text-text-muted subtotal">Rp 20.000</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs shrink-0">
+<button class="btn-minus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">-</button>
+<span class="count-display font-mono-meta text-mono-meta text-accent-amber font-bold w-9 text-center">4</span>
+<button class="btn-plus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">+</button>
+<button class="btn-plus5 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+5</button>
+<button class="btn-plus10 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+10</button>
+</div>
+</div>
+<!-- Rp 2.000 / Rp 1.000 Notes -->
+<div class="denom-row p-space-xs sm:p-space-sm rounded-xl bg-surface-container flex items-center justify-between gap-space-xs transition-all cursor-pointer" data-count="5" data-denom="2000">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-high text-on-surface-variant font-mono-badge text-mono-badge font-bold flex items-center justify-center shrink-0">2K/1K</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-text-primary font-semibold truncate">Rp 2.000 / Rp 1.000</div>
+<div class="font-mono-meta text-mono-meta text-text-muted subtotal">Rp 10.000</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs shrink-0">
+<button class="btn-minus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">-</button>
+<span class="count-display font-mono-meta text-mono-meta text-accent-amber font-bold w-9 text-center">5</span>
+<button class="btn-plus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">+</button>
+<button class="btn-plus5 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+5</button>
+<button class="btn-plus10 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+10</button>
+</div>
+</div>
+<!-- Coins Rp 1.000 / Rp 500 -->
+<div class="denom-row p-space-xs sm:p-space-sm rounded-xl bg-surface-container flex items-center justify-between gap-space-xs transition-all cursor-pointer" data-count="0" data-denom="1000">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-high text-yellow-600 font-mono-badge text-mono-badge font-bold flex items-center justify-center shrink-0">COIN</div>
+<div class="min-w-0">
+<div class="font-label-md text-label-md text-text-primary font-semibold truncate">Coins (1.000 / 500)</div>
+<div class="font-mono-meta text-mono-meta text-text-muted subtotal">Rp 0</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xxs shrink-0">
+<button class="btn-minus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">-</button>
+<span class="count-display font-mono-meta text-mono-meta text-text-muted font-bold w-9 text-center">0</span>
+<button class="btn-plus w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-text-primary font-bold active:scale-95 text-lg" type="button">+</button>
+<button class="btn-plus5 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+5</button>
+<button class="btn-plus10 hidden sm:flex px-2 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright items-center justify-center text-cream-beige font-mono-badge text-mono-badge font-semibold active:scale-95" type="button">+10</button>
+</div>
+</div>
+</div>
+<!-- Tactile Large Touch Numpad (4 cols) -->
+<div class="lg:col-span-4 bg-surface-container-low rounded-xl p-space-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-xxs mb-space-xs">
+<span class="font-label-sm text-label-sm text-text-muted">Direct Keypad Input:</span>
+<div class="bg-surface-container-lowest px-space-sm py-2 rounded-lg text-right">
+<span class="font-mono-badge text-mono-badge text-cream-beige block" id="keypad-target-label">Selected: Rp 100.000 note</span>
+<span class="font-headline-lg text-headline-lg font-mono-meta text-accent-amber" id="keypad-buffer">28</span>
+</div>
+</div>
+<!-- Keypad grid -->
+<div class="grid grid-cols-3 gap-1.5 font-headline-md text-headline-md">
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">7</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">8</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">9</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">4</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">5</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">6</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">1</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">2</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">3</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container-high hover:bg-surface-bright text-error font-bold active:scale-95 text-[15px]" type="button">C</button>
+<button class="numpad-btn h-12 rounded-lg bg-surface-container hover:bg-surface-variant text-text-primary font-bold active:scale-95" type="button">0</button>
+<button class="numpad-btn h-12 rounded-lg bg-brand-coffee hover:bg-secondary text-canvas-obsidian font-bold active:scale-95 text-[14px]" type="button">ENTER</button>
+</div>
+</div>
+</div>
+<!-- Total Actual Cash Counted Hero Banner -->
+<div class="w-full bg-gradient-to-r from-surface-container-lowest via-surface-container-low to-surface-container-lowest p-space-md rounded-xl flex flex-col sm:flex-row items-center justify-between gap-space-sm shadow-inner">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[28px]">payments</span>
+</div>
+<div>
+<span class="font-mono-badge text-mono-badge uppercase text-text-muted tracking-wider block">Physical Drawer Counted</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Computed sum of notes &amp; rolled coins</span>
+</div>
+</div>
+<div class="text-right flex flex-col items-end">
+<div class="font-headline-xl text-headline-xl font-mono-meta text-cream-beige font-extrabold tracking-tight" id="actual-cash-total">Rp 3.930.000</div>
+<span class="font-mono-badge text-mono-badge text-secondary">71 Total Physical Pieces</span>
+</div>
+</div>
+</div>
+<!-- Variance & Discrepancy Telemetry Indicator Card -->
+<div class="bg-surface-card rounded-xl p-space-md shadow-xl flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Drawer Balancing Telemetry</span>
+<!-- Simulation Toggle Pill for Cashier Inspection -->
+<div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg">
+<button class="px-2 py-0.5 rounded text-mono-badge font-mono-badge bg-emerald-500/20 text-emerald-400 font-semibold" id="sim-balanced" type="button">Exact Rp 0</button>
+<button class="px-2 py-0.5 rounded text-mono-badge font-mono-badge text-text-muted hover:text-text-primary" id="sim-shortage" type="button">-Rp 20K Shortage</button>
+<button class="px-2 py-0.5 rounded text-mono-badge font-mono-badge text-text-muted hover:text-text-primary" id="sim-overage" type="button">+Rp 50K Overage</button>
+</div>
+</div>
+<!-- Dynamic Status Banner (Default: Balanced) -->
+<div class="p-space-md rounded-xl bg-emerald-950/20 shadow-[0_0_24px_rgba(16,185,129,0.15)] flex items-center justify-between gap-space-md" id="variance-status-box">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center" id="variance-icon-wrap">
+<span class="material-symbols-outlined text-[24px]">verified</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-emerald-400 font-bold" id="variance-title">Laci Kas Seimbang (Rp 0 Discrepancy - Verified)</div>
+<div class="font-body-sm text-body-sm text-text-muted" id="variance-desc">Total fisik kas sama persis dengan sistem register POS. Siap ditutup.</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono-badge text-mono-badge text-text-muted block">Variance (Selisih)</span>
+<span class="font-headline-lg text-headline-lg font-mono-meta text-emerald-400 font-bold" id="variance-amount">Rp 0</span>
+</div>
+</div>
+<!-- Mandatory Discrepancy Justification Field (Hidden when balanced, shown when variance != 0) -->
+<div class="hidden flex flex-col gap-space-xs p-space-sm rounded-lg bg-surface-container-low" id="discrepancy-reason-panel">
+<label class="font-label-sm text-label-sm text-accent-amber font-semibold flex items-center gap-space-xxs" for="variance-reason-select">
+<span class="material-symbols-outlined text-[16px]">warning</span> Justifikasi Selisih Kas (Wajib diisi untuk Handover):
+            </label>
+<div class="flex flex-col sm:flex-row gap-space-xs">
+<select class="bg-surface-secondary text-text-primary font-body-sm text-body-sm rounded-lg px-space-sm py-2.5 outline-none flex-1" id="variance-reason-select">
+<option value="kembalian-lebih">Kembalian lebih / salah hitung pelanggan buru-buru</option>
+<option value="uang-palsu-tolak">Toleransi pembulatan uang receh kasir</option>
+<option value="tips-tercampur">Tip toples tidak sengaja masuk laci kasir</option>
+<option value="lainnya">Lainnya (Perlu tanda tangan Supervisor)</option>
+</select>
+<input class="bg-surface-secondary text-text-primary font-body-sm text-body-sm rounded-lg px-space-sm py-2.5 outline-none flex-1" placeholder="Catatan internal kasir..." type="text"/>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Shift Sales, Settlement Breakdown & Final Closure Actions (5 cols = ~40-42%) -->
+<div class="xl:col-span-5 flex flex-col gap-space-md">
+<!-- Shift Gross Metrics Card -->
+<div class="bg-surface-card rounded-xl p-space-md sm:p-space-lg shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div>
+<span class="font-mono-badge text-mono-badge uppercase text-secondary font-semibold">Financial Settlement</span>
+<h3 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">Shift Sales Performance</h3>
+</div>
+<span class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-text-muted">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+</span>
+</div>
+<!-- Total Gross Metric Tile -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-text-muted font-body-sm text-body-sm">
+<span>Gross Shift Sales</span>
+<span class="font-mono-badge text-mono-badge bg-surface-container-high px-space-xs py-space-xxs rounded text-cream-beige">248 Transactions</span>
+</div>
+<div class="flex items-baseline justify-between">
+<div class="font-headline-xl text-headline-xl font-mono-meta text-secondary font-black tracking-tight">Rp 14.860.000</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">Avg Ticket: Rp 59.919</span>
+</div>
+</div>
+<!-- Payment Rails Distribution Breakdown -->
+<div class="flex flex-col gap-space-sm">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Settlement by Payment Rails</span>
+<!-- Payment Rail Item: QRIS -->
+<div class="p-space-sm rounded-xl bg-surface-container flex flex-col gap-space-xxs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-label-md text-label-md text-text-primary font-semibold">QRIS Dynamic (Midtrans / GoPay / BCA)</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-cream-beige font-bold">Rp 7.420.000</span>
+</div>
+<div class="flex items-center justify-between text-text-muted font-mono-badge text-mono-badge">
+<span class="text-emerald-400 flex items-center gap-space-xxs">
+<span class="material-symbols-outlined text-[14px]">cloud_done</span> Auto-Reconciled API Online
+                </span>
+<span>50.0% • 124 txns</span>
+</div>
+<!-- Mini progress bar -->
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-1">
+<div class="h-full bg-secondary rounded-full" style="width: 50.0%"></div>
+</div>
+</div>
+<!-- Payment Rail Item: Cash -->
+<div class="p-space-sm rounded-xl bg-surface-container flex flex-col gap-space-xxs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-accent-amber"></span>
+<span class="font-label-md text-label-md text-text-primary font-semibold">Cash (Tunai di Laci)</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-accent-amber font-bold">Rp 3.480.000</span>
+</div>
+<div class="flex items-center justify-between text-text-muted font-mono-badge text-mono-badge">
+<span class="text-text-muted">Physically counted</span>
+<span>23.4% • 86 txns</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-1">
+<div class="h-full bg-accent-amber rounded-full" style="width: 23.4%"></div>
+</div>
+</div>
+<!-- Payment Rail Item: EDC Debit -->
+<div class="p-space-sm rounded-xl bg-surface-container flex flex-col gap-space-xxs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+<span class="font-label-md text-label-md text-text-primary font-semibold">EDC Debit BCA / Mandiri</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-primary font-bold">Rp 2.760.000</span>
+</div>
+<div class="flex items-center justify-between text-text-muted font-mono-badge text-mono-badge">
+<span class="text-blue-400">Batch #048 Closed &amp; Verified</span>
+<span>18.6% • 28 txns</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-1">
+<div class="h-full bg-blue-400 rounded-full" style="width: 18.6%"></div>
+</div>
+</div>
+<!-- Payment Rail Item: EDC Credit Card -->
+<div class="p-space-sm rounded-xl bg-surface-container flex flex-col gap-space-xxs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+<span class="font-label-md text-label-md text-text-primary font-semibold">EDC Credit Card (Visa/Mastercard)</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-primary font-bold">Rp 1.200.000</span>
+</div>
+<div class="flex items-center justify-between text-text-muted font-mono-badge text-mono-badge">
+<span>Terminal BCA 2</span>
+<span>8.0% • 10 txns</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-1">
+<div class="h-full bg-purple-400 rounded-full" style="width: 8.0%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Petty Cash & Drawer Movement Audit Mini Log -->
+<div class="bg-surface-card rounded-xl p-space-md shadow-xl flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Drawer Movements Log</span>
+<span class="font-mono-badge text-mono-badge text-cream-beige">3 Events Today</span>
+</div>
+<div class="flex flex-col gap-space-xs font-body-sm text-body-sm">
+<!-- Log 1 -->
+<div class="flex items-start justify-between p-space-xs rounded-lg bg-surface-container-low">
+<div class="flex items-start gap-space-xs">
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">15:00</span>
+<div>
+<div class="text-text-primary font-medium">Initial Float Loaded</div>
+<div class="font-mono-badge text-mono-badge text-text-muted">By Manager Bagus</div>
+</div>
+</div>
+<span class="font-mono-meta text-mono-meta text-emerald-400 font-semibold">+Rp 500.000</span>
+</div>
+<!-- Log 2 -->
+<div class="flex items-start justify-between p-space-xs rounded-lg bg-surface-container-low">
+<div class="flex items-start gap-space-xs">
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">18:20</span>
+<div>
+<div class="text-text-primary font-medium">Emergency Tube Ice Replenishment</div>
+<div class="font-mono-badge text-mono-badge text-text-muted">Attached Slip: #PC-889</div>
+</div>
+</div>
+<span class="font-mono-meta text-mono-meta text-error font-semibold">-Rp 50.000</span>
+</div>
+<!-- Log 3 -->
+<div class="flex items-start justify-between p-space-xs rounded-lg bg-surface-container-low">
+<div class="flex items-start gap-space-xs">
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">21:30</span>
+<div>
+<div class="text-text-primary font-medium">Drawer Drop / Skimming to Safe</div>
+<div class="font-mono-badge text-mono-badge text-text-muted">Threshold not reached</div>
+</div>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted font-semibold">-Rp 0</span>
+</div>
+</div>
+</div>
+<!-- Shift Handover Signature & Final Settlement Actions -->
+<div class="bg-surface-card rounded-xl p-space-md sm:p-space-lg shadow-2xl flex flex-col gap-space-md">
+<div class="flex flex-col gap-space-xxs">
+<span class="font-headline-md text-headline-md text-text-primary tracking-tight">Closing Authorization &amp; Handover</span>
+<p class="font-body-sm text-body-sm text-text-muted">Generate official reports and transfer register float to Shift 3 Night crew.</p>
+</div>
+<!-- Mid Shift & Z-Report Action Grid -->
+<div class="grid grid-cols-2 gap-space-sm">
+<button class="flex items-center justify-center gap-space-xs p-space-sm rounded-xl bg-surface-container-high hover:bg-surface-variant text-text-primary font-label-md text-label-md transition-all active:scale-95 shadow-md" id="btn-print-x" type="button">
+<span class="material-symbols-outlined text-text-muted text-[20px]">print</span>
+<span>Print X-Report</span>
+</button>
+<button class="flex items-center justify-center gap-space-xs p-space-sm rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-accent-amber font-label-md text-label-md transition-all active:scale-95 shadow-md" id="btn-print-z" type="button">
+<span class="material-symbols-outlined text-accent-amber text-[20px]">receipt_long</span>
+<span>Confirm Z-Report</span>
+</button>
+</div>
+<!-- Major Primary Handover CTA Button -->
+<button class="w-full py-4 px-space-md rounded-xl bg-emerald-600 hover:bg-emerald-500 text-canvas-obsidian font-headline-md text-headline-md font-bold flex items-center justify-center gap-space-sm shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_36px_rgba(16,185,129,0.5)] transition-all active:scale-98" id="btn-open-handover" type="button">
+<span class="material-symbols-outlined text-[26px]">how_to_reg</span>
+<span>Selesaikan &amp; Serah Terima Kasir [F10]</span>
+</button>
+<div class="flex items-center justify-between text-text-muted font-mono-badge text-mono-badge px-1">
+<span>Next Shift Operator: Fauzan (Night Lead)</span>
+<span>Epson TM-T82III Ready</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Handover Modal Backdrop -->
+<div class="fixed inset-0 z-50 bg-canvas-obsidian/80 backdrop-blur-md hidden items-center justify-center p-gutter-mobile" id="handover-modal">
+<div class="w-full max-w-lg bg-surface-card rounded-2xl p-space-lg shadow-2xl flex flex-col gap-space-md transform scale-95 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</span>
+<div>
+<h4 class="font-headline-md text-headline-md text-text-primary">Shift 2 Handover Sign-off</h4>
+<span class="font-mono-badge text-mono-badge text-cream-beige">Terminal POS-01 (Gubeng 24H)</span>
+</div>
+</div>
+<button class="w-9 h-9 rounded-lg bg-surface-container hover:bg-surface-variant flex items-center justify-center text-text-muted hover:text-text-primary" id="btn-close-modal" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-xs font-body-sm text-body-sm">
+<div class="flex justify-between">
+<span class="text-text-muted">Outgoing Shift Lead:</span>
+<span class="text-text-primary font-semibold">Rayhan Al-Farisi (STF-2024-08)</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-muted">Incoming Shift Lead:</span>
+<span class="text-accent-amber font-semibold">Fauzan (Night 24H Sanctuary)</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-muted">Retained Float for Shift 3:</span>
+<span class="font-mono-meta text-mono-meta text-emerald-400 font-bold">Rp 500.000</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-muted">Cash Deposited to Safe:</span>
+<span class="font-mono-meta text-mono-meta text-cream-beige font-bold">Rp 3.430.000</span>
+</div>
+</div>
+<!-- Supervisor Security PIN Code -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-text-muted" for="supervisor-pin">Enter Manager / Lead Approval PIN:</label>
+<input class="bg-surface-container-lowest text-center tracking-widest text-2xl py-3 rounded-xl font-mono-meta text-accent-amber outline-none shadow-inner" id="supervisor-pin" maxlength="6" placeholder="• • • • • •" type="password"/>
+</div>
+<!-- Digital Signature Canvas Preview -->
+<div class="flex flex-col gap-space-xxs">
+<span class="font-label-sm text-label-sm text-text-muted">Incoming Cashier Acknowledgement:</span>
+<div class="h-24 bg-surface-container-lowest rounded-xl flex items-center justify-center text-text-muted font-mono-badge text-mono-badge">
+<span>Tap / Stylus: Fauzan (Night Lead Digital Badge Armed)</span>
+</div>
+</div>
+<!-- Final Trigger -->
+<div class="flex items-center gap-space-xs mt-space-xs">
+<button class="flex-1 py-3 rounded-xl bg-surface-container-high hover:bg-surface-variant text-text-primary font-label-md text-label-md" id="btn-cancel-handover" type="button">Cancel</button>
+<button class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-canvas-obsidian font-label-md text-label-md font-bold shadow-lg" id="btn-confirm-handover" type="button">Authorize &amp; Lock</button>
+</div>
+</div>
+</div>
+<!-- Client-Side Touch & Calculation Engine Script -->
+<script>
+    (function() {
+      // Audio feedback mock using web audio API synthesizer click
+      function playTactileClick() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.04);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.05);
+        } catch(e){}
+      }
+
+      const EXPECTED_CASH = 3930000;
+      let activeRow = document.querySelector('.denom-row[data-denom="100000"]');
+      let keypadBuffer = "28";
+
+      const denomRows = document.querySelectorAll('.denom-row');
+      const actualCashTotalEl = document.getElementById('actual-cash-total');
+      const keypadBufferEl = document.getElementById('keypad-buffer');
+      const keypadTargetLabelEl = document.getElementById('keypad-target-label');
+      
+      const varianceBox = document.getElementById('variance-status-box');
+      const varianceTitle = document.getElementById('variance-title');
+      const varianceDesc = document.getElementById('variance-desc');
+      const varianceAmount = document.getElementById('variance-amount');
+      const varianceIconWrap = document.getElementById('variance-icon-wrap');
+      const discrepancyReasonPanel = document.getElementById('discrepancy-reason-panel');
+
+      function formatRupiah(num) {
+        return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      }
+
+      function calculateTotal() {
+        let grandTotal = 0;
+        let totalPieces = 0;
+        denomRows.forEach(row => {
+          const denom = parseInt(row.getAttribute('data-denom'), 10);
+          const count = parseInt(row.getAttribute('data-count'), 10);
+          const subtotal = denom * count;
+          grandTotal += subtotal;
+          totalPieces += count;
+          row.querySelector('.subtotal').textContent = formatRupiah(subtotal);
+          row.querySelector('.count-display').textContent = count;
+        });
+
+        actualCashTotalEl.textContent = formatRupiah(grandTotal);
+        actualCashTotalEl.nextElementSibling.textContent = totalPieces + " Total Physical Pieces";
+
+        // Variance Evaluation
+        const variance = grandTotal - EXPECTED_CASH;
+        updateVarianceTelemetry(variance);
+      }
+
+      function updateVarianceTelemetry(variance) {
+        if (variance === 0) {
+          varianceBox.className = "p-space-md rounded-xl bg-emerald-950/20 shadow-[0_0_24px_rgba(16,185,129,0.15)] flex items-center justify-between gap-space-md";
+          varianceIconWrap.className = "w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center";
+          varianceIconWrap.innerHTML = '<span class="material-symbols-outlined text-[24px]">verified</span>';
+          varianceTitle.className = "font-headline-md text-headline-md text-emerald-400 font-bold";
+          varianceTitle.textContent = "Laci Kas Seimbang (Rp 0 Discrepancy - Verified)";
+          varianceDesc.textContent = "Total fisik kas sama persis dengan sistem register POS. Siap ditutup.";
+          varianceAmount.className = "font-headline-lg text-headline-lg font-mono-meta text-emerald-400 font-bold";
+          varianceAmount.textContent = "Rp 0";
+          discrepancyReasonPanel.classList.add('hidden');
+        } else if (variance < 0) {
+          varianceBox.className = "p-space-md rounded-xl bg-error-container/20 shadow-[0_0_24px_rgba(255,180,171,0.1)] flex items-center justify-between gap-space-md";
+          varianceIconWrap.className = "w-10 h-10 rounded-full bg-error/20 text-error flex items-center justify-center";
+          varianceIconWrap.innerHTML = '<span class="material-symbols-outlined text-[24px]">error</span>';
+          varianceTitle.className = "font-headline-md text-headline-md text-error font-bold";
+          varianceTitle.textContent = "Selisih Kurang (Cash Shortage Alert)";
+          varianceDesc.textContent = "Kas fisik kurang dari sistem. Alasan selisih wajib dicatat.";
+          varianceAmount.className = "font-headline-lg text-headline-lg font-mono-meta text-error font-bold";
+          varianceAmount.textContent = "- " + formatRupiah(Math.abs(variance));
+          discrepancyReasonPanel.classList.remove('hidden');
+        } else {
+          varianceBox.className = "p-space-md rounded-xl bg-amber-950/30 shadow-[0_0_24px_rgba(245,158,11,0.15)] flex items-center justify-between gap-space-md";
+          varianceIconWrap.className = "w-10 h-10 rounded-full bg-accent-amber/20 text-accent-amber flex items-center justify-center";
+          varianceIconWrap.innerHTML = '<span class="material-symbols-outlined text-[24px]">notification_important</span>';
+          varianceTitle.className = "font-headline-md text-headline-md text-accent-amber font-bold";
+          varianceTitle.textContent = "Selisih Lebih (Cash Overage Recorded)";
+          varianceDesc.textContent = "Terdapat kelebihan kas di laci kasir.";
+          varianceAmount.className = "font-headline-lg text-headline-lg font-mono-meta text-accent-amber font-bold";
+          varianceAmount.textContent = "+ " + formatRupiah(variance);
+          discrepancyReasonPanel.classList.remove('hidden');
+        }
+      }
+
+      function setActiveRow(row) {
+        denomRows.forEach(r => r.classList.remove('bg-surface-container-high'));
+        row.classList.add('bg-surface-container-high');
+        activeRow = row;
+        const denom = parseInt(row.getAttribute('data-denom'), 10);
+        const count = row.getAttribute('data-count');
+        keypadBuffer = count;
+        keypadBufferEl.textContent = keypadBuffer;
+        keypadTargetLabelEl.textContent = 'Selected: ' + formatRupiah(denom) + ' note';
+      }
+
+      denomRows.forEach(row => {
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('button')) return;
+          playTactileClick();
+          setActiveRow(row);
+        });
+
+        // +/- buttons
+        const btnMinus = row.querySelector('.btn-minus');
+        const btnPlus = row.querySelector('.btn-plus');
+        const btnPlus5 = row.querySelector('.btn-plus5');
+        const btnPlus10 = row.querySelector('.btn-plus10');
+
+        btnMinus.addEventListener('click', (e) => {
+          e.stopPropagation();
+          playTactileClick();
+          let count = parseInt(row.getAttribute('data-count'), 10);
+          if (count > 0) {
+            row.setAttribute('data-count', count - 1);
+            setActiveRow(row);
+            calculateTotal();
+          }
+        });
+
+        btnPlus.addEventListener('click', (e) => {
+          e.stopPropagation();
+          playTactileClick();
+          let count = parseInt(row.getAttribute('data-count'), 10);
+          row.setAttribute('data-count', count + 1);
+          setActiveRow(row);
+          calculateTotal();
+        });
+
+        if (btnPlus5) {
+          btnPlus5.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playTactileClick();
+            let count = parseInt(row.getAttribute('data-count'), 10);
+            row.setAttribute('data-count', count + 5);
+            setActiveRow(row);
+            calculateTotal();
+          });
+        }
+
+        if (btnPlus10) {
+          btnPlus10.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playTactileClick();
+            let count = parseInt(row.getAttribute('data-count'), 10);
+            row.setAttribute('data-count', count + 10);
+            setActiveRow(row);
+            calculateTotal();
+          });
+        }
+      });
+
+      // Keypad interaction
+      const numpadBtns = document.querySelectorAll('.numpad-btn');
+      numpadBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          playTactileClick();
+          const val = btn.textContent.trim();
+          if (val === 'C') {
+            keypadBuffer = "0";
+          } else if (val === 'ENTER') {
+            if (activeRow) {
+              activeRow.setAttribute('data-count', parseInt(keypadBuffer, 10) || 0);
+              calculateTotal();
+            }
+            return;
+          } else {
+            if (keypadBuffer === "0") {
+              keypadBuffer = val;
+            } else if (keypadBuffer.length < 4) {
+              keypadBuffer += val;
+            }
+          }
+          keypadBufferEl.textContent = keypadBuffer;
+          if (activeRow) {
+            activeRow.setAttribute('data-count', parseInt(keypadBuffer, 10) || 0);
+            calculateTotal();
+          }
+        });
+      });
+
+      // Quick helper simulation presets
+      document.getElementById('sim-balanced').addEventListener('click', () => {
+        playTactileClick();
+        presetBalanced();
+      });
+
+      document.getElementById('sim-shortage').addEventListener('click', () => {
+        playTactileClick();
+        presetBalanced();
+        // reduce 20K note count by 1
+        const r20 = document.querySelector('.denom-row[data-denom="20000"]');
+        r20.setAttribute('data-count', 11);
+        setActiveRow(r20);
+        calculateTotal();
+      });
+
+      document.getElementById('sim-overage').addEventListener('click', () => {
+        playTactileClick();
+        presetBalanced();
+        // increase 50K note count by 1
+        const r50 = document.querySelector('.denom-row[data-denom="50000"]');
+        r50.setAttribute('data-count', 17);
+        setActiveRow(r50);
+        calculateTotal();
+      });
+
+      document.getElementById('btn-reset-counter').addEventListener('click', () => {
+        playTactileClick();
+        denomRows.forEach(r => r.setAttribute('data-count', 0));
+        if (activeRow) setActiveRow(activeRow);
+        calculateTotal();
+      });
+
+      function presetBalanced() {
+        const presets = {
+          "100000": 28,
+          "50000": 16,
+          "20000": 12,
+          "10000": 6,
+          "5000": 4,
+          "2000": 5,
+          "1000": 0
+        };
+        denomRows.forEach(r => {
+          const d = r.getAttribute('data-denom');
+          if (presets[d] !== undefined) {
+            r.setAttribute('data-count', presets[d]);
+          }
+        });
+        if (activeRow) setActiveRow(activeRow);
+        calculateTotal();
+      }
+
+      document.getElementById('btn-preset-balanced').addEventListener('click', () => {
+        playTactileClick();
+        presetBalanced();
+      });
+
+      // Pop Cash Drawer trigger
+      document.getElementById('btn-pop-drawer').addEventListener('click', () => {
+        playTactileClick();
+        const btn = document.getElementById('btn-pop-drawer');
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="material-symbols-outlined text-secondary text-[20px] animate-spin">sync</span><span>Popping Drawer...</span>';
+        setTimeout(() => {
+          btn.innerHTML = origHtml;
+          alert('EPSON Drawer Kick Pulse Dispatched (Pin 2 RJ11)');
+        }, 600);
+      });
+
+      // Handover modal wiring
+      const handoverModal = document.getElementById('handover-modal');
+      const openHandoverBtn = document.getElementById('btn-open-handover');
+      const closeModalBtn = document.getElementById('btn-close-modal');
+      const cancelHandoverBtn = document.getElementById('btn-cancel-handover');
+      const confirmHandoverBtn = document.getElementById('btn-confirm-handover');
+
+      openHandoverBtn.addEventListener('click', () => {
+        playTactileClick();
+        handoverModal.classList.remove('hidden');
+        handoverModal.classList.add('flex');
+      });
+
+      function closeModal() {
+        handoverModal.classList.add('hidden');
+        handoverModal.classList.remove('flex');
+      }
+
+      closeModalBtn.addEventListener('click', closeModal);
+      cancelHandoverBtn.addEventListener('click', closeModal);
+
+      confirmHandoverBtn.addEventListener('click', () => {
+        const pin = document.getElementById('supervisor-pin').value;
+        if (pin.length < 4) {
+          alert('Silakan masukkan 4-6 digit PIN Supervisor/Manager.');
+          return;
+        }
+        alert('Shift 2 Berhasil Ditutup dan Diserahterimakan ke Fauzan (Shift 3 Night Lead). Z-Report dikirim ke printer Epson.');
+        closeModal();
+      });
+
+      // Print button simulations
+      document.getElementById('btn-print-x').addEventListener('click', () => {
+        playTactileClick();
+        alert('Mencetak X-Report (Mid-Shift Preview) ke EPSON TM-T82III...');
+      });
+
+      document.getElementById('btn-print-z').addEventListener('click', () => {
+        playTactileClick();
+        alert('PERINGATAN: Z-Report akan mereset nomor urut register harian. Pastikan fisik uang telah dihitung.');
+      });
+
+      // Keyboard F2 / F10 / F12 shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') {
+          e.preventDefault();
+          document.getElementById('btn-pop-drawer').click();
+        } else if (e.key === 'F10') {
+          e.preventDefault();
+          openHandoverBtn.click();
+        }
+      });
+
+      // Init on mount
+      if (activeRow) setActiveRow(activeRow);
+      calculateTotal();
+    })();
+  </script>
+</div></main><footer class="fixed bottom-0 left-0 right-0 z-40 h-10 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-2px_12px_rgba(0,0,0,0.3)] px-gutter-desktop flex items-center justify-between font-mono-badge text-mono-badge text-text-muted"><div class="flex items-center gap-space-lg overflow-x-auto py-1"><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">PRINTER:</span><span class="text-text-primary font-medium">EPSON TM-T82III (Online)</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">DRAWER:</span><span class="text-text-primary font-medium">RJ11 Armed</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">SCANNER:</span><span class="text-text-primary font-medium">QRIS USB Scanner</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">EDC:</span><span class="text-text-primary font-medium">Midtrans Terminal (Online)</span></div></div><div class="hidden md:flex items-center gap-space-xs"><span class="text-outline font-mono-meta text-mono-meta">WARKOP YA'REH CORE OS v4.2.1</span></div></footer></body></html>

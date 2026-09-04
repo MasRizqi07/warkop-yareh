@@ -44,12 +44,12 @@ export default function AboutPage() {
             <Badge variant="gold" className="uppercase tracking-widest px-3 py-1 text-[10px] shadow-sm shadow-amber-500/10">
               About Us
             </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[var(--text-primary)] leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[var(--text-primary)] leading-tight tracking-tight">
               Membangun Masa Depan
               <br />
               <span className="text-gradient">Warkop Ya&apos;reh</span>
             </h1>
-            <p className="text-sm md:text-base text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm md:text-base text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
               WARKOP YA&apos;REH bukan sekadar tempat minum kopi. Kami adalah
               ekosistem digital yang menghubungkan ide, kreativitas, dan
               komunitas di Surabaya.
@@ -60,26 +60,26 @@ export default function AboutPage() {
 
       {/* Interactive Statistics Grid */}
       <section className="relative z-10 -mt-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {STATS.map((stat, idx) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="glass-card p-5 rounded-2xl border border-white/5 bg-surface-container/20 flex flex-col justify-between"
+              className="glass-card p-4 sm:p-5 rounded-2xl border border-white/5 bg-surface-container/20 flex flex-col justify-between"
             >
-              <div className="flex justify-between items-center mb-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                  {iconMap[stat.icon] || <Coffee className="w-5 h-5" />}
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  {iconMap[stat.icon] || <Coffee className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </div>
-                <span className="text-[10px] font-receipt-label text-primary font-bold uppercase tracking-wider">Metric</span>
+                <span className="text-[9px] sm:text-[10px] font-receipt-label text-primary font-bold uppercase tracking-wider">Metric</span>
               </div>
               <div>
-                <h3 className="font-display-lg text-2xl font-extrabold text-[var(--text-primary)] leading-none mb-1">
+                <h3 className="font-display-lg text-xl sm:text-2xl font-extrabold text-[var(--text-primary)] leading-none mb-1">
                   {stat.value}
                 </h3>
-                <p className="text-[10px] font-receipt-label text-[var(--text-secondary)] uppercase tracking-tight">
+                <p className="text-[9px] sm:text-[10px] font-receipt-label text-[var(--text-secondary)] uppercase tracking-tight">
                   {stat.label}
                 </p>
               </div>
@@ -89,9 +89,9 @@ export default function AboutPage() {
       </section>
 
       {/* Our Story with Cozy Workspace Seating Mockup */}
-      <section className="py-20 relative z-10">
+      <section className="py-16 sm:py-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -102,7 +102,7 @@ export default function AboutPage() {
               <Image
                 alt="Warkop seating environment"
                 fill
-                sizes="(max-w-768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover opacity-70 group-hover:scale-102 transition-transform duration-1000"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhLJIk6lrVYtMEIRb3biYCadHukC3TaaK36VSik-cCNy7V8N1KdACPbMsr1swFmFXFwAGAgHdlD9Gcn3PCNflumIc0MDo4gHazdPgI_hP-YpUo0QesLZ993nPSHjWAFUucj0n4P_EmwydnD3gv6uT2VvcGLeKFXW3dfVMxd5lH5R5iJsIBEAHAoAiFVYH6o88MZPPPxhHRjCuzh856-CJ-Ej0UNtyDXlxPHvgYlUSWpiAqNn2bJl247f3-lLjd4IoT8PAwo_Z6gKQ"
                 priority

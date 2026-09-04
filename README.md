@@ -5,13 +5,13 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)
 
-> **A Community-Centric Specialty Coffee Shop & Coworking Ecosystem**
-> Premium Indonesian coffee culture ("Warkop") meets modern digital experiences. Tailored for developers, creators, and professionals in Surabaya.
+> **A Premium, Design-Driven Community Specialty Coffee Shop & Coworking Ecosystem**
+> Premium Indonesian coffee culture ("Warkop") meets state-of-the-art digital experiences. Featuring dynamic, fluid UI/UX, glassmorphism, and immersive micro-animations, tailored for developers, creators, and professionals in Surabaya to deliver absolute maximum user satisfaction.
 
 > [!IMPORTANT]
 > **Official Project Documentation**:
 >
-> - **[Product Requirements Document (PRD)](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/PRD.md)**
+> - **[Product Requirements Document (PRD)](file:///d:/MY%20CODE/ANTIGRAVITY/01-production/warkop-yareh/PRD.md)**
 > - **[Design System Guide](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/DESIGN_SYSTEM.md)**
 > - **[Enterprise Architecture Blueprint](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/ENTERPRISE_ARCHITECTURE.md)**
 > - **[Enterprise Architecture Audit](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/architecture/enterprise_audit.md)**
@@ -126,6 +126,7 @@ warkop-yareh/
 | **Frontend Framework** | [Next.js](https://nextjs.org/)                                 | `16.2.7`    | App Router, SSR, React Server Components              |
 | **UI Library**         | [React](https://react.dev/)                                    | `19.2.4`    | Virtual DOM rendering with Server Actions             |
 | **Styling**            | [Tailwind CSS](https://tailwindcss.com/)                       | `^4.0.0`    | Native CSS custom variables design framework          |
+| **Animation Engine**   | [Framer Motion](https://www.framer.com/motion/)                | `^11.0.0`   | Fluid, physics-based micro-animations & transitions   |
 | **State Management**   | [Zustand](https://github.com/pmndrs/zustand)                   | `^5.0.14`   | Client state store with persistence middleware        |
 | **Query Engine**       | [React Query](https://tanstack.com/query)                      | `^5.101.0`  | Server-state caching and synchronization              |
 | **Backend Framework**  | [NestJS](https://nestjs.com/)                                  | `^11.0.0`   | Modular, progressive TypeScript backend               |

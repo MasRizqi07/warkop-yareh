@@ -38,14 +38,14 @@ export const NAV_LINKS = [
 export const MEMBERSHIP_TIERS = [
   {
     name: "Bronze",
-    color: "#CD7F32",
+    color: "var(--accent-fill)",
     minPoints: 0,
     perks: ["5% diskon minuman", "Birthday reward", "Early access promo"],
     multiplier: 1,
   },
   {
     name: "Silver",
-    color: "#C0C0C0",
+    color: "var(--text-secondary)",
     minPoints: 500,
     perks: [
       "10% diskon semua menu",
@@ -57,7 +57,7 @@ export const MEMBERSHIP_TIERS = [
   },
   {
     name: "Gold",
-    color: "#FFD700",
+    color: "var(--gold-highlight)",
     minPoints: 2000,
     perks: [
       "15% diskon semua menu",
@@ -69,7 +69,7 @@ export const MEMBERSHIP_TIERS = [
   },
   {
     name: "Platinum",
-    color: "#E5E4E2",
+    color: "var(--primary-fixed)",
     minPoints: 5000,
     perks: [
       "20% diskon semua menu",

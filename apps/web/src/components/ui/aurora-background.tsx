@@ -5,7 +5,7 @@ export function AuroraBackground() {
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       {/* Base dark gradient */}
       <div
-        className="absolute inset-0 bg-gradient-to-b from-[#0C0D0E] to-[#1A0D06]"
+        className="absolute inset-0 bg-gradient-to-b from-[var(--bg-canvas)] to-[var(--bg-surface-raised)]"
       />
 
       {/* Aurora blobs */}

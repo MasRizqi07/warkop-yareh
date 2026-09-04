@@ -64,7 +64,7 @@ export default function LoyaltyPage() {
             <div>
               <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Halo, {profile.name.split(" ")[0]}</h2>
               <div className="flex items-center gap-2 mt-1">
-                <span className="bg-gradient-to-r from-[#f59e0b] to-[#fbbf24] text-on-tertiary-fixed text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shimmer">
+                <span className="bg-gradient-to-r from-[var(--gold-highlight)] to-[var(--accent-fill)] text-[var(--text-on-brand)] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shimmer">
                   {loyaltyTier} Member
                 </span>
                 <span className="font-receipt-label text-receipt-label text-on-surface-variant/60">EST. {profile.memberSince}</span>

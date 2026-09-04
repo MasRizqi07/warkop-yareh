@@ -6,12 +6,16 @@ import { useCartStore } from "@/stores";
 import Image from "next/image";
 import { IconLocation, IconCoffee, IconArrowRight } from "@/lib/icons";
 
+import { api } from "@/lib/api";
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, total, clearCart } = useCartStore();
   const [orderType, setOrderType] = useState<"dine_in" | "take_away">("dine_in");
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("gopay");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Redirect if cart is empty
   if (items.length === 0) {
@@ -22,21 +26,64 @@ export default function CheckoutPage() {
   }
 
   const subtotal = total();
-  const tax = subtotal * 0.1; // PB1 10%
+  const tax = subtotal * 0.11; // PPN 11%
   const grandTotal = subtotal + tax;
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (orderType === "dine_in" && !tableNumber) {
       alert("Please enter a table number for Dine In.");
       return;
     }
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      setIsSubmitting(true);
+      setErrorMsg("");
+
+      // 1. Create real order in backend
+      const orderPayload = {
+        branchId: "coldnbrew-gubeng-001",
+        type: orderType === "dine_in" ? "DINE_IN" : "TAKE_AWAY",
+        notes: orderType === "dine_in" ? `Table: ${tableNumber}` : "Take Away",
+        items: items.map((i) => ({
+          productId: i.product.id,
+          quantity: i.quantity,
+          notes: i.notes || undefined,
+        })),
+      };
+
+      const orderRes = await api.post("/orders", orderPayload);
+      const createdOrder = orderRes.data?.data;
+
+      if (!createdOrder?.id) {
+        throw new Error("Order creation failed");
+      }
+
+      // 2. Generate Midtrans Snap token for the created order
+      await api.post("/payments/midtrans/snap", {
+        orderId: createdOrder.id,
+      });
+
+      // 3. Clear cart and navigate to success
       clearCart();
-      router.push("/checkout/success");
-    }, 1000);
+      const orderRef = createdOrder.orderNumber || createdOrder.id;
+      router.push(`/checkout/success?orderNumber=${encodeURIComponent(orderRef)}&orderId=${encodeURIComponent(createdOrder.id)}`);
+    } catch (err: unknown) {
+      console.error("Checkout failed:", err);
+      let message = "Failed to place order. Please try again.";
+      if (err instanceof Error) {
+        message = err.message;
+      }
+      if (typeof err === "object" && err !== null && "response" in err) {
+        const axiosErr = err as { response?: { data?: { message?: string } } };
+        if (axiosErr.response?.data?.message) {
+          message = axiosErr.response.data.message;
+        }
+      }
+      setErrorMsg(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -115,7 +162,7 @@ export default function CheckoutPage() {
                 {items.map((item) => (
                   <div key={item.product.id} className="flex justify-between">
                     <div className="flex gap-3">
-                      <div className="relative w-12 h-12 rounded bg-surface overflow-hidden flex-shrink-0">
+                      <div className="relative w-12 h-12 rounded bg-surface overflow-hidden shrink-0">
                         <Image src={item.product.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA"} alt={item.product.name} fill className="object-cover" />
                       </div>
                       <div>
@@ -143,12 +190,19 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {errorMsg && (
+                <div className="p-3 bg-error/20 border border-error/30 rounded-xl text-error text-xs mt-4">
+                  {errorMsg}
+                </div>
+              )}
+
               <button
                 type="submit"
                 form="checkout-form"
-                className="w-full mt-8 py-4 bg-primary text-on-primary rounded-xl font-headline-md text-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full mt-8 py-4 bg-primary text-on-primary rounded-xl font-headline-md text-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
               >
-                Place Order <IconArrowRight size={20} />
+                {isSubmitting ? "Processing Order..." : "Place Order"} <IconArrowRight size={20} />
               </button>
             </div>
           </div>

@@ -23,13 +23,12 @@ export class DatabaseService
         $allModels: {
           async $allOperations({ model, operation, args, query }) {
             const tenant = tenantContext.getStore();
-            console.log(`[RLS] ${model}.${operation} tenant:`, tenant);
             if (!tenant || (!tenant.branchId && !tenant.userId)) {
               return query(args);
             }
 
-            // @ts-ignore - Prisma client extension transaction context typing
-            return this.$transaction(async (tx) => {
+            // Prisma client extension transaction context typing
+            return (this as any).$transaction(async (tx: any) => {
               await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
               if (tenant.branchId) {
                 await tx.$executeRawUnsafe(
@@ -49,7 +48,6 @@ export class DatabaseService
                   tenant.role,
                 );
               }
-              // @ts-ignore - dynamic model accessor
               return tx[model][operation](args);
             });
           },
@@ -68,12 +66,11 @@ export class DatabaseService
     const extendedProxy = extended as unknown as this;
 
     // Bind lifecycle hooks to the proxy so NestJS can call them
-    // @ts-ignore - custom prisma dynamic client property mapping
-    extendedProxy.onModuleInit = async () => {
+    (extendedProxy as any).onModuleInit = async () => {
       await this.$connect();
 
       try {
-        await extendedProxy.$transaction(async (tx) => {
+        await (extendedProxy as any).$transaction(async (tx: any) => {
           await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
         });
         this.logger.log('Database role api_user check passed successfully.');
@@ -92,8 +89,7 @@ export class DatabaseService
       }
     };
 
-    // @ts-ignore - custom prisma dynamic client property mapping
-    extendedProxy.onModuleDestroy = async () => {
+    (extendedProxy as any).onModuleDestroy = async () => {
       await this.$disconnect();
     };
 

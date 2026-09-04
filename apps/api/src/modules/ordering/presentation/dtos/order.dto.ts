@@ -32,10 +32,10 @@ export class OrderItemDto {
 }
 
 export class CreateOrderDto {
-  @ApiProperty({ example: 'usr_123' })
+  @ApiPropertyOptional({ example: 'usr_123' })
   @IsString()
-  @IsNotEmpty()
-  userId!: string;
+  @IsOptional()
+  userId?: string;
 
   @ApiProperty({ example: 'branch_abc' })
   @IsString()
@@ -48,10 +48,20 @@ export class CreateOrderDto {
   @Type(() => OrderItemDto)
   items!: OrderItemDto[];
 
+  @ApiPropertyOptional({ example: 'DINE_IN' })
+  @IsString()
+  @IsOptional()
+  type?: string;
+
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  idempotencyKey?: string;
 }
 
 export class UpdateOrderStatusDto {

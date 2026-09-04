@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentController } from './payment.controller';
 import { MidtransService } from './midtrans.service';
 import { OrderingService } from '../../modules/ordering/application/services/ordering.service';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import * as crypto from 'crypto';
 
 describe('PaymentController', () => {
@@ -10,14 +10,42 @@ describe('PaymentController', () => {
   let orderingService: jest.Mocked<Partial<OrderingService>>;
   let midtransService: jest.Mocked<Partial<MidtransService>>;
 
+  const mockOrder = {
+    id: 'order_123',
+    orderNumber: 'WY-20260829-1001',
+    total: 55500,
+    subtotal: 50000,
+    tax: 5500,
+    discount: 0,
+    paymentStatus: 'UNPAID',
+    customerName: 'Budi Santoso',
+    customerPhone: '08123456789',
+    user: { id: 'u1', name: 'Budi Santoso', email: 'budi@example.com' },
+    items: [
+      {
+        productId: 'prod-1',
+        snapshotName: 'Americano',
+        unitPrice: 25000,
+        quantity: 2,
+        totalPrice: 50000,
+      },
+    ],
+  };
+
   beforeEach(async () => {
     orderingService = {
+      getOrder: jest.fn().mockImplementation(async (id: string) => {
+        if (id === 'order_123' || id === 'WY-20260829-1001') {
+          return mockOrder as any;
+        }
+        return null;
+      }),
       updatePaymentStatus: jest
         .fn()
-        .mockResolvedValue({ id: 'order_123', paymentStatus: 'PAID' }),
+        .mockResolvedValue({ id: 'order_123', paymentStatus: 'PAID' } as any),
       updateOrderStatus: jest
         .fn()
-        .mockResolvedValue({ id: 'order_123', status: 'CONFIRMED' }),
+        .mockResolvedValue({ id: 'order_123', status: 'CONFIRMED' } as any),
     };
 
     midtransService = {
@@ -39,18 +67,57 @@ describe('PaymentController', () => {
   });
 
   describe('generateSnapToken', () => {
-    it('should return snap token from midtrans service', async () => {
+    it('should throw NotFoundException if order does not exist', async () => {
+      await expect(
+        controller.generateSnapToken({ orderId: 'nonexistent-order' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException if client-supplied grossAmount mismatches stored total', async () => {
+      await expect(
+        controller.generateSnapToken({
+          orderId: 'order_123',
+          grossAmount: 1000, // Tampered amount
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should successfully generate snap token using server-computed total and snapshot items', async () => {
       const result = await controller.generateSnapToken({
         orderId: 'order_123',
-        grossAmount: 50000,
       });
 
-      expect(result).toEqual({ data: { token: 'snap_token_abc' } });
+      expect(result).toEqual({
+        data: {
+          token: 'snap_token_abc',
+          orderId: 'order_123',
+          orderNumber: 'WY-20260829-1001',
+          grossAmount: 55500,
+        },
+      });
+
       expect(midtransService.createSnapTransaction).toHaveBeenCalledWith({
-        orderId: 'order_123',
-        grossAmount: 50000,
-        customerDetails: undefined,
-        itemDetails: undefined,
+        orderId: 'WY-20260829-1001',
+        grossAmount: 55500,
+        customerDetails: {
+          first_name: 'Budi Santoso',
+          email: 'budi@example.com',
+          phone: '08123456789',
+        },
+        itemDetails: [
+          {
+            id: 'prod-1',
+            price: 25000,
+            quantity: 2,
+            name: 'Americano',
+          },
+          {
+            id: 'TAX-PPN',
+            price: 5500,
+            quantity: 1,
+            name: 'PPN 11%',
+          },
+        ],
       });
     });
   });
