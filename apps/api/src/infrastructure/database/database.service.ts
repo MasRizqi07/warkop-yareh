@@ -17,6 +17,7 @@ export class DatabaseService
 
   constructor() {
     super();
+    const baseClient = this;
 
     const extended = this.$extends({
       query: {
@@ -28,7 +29,7 @@ export class DatabaseService
             }
 
             // Prisma client extension transaction context typing
-            return (this as any).$transaction(async (tx: any) => {
+            return baseClient.$transaction(async (tx: any) => {
               await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
               if (tenant.branchId) {
                 await tx.$executeRawUnsafe(

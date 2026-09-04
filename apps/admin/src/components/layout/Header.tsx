@@ -1,14 +1,29 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { Search, Bell, Mail, Menu } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Bell, Mail, Menu, LogOut } from "lucide-react";
+import { adminLogout } from "@/lib/api";
 
 interface HeaderProps {
   onMenuClick?: () => void;
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await adminLogout();
+    } finally {
+      router.replace("/login");
+      router.refresh();
+    }
+  }
+
   return (
     <header className="sticky top-0 z-30 glass border-b border-[var(--border-subtle)] px-4 md:px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4 md:gap-6">
@@ -42,6 +57,14 @@ export function Header({ onMenuClick }: HeaderProps) {
           </button>
           <button className="hover:text-[var(--text-primary)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded-full p-1" aria-label="Messages">
             <Mail className="w-5 h-5" />
+          </button>
+          <button
+            aria-label="Sign out"
+            className="rounded-full p-1 transition-colors hover:text-[var(--error-500)] focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] disabled:opacity-50"
+            disabled={isLoggingOut}
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5" />
           </button>
         </div>
         

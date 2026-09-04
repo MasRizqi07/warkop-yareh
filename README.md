@@ -11,14 +11,14 @@
 > [!IMPORTANT]
 > **Official Project Documentation**:
 >
-> - **[Product Requirements Document (PRD)](file:///d:/MY%20CODE/ANTIGRAVITY/01-production/warkop-yareh/PRD.md)**
-> - **[Design System Guide](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/DESIGN_SYSTEM.md)**
-> - **[Enterprise Architecture Blueprint](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/ENTERPRISE_ARCHITECTURE.md)**
-> - **[Enterprise Architecture Audit](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/architecture/enterprise_audit.md)**
-> - **[Technology Stack Specifications](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/TECH_STACK.md)**
-> - **[Local Development Guide](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/DEVELOPMENT_GUIDE.md)**
-> - **[Product & Tech Roadmap](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/ROADMAP.md)**
-> - **[Architecture Decision Records (ADR)](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/ADR/)**
+> - **[Product Requirements Document (PRD)](./PRD.md)**
+> - **[Design System Guide](./docs/DESIGN_SYSTEM.md)**
+> - **[Enterprise Architecture Blueprint](./docs/ENTERPRISE_ARCHITECTURE.md)**
+> - **[Enterprise Architecture Audit](./docs/architecture/enterprise_audit.md)**
+> - **[Technology Stack Specifications](./docs/TECH_STACK.md)**
+> - **[Local Development Guide](./docs/DEVELOPMENT_GUIDE.md)**
+> - **[Product & Tech Roadmap](./docs/ROADMAP.md)**
+> - **[Architecture Decision Records (ADR)](./docs/ADR/)**
 
 ---
 
@@ -55,12 +55,12 @@ Warkop Ya'reh is engineered as a modern, high-performance monorepo utilizing **p
 graph TD
     %% Frontend Applications
     A[apps/web<br/>Next.js 16 / React 19] -->|Consumes| D[packages/types]
-    A -->|Authentication| E[packages/auth]
+    A -->|JWT API authentication| C
     A -->|Validates| F[packages/validation]
     A -->|UI Elements| G[packages/ui]
 
     B[apps/admin<br/>Next.js 16 / React 19] -->|Consumes| D
-    B -->|Authentication| E
+    B -->|JWT API authentication| C
     B -->|UI Elements| G
 
     %% Backend Services
@@ -99,7 +99,6 @@ warkop-yareh/
 │   └── api/                  # NestJS Clean Architecture REST API (Port 4000)
 ├── 📦 packages/
 │   ├── database/             # Prisma schema, migrations, and database client wrapper
-│   ├── auth/                 # Auth.js (NextAuth) shared auth providers and adapters
 │   ├── types/                # Unified TypeScript interfaces and DTOs
 │   ├── validation/           # Zod-based request validation schemas
 │   ├── ui/                   # Shared UI component library
@@ -114,7 +113,6 @@ warkop-yareh/
 └── 🎨 DESIGN.md                 # Typography, palettes, and design token configurations
 ```
 
-
 ---
 
 ## 🛠️ Technology Stack
@@ -123,8 +121,8 @@ warkop-yareh/
 | :--------------------- | :------------------------------------------------------------- | :---------- | :---------------------------------------------------- |
 | **Monorepo Manager**   | [Turborepo](https://turbo.build/)                              | `^2.0.0`    | Build orchestration & cache pipeline                  |
 | **Package Manager**    | [pnpm](https://pnpm.io/)                                       | `9.0.0`     | Workspace workspace symlinks and package isolation    |
-| **Frontend Framework** | [Next.js](https://nextjs.org/)                                 | `16.2.7`    | App Router, SSR, React Server Components              |
-| **UI Library**         | [React](https://react.dev/)                                    | `19.2.4`    | Virtual DOM rendering with Server Actions             |
+| **Frontend Framework** | [Next.js](https://nextjs.org/)                                 | `16.3.4`    | App Router, SSR, React Server Components              |
+| **UI Library**         | [React](https://react.dev/)                                    | `19.2.8`    | Virtual DOM rendering with Server Actions             |
 | **Styling**            | [Tailwind CSS](https://tailwindcss.com/)                       | `^4.0.0`    | Native CSS custom variables design framework          |
 | **Animation Engine**   | [Framer Motion](https://www.framer.com/motion/)                | `^11.0.0`   | Fluid, physics-based micro-animations & transitions   |
 | **State Management**   | [Zustand](https://github.com/pmndrs/zustand)                   | `^5.0.14`   | Client state store with persistence middleware        |
@@ -143,8 +141,8 @@ The Warkop Ya'reh platform supports a rich ecosystem combining food-ordering, co
 
 ### 🛡️ 1. Authentication & Role-Based Access (RBAC)
 
-- Multi-tier system: `CUSTOMER`, `STAFF`, `MANAGER`, `ADMIN`, and `OWNER`.
-- Shared NextAuth adapters linked to the Prisma database backend.
+- Multi-tier system: `CUSTOMER`, `STAFF`, `CASHIER`, `KITCHEN`, `MANAGER`, `ADMIN`, `OWNER`, and `SUPERADMIN`.
+- Centralized NestJS JWT authentication with HttpOnly refresh cookies and guarded API authorization.
 
 ### 📍 2. Branch Management
 
@@ -216,7 +214,7 @@ erDiagram
     CommunityGroup ||--o{ CommunityPost : hosts
 ```
 
-Key models defined in [schema.prisma](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/packages/database/prisma/schema.prisma):
+Key models defined in [schema.prisma](./packages/database/prisma/schema.prisma):
 
 - **User**: Stores profiles, roles, loyalty points, and tier statuses.
 - **Branch**: Stores physical store attributes, location data, and hours.
@@ -265,8 +263,9 @@ This boots up:
 Create `.env` files in:
 
 1. `apps/web/.env.local`
-2. `apps/api/.env`
-3. `packages/database/.env`
+2. `apps/admin/.env.local`
+3. `apps/api/.env`
+4. `packages/database/.env`
 
 Example environment variables:
 
@@ -277,9 +276,10 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/warkop_yareh?schema=
 # Redis Config
 REDIS_URL="redis://localhost:6379"
 
-# Next Auth (Web)
-NEXTAUTH_SECRET="your-32-character-secret"
-NEXTAUTH_URL="http://localhost:3000"
+# Central NestJS JWT authentication
+JWT_SECRET="your-random-secret-minimum-32-characters"
+JWT_REFRESH_SECRET="a-different-random-secret-minimum-32-characters"
+NEXT_PUBLIC_API_URL="http://localhost:4000/api/v1"
 
 # Midtrans Settings
 MIDTRANS_CLIENT_KEY="your-midtrans-client-key"
@@ -311,7 +311,7 @@ pnpm dev
 
 ## 💻 Development Commands
 
-The workspace leverages Turborepo targets defined in [turbo.json](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/turbo.json):
+The workspace leverages Turborepo targets defined in [turbo.json](./turbo.json):
 
 ```bash
 # Build production bundles for all apps
@@ -322,6 +322,12 @@ pnpm dev
 
 # Check syntax and fix ESLint errors
 pnpm lint
+
+# Run lint, typecheck, tests, and production builds
+pnpm verify
+
+# With all three local services running and UI_AUDIT_ADMIN_* credentials set
+pnpm test:ui
 
 # Format code using Prettier configuration
 pnpm format
@@ -353,5 +359,6 @@ The project includes pre-configured assets under `infra/` for robust operations:
 
 ## 🎨 Design Guidelines
 
-Refer to [DESIGN.md](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/DESIGN.md) for typography guidelines, color values, custom Tailwind theme properties, and standard layout styles.
+Refer to [DESIGN.md](./DESIGN.md) for typography guidelines, color values, custom Tailwind theme properties, and standard layout styles.
+
 # warkop-yareh

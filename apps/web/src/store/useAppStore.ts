@@ -245,7 +245,7 @@ const INITIAL_ORDERS: MasterOrder[] = [
         productId: "prod-5",
         name: "Croissant Butter Artisan",
         price: 26000,
-        image: "https://images.unsplash.com/photo-1555507036-ab1f4038024a?w=800&auto=format&fit=crop&q=80",
+        image: "/images/artisan-toasted-sourdough.png",
         quantity: 1,
         customizations: {
           sweetness: "No Sugar (0%)",

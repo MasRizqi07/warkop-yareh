@@ -1,5 +1,7 @@
 # 🏛️ System Architecture — Warkop Ya'reh Digital Ecosystem
 
+> **Status:** Source-aligned architecture plus target deployment topology. Provider-specific infrastructure in this document requires separate staging/production evidence.
+
 ## 1. High-Level Architecture (C4 Context Diagram)
 
 ```mermaid
@@ -16,8 +18,8 @@ graph TD
     end
 
     subgraph Frontend["🖥️ Frontend Applications"]
-        Web["apps/web<br/>Next.js 15 (Vercel)<br/>Customer Portal"]
-        Admin["apps/admin<br/>Next.js 15 (Vercel)<br/>Admin Dashboard"]
+        Web["apps/web<br/>Next.js 16 (Vercel)<br/>Customer Portal"]
+        Admin["apps/admin<br/>Next.js 16 (Vercel)<br/>Admin Dashboard"]
     end
 
     subgraph Backend["⚙️ Backend Services"]
@@ -62,14 +64,13 @@ graph TD
 graph LR
     subgraph Monorepo["📦 Turborepo Monorepo"]
         subgraph Apps["apps/"]
-            WEB["web<br/>Next.js 15<br/>Port 3000"]
-            ADMIN["admin<br/>Next.js 15<br/>Port 3001"]
+            WEB["web<br/>Next.js 16<br/>Port 3000"]
+            ADMIN["admin<br/>Next.js 16<br/>Port 3001"]
             API["api<br/>NestJS 11<br/>Port 4000"]
         end
         subgraph Packages["packages/"]
             UI["ui<br/>Shared Components"]
             DB["database<br/>Prisma Client"]
-            AUTH["auth<br/>Auth.js Adapters"]
             TYPES["types<br/>Shared Interfaces"]
             VAL["validation<br/>Zod Schemas"]
             SHARED["shared<br/>Utilities"]
@@ -80,11 +81,11 @@ graph LR
 
     WEB --> UI
     WEB --> TYPES
-    WEB --> AUTH
+    WEB -->|"JWT + HttpOnly refresh cookie"| API
     WEB --> VAL
     ADMIN --> UI
     ADMIN --> TYPES
-    ADMIN --> AUTH
+    ADMIN -->|"JWT + HttpOnly refresh cookie"| API
     API --> DB
     API --> TYPES
     API --> VAL
@@ -216,7 +217,7 @@ sequenceDiagram
     M->>A: Webhook: Payment Success
     A->>DB: Update Order status = PAID
     A->>DB: Insert OutboxEvent(OrderPaid)
-    
+
     Note over Q: OrderPaid Consumer
     Q->>DB: Award Loyalty Points
     Q->>DB: Create Notification

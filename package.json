@@ -8,21 +8,22 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "test:ui": "node scripts/ui-audit.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
     "test": "turbo run test"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/eslintrc": "^3.3.7",
     "playwright": "^1.62.1",
-    "prettier": "^3.0.0",
-    "turbo": "^2.0.0"
+    "prettier": "^3.9.6",
+    "turbo": "^2.10.12"
   },
   "packageManager": "pnpm@9.0.0",
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.22.0",
+    "pg": "^8.23.0",
     "socket.io-client": "^4.8.3"
   }
 }

@@ -33,6 +33,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         name: true,
         role: true,
         branchId: true,
+        phone: true,
+        avatar: true,
+        membershipTier: true,
+        loyaltyPoints: true,
+        createdAt: true,
       },
     });
 
@@ -40,6 +45,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('User not found or disabled');
     }
 
-    return user;
+    return { ...user, joinedAt: user.createdAt };
   }
 }

@@ -25,6 +25,34 @@ interface Order {
   items: OrderItem[];
 }
 
+const DEMO_BOOT_TIME = Date.now();
+const DEMO_ORDERS: Order[] = [
+  {
+    id: '1',
+    orderNumber: '#CNB-1234',
+    status: 'PENDING',
+    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 2).toISOString(),
+    items: [
+      { id: 'i1', name: 'Cold Brew', quantity: 2 },
+      { id: 'i2', name: 'Croissant', quantity: 1 },
+    ],
+  },
+  {
+    id: '2',
+    orderNumber: '#CNB-1235',
+    status: 'PREPARING',
+    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 6).toISOString(),
+    items: [{ id: 'i3', name: 'Latte', quantity: 1 }],
+  },
+  {
+    id: '3',
+    orderNumber: '#CNB-1236',
+    status: 'PREPARING',
+    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 12).toISOString(),
+    items: [{ id: 'i4', name: 'Americano', quantity: 4 }],
+  },
+];
+
 // Kitchen Timer Hook
 function useKitchenTimer(createdAt: string) {
   const [elapsed, setElapsed] = useState(0);
@@ -118,12 +146,7 @@ const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (i
 };
 
 export default function KitchenPage() {
-  const [orders, setOrders] = useState<Order[]>([
-    // Mock data for initial render if backend is empty
-    { id: '1', orderNumber: '#CNB-1234', status: 'PENDING', createdAt: new Date(Date.now() - 1000 * 60 * 2).toISOString(), items: [{ id: 'i1', name: 'Cold Brew', quantity: 2 }, { id: 'i2', name: 'Croissant', quantity: 1 }] },
-    { id: '2', orderNumber: '#CNB-1235', status: 'PREPARING', createdAt: new Date(Date.now() - 1000 * 60 * 6).toISOString(), items: [{ id: 'i3', name: 'Latte', quantity: 1 }] },
-    { id: '3', orderNumber: '#CNB-1236', status: 'PREPARING', createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(), items: [{ id: 'i4', name: 'Americano', quantity: 4 }] },
-  ]);
+  const [orders, setOrders] = useState<Order[]>(DEMO_ORDERS);
 
   useEffect(() => {
     // 1. Fetch initial active orders from REST API

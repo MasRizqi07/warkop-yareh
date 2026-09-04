@@ -66,6 +66,11 @@ export class AuthController {
           name: user.name,
           role: user.role,
           branchId: user.branchId,
+          phone: user.phone,
+          avatar: user.avatar,
+          membershipTier: user.membershipTier,
+          loyaltyPoints: user.loyaltyPoints,
+          joinedAt: user.createdAt,
         },
       },
     };
@@ -135,6 +140,8 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+      domain: process.env.COOKIE_DOMAIN || undefined,
+      path: '/',
     });
 
     return { message: 'Logged out successfully', data: null };
@@ -153,6 +160,8 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+      domain: process.env.COOKIE_DOMAIN || undefined,
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }

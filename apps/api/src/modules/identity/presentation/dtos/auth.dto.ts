@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   IsEmail,
   IsString,
@@ -7,7 +6,6 @@ import {
   IsNotEmpty,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { Role } from '@warkop-yareh/types';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@coldnbrew.id' })

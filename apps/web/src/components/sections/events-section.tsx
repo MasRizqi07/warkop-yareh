@@ -56,9 +56,12 @@ function Countdown({ targetDate }: { targetDate: string }) {
       };
     };
 
-    setTimeLeft(calc());
+    const initialUpdate = window.setTimeout(() => setTimeLeft(calc()), 0);
     const interval = setInterval(() => setTimeLeft(calc()), 60000);
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(initialUpdate);
+      clearInterval(interval);
+    };
   }, [targetDate]);
 
   return (

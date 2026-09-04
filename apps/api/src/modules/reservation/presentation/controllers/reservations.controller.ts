@@ -15,6 +15,16 @@ import {
   UpdateReservationStatusDto,
 } from '../dtos/reservation.dto';
 
+const RESERVATION_OPERATOR_ROLES = [
+  'STAFF',
+  'CASHIER',
+  'KITCHEN',
+  'MANAGER',
+  'ADMIN',
+  'OWNER',
+  'SUPERADMIN',
+];
+
 @Controller('api/v1')
 export class ReservationsController {
   constructor(private readonly reservationService: ReservationService) {}
@@ -24,14 +34,7 @@ export class ReservationsController {
     @CurrentUser() user: { id: string; role: string },
     @Body() body: CreateReservationDto,
   ) {
-    const isEmployee = [
-      'STAFF',
-      'CASHIER',
-      'MANAGER',
-      'ADMIN',
-      'OWNER',
-      'SUPERADMIN',
-    ].includes(user.role);
+    const isEmployee = RESERVATION_OPERATOR_ROLES.includes(user.role);
     const resolvedUserId = isEmployee ? body.userId || '' : user.id;
 
     const reservation = await this.reservationService.createReservation({
@@ -51,7 +54,7 @@ export class ReservationsController {
     @Query('page') page = '1',
     @Query('limit') limit = '20',
   ) {
-    const isEmployee = ['STAFF', 'MANAGER', 'ADMIN'].includes(user.role);
+    const isEmployee = RESERVATION_OPERATOR_ROLES.includes(user.role);
     const resolvedUserId = isEmployee ? queryUserId : user.id;
     const result = await this.reservationService.listReservations({
       branchId,

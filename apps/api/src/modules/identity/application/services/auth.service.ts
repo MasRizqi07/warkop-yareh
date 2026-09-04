@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { createHash } from 'node:crypto';
 import { IdentityService } from './identity.service';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
@@ -45,16 +46,18 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(payload, {
       secret: (() => {
         if (!process.env.JWT_REFRESH_SECRET) {
-          throw new Error('JWT_REFRESH_SECRET environment variable is required');
+          throw new Error(
+            'JWT_REFRESH_SECRET environment variable is required',
+          );
         }
         return process.env.JWT_REFRESH_SECRET;
       })(),
       expiresIn: '7d',
     });
 
-    // Store refresh token in Redis for revocation
+    // Store only a one-way fingerprint; never expose the bearer token in Redis keys.
     await this.redisService.set(
-      `refresh_token:${user.id}:${refreshToken}`,
+      this.refreshTokenKey(user.id, refreshToken),
       'valid',
       7 * 24 * 60 * 60, // 7 days in seconds
     );
@@ -88,7 +91,7 @@ export class AuthService {
 
   async logout(userId: string, refreshToken: string) {
     if (refreshToken) {
-      await this.redisService.del(`refresh_token:${userId}:${refreshToken}`);
+      await this.redisService.del(this.refreshTokenKey(userId, refreshToken));
     }
   }
 
@@ -96,10 +99,12 @@ export class AuthService {
     userId: string,
     oldRefreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const isValid = await this.redisService.get(
-      `refresh_token:${userId}:${oldRefreshToken}`,
-    );
+    const tokenKey = this.refreshTokenKey(userId, oldRefreshToken);
+    const isValid = await this.redisService.take(tokenKey);
     if (!isValid) {
+      // A replayed or unknown token is treated as compromise: revoke the user's
+      // remaining refresh sessions before rejecting the request.
+      await this.redisService.delPattern(`refresh_token:${userId}:*`);
       throw new UnauthorizedException('Invalid or revoked refresh token');
     }
 
@@ -108,10 +113,8 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // Revoke old
-    await this.redisService.del(`refresh_token:${userId}:${oldRefreshToken}`);
-
-    // Generate new
+    // The old token was atomically consumed above. Issue its replacement only
+    // after the account is confirmed to still exist.
     return this.login(user);
   }
 
@@ -191,5 +194,10 @@ export class AuthService {
     }
 
     return this.login(user);
+  }
+
+  private refreshTokenKey(userId: string, token: string): string {
+    const fingerprint = createHash('sha256').update(token).digest('hex');
+    return `refresh_token:${userId}:${fingerprint}`;
   }
 }

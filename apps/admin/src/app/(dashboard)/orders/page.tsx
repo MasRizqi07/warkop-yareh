@@ -36,7 +36,6 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      setIsLoading(true);
       const json = await apiFetch<{ data: ApiOrder[] }>("/orders");
       const list: ApiOrder[] = json.data || [];
 
@@ -66,9 +65,12 @@ export default function OrdersPage() {
   };
 
   useEffect(() => {
-    fetchOrders();
+    const initialRequest = setTimeout(fetchOrders, 0);
     const interval = setInterval(fetchOrders, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialRequest);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {

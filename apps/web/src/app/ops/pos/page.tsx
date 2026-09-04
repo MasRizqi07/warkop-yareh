@@ -22,6 +22,10 @@ import { useAppStore, AppCartItem, PaymentMethod } from "@/store/useAppStore";
 import { MOCK_PRODUCTS, MockProduct } from "@/lib/mockData";
 import { soundEffects } from "@/lib/audioAlerts";
 
+function createPosItemId() {
+  return `pos-${crypto.randomUUID()}`;
+}
+
 export default function PosTerminalPage() {
   const {
     getActiveBranch,
@@ -63,7 +67,7 @@ export default function PosTerminalPage() {
       setTicketItems(updated);
     } else {
       const newItem: AppCartItem = {
-        id: `pos-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+        id: createPosItemId(),
         productId: prod.id,
         name: prod.name,
         price: prod.price,

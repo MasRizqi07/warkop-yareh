@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,26 +18,28 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 
+function subscribeToNetworkStatus(onStoreChange: () => void) {
+  window.addEventListener("online", onStoreChange);
+  window.addEventListener("offline", onStoreChange);
+
+  return () => {
+    window.removeEventListener("online", onStoreChange);
+    window.removeEventListener("offline", onStoreChange);
+  };
+}
+
+const getNetworkStatus = () => window.navigator.onLine;
+const getServerNetworkStatus = () => true;
+
 export function PwaBottomDock() {
   const pathname = usePathname();
   const { cartItems, setCartDrawerOpen } = useAppStore();
-  const [isOnline, setIsOnline] = useState(true);
+  const isOnline = useSyncExternalStore(
+    subscribeToNetworkStatus,
+    getNetworkStatus,
+    getServerNetworkStatus,
+  );
   const [isOpsMenuOpen, setIsOpsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setIsOnline(window.navigator.onLine);
-
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 

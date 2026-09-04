@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   MonitorCheck,
@@ -16,6 +16,12 @@ export default function KitchenDisplaySystemPage() {
   const activeBranch = getActiveBranch();
 
   const [stationFilter, setStationFilter] = useState<"all" | "coffee" | "kitchen">("all");
+  const [now, setNow] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const columns: { status: OrderStatus; label: string; countColor: string }[] = [
     { status: "pending", label: "01. Tiket Baru Masuk", countColor: "bg-rose-500" },
@@ -26,7 +32,7 @@ export default function KitchenDisplaySystemPage() {
 
   // Helper to calculate elapsed minutes
   const getElapsedMinutes = (dateStr: string) => {
-    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMs = now - new Date(dateStr).getTime();
     return Math.max(0, Math.floor(diffMs / 60000));
   };
 

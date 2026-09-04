@@ -39,8 +39,8 @@ We isolate libraries and applications into workspaces to ensure compile-time iso
 
 ```yaml
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 ```
 
 ### 2.2 Client-Edge Infrastructure
@@ -54,7 +54,7 @@ packages:
 ## 3. Technology Rationale
 
 1. **Turborepo & pnpm**: Dramatically reduces CI build and deployment runtimes by caching outputs. Prevents workspace package cross-contamination.
-2. **Next.js 15 + React 19**: Server Components render HTML on the server, minimizing client-side JavaScript execution to achieve LCP < 2.0s.
+2. **Next.js 16 + React 19**: Server Components render HTML on the server, minimizing client-side JavaScript execution.
 3. **NestJS 11**: Provides an structured architecture (Domain, Application, Infrastructure, Presentation) suitable for DDD and Clean Architecture.
 4. **BullMQ & Redis**: Lightweight, highly efficient background queuing system. Avoids the operational cost of managing a full Kafka cluster in the early launch phases.
 5. **Neon Serverless PostgreSQL**: Eliminates database sizing administration tasks for multi-branch layouts while supporting PostgreSQL features (RLS, window functions).

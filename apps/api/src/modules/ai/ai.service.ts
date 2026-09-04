@@ -245,7 +245,7 @@ export class AiService {
     suggestedAction?: string;
     recommendedProductId?: string;
   }> {
-    const lower = userMessage.toLowerCase();
+    const lower = `${previousContext ?? ''} ${userMessage}`.toLowerCase();
 
     if (
       lower.includes('non kopi') ||

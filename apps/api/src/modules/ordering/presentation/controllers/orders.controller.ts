@@ -23,6 +23,18 @@ import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 
+const ORDER_OPERATOR_ROLES = [
+  'STAFF',
+  'CASHIER',
+  'KITCHEN',
+  'MANAGER',
+  'ADMIN',
+  'OWNER',
+  'SUPERADMIN',
+];
+const GLOBAL_ORDER_ROLES = ['SUPERADMIN', 'ADMIN'];
+const BRANCH_ORDER_ROLES = ['STAFF', 'CASHIER', 'KITCHEN', 'MANAGER', 'OWNER'];
+
 @ApiTags('orders')
 @Controller('api/v1/orders')
 export class OrdersController {
@@ -37,14 +49,7 @@ export class OrdersController {
     @Body() body: CreateOrderDto,
     @Headers('idempotency-key') idempotencyKey?: string,
   ) {
-    const isEmployee = [
-      'STAFF',
-      'CASHIER',
-      'MANAGER',
-      'ADMIN',
-      'OWNER',
-      'SUPERADMIN',
-    ].includes(user.role);
+    const isEmployee = ORDER_OPERATOR_ROLES.includes(user.role);
     const resolvedUserId = isEmployee ? body.userId || user.id : user.id;
 
     const order = await this.orderingService.createOrder({
@@ -69,8 +74,8 @@ export class OrdersController {
     }
 
     if (user) {
-      const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
-      const isEmployee = ['STAFF', 'MANAGER', 'OWNER'].includes(user.role);
+      const isSuperAdmin = GLOBAL_ORDER_ROLES.includes(user.role);
+      const isEmployee = BRANCH_ORDER_ROLES.includes(user.role);
 
       if (!isSuperAdmin) {
         if (isEmployee) {
@@ -103,14 +108,8 @@ export class OrdersController {
       throw new NotFoundException('Order not found');
     }
 
-    const isEmployee = [
-      'STAFF',
-      'MANAGER',
-      'ADMIN',
-      'OWNER',
-      'SUPERADMIN',
-    ].includes(user.role);
-    const isSuperAdmin = ['SUPERADMIN', 'ADMIN'].includes(user.role);
+    const isEmployee = ORDER_OPERATOR_ROLES.includes(user.role);
+    const isSuperAdmin = GLOBAL_ORDER_ROLES.includes(user.role);
 
     if (!isSuperAdmin) {
       if (isEmployee) {
@@ -140,7 +139,7 @@ export class OrdersController {
     @Query('page') page = '1',
     @Query('limit') limit = '20',
   ) {
-    const isEmployee = ['STAFF', 'MANAGER', 'ADMIN'].includes(user.role);
+    const isEmployee = ORDER_OPERATOR_ROLES.includes(user.role);
     const resolvedUserId = isEmployee ? queryUserId : user.id;
     const result = await this.orderingService.listOrders({
       userId: resolvedUserId,
@@ -154,7 +153,7 @@ export class OrdersController {
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
-  @Roles('STAFF', 'MANAGER', 'ADMIN')
+  @Roles(...ORDER_OPERATOR_ROLES)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update order status' })
   async updateStatus(

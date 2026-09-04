@@ -1,5 +1,7 @@
 # 🏛️ Enterprise Architecture Blueprint (Audited & Verified)
 
+> **Status:** Target-state blueprint. A control described here is not production evidence until its implementation, CI, and deployed behavior have been verified.
+
 ## Project: Warkop Ya'reh Digital Platform
 
 This document describes the audited enterprise architecture of the **Warkop Ya'reh** platform, structured to support 100,000+ active users, 50+ branches, regional franchise divisions, and AI operations over a 5–10 year business timeline.
@@ -99,9 +101,9 @@ import {
   ExecutionContext,
   CallHandler,
   ForbiddenException,
-} from "@nestjs/common";
-import { Observable } from "rxjs";
-import { PrismaService } from "../database/prisma.service";
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class TenantIsolationInterceptor implements NestInterceptor {
@@ -109,25 +111,25 @@ export class TenantIsolationInterceptor implements NestInterceptor {
 
   async intercept(
     context: ExecutionContext,
-    next: CallHandler,
+    next: CallHandler
   ): Promise<Observable<any>> {
     const req = context.switchToHttp().getRequest();
     const userId = req.user?.id;
-    const branchId = req.headers["x-branch-id"];
+    const branchId = req.headers['x-branch-id'];
 
     // Strict format validation to block SQL injection vectors
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (userId && !uuidRegex.test(userId))
-      throw new ForbiddenException("Invalid User context ID format.");
+      throw new ForbiddenException('Invalid User context ID format.');
     if (branchId && !uuidRegex.test(branchId))
-      throw new ForbiddenException("Invalid Tenant context ID format.");
+      throw new ForbiddenException('Invalid Tenant context ID format.');
 
     // Parameterized queries (using safe template tags) executing locally within the transaction boundary
     await this.prisma
-      .$executeRaw`SET LOCAL app.current_user_id = ${userId || ""}`;
+      .$executeRaw`SET LOCAL app.current_user_id = ${userId || ''}`;
     await this.prisma
-      .$executeRaw`SET LOCAL app.current_branch_id = ${branchId || ""}`;
+      .$executeRaw`SET LOCAL app.current_branch_id = ${branchId || ''}`;
 
     return next.handle();
   }
@@ -176,11 +178,10 @@ We implement a **Polling Relayer** to fetch and publish events, avoiding the ope
 
 To enforce secure session revocation:
 
-1. **Cookie Storage**: The JWT Refresh Token is stored in a secure `HttpOnly`, `Secure`, `SameSite=Strict` cookie named `__Host-next-auth.refresh-token`.
-2. **Redis Registry**: On login, a hash of the refresh token is stored in Redis (`refresh_token:hash`) with a 7-day TTL matching the token's lifetime.
+1. **Cookie Storage**: The JWT refresh token is stored in the `refreshToken` cookie with `HttpOnly`, production-only `Secure`, `SameSite=Lax`, and an optional shared production cookie domain.
+2. **Redis Registry**: On login, only a SHA-256 fingerprint is placed in the Redis key (`refresh_token:{userId}:{fingerprint}`), with a 7-day TTL matching the token lifetime.
 3. **Atomic Rotation**: When a token refresh request is made:
-   - The NestJS controller verifies the token hash exists in Redis.
-   - The old hash is atomically deleted from Redis.
+   - The NestJS identity service atomically consumes the old fingerprint using Redis `GETDEL`.
    - If reuse is detected (i.e. the hash is missing), the API invalidates all active sessions for that user.
    - A new refresh token is issued and its hash is saved to Redis.
 

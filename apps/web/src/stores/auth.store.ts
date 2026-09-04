@@ -24,7 +24,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'coldnbrew-auth',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => window.localStorage),
       // We purposefully DO NOT persist the access token in localStorage for security (XSS prevention)
       // The httpOnly refresh cookie will handle getting a new access token on reload
       partialize: (state) => ({ 

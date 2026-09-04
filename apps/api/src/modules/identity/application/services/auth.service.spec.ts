@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
@@ -40,7 +39,9 @@ describe('AuthService', () => {
     mockRedisService = {
       set: jest.fn().mockResolvedValue('OK'),
       get: jest.fn(),
+      take: jest.fn(),
       del: jest.fn().mockResolvedValue(1),
+      delPattern: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -59,7 +60,10 @@ describe('AuthService', () => {
     it('should return user without passwordHash on correct credentials', async () => {
       mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
 
-      const result = await service.validateUser('test@warkopyareh.com', 'secret123');
+      const result = await service.validateUser(
+        'test@warkopyareh.com',
+        'secret123',
+      );
 
       expect(result).toBeDefined();
       expect(result.id).toBe('user-123');
@@ -69,7 +73,10 @@ describe('AuthService', () => {
     it('should return null on wrong password', async () => {
       mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
 
-      const result = await service.validateUser('test@warkopyareh.com', 'wrongpassword');
+      const result = await service.validateUser(
+        'test@warkopyareh.com',
+        'wrongpassword',
+      );
 
       expect(result).toBeNull();
     });
@@ -77,7 +84,10 @@ describe('AuthService', () => {
     it('should return null when user is not found', async () => {
       mockIdentityService.getUserByEmail.mockResolvedValue(null);
 
-      const result = await service.validateUser('nonexistent@warkopyareh.com', 'secret123');
+      const result = await service.validateUser(
+        'nonexistent@warkopyareh.com',
+        'secret123',
+      );
 
       expect(result).toBeNull();
     });
@@ -95,8 +105,11 @@ describe('AuthService', () => {
         accessToken: 'access-token-abc',
         refreshToken: 'refresh-token-xyz',
       });
+      const storedKey = mockRedisService.set.mock.calls[0][0] as string;
+      expect(storedKey).toMatch(/^refresh_token:user-123:[a-f0-9]{64}$/);
+      expect(storedKey).not.toContain('refresh-token-xyz');
       expect(mockRedisService.set).toHaveBeenCalledWith(
-        'refresh_token:user-123:refresh-token-xyz',
+        storedKey,
         'valid',
         7 * 24 * 60 * 60,
       );
@@ -142,16 +155,22 @@ describe('AuthService', () => {
 
   describe('refreshTokens', () => {
     it('should refresh tokens when valid refresh token is provided', async () => {
-      mockRedisService.get.mockResolvedValue('valid');
+      mockRedisService.take.mockResolvedValue('valid');
       mockIdentityService.getUserProfile.mockResolvedValue(mockUser as any);
       mockJwtService.sign
         .mockReturnValueOnce('new-access-token')
         .mockReturnValueOnce('new-refresh-token');
 
-      const result = await service.refreshTokens('user-123', 'old-refresh-token');
+      const result = await service.refreshTokens(
+        'user-123',
+        'old-refresh-token',
+      );
 
-      expect(mockRedisService.del).toHaveBeenCalledWith(
-        'refresh_token:user-123:old-refresh-token',
+      expect(mockRedisService.take).toHaveBeenCalledWith(
+        expect.stringMatching(/^refresh_token:user-123:[a-f0-9]{64}$/),
+      );
+      expect(mockRedisService.take.mock.calls[0][0]).not.toContain(
+        'old-refresh-token',
       );
       expect(result).toEqual({
         accessToken: 'new-access-token',
@@ -160,15 +179,18 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException when refresh token is invalid or revoked', async () => {
-      mockRedisService.get.mockResolvedValue(null);
+      mockRedisService.take.mockResolvedValue(null);
 
       await expect(
         service.refreshTokens('user-123', 'invalid-token'),
       ).rejects.toThrow(UnauthorizedException);
+      expect(mockRedisService.delPattern).toHaveBeenCalledWith(
+        'refresh_token:user-123:*',
+      );
     });
 
     it('should throw UnauthorizedException when user profile is not found', async () => {
-      mockRedisService.get.mockResolvedValue('valid');
+      mockRedisService.take.mockResolvedValue('valid');
       mockIdentityService.getUserProfile.mockResolvedValue(null);
 
       await expect(
@@ -182,7 +204,10 @@ describe('AuthService', () => {
       await service.logout('user-123', 'token-to-revoke');
 
       expect(mockRedisService.del).toHaveBeenCalledWith(
-        'refresh_token:user-123:token-to-revoke',
+        expect.stringMatching(/^refresh_token:user-123:[a-f0-9]{64}$/),
+      );
+      expect(mockRedisService.del.mock.calls[0][0]).not.toContain(
+        'token-to-revoke',
       );
     });
   });
@@ -207,7 +232,9 @@ describe('AuthService', () => {
 
       const result = await service.verifyOtp('test@warkopyareh.com', '123456');
 
-      expect(mockRedisService.del).toHaveBeenCalledWith('otp:test@warkopyareh.com');
+      expect(mockRedisService.del).toHaveBeenCalledWith(
+        'otp:test@warkopyareh.com',
+      );
       expect(result).toEqual({
         accessToken: 'otp-access-token',
         refreshToken: 'otp-refresh-token',

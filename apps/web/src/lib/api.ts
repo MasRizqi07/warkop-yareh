@@ -76,7 +76,9 @@ api.interceptors.response.use(
         // Refresh failed (cookie expired, invalid, etc), force logout
         useAuthStore.getState().logout();
         if (typeof window !== 'undefined') {
-          window.location.href = '/login?session_expired=true';
+          window.location.replace(
+            new URL('/login?session_expired=true', window.location.origin),
+          );
         }
         return Promise.reject(refreshError);
       }

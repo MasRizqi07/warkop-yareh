@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { Users, Clock, Hash } from 'lucide-react';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '');
 
 type TableStatus = 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'CLEANING' | 'MAINTENANCE';
 
@@ -23,6 +23,26 @@ interface Table {
   status: TableStatus;
   activeOrder?: ActiveOrder;
 }
+
+const DEMO_BOOT_TIME = Date.now();
+const DEMO_TABLES: Table[] = [
+  { id: '1', number: 'T01', name: 'Table 1', capacity: 4, status: 'AVAILABLE' },
+  {
+    id: '2',
+    number: 'T02',
+    name: 'Table 2',
+    capacity: 2,
+    status: 'OCCUPIED',
+    activeOrder: {
+      id: 'o1',
+      orderNumber: '#CNB-001',
+      customerCount: 2,
+      createdAt: new Date(DEMO_BOOT_TIME - 5_000_000).toISOString(),
+    },
+  },
+  { id: '3', number: 'T03', name: 'Table 3', capacity: 6, status: 'CLEANING' },
+  { id: '4', number: 'T04', name: 'Table 4', capacity: 4, status: 'RESERVED' },
+];
 
 function useDuration(createdAt?: string) {
   const [duration, setDuration] = useState('00:00:00');
@@ -94,15 +114,12 @@ const TableCard = ({ table }: { table: Table }) => {
 };
 
 export default function TablesDashboardPage() {
-  const [tables, setTables] = useState<Table[]>([
-    { id: '1', number: 'T01', name: 'Table 1', capacity: 4, status: 'AVAILABLE' },
-    { id: '2', number: 'T02', name: 'Table 2', capacity: 2, status: 'OCCUPIED', activeOrder: { id: 'o1', orderNumber: '#CNB-001', customerCount: 2, createdAt: new Date(Date.now() - 5000000).toISOString() } },
-    { id: '3', number: 'T03', name: 'Table 3', capacity: 6, status: 'CLEANING' },
-    { id: '4', number: 'T04', name: 'Table 4', capacity: 4, status: 'RESERVED' },
-  ]);
+  const [tables, setTables] = useState<Table[]>(DEMO_TABLES);
 
   useEffect(() => {
     // Connect to WebSocket to listen for Table status updates
+    if (!SOCKET_URL) return;
+
     const socket = io(SOCKET_URL);
     
     socket.on('connect', () => {

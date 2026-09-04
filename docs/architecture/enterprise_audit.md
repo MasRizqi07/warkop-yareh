@@ -1,6 +1,8 @@
 # 🕵️ Warkop Ya'reh — Enterprise Architecture Audit Report
 
-This audit performs a critical security, scalability, and performance review of the platform blueprint defined in [enterprise_architecture.md](file:///d:/MY%20CODE/ANTIGRAVITY/warkop-yareh/docs/architecture/enterprise_architecture.md). It highlights architectural vulnerabilities, technical debt, and system boundaries that must be corrected prior to execution.
+> **Status:** Historical findings snapshot. The former `packages/auth` / NextAuth duplication identified below has since been removed in favor of the centralized NestJS JWT identity API; all other findings still require current evidence before being considered resolved.
+
+This audit performs a critical security, scalability, and performance review of the platform blueprint defined in [enterprise_architecture.md](./enterprise_architecture.md). It highlights architectural vulnerabilities, technical debt, and system boundaries that must be corrected prior to execution.
 
 ---
 

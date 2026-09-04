@@ -33,6 +33,10 @@ const PRESET_CHIPS = [
   { label: "🍵 Non-Kopi Segar", query: "Rekomendasi minuman non-kopi yang segar" },
 ];
 
+function createMessageId(sender: "u" | "b") {
+  return `${sender}-${crypto.randomUUID()}`;
+}
+
 export function BaristaConciergeModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
@@ -53,14 +57,14 @@ export function BaristaConciergeModal() {
     const text = queryText || inputMessage;
     if (!text.trim() || loading) return;
 
-    const userMsgId = `u-${Date.now()}`;
+    const userMsgId = createMessageId("u");
     setMessages((prev) => [...prev, { id: userMsgId, sender: "user", text }]);
     if (!queryText) setInputMessage("");
     setLoading(true);
 
     try {
       // 1. Call Barista Chat & Recommend API
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
       
       const [chatRes, recRes] = await Promise.all([
         fetch(`${apiUrl}/ai/barista-chat`, {
@@ -79,7 +83,7 @@ export function BaristaConciergeModal() {
       const primaryRec = recRes?.highlightedProducts?.[0];
       const snackRec = recRes?.pairingSnack;
 
-      const botMsgId = `b-${Date.now()}`;
+      const botMsgId = createMessageId("b");
       setMessages((prev) => [
         ...prev,
         {
@@ -95,7 +99,7 @@ export function BaristaConciergeModal() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `b-${Date.now()}`,
+          id: createMessageId("b"),
           sender: "barista",
           text: "Pilihan terbaik untuk seleramu adalah **Kopi Susu Aren Signature** kami yang creamy dipadu dengan **Tahu Walik Crispy**!",
           recommendation: {

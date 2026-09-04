@@ -11,9 +11,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   private client!: Redis;
   private isConnected = false;
-  private fallbackMap = new Map<string, { value: string; expiry?: number }>();
+  private readonly fallbackMap = new Map<
+    string,
+    { value: string; expiry?: number }
+  >();
 
-  onModuleInit(): void {
+  private get fallbackAllowed(): boolean {
+    return process.env.NODE_ENV !== 'production';
+  }
+
+  async onModuleInit(): Promise<void> {
     const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
 
     this.client = new Redis(redisUrl, {
@@ -21,9 +28,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       maxRetriesPerRequest: 1,
       retryStrategy: (times) => {
         if (times > 3) {
-          this.logger.warn(
-            'Redis unavailable. Successfully activated in-memory cache fallback.',
-          );
+          if (this.fallbackAllowed) {
+            this.logger.warn(
+              'Redis unavailable. Activated the development-only in-memory fallback.',
+            );
+          }
           return null;
         }
         return Math.min(times * 100, 1000);
@@ -43,9 +52,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       this.isConnected = false;
     });
 
-    void this.client.connect().catch(() => {
-      // Handled by retryStrategy and fallback
-    });
+    try {
+      await this.client.connect();
+    } catch (error: unknown) {
+      if (!this.fallbackAllowed) {
+        throw new Error(
+          `Redis is required in production: ${this.errorMessage(error)}`,
+        );
+      }
+    }
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -53,61 +68,90 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async ping(): Promise<string> {
-    if (!this.isConnected) return 'PONG (in-memory)';
+    if (!this.isConnected) {
+      this.assertFallbackAllowed('ping');
+      return 'PONG (in-memory)';
+    }
     try {
       return await this.client.ping();
-    } catch {
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('ping', error);
       return 'PONG (in-memory)';
     }
   }
 
   async get(key: string): Promise<string | null> {
     if (!this.isConnected) {
-      const data = this.fallbackMap.get(key);
-      if (!data) return null;
-      if (data.expiry && Date.now() > data.expiry) {
-        this.fallbackMap.delete(key);
-        return null;
-      }
-      return data.value;
+      this.assertFallbackAllowed('get');
+      return this.getFallbackValue(key);
     }
     try {
       return await this.client.get(key);
-    } catch (err: any) {
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('get', error);
       this.logger.warn(
-        `Redis get failed (${err.message}). Using in-memory fallback.`,
+        `Redis get failed (${this.errorMessage(error)}). Using in-memory fallback.`,
       );
-      const data = this.fallbackMap.get(key);
-      if (!data) return null;
-      return data.value;
+      return this.getFallbackValue(key);
+    }
+  }
+
+  /** Atomically reads and deletes a value. Used for one-time tokens. */
+  async take(key: string): Promise<string | null> {
+    if (!this.isConnected) {
+      this.assertFallbackAllowed('take');
+      const value = this.getFallbackValue(key);
+      this.fallbackMap.delete(key);
+      return value;
+    }
+
+    try {
+      return await this.client.getdel(key);
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('take', error);
+      this.logger.warn(
+        `Redis take failed (${this.errorMessage(error)}). Using in-memory fallback.`,
+      );
+      const value = this.getFallbackValue(key);
+      this.fallbackMap.delete(key);
+      return value;
     }
   }
 
   async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
     const expiry = ttlSeconds ? Date.now() + ttlSeconds * 1000 : undefined;
-    this.fallbackMap.set(key, { value, expiry });
 
-    if (!this.isConnected) return;
+    if (!this.isConnected) {
+      this.assertFallbackAllowed('set');
+      this.fallbackMap.set(key, { value, expiry });
+      return;
+    }
     try {
       if (ttlSeconds !== undefined) {
         await this.client.set(key, value, 'EX', ttlSeconds);
       } else {
         await this.client.set(key, value);
       }
-    } catch (err: any) {
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('set', error);
+      this.fallbackMap.set(key, { value, expiry });
       this.logger.warn(
-        `Redis set failed (${err.message}). Saved in-memory only.`,
+        `Redis set failed (${this.errorMessage(error)}). Saved in-memory only.`,
       );
     }
   }
 
   async del(key: string): Promise<void> {
     this.fallbackMap.delete(key);
-    if (!this.isConnected) return;
+    if (!this.isConnected) {
+      this.assertFallbackAllowed('delete');
+      return;
+    }
     try {
       await this.client.del(key);
-    } catch (err: any) {
-      this.logger.warn(`Redis del failed (${err.message}).`);
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('delete', error);
+      this.logger.warn(`Redis delete failed (${this.errorMessage(error)}).`);
     }
   }
 
@@ -119,14 +163,28 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    if (!this.isConnected) return;
+    if (!this.isConnected) {
+      this.assertFallbackAllowed('pattern delete');
+      return;
+    }
     try {
-      const keys = await this.client.keys(pattern);
-      if (keys.length > 0) {
-        await this.client.del(...keys);
-      }
-    } catch (err: any) {
-      this.logger.warn(`Redis delPattern failed (${err.message}).`);
+      let cursor = '0';
+      do {
+        const [nextCursor, keys] = await this.client.scan(
+          cursor,
+          'MATCH',
+          pattern,
+          'COUNT',
+          100,
+        );
+        cursor = nextCursor;
+        if (keys.length > 0) await this.client.del(...keys);
+      } while (cursor !== '0');
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('pattern delete', error);
+      this.logger.warn(
+        `Redis pattern delete failed (${this.errorMessage(error)}).`,
+      );
     }
   }
 
@@ -146,6 +204,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async ttl(key: string): Promise<number> {
     if (!this.isConnected) {
+      this.assertFallbackAllowed('ttl');
       const data = this.fallbackMap.get(key);
       if (!data) return -2;
       if (!data.expiry) return -1;
@@ -154,9 +213,30 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
     try {
       return await this.client.ttl(key);
-    } catch (err: any) {
-      this.logger.warn(`Redis ttl failed (${err.message}).`);
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('ttl', error);
+      this.logger.warn(`Redis ttl failed (${this.errorMessage(error)}).`);
       return -1;
     }
+  }
+
+  private getFallbackValue(key: string): string | null {
+    const data = this.fallbackMap.get(key);
+    if (!data) return null;
+    if (data.expiry !== undefined && Date.now() >= data.expiry) {
+      this.fallbackMap.delete(key);
+      return null;
+    }
+    return data.value;
+  }
+
+  private assertFallbackAllowed(operation: string, cause?: unknown): void {
+    if (this.fallbackAllowed) return;
+    const detail = cause ? `: ${this.errorMessage(cause)}` : '';
+    throw new Error(`Redis ${operation} unavailable in production${detail}`);
+  }
+
+  private errorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
   }
 }
