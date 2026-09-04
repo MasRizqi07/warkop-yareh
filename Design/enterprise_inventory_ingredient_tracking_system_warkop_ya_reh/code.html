@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=inter:wght@100..900&family=plusJakartaSans:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"error-container":"#93000a","tertiary-container":"#8e7130","text-muted":"#94a3b8","accent-amber":"#f59e0b","border-subtle":"rgba(255, 255, 255, 0.08)","secondary-fixed-dim":"#ffb95f","tertiary-fixed":"#ffdf9f","on-secondary-container":"#5b3800","on-background":"#e5e1e4","on-primary-fixed":"#2d1600","outline-variant":"#51453a","secondary-fixed":"#ffddb8","primary-fixed-dim":"#f7bb82","brand-coffee":"#9c6b3a","on-tertiary-fixed-variant":"#5b4303","secondary":"#ffb95f","on-secondary-fixed-variant":"#653e00","surface-tint":"#f7bb82","surface-secondary":"#111114","inverse-surface":"#e5e1e4","surface-variant":"#353437","surface-card":"#18181c","primary-fixed":"#ffdcbf","background":"#131315","on-error":"#690005","secondary-container":"#ee9800","on-surface-variant":"#d5c3b6","primary":"#f7bb82","on-secondary":"#472a00","outline":"#9d8e82","surface-container-low":"#1c1b1d","error":"#ffb4ab","tertiary-fixed-dim":"#e6c278","on-primary":"#4a2800","surface-container-high":"#2a2a2c","inverse-on-surface":"#313032","on-error-container":"#ffdad6","inverse-primary":"#825426","text-primary":"#f8fafc","on-tertiary-container":"#fffdff","cream-beige":"#e8c47a","canvas-obsidian":"#0a0a0c","tertiary":"#e6c278","primary-container":"#9c6b3a","on-primary-container":"#fffdff","surface-container-lowest":"#0e0e10","on-surface":"#e5e1e4","surface-bright":"#39393b","on-tertiary":"#402d00","surface-container-highest":"#353437","surface-container":"#201f21","surface-dim":"#131315","on-tertiary-fixed":"#261a00","on-secondary-fixed":"#2a1700","surface":"#131315","on-primary-fixed-variant":"#663d10"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"margin-desktop":"3rem","margin-mobile":"1rem","space-xxs":"0.25rem","space-xl":"2rem","space-md":"1rem","space-3xl":"4rem","margin-tablet":"2rem","gutter-desktop":"1.5rem","space-sm":"0.75rem","space-lg":"1.5rem","space-xs":"0.5rem","gutter-mobile":"1rem","space-2xl":"3rem"},"fontFamily":{"mono-badge":["jetbrainsMono"],"body-md":["inter"],"mono-meta":["jetbrainsMono"],"label-sm":["inter"],"display-lg":["plusJakartaSans"],"body-lg":["inter"],"headline-lg":["plusJakartaSans"],"headline-xl":["plusJakartaSans"],"display-lg-mobile":["plusJakartaSans"],"body-sm":["inter"],"headline-md":["plusJakartaSans"],"label-md":["inter"]},"fontSize":{"mono-badge":["11px",{"lineHeight":"14px","fontWeight":"500"}],"body-md":["15px",{"lineHeight":"24px","fontWeight":"400"}],"mono-meta":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"display-lg":["48px",{"lineHeight":"56px","fontWeight":"800"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}],"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"700"}],"headline-xl":["32px",{"lineHeight":"40px","fontWeight":"700"}],"display-lg-mobile":["36px",{"lineHeight":"44px","fontWeight":"800"}],"body-sm":["13px",{"lineHeight":"20px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"label-md":["14px",{"lineHeight":"20px","fontWeight":"500"}]}}}};</script></head><body class="bg-canvas-obsidian font-body-md text-on-surface antialiased selection:bg-brand-coffee selection:text-text-primary min-h-screen"><header class="fixed top-0 w-full z-50 bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-border-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet lg:px-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm group" data-path="home" href="#"><img alt="Warkop Ya'reh Brand Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VxOpmWOCCL9LQk98Vn8jwnvDL38lXhpROB7-9xnzlOrk_iEoLkZTJRADHtVsQCWOvrJZ2Rr4tKnVXh1yjzh8sDyRch2crVAGNHA7Msp_Gk3itTp4BQ1EavEuLW07fSrx-647n-MEbaiEc1anewoHwd6tgj6wpv31gcFN11fJ8j1ZwN37rutrQ41did441vMyf5rJ_3s7eriZ1vOJtHHO8D-sNba-KqHC9_6MMuEO8X7kr872S_AI213_U"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-text-primary group-hover:text-primary transition-colors">Warkop Ya'reh</span><span class="font-mono-badge text-mono-badge text-text-muted tracking-wider uppercase">Surabaya 1998</span></div></a><div class="hidden xl:flex items-center gap-space-xs bg-surface-secondary/80 border border-border-subtle px-space-sm py-1.5 rounded-xl"><span class="material-symbols-outlined text-[16px] text-accent-amber">store</span><div class="flex flex-col"><div class="flex items-center gap-1.5"><span class="font-label-sm text-label-sm text-text-primary font-medium">Darmo Flagship, SBY</span><span class="material-symbols-outlined text-[14px] text-text-muted">expand_more</span></div><div class="flex items-center gap-1.5"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span><span class="font-mono-badge text-mono-badge text-emerald-400">Open 24 Hours</span></div></div></div></div><nav class="hidden lg:flex items-center gap-space-xs" data-active-classes="text-primary font-semibold bg-surface-card rounded-lg"><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="menu" href="#">Menu</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="workspace-vip" href="#">Workspace & VIP</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="community-hub" href="#">Community Hub</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="loyalty-tier" href="#">Loyalty Tier</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="about" href="#">About</a></nav><div class="flex items-center gap-space-sm"><a class="relative p-2.5 rounded-xl bg-surface-secondary border border-border-subtle text-on-surface-variant hover:text-on-surface hover:border-accent-amber/40 transition-all flex items-center justify-center" data-path="cart" href="#"><span class="material-symbols-outlined text-[20px]">local_cafe</span><span class="absolute -top-1.5 -right-1.5 bg-accent-amber text-canvas-obsidian font-mono-badge text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-[0_0_12px_rgba(245,158,11,0.5)]">2</span></a><a class="hidden sm:flex items-center gap-space-xs px-space-md py-2.5 rounded-xl bg-gradient-to-r from-brand-coffee to-secondary-container hover:from-primary-container hover:to-secondary text-text-primary font-label-md text-label-md font-semibold transition-all shadow-[0_8px_24px_-4px_rgba(245,158,11,0.2)] hover:shadow-[0_8px_32px_-2px_rgba(245,158,11,0.35)]" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">verified</span><span>Sign In / Join Tier</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="lg:hidden p-2 rounded-xl bg-surface-secondary border border-border-subtle text-on-surface-variant hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">menu</span></button></div></div></header><main class="w-full pt-20 bg-canvas-obsidian min-h-[calc(100vh-20rem)]"><div class="flex flex-col w-full">
+<!-- Subtle Ambient Glow Orbs (Contained) -->
+<div class="relative w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet lg:px-margin-desktop py-space-lg">
+<div class="absolute -top-12 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-1/2 right-10 w-80 h-80 bg-accent-amber/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- 1. Breadcrumbs & Sanctuary Telemetry Header -->
+<section class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md mb-space-xl">
+<div class="flex flex-col gap-space-xxs">
+<!-- Breadcrumb & Status Row -->
+<div class="flex flex-wrap items-center gap-space-xs text-on-surface-variant font-mono-meta text-mono-meta">
+<span class="hover:text-primary transition-colors cursor-pointer">Supply Chain Ops</span>
+<span class="text-text-muted">/</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Central Inventory & Silo Reserves</span>
+<span class="text-text-muted">/</span>
+<span class="text-text-primary font-medium">Surabaya Warehouses (Darmo Flagship & Gubeng Annex)</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm pt-space-xxs">
+<h1 class="font-headline-xl text-headline-xl text-text-primary tracking-tight">Silo & Ingredient Telemetry</h1>
+<!-- Real-time IoT Status Pill -->
+<div class="inline-flex items-center gap-2 px-space-sm py-1 rounded-full bg-surface-card border-subtle shadow-sm">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-amber opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-accent-amber"></span>
+</span>
+<span class="font-mono-badge text-mono-badge text-accent-amber uppercase tracking-wider">IoT Silo Telemetry Active • Auto-Stock Sync 2m ago</span>
+</div>
+</div>
+</div>
+<!-- Header Action Controls -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="inline-flex items-center gap-space-xs px-space-sm py-2 rounded-xl bg-surface-card hover:bg-surface-bright text-on-surface font-label-sm text-label-sm transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-text-muted">download</span>
+<span>Stock Audit (CSV/PDF)</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-sm py-2 rounded-xl bg-surface-card hover:bg-surface-bright text-text-primary font-label-sm text-label-sm transition-all shadow-sm" onclick="document.getElementById('opnameSlideover').classList.toggle('translate-x-full')" type="button">
+<span class="material-symbols-outlined text-[18px] text-accent-amber">fact_check</span>
+<span>Schedule Opname</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-xl bg-brand-coffee hover:bg-primary-container text-text-primary font-label-md text-label-md font-semibold transition-all shadow-md" onclick="document.getElementById('poModal').classList.toggle('hidden')" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ New Purchase Order (PO)</span>
+</button>
+</div>
+</section>
+<!-- 2. Top Executive Inventory KPI Metric Cards -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-2xl">
+<!-- KPI 1: Valuation -->
+<div class="flex flex-col p-space-lg rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">Total Inventory Valuation</span>
+<div class="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-accent-amber">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-headline-lg text-headline-lg text-text-primary font-bold">Rp 142.850.000</span>
+</div>
+<div class="flex items-center gap-2 mt-auto pt-space-xs">
+<span class="inline-flex items-center font-mono-badge text-mono-badge text-emerald-400 bg-surface-secondary px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span> +4.2% MoM
+          </span>
+<span class="font-mono-meta text-mono-meta text-text-muted">84 Active SKUs</span>
+</div>
+</div>
+<!-- KPI 2: Critical Alerts -->
+<div class="flex flex-col p-space-lg rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">Critical Low-Stock Alerts</span>
+<div class="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-accent-amber">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-headline-lg text-headline-lg text-accent-amber font-bold">3 Items Critical</span>
+</div>
+<div class="flex flex-wrap items-center gap-1.5 mt-auto pt-space-xs">
+<span class="font-mono-badge text-[10px] px-2 py-0.5 rounded bg-surface-secondary text-on-surface-variant">Ijen Green Beans</span>
+<span class="font-mono-badge text-[10px] px-2 py-0.5 rounded bg-surface-secondary text-on-surface-variant">Oatly 1L</span>
+<span class="font-mono-badge text-[10px] px-2 py-0.5 rounded bg-surface-secondary text-on-surface-variant">PLA 16oz</span>
+</div>
+</div>
+<!-- KPI 3: Active POs -->
+<div class="flex flex-col p-space-lg rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">Active Purchase Orders</span>
+<div class="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-cream-beige">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-headline-lg text-headline-lg text-text-primary font-bold">2 In Transit</span>
+</div>
+<div class="flex flex-col gap-0.5 mt-auto pt-space-xs font-mono-meta text-mono-meta text-text-muted">
+<span>ETA Today 16:00 WIB</span>
+<span class="text-primary font-medium">Value: Rp 18.400.000</span>
+</div>
+</div>
+<!-- KPI 4: 7-Day Spoilage -->
+<div class="flex flex-col p-space-lg rounded-xl bg-surface-card shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between text-on-surface-variant mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">7-Day Spoilage & Dial-in</span>
+<div class="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-muted">
+<span class="material-symbols-outlined text-[20px]">delete_sweep</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-headline-lg text-headline-lg text-text-primary font-bold">Rp 420.000</span>
+</div>
+<div class="flex items-center justify-between mt-auto pt-space-xs font-mono-meta text-mono-meta">
+<span class="text-emerald-400">0.29% throughput</span>
+<span class="text-text-muted">Max: <0.5% SLA</span>
+</div>
+</div>
+</section>
+<!-- 3. Navigation Tabs & Global Search / Filter Controls -->
+<section class="flex flex-col gap-space-md mb-space-lg">
+<!-- Tabs Segmented Bar -->
+<div class="flex flex-wrap items-center gap-space-xs bg-surface-secondary p-1.5 rounded-xl shadow-inner">
+<button class="flex items-center gap-2 px-space-md py-2 rounded-lg bg-surface-card text-primary font-label-md text-label-md font-semibold shadow-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">inventory_2</span>
+<span>Ingredient & Stock Master</span>
+<span class="font-mono-badge text-mono-badge bg-primary/10 text-primary px-2 py-0.5 rounded-full">84</span>
+</button>
+<button class="flex items-center gap-2 px-space-md py-2 rounded-lg text-on-surface-variant hover:text-text-primary hover:bg-surface-card/50 font-label-md text-label-md transition-all" onclick="document.getElementById('opnameSlideover').classList.remove('translate-x-full')" type="button">
+<span class="material-symbols-outlined text-[18px]">rule</span>
+<span>Stock Opname & Adjustments</span>
+<span class="font-mono-badge text-mono-badge bg-surface-container text-text-muted px-2 py-0.5 rounded-full">Next: Sun 23:00</span>
+</button>
+<button class="flex items-center gap-2 px-space-md py-2 rounded-lg text-on-surface-variant hover:text-text-primary hover:bg-surface-card/50 font-label-md text-label-md transition-all" onclick="document.getElementById('poModal').classList.remove('hidden')" type="button">
+<span class="material-symbols-outlined text-[18px]">shopping_cart_checkout</span>
+<span>Purchase Orders & Suppliers</span>
+<span class="font-mono-badge text-mono-badge bg-accent-amber/20 text-accent-amber px-2 py-0.5 rounded-full">2 Pending</span>
+</button>
+<a class="flex items-center gap-2 px-space-md py-2 rounded-lg text-on-surface-variant hover:text-text-primary hover:bg-surface-card/50 font-label-md text-label-md transition-all ml-auto" href="#wasteTracker">
+<span class="material-symbols-outlined text-[18px]">auto_delete</span>
+<span>Waste & Spoilage Logs</span>
+<span class="font-mono-badge text-mono-badge bg-surface-container text-text-muted px-2 py-0.5 rounded-full">Today: 3</span>
+</a>
+</div>
+<!-- Search & Filters Strip -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-sm items-center bg-surface-card p-space-md rounded-xl shadow-sm">
+<!-- Search Input -->
+<div class="md:col-span-5 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
+<input class="w-full bg-surface-secondary text-text-primary font-body-sm text-body-sm pl-10 pr-4 py-2.5 rounded-xl placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-amber" placeholder="Search by SKU, ingredient, batch or supplier... (Press / to focus)" type="text"/>
+</div>
+<!-- Category Dropdown Filter -->
+<div class="md:col-span-3">
+<div class="relative">
+<select class="w-full appearance-none bg-surface-secondary text-on-surface font-label-sm text-label-sm px-3.5 py-2.5 rounded-xl cursor-pointer focus:outline-none focus:ring-1 focus:ring-accent-amber">
+<option>All Categories (84 Items)</option>
+<option>Single-Origin Beans (Ijen, Gayo, Kintamani)</option>
+<option>Fresh Dairy & Plant Milk</option>
+<option>Artisanal Syrups & Gula Aren</option>
+<option>Packaging & Takeaway Bar</option>
+<option>Kitchen Provisions & Bakery</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">unfold_more</span>
+</div>
+</div>
+<!-- Location Dropdown Filter -->
+<div class="md:col-span-2">
+<div class="relative">
+<select class="w-full appearance-none bg-surface-secondary text-on-surface font-label-sm text-label-sm px-3.5 py-2.5 rounded-xl cursor-pointer focus:outline-none focus:ring-1 focus:ring-accent-amber">
+<option>All Warehouses</option>
+<option>Darmo Flagship (Central)</option>
+<option>Gubeng Annex Silo</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">domain</span>
+</div>
+</div>
+<!-- Health Status Filter -->
+<div class="md:col-span-2">
+<div class="relative">
+<select class="w-full appearance-none bg-surface-secondary text-accent-amber font-label-sm text-label-sm px-3.5 py-2.5 rounded-xl cursor-pointer focus:outline-none focus:ring-1 focus:ring-accent-amber">
+<option>All Health Status</option>
+<option selected="">Low Stock Only (3)</option>
+<option>Healthy (79)</option>
+<option>Depleted (0)</option>
+<option>Overstocked (2)</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-accent-amber">filter_list</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. Advanced Inventory Data Table (High-Density) -->
+<section class="w-full bg-surface-card rounded-xl shadow-md overflow-hidden mb-space-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-secondary text-on-surface-variant font-mono-meta text-mono-meta uppercase tracking-wider">
+<th class="py-3.5 px-space-md">SKU Code</th>
+<th class="py-3.5 px-space-md">Ingredient / Item & Batch</th>
+<th class="py-3.5 px-space-md">Category</th>
+<th class="py-3.5 px-space-md">Stock Level vs Capacity</th>
+<th class="py-3.5 px-space-md">Threshold</th>
+<th class="py-3.5 px-space-md">Burn Rate & Runway</th>
+<th class="py-3.5 px-space-md">Health Status</th>
+<th class="py-3.5 px-space-md">Supplier SLA</th>
+<th class="py-3.5 px-space-md text-right">Quick Ops</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-transparent font-body-sm text-body-sm text-on-surface">
+<!-- Row 1: Ijen Highland Arabica (Low Stock) -->
+<tr class="hover:bg-surface-bright/40 transition-colors">
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">SKU-COF-IJN01</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Ijen Highland Anaerobic Green Beans</span>
+<span class="font-mono-badge text-mono-badge text-accent-amber/90">Batch #IJN-2608 • East Java Silo A</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-surface-secondary text-cream-beige">Specialty Bean</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1.5 w-36">
+<div class="flex justify-between font-mono-meta text-mono-meta">
+<span class="text-accent-amber font-semibold">14.5 kg</span>
+<span class="text-text-muted">/ 100 kg</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-accent-amber h-full rounded-full" style="width: 14.5%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">Min. 25.0 kg</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-text-primary font-medium">7.2 kg / day</span>
+<span class="text-accent-amber">2.0 days runway</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-accent-amber/15 text-accent-amber">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-amber animate-ping"></span>
+                  LOW STOCK: 2.0d
+                </span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-on-surface">Ijen Farmers Coop</span>
+<span class="text-text-muted">48h Lead Time</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-brand-coffee text-text-primary transition-colors" onclick="document.getElementById('poModal').classList.remove('hidden')" title="Trigger Reorder PO" type="button">
+<span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" onclick="document.getElementById('opnameSlideover').classList.remove('translate-x-full')" title="Adjust Count" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Oatly Barista Edition 1L (Low Stock) -->
+<tr class="hover:bg-surface-bright/40 transition-colors">
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">SKU-MILK-OAT02</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Oatly Barista Edition 1L</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Batch #OAT-9941 • Chiller #02</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-surface-secondary text-primary">Plant Milk</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1.5 w-36">
+<div class="flex justify-between font-mono-meta text-mono-meta">
+<span class="text-accent-amber font-semibold">18 Ctn</span>
+<span class="text-text-muted">/ 120 Ctn</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-accent-amber h-full rounded-full" style="width: 15%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">Min. 30 Ctn</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-text-primary font-medium">12.0 Ctn / day</span>
+<span class="text-accent-amber">1.5 days runway</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-accent-amber/15 text-accent-amber">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-amber"></span>
+                  LOW STOCK: 1.5d
+                </span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-on-surface">Oatly Indonesia Dist.</span>
+<span class="text-text-muted">24h Express SLA</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-brand-coffee text-text-primary transition-colors" onclick="document.getElementById('poModal').classList.remove('hidden')" type="button">
+<span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Organic Coconut Sugar Aren Liquid (Healthy) -->
+<tr class="hover:bg-surface-bright/40 transition-colors">
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">SKU-SYR-ARN01</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Organic Coconut Sugar Aren Liquid</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Batch #ARN-1022 • Ambient Dry Shelf</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-surface-secondary text-secondary">Organic Sweetener</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1.5 w-36">
+<div class="flex justify-between font-mono-meta text-mono-meta">
+<span class="text-text-primary font-semibold">42.0 L</span>
+<span class="text-text-muted">/ 60.0 L</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 70%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">Min. 20.0 L</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-text-primary font-medium">3.8 L / day</span>
+<span class="text-emerald-400">11.0 days runway</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-emerald-500/10 text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  HEALTHY: 11d
+                </span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-on-surface">Petani Aren Pacet</span>
+<span class="text-text-muted">72h SLA</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Diamond Fresh Whole Milk Pasteurized -->
+<tr class="hover:bg-surface-bright/40 transition-colors">
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">SKU-DAI-MILK01</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Diamond Fresh Whole Milk Pasteurized</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Batch #DM-8820 • Chiller #01 (4°C)</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-surface-secondary text-primary">Fresh Dairy</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1.5 w-36">
+<div class="flex justify-between font-mono-meta text-mono-meta">
+<span class="text-text-primary font-semibold">64.0 L</span>
+<span class="text-text-muted">/ 100.0 L</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 64%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">Min. 30.0 L</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-text-primary font-medium">28.0 L / day</span>
+<span class="text-emerald-400">2.3 days runway</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-emerald-500/10 text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  HEALTHY: DAILY RUN
+                </span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-on-surface">Diamond Cold Chain Sby</span>
+<span class="text-text-muted">Daily 05:00 Drop</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: Biodegradable Bagasse Cups 16oz (Low Stock) -->
+<tr class="hover:bg-surface-bright/40 transition-colors">
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">SKU-PKG-CUP16</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Biodegradable Bagasse Cups 16oz</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Lot #BGS-3310 • Annex Warehouse Bay 3</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-surface-secondary text-secondary-fixed-dim">Eco Packaging</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1.5 w-36">
+<div class="flex justify-between font-mono-meta text-mono-meta">
+<span class="text-accent-amber font-semibold">180 pcs</span>
+<span class="text-text-muted">/ 1,500 pcs</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-accent-amber h-full rounded-full" style="width: 12%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">Min. 500 pcs</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-text-primary font-medium">140 pcs / day</span>
+<span class="text-accent-amber">1.2 days runway</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-accent-amber/15 text-accent-amber">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-amber animate-ping"></span>
+                  CRITICAL REORDER
+                </span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-on-surface">Surabaya Bio-Pack Solusindo</span>
+<span class="text-text-muted">24h Local Hub</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-brand-coffee text-text-primary transition-colors" onclick="document.getElementById('poModal').classList.remove('hidden')" type="button">
+<span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6: Beef Pastrami Smoked Cured (Healthy) -->
+<tr class="hover:bg-surface-bright/40 transition-colors">
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">SKU-KTCH-PAS01</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Beef Pastrami Smoked Cured</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Batch #PAS-091 • Kitchen Deep Freezer (-18°C)</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-surface-secondary text-cream-beige">Kitchen Provision</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1.5 w-36">
+<div class="flex justify-between font-mono-meta text-mono-meta">
+<span class="text-text-primary font-semibold">8.4 kg</span>
+<span class="text-text-muted">/ 15.0 kg</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 56%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">Min. 5.0 kg</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-text-primary font-medium">1.8 kg / day</span>
+<span class="text-emerald-400">4.6 days runway</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-emerald-500/10 text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  HEALTHY: 4.6d
+                </span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-on-surface">Artisan Butchery Gubeng</span>
+<span class="text-text-muted">48h SLA</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 7: Ceremonial Uji Matcha Powder A Grade -->
+<tr class="hover:bg-surface-bright/40 transition-colors">
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">SKU-TEA-MAT01</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Ceremonial Uji Matcha Powder Grade A</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Import Batch #MAT-412 • Airtight Nitrogen Vault</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-surface-secondary text-primary">Specialty Tea</span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col gap-1.5 w-36">
+<div class="flex justify-between font-mono-meta text-mono-meta">
+<span class="text-text-primary font-semibold">3.2 kg</span>
+<span class="text-text-muted">/ 5.0 kg</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 64%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-md font-mono-meta text-mono-meta text-text-muted">Min. 2.0 kg</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-text-primary font-medium">0.4 kg / day</span>
+<span class="text-emerald-400">8.0 days runway</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono-badge text-mono-badge bg-emerald-500/10 text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  HEALTHY: 8d
+                </span>
+</td>
+<td class="py-space-sm px-space-md">
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-on-surface">Kyoto Specialty Importer</span>
+<span class="text-text-muted">Air Freight 5d</span>
+</div>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-bright text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination Metadata -->
+<div class="flex flex-col sm:flex-row items-center justify-between p-space-md bg-surface-secondary font-mono-meta text-mono-meta text-text-muted gap-space-sm">
+<div class="flex items-center gap-2">
+<span>Showing 1-7 of 84 recorded ingredients</span>
+<span>•</span>
+<span class="text-accent-amber">3 items marked for urgent procurement</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="px-3 py-1.5 rounded-lg bg-surface-card text-on-surface hover:bg-surface-bright transition-colors disabled:opacity-50" type="button">Prev</button>
+<span class="px-3 py-1.5 rounded-lg bg-brand-coffee text-text-primary font-bold">1</span>
+<button class="px-3 py-1.5 rounded-lg bg-surface-card text-on-surface hover:bg-surface-bright transition-colors" type="button">2</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-card text-on-surface hover:bg-surface-bright transition-colors" type="button">3</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-card text-on-surface hover:bg-surface-bright transition-colors" type="button">Next</button>
+</div>
+</div>
+</section>
+<!-- 6. Waste & Spoilage Tracker Audit Log -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg mb-space-2xl" id="wasteTracker">
+<!-- Left 2 Cols: Recent Waste Table -->
+<div class="lg:col-span-2 bg-surface-card p-space-lg rounded-xl shadow-md flex flex-col justify-between">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-accent-amber text-[22px]">delete_sweep</span>
+<h2 class="font-headline-md text-headline-md text-text-primary font-bold">Dial-in Calibration & Spoilage Log</h2>
+</div>
+<button class="font-label-sm text-label-sm text-accent-amber hover:underline flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span> Record Discard Event
+          </button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="text-on-surface-variant font-mono-meta text-mono-meta uppercase tracking-wider">
+<th class="pb-3">Event / SKU</th>
+<th class="pb-3">Quantity</th>
+<th class="pb-3">Loss Value</th>
+<th class="pb-3">Logged Reason</th>
+<th class="pb-3 text-right">Barista / Shift</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-secondary">
+<tr>
+<td class="py-3">
+<div class="flex flex-col">
+<span class="text-text-primary font-medium">Morning Grinder Micron Dial-in</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">SKU-COF-IJN01 (Ijen Highland)</span>
+</div>
+</td>
+<td class="py-3 font-mono-meta text-mono-meta text-on-surface">0.45 kg grounds</td>
+<td class="py-3 font-mono-meta text-mono-meta text-accent-amber font-semibold">Rp 67.500</td>
+<td class="py-3"><span class="px-2 py-0.5 rounded bg-surface-secondary text-primary font-mono-badge text-mono-badge">Quality Dial-in</span></td>
+<td class="py-3 text-right font-mono-meta text-mono-meta text-text-muted">Rian H. (Opening)</td>
+</tr>
+<tr>
+<td class="py-3">
+<div class="flex flex-col">
+<span class="text-text-primary font-medium">Expired Fresh Milk Batch #DM-0409</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">SKU-DAI-MILK01 (Diamond Pasteurized)</span>
+</div>
+</td>
+<td class="py-3 font-mono-meta text-mono-meta text-on-surface">2x 1L cartons</td>
+<td class="py-3 font-mono-meta text-mono-meta text-accent-amber font-semibold">Rp 54.000</td>
+<td class="py-3"><span class="px-2 py-0.5 rounded bg-surface-secondary text-accent-amber font-mono-badge text-mono-badge">Freshness Shelf Life</span></td>
+<td class="py-3 text-right font-mono-meta text-mono-meta text-text-muted">Dimas K. (Afternoon)</td>
+</tr>
+<tr>
+<td class="py-3">
+<div class="flex flex-col">
+<span class="text-text-primary font-medium">Dropped Glassware & Cold Brew Spill</span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Batch #CB-NITRO-4</span>
+</div>
+</td>
+<td class="py-3 font-mono-meta text-mono-meta text-on-surface">1x 500ml carafe</td>
+<td class="py-3 font-mono-meta text-mono-meta text-accent-amber font-semibold">Rp 45.000</td>
+<td class="py-3"><span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge">Accidental Drop</span></td>
+<td class="py-3 text-right font-mono-meta text-mono-meta text-text-muted">Night Shift Crew</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Right 1 Col: Visual Spoilage Budget Progress Ring / Spark -->
+<div class="bg-surface-card p-space-lg rounded-xl shadow-md flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-text-primary font-bold">Monthly Spoilage Budget</h3>
+<span class="material-symbols-outlined text-text-muted">monitoring</span>
+</div>
+<div class="flex flex-col items-center justify-center my-space-md">
+<!-- Inline SVG Circular Progress Gauge -->
+<div class="relative w-44 h-44 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-surface-secondary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-accent-amber" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="180.8" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="font-headline-xl text-headline-xl text-text-primary font-bold">28%</span>
+<span class="font-mono-badge text-mono-badge text-text-muted uppercase">Tolerated Cap</span>
+</div>
+</div>
+</div>
+<div class="space-y-2 bg-surface-secondary p-space-sm rounded-xl font-mono-meta text-mono-meta">
+<div class="flex justify-between">
+<span class="text-text-muted">Total Loss (MTD):</span>
+<span class="text-accent-amber font-semibold">Rp 420.000</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-muted">Allowable Threshold:</span>
+<span class="text-text-primary font-semibold">Rp 1.500.000</span>
+</div>
+<p class="font-body-sm text-[11px] text-emerald-400 pt-1">Optimal tolerance preserved (<0.5% of total brew volume).</p>
+</div>
+</div>
+</section>
+<!-- 5. Integrated Action Panels / Modals (Rendered for High-Fidelity UI Experience) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+<!-- Panel A: Quick Purchase Order Authorization -->
+<div class="bg-surface-card p-space-lg rounded-xl shadow-lg flex flex-col justify-between relative overflow-hidden" id="poModal">
+<div class="flex items-center justify-between pb-space-sm mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-brand-coffee/20 text-accent-amber flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-text-primary font-bold">Quick PO Dispatch Authorization</h3>
+<p class="font-mono-meta text-mono-meta text-text-muted">PO Target: VND-SBY-042 (Ijen Farmers Cooperative)</p>
+</div>
+</div>
+<span class="font-mono-badge text-mono-badge px-2.5 py-1 rounded-full bg-accent-amber/20 text-accent-amber font-bold">READY TO SIGN</span>
+</div>
+<!-- Procurement Item Manifest -->
+<div class="space-y-space-xs bg-surface-secondary p-space-md rounded-xl mb-space-md">
+<div class="flex justify-between items-center font-mono-meta text-mono-meta pb-2">
+<span class="text-text-primary font-medium">1. Ijen Highland Green Beans (+60.0 kg)</span>
+<span class="text-on-surface">@ Rp 150.000 = Rp 9.000.000</span>
+</div>
+<div class="flex justify-between items-center font-mono-meta text-mono-meta pb-2">
+<span class="text-text-primary font-medium">2. Oatly Barista Edition 1L (+40 Cartons)</span>
+<span class="text-on-surface">@ Rp 38.000 = Rp 1.520.000</span>
+</div>
+<div class="pt-2 flex justify-between items-center font-mono-meta text-mono-meta">
+<span class="text-text-muted">Total Authorized Procurement:</span>
+<span class="text-accent-amber font-bold text-base">Rp 10.520.000</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm mb-space-md font-mono-meta text-mono-meta">
+<div class="p-2.5 bg-surface-secondary rounded-lg">
+<span class="text-text-muted block">Delivery Logistics:</span>
+<span class="text-text-primary font-medium">Tomorrow 11:00 WIB (Darmo Bay #01)</span>
+</div>
+<div class="p-2.5 bg-surface-secondary rounded-lg">
+<span class="text-text-muted block">Settlement Terms:</span>
+<span class="text-text-primary font-medium">Net 14 Days (BCA Corporate VA)</span>
+</div>
+</div>
+<!-- Dispatch CTA -->
+<div class="flex items-center justify-end gap-space-sm pt-space-xs">
+<button class="px-space-md py-2.5 rounded-xl bg-surface-secondary hover:bg-surface-bright text-text-muted font-label-md text-label-md transition-colors" type="button">
+            Modify Line Items
+          </button>
+<button class="px-space-md py-2.5 rounded-xl bg-brand-coffee hover:bg-primary-container text-text-primary font-label-md text-label-md font-semibold transition-all shadow-md flex items-center gap-2" onclick="alert('Purchase Order #PO-2025-0881 dispatched to Ijen Farmers Cooperative via Midtrans Corporate Ledger.')" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Authorize & Dispatch PO</span>
+</button>
+</div>
+</div>
+<!-- Panel B: Interactive Stock Opname & Variance Reconciliation -->
+<div class="bg-surface-card p-space-lg rounded-xl shadow-lg flex flex-col justify-between">
+<div class="flex items-center justify-between pb-space-sm mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-surface-secondary text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">scale</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-text-primary font-bold">Stock Opname & Variance Audit</h3>
+<p class="font-mono-meta text-mono-meta text-text-muted">Item: Ijen Highland Anaerobic Green (SKU-COF-IJN01)</p>
+</div>
+</div>
+<span class="font-mono-badge text-mono-badge px-2.5 py-1 rounded-full bg-surface-secondary text-text-muted">Darmo Silo #A</span>
+</div>
+<!-- Reconciliation Input Form -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md mb-space-md">
+<div class="flex flex-col gap-1">
+<label class="font-mono-meta text-mono-meta text-text-muted">Expected System Count</label>
+<div class="px-3.5 py-2.5 rounded-xl bg-surface-secondary font-mono-meta text-mono-meta text-text-muted flex justify-between items-center">
+<span>14.50</span>
+<span class="text-text-muted">kg</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-mono-meta text-mono-meta text-accent-amber font-medium">Physical Scale Reading</label>
+<div class="relative">
+<input class="w-full px-3.5 py-2.5 rounded-xl bg-surface-secondary text-text-primary font-mono-meta text-mono-meta focus:outline-none focus:ring-1 focus:ring-accent-amber" step="0.1" type="number" value="13.8"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">kg</span>
+</div>
+</div>
+</div>
+<!-- Discrepancy Calculation Alert Banner -->
+<div class="p-space-sm rounded-xl bg-surface-secondary mb-space-md flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-amber text-[20px]">info</span>
+<div class="flex flex-col font-mono-meta text-mono-meta">
+<span class="text-accent-amber font-semibold">Variance Delta: -0.70 kg (-4.8%)</span>
+<span class="text-text-muted">Monetary variance: -Rp 105.000</span>
+</div>
+</div>
+<span class="font-mono-badge text-mono-badge px-2 py-0.5 rounded bg-surface-card text-accent-amber">Within 5% Tolerance</span>
+</div>
+<!-- Reason & Authorization -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm mb-space-md">
+<div class="flex flex-col gap-1">
+<label class="font-mono-meta text-mono-meta text-text-muted">Discrepancy Cause</label>
+<select class="w-full bg-surface-secondary text-on-surface font-label-sm text-label-sm px-3 py-2 rounded-xl focus:outline-none focus:ring-1 focus:ring-accent-amber">
+<option>Espresso Calibration Dial-in</option>
+<option>Barista Cupping & Tasting</option>
+<option>Storage Moisture Evaporation</option>
+<option>Spillage or Hopper Drop</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-mono-meta text-mono-meta text-text-muted">Head Barista PIN Sign-off</label>
+<input class="w-full px-3.5 py-2 rounded-xl bg-surface-secondary text-center text-text-primary font-mono-meta text-mono-meta focus:outline-none focus:ring-1 focus:ring-accent-amber tracking-widest" maxlength="4" placeholder="• • • •" type="password"/>
+</div>
+</div>
+<!-- Opname Action Buttons -->
+<div class="flex items-center justify-end gap-space-sm pt-space-xs">
+<button class="px-space-md py-2.5 rounded-xl bg-surface-secondary hover:bg-surface-bright text-text-muted font-label-md text-label-md transition-colors" type="button">
+            Save as Draft
+          </button>
+<button class="px-space-md py-2.5 rounded-xl bg-primary text-on-primary hover:bg-primary-fixed-dim font-label-md text-label-md font-semibold transition-all shadow-sm" onclick="alert('Stock Opname Adjustment applied. Inventory ledger synchronized across all POS registers.')" type="button">
+            Apply Opname Adjustment
+          </button>
+</div>
+</div>
+</div>
+<!-- Collapsible Full Opname Slide-Over Drawer (Simulated) -->
+<div class="fixed inset-y-0 right-0 w-full max-w-md bg-surface-card shadow-2xl p-space-xl translate-x-full transition-transform duration-300 z-50 flex flex-col justify-between overflow-y-auto" id="opnameSlideover">
+<div class="space-y-space-md">
+<div class="flex items-center justify-between pb-space-sm">
+<h3 class="font-headline-md text-headline-md text-text-primary">Upcoming Full Stock Opname</h3>
+<button class="p-1.5 rounded-lg bg-surface-secondary text-text-muted hover:text-text-primary" onclick="document.getElementById('opnameSlideover').classList.add('translate-x-full')" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted">
+          Scheduled bi-weekly warehouse count verification. All espresso extractions and kitchen tickets will freeze for 45 minutes during midnight tally.
+        </p>
+<div class="bg-surface-secondary p-space-md rounded-xl space-y-2 font-mono-meta text-mono-meta">
+<div class="flex justify-between">
+<span class="text-text-muted">Auditor in Charge:</span>
+<span class="text-text-primary">Bambang S. (Chief Ops)</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-muted">Scheduled Window:</span>
+<span class="text-accent-amber">Sunday 23:00 - 23:45 WIB</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-muted">Silos Included:</span>
+<span class="text-text-primary">Darmo 1-4 & Annex 1-2</span>
+</div>
+</div>
+<div class="space-y-space-xs pt-space-sm">
+<span class="font-label-sm text-label-sm text-text-primary font-bold">Preparation Checklist:</span>
+<div class="space-y-2 font-body-sm text-body-sm text-on-surface">
+<label class="flex items-center gap-2">
+<input checked="" class="rounded bg-surface-secondary accent-primary" type="checkbox"/>
+<span>Zero-out espresso hopper remnants into tin #4</span>
+</label>
+<label class="flex items-center gap-2">
+<input checked="" class="rounded bg-surface-secondary accent-primary" type="checkbox"/>
+<span>Count sealed Oatly master cartons in walk-in</span>
+</label>
+<label class="flex items-center gap-2">
+<input class="rounded bg-surface-secondary accent-primary" type="checkbox"/>
+<span>Weigh nitrogen-flushed ceremonial tea canisters</span>
+</label>
+</div>
+</div>
+</div>
+<div class="pt-space-lg flex gap-space-sm">
+<button class="w-full py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md font-semibold" onclick="document.getElementById('opnameSlideover').classList.add('translate-x-full')" type="button">
+          Acknowledge Schedule
+        </button>
+</div>
+</div>
+</div>
+</div></main><footer class="w-full bg-surface-secondary border-t border-border-subtle py-space-3xl mt-space-3xl"><div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet lg:px-margin-desktop"><div class="grid grid-cols-1 md:grid-cols-4 gap-space-xl pb-space-2xl border-b border-border-subtle"><div class="space-y-space-sm md:col-span-1"><div class="flex items-center gap-space-sm"><img alt="Warkop Ya'reh Brand Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VxOpmWOCCL9LQk98Vn8jwnvDL38lXhpROB7-9xnzlOrk_iEoLkZTJRADHtVsQCWOvrJZ2Rr4tKnVXh1yjzh8sDyRch2crVAGNHA7Msp_Gk3itTp4BQ1EavEuLW07fSrx-647n-MEbaiEc1anewoHwd6tgj6wpv31gcFN11fJ8j1ZwN37rutrQ41did441vMyf5rJ_3s7eriZ1vOJtHHO8D-sNba-KqHC9_6MMuEO8X7kr872S_AI213_U"/><span class="font-headline-md text-headline-md text-text-primary">Warkop Ya'reh</span></div><p class="font-body-sm text-body-sm text-text-muted">The artisan 24-hour sanctuary for midnight coders, coffee purists, and creative founders in Surabaya.</p><div class="flex items-center gap-2 pt-2"><span class="font-mono-meta text-mono-meta text-accent-amber bg-accent-amber/10 px-2.5 py-1 rounded-full border border-accent-amber/20">Darmo Flagship • Gubeng Annex</span></div></div><div class="space-y-space-xs"><div class="font-headline-md text-headline-md text-text-primary text-base font-bold">Catering & Brew</div><div class="flex flex-col space-y-2 pt-2"><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Specialty Pour Over</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Midnight Cold Drip</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Surabaya Toast Bites</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Artisanal Beans</a></div></div><div class="space-y-space-xs"><div class="font-headline-md text-headline-md text-text-primary text-base font-bold">Ecosystem</div><div class="flex flex-col space-y-2 pt-2"><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="workspace-vip" href="#">VIP Pods & Desks</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="community-hub" href="#">Late Night Tech Talks</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="loyalty-tier" href="#">Kawan Ya'reh Tier</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="workspace-vip" href="#">Private Boardrooms</a></div></div><div class="space-y-space-xs"><div class="font-headline-md text-headline-md text-text-primary text-base font-bold">Sanctuary Hours</div><div class="pt-2 space-y-2"><div class="flex justify-between font-mono-meta text-mono-meta"><span class="text-text-muted">Darmo Central:</span><span class="text-emerald-400">24 Hours Nonstop</span></div><div class="flex justify-between font-mono-meta text-mono-meta"><span class="text-text-muted">Barista Service:</span><span class="text-text-primary">07:00 — 04:00 WIB</span></div><div class="flex justify-between font-mono-meta text-mono-meta"><span class="text-text-muted">Gigabit Fiber:</span><span class="text-emerald-400">99.9% Uptime</span></div><p class="font-body-sm text-body-sm text-text-muted pt-2">Jl. Raya Darmo No. 42, Tegalsari, Surabaya, Jawa Timur.</p></div></div></div><div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-sm text-center md:text-left"><span class="font-mono-meta text-mono-meta text-text-muted">© 2025 Warkop Ya'reh Indonesia. Crafted for late-night artisans.</span><div class="flex items-center gap-space-md font-mono-meta text-mono-meta text-text-muted"><a class="hover:text-primary transition-colors" href="#">Privacy Protocol</a><a class="hover:text-primary transition-colors" href="#">Wifi Terms</a><a class="hover:text-primary transition-colors" href="#">Community Guild</a></div></div></div></footer></body></html>

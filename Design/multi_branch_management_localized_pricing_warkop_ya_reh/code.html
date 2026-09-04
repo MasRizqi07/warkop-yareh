@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=inter:wght@100..900&family=plusJakartaSans:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"error-container":"#93000a","tertiary-container":"#8e7130","text-muted":"#94a3b8","accent-amber":"#f59e0b","border-subtle":"rgba(255, 255, 255, 0.08)","secondary-fixed-dim":"#ffb95f","tertiary-fixed":"#ffdf9f","on-secondary-container":"#5b3800","on-background":"#e5e1e4","on-primary-fixed":"#2d1600","outline-variant":"#51453a","secondary-fixed":"#ffddb8","primary-fixed-dim":"#f7bb82","brand-coffee":"#9c6b3a","on-tertiary-fixed-variant":"#5b4303","secondary":"#ffb95f","on-secondary-fixed-variant":"#653e00","surface-tint":"#f7bb82","surface-secondary":"#111114","inverse-surface":"#e5e1e4","surface-variant":"#353437","surface-card":"#18181c","primary-fixed":"#ffdcbf","background":"#131315","on-error":"#690005","secondary-container":"#ee9800","on-surface-variant":"#d5c3b6","primary":"#f7bb82","on-secondary":"#472a00","outline":"#9d8e82","surface-container-low":"#1c1b1d","error":"#ffb4ab","tertiary-fixed-dim":"#e6c278","on-primary":"#4a2800","surface-container-high":"#2a2a2c","inverse-on-surface":"#313032","on-error-container":"#ffdad6","inverse-primary":"#825426","text-primary":"#f8fafc","on-tertiary-container":"#fffdff","cream-beige":"#e8c47a","canvas-obsidian":"#0a0a0c","tertiary":"#e6c278","primary-container":"#9c6b3a","on-primary-container":"#fffdff","surface-container-lowest":"#0e0e10","on-surface":"#e5e1e4","surface-bright":"#39393b","on-tertiary":"#402d00","surface-container-highest":"#353437","surface-container":"#201f21","surface-dim":"#131315","on-tertiary-fixed":"#261a00","on-secondary-fixed":"#2a1700","surface":"#131315","on-primary-fixed-variant":"#663d10"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"margin-desktop":"3rem","margin-mobile":"1rem","space-xxs":"0.25rem","space-xl":"2rem","space-md":"1rem","space-3xl":"4rem","margin-tablet":"2rem","gutter-desktop":"1.5rem","space-sm":"0.75rem","space-lg":"1.5rem","space-xs":"0.5rem","gutter-mobile":"1rem","space-2xl":"3rem"},"fontFamily":{"mono-badge":["jetbrainsMono"],"body-md":["inter"],"mono-meta":["jetbrainsMono"],"label-sm":["inter"],"display-lg":["plusJakartaSans"],"body-lg":["inter"],"headline-lg":["plusJakartaSans"],"headline-xl":["plusJakartaSans"],"display-lg-mobile":["plusJakartaSans"],"body-sm":["inter"],"headline-md":["plusJakartaSans"],"label-md":["inter"]},"fontSize":{"mono-badge":["11px",{"lineHeight":"14px","fontWeight":"500"}],"body-md":["15px",{"lineHeight":"24px","fontWeight":"400"}],"mono-meta":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"display-lg":["48px",{"lineHeight":"56px","fontWeight":"800"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}],"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"700"}],"headline-xl":["32px",{"lineHeight":"40px","fontWeight":"700"}],"display-lg-mobile":["36px",{"lineHeight":"44px","fontWeight":"800"}],"body-sm":["13px",{"lineHeight":"20px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"label-md":["14px",{"lineHeight":"20px","fontWeight":"500"}]}}}};</script></head><body class="bg-canvas-obsidian font-body-md text-on-surface antialiased selection:bg-brand-coffee selection:text-text-primary min-h-screen"><header class="fixed top-0 w-full z-50 bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-border-subtle shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet lg:px-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm group" data-path="home" href="#"><img alt="Warkop Ya'reh Brand Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VxOpmWOCCL9LQk98Vn8jwnvDL38lXhpROB7-9xnzlOrk_iEoLkZTJRADHtVsQCWOvrJZ2Rr4tKnVXh1yjzh8sDyRch2crVAGNHA7Msp_Gk3itTp4BQ1EavEuLW07fSrx-647n-MEbaiEc1anewoHwd6tgj6wpv31gcFN11fJ8j1ZwN37rutrQ41did441vMyf5rJ_3s7eriZ1vOJtHHO8D-sNba-KqHC9_6MMuEO8X7kr872S_AI213_U"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-text-primary group-hover:text-primary transition-colors">Warkop Ya'reh</span><span class="font-mono-badge text-mono-badge text-text-muted tracking-wider uppercase">Surabaya 1998</span></div></a><div class="hidden xl:flex items-center gap-space-xs bg-surface-secondary/80 border border-border-subtle px-space-sm py-1.5 rounded-xl"><span class="material-symbols-outlined text-[16px] text-accent-amber">store</span><div class="flex flex-col"><div class="flex items-center gap-1.5"><span class="font-label-sm text-label-sm text-text-primary font-medium">Darmo Flagship, SBY</span><span class="material-symbols-outlined text-[14px] text-text-muted">expand_more</span></div><div class="flex items-center gap-1.5"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span><span class="font-mono-badge text-mono-badge text-emerald-400">Open 24 Hours</span></div></div></div></div><nav class="hidden lg:flex items-center gap-space-xs" data-active-classes="text-primary font-semibold bg-surface-card rounded-lg"><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="menu" href="#">Menu</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="workspace-vip" href="#">Workspace & VIP</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="community-hub" href="#">Community Hub</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="loyalty-tier" href="#">Loyalty Tier</a><a class="px-space-sm py-space-xs text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-path="about" href="#">About</a></nav><div class="flex items-center gap-space-sm"><a class="relative p-2.5 rounded-xl bg-surface-secondary border border-border-subtle text-on-surface-variant hover:text-on-surface hover:border-accent-amber/40 transition-all flex items-center justify-center" data-path="cart" href="#"><span class="material-symbols-outlined text-[20px]">local_cafe</span><span class="absolute -top-1.5 -right-1.5 bg-accent-amber text-canvas-obsidian font-mono-badge text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-[0_0_12px_rgba(245,158,11,0.5)]">2</span></a><a class="hidden sm:flex items-center gap-space-xs px-space-md py-2.5 rounded-xl bg-gradient-to-r from-brand-coffee to-secondary-container hover:from-primary-container hover:to-secondary text-text-primary font-label-md text-label-md font-semibold transition-all shadow-[0_8px_24px_-4px_rgba(245,158,11,0.2)] hover:shadow-[0_8px_32px_-2px_rgba(245,158,11,0.35)]" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">verified</span><span>Sign In / Join Tier</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="lg:hidden p-2 rounded-xl bg-surface-secondary border border-border-subtle text-on-surface-variant hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">menu</span></button></div></div></header><main class="w-full pt-20 bg-canvas-obsidian min-h-[calc(100vh-20rem)]"><div class="flex flex-col w-full">
+<!-- Top Command & Breadcrumbs Area -->
+<div class="w-full bg-surface-secondary/60 backdrop-blur-md">
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet lg:px-margin-desktop py-space-sm">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-sm">
+<!-- Breadcrumbs and PostgreSQL Status Pill -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-text-muted">
+<span class="hover:text-primary transition-colors cursor-pointer">Admin Portal</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Multi-Branch & Store Ops</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-text-primary font-semibold">Branch Architecture & Localized Pricing</span>
+</div>
+<span class="text-text-muted/40 hidden sm:inline">•</span>
+<!-- Neon Live Sync Pill -->
+<div class="flex items-center gap-2 bg-surface-container-lowest/80 px-2.5 py-1 rounded-full shadow-sm">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
+</span>
+<span class="font-mono-meta text-mono-meta text-secondary tracking-tight">Postgres Neon Multi-Region Replica Active</span>
+<span class="text-text-muted/30">|</span>
+<span class="font-mono-meta text-mono-meta text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-emerald-400">bolt</span> 18ms
+            </span>
+</div>
+</div>
+<!-- Quick Sub-header Actions -->
+<div class="flex items-center gap-space-xs">
+<button class="px-3 py-1.5 rounded-lg bg-surface-card hover:bg-surface-container-high text-text-primary font-label-sm text-label-sm flex items-center gap-1.5 shadow-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-muted">ios_share</span>
+<span>Export Configs</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-card hover:bg-surface-container-high text-text-primary font-label-sm text-label-sm flex items-center gap-1.5 shadow-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[16px] text-accent-amber">rule_settings</span>
+<span>Global Sync Rule</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-brand-coffee to-secondary-container hover:from-primary-container hover:to-secondary text-text-primary font-label-sm text-label-sm font-semibold flex items-center gap-1.5 shadow-md transition-all" type="button">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span>Add Outlet</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Administrative Container -->
+<div class="max-w-7xl mx-auto w-full px-margin-mobile md:px-margin-tablet lg:px-margin-desktop py-space-xl space-y-space-xl">
+<!-- 1. Branch Overview Strip (Interactive Row) -->
+<div class="space-y-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">storefront</span>
+<h2 class="font-headline-md text-headline-md text-text-primary tracking-tight">Active Outlets Telemetry</h2>
+<span class="font-mono-badge text-mono-badge bg-surface-container-high text-text-muted px-2 py-0.5 rounded-full">3 Nodes Online</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">Click outlet card to inspect schema overrides</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-desktop">
+<!-- Outlet 1: Darmo Flagship -->
+<div class="group relative bg-surface-card hover:bg-surface-container p-space-md rounded-xl transition-all shadow-md cursor-pointer">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-text-primary text-base">Darmo Flagship</span>
+<span class="font-mono-badge text-mono-badge text-primary bg-primary/10 px-2 py-0.5 rounded-full">Central HQ</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">Jl. Raya Darmo No. 42, Tegalsari</p>
+</div>
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 24H Nonstop
+            </span>
+</div>
+<div class="mt-space-md space-y-space-xs">
+<!-- Table Occupancy -->
+<div>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted mb-1">
+<span>Occupancy (41/50 Tables)</span>
+<span class="text-text-primary font-semibold">82%</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 82%;"></div>
+</div>
+</div>
+<!-- Revenue Progress -->
+<div>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted mb-1">
+<span>Daily Target</span>
+<span class="text-secondary font-semibold">Rp 18.45M / 22M (83.8%)</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-brand-coffee to-secondary h-full rounded-full" style="width: 83.8%;"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between font-mono-meta text-mono-meta text-text-muted">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-accent-amber">radar</span> Radius 7.5 km
+            </span>
+<span class="text-text-muted/60">POS v2.4-sync</span>
+</div>
+</div>
+<!-- Outlet 2: Gubeng 24H Sanctuary -->
+<div class="group relative bg-surface-card hover:bg-surface-container p-space-md rounded-xl transition-all shadow-md cursor-pointer">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-text-primary text-base">Gubeng 24H Sanctuary</span>
+<span class="font-mono-badge text-mono-badge text-tertiary bg-tertiary/10 px-2 py-0.5 rounded-full">East SBY</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">Jl. Sumatra No. 18, Gubeng</p>
+</div>
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 24 Hours
+            </span>
+</div>
+<div class="mt-space-md space-y-space-xs">
+<div>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted mb-1">
+<span>Occupancy (27/40 Tables)</span>
+<span class="text-text-primary font-semibold">68%</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 68%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted mb-1">
+<span>Daily Target</span>
+<span class="text-secondary font-semibold">Rp 14.10M / 16M (88.1%)</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-brand-coffee to-secondary h-full rounded-full" style="width: 88.1%;"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between font-mono-meta text-mono-meta text-text-muted">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-accent-amber">radar</span> Radius 6.0 km
+            </span>
+<span class="text-text-muted/60">POS v2.4-sync</span>
+</div>
+</div>
+<!-- Outlet 3: Dharmahusada Campus (Selected / Focused) -->
+<div class="group relative bg-surface-container-high p-space-md rounded-xl shadow-xl transition-all cursor-pointer">
+<div class="absolute -top-2.5 right-4 bg-accent-amber text-canvas-obsidian font-mono-badge text-mono-badge px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-md">
+            Active Editor Target
+          </div>
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-text-primary text-base">Dharmahusada Campus</span>
+<span class="font-mono-badge text-mono-badge text-secondary-fixed bg-primary-container/40 px-2 py-0.5 rounded-full">North / UNAIR Hub</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">Jl. Dharmahusada No. 104, Mulyorejo</p>
+</div>
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              Closes 02:00 WIB
+            </span>
+</div>
+<div class="mt-space-md space-y-space-xs">
+<div>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted mb-1">
+<span class="text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">local_fire_department</span>
+                  Occupancy (47/50 Tables)
+                </span>
+<span class="text-secondary font-bold">94% High Demand</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full" style="width: 94%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted mb-1">
+<span>Daily Target</span>
+<span class="text-secondary font-semibold">Rp 11.85M / 12M (98.7%)</span>
+</div>
+<div class="w-full bg-surface-secondary h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-accent-amber to-cream-beige h-full rounded-full" style="width: 98.7%;"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between font-mono-meta text-mono-meta">
+<span class="flex items-center gap-1 text-accent-amber">
+<span class="material-symbols-outlined text-[14px]">loyalty</span> -10% Campus Promo Applied
+            </span>
+<span class="font-mono-badge text-mono-badge text-text-muted">Active Override Target</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. Two-Column Workspace Layout (Split 35% Config / 65% Localized Pricing Matrix) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-desktop items-start">
+<!-- LEFT COLUMN (35% width -> 4 cols out of 12 or 5 cols) -->
+<div class="lg:col-span-4 space-y-space-md">
+<!-- Quick Outlet Head Profile Card -->
+<div class="bg-surface-card p-space-md rounded-xl shadow-md space-y-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-amber text-[20px]">tune</span>
+<h3 class="font-headline-md text-headline-md text-text-primary text-base">Outlet Parameters</h3>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">UID: SBY-DHM-03</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted">Branch-specific runtime configuration, shift windows, physical floor plan zones, and dynamic logistics boundary.</p>
+</div>
+<!-- Section A: Operational Schedule & Split Shifts -->
+<div class="bg-surface-card p-space-md rounded-xl shadow-md space-y-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">schedule</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">Shift & Service Windows</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-canvas-obsidian after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-coffee"></div>
+</label>
+</div>
+<div class="space-y-space-xs">
+<div class="bg-surface-secondary p-3 rounded-lg space-y-1">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-text-primary font-medium">Weekday Sprint (Mon - Thu)</span>
+<span class="font-mono-meta text-mono-meta text-accent-amber">Standard</span>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-1">
+<div class="bg-surface-card px-2.5 py-1.5 rounded flex items-center justify-between">
+<span class="font-mono-meta text-mono-meta text-text-muted">Open</span>
+<span class="font-mono-meta text-mono-meta text-text-primary font-bold">07:00 WIB</span>
+</div>
+<div class="bg-surface-card px-2.5 py-1.5 rounded flex items-center justify-between">
+<span class="font-mono-meta text-mono-meta text-text-muted">Close</span>
+<span class="font-mono-meta text-mono-meta text-text-primary font-bold">01:00 WIB</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-secondary p-3 rounded-lg space-y-1">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-text-primary font-medium">Weekend Sprint (Fri - Sun)</span>
+<span class="font-mono-badge text-mono-badge text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">Late Coding</span>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-1">
+<div class="bg-surface-card px-2.5 py-1.5 rounded flex items-center justify-between">
+<span class="font-mono-meta text-mono-meta text-text-muted">Open</span>
+<span class="font-mono-meta text-mono-meta text-text-primary font-bold">07:00 WIB</span>
+</div>
+<div class="bg-surface-card px-2.5 py-1.5 rounded flex items-center justify-between">
+<span class="font-mono-meta text-mono-meta text-text-muted">Close</span>
+<span class="font-mono-meta text-mono-meta text-secondary font-bold">03:00 WIB</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between p-2.5 bg-surface-container rounded-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-cream-beige">nights_stay</span>
+<span class="font-body-sm text-body-sm text-on-surface">Ramadan / Exam Season Overtime</span>
+</div>
+<span class="font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">+1h Saur Svc</span>
+</div>
+</div>
+</div>
+<!-- Section B: Seating Capacity & Zone Allocations -->
+<div class="bg-surface-card p-space-md rounded-xl shadow-md space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">chair</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">Floor Plan & Zones</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-primary font-bold">96 Pax Nominal</span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+<div class="space-y-0.5">
+<div class="font-label-sm text-label-sm text-text-primary font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-primary">air</span>
+<span>Indoor Quiet AC Hall</span>
+</div>
+<div class="font-mono-meta text-mono-meta text-text-muted">24 Tables (48 Seats) • 100% Sockets</div>
+</div>
+<span class="font-mono-badge text-mono-badge text-primary bg-primary/10 px-2 py-1 rounded">24T</span>
+</div>
+<div class="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+<div class="space-y-0.5">
+<div class="font-label-sm text-label-sm text-text-primary font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-accent-amber">yard</span>
+<span>Outdoor Shaded Courtyard</span>
+</div>
+<div class="font-mono-meta text-mono-meta text-text-muted">18 Tables (36 Seats) • Smoker Permitted</div>
+</div>
+<span class="font-mono-badge text-mono-badge text-accent-amber bg-accent-amber/10 px-2 py-1 rounded">18T</span>
+</div>
+<div class="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+<div class="space-y-0.5">
+<div class="font-label-sm text-label-sm text-text-primary font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-secondary">meeting_room</span>
+<span>VIP Pods & Suites</span>
+</div>
+<div class="font-mono-meta text-mono-meta text-text-muted">4 Private Pods (8-12 pax capacity)</div>
+</div>
+<span class="font-mono-badge text-mono-badge text-secondary bg-secondary/10 px-2 py-1 rounded">4 Pods</span>
+</div>
+</div>
+</div>
+<!-- Section C: Geolocation, Radius & QR Root Gateway -->
+<div class="bg-surface-card p-space-md rounded-xl shadow-md space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">share_location</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">Geofence & Dispatch Radius</span>
+</div>
+<span class="font-mono-badge text-mono-badge text-accent-amber bg-accent-amber/10 px-2 py-0.5 rounded">GoSend / Grab API</span>
+</div>
+<div class="space-y-space-xs">
+<div class="bg-surface-secondary p-3 rounded-lg space-y-1">
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted">
+<span>Coordinates</span>
+<span class="text-text-primary font-bold">-7.2694° S, 112.7602° E</span>
+</div>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted pt-1">
+<span>Free Delivery Min.</span>
+<span class="text-emerald-400 font-bold">Rp 75.000</span>
+</div>
+</div>
+<!-- Geofencing Slider -->
+<div class="bg-surface-secondary p-3 rounded-lg space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-text-primary font-medium">Delivery Radius Limit</span>
+<span class="font-mono-badge text-mono-badge text-primary bg-primary/15 px-2 py-0.5 rounded font-bold">5.5 Kilometers</span>
+</div>
+<input class="w-full accent-accent-amber h-1.5 bg-surface-container rounded-lg appearance-none cursor-pointer" max="15" min="2" step="0.5" type="range" value="5.5"/>
+<div class="flex justify-between font-mono-meta text-mono-meta text-text-muted">
+<span>Min: 2.0 km</span>
+<span>Max: 15.0 km</span>
+</div>
+</div>
+<!-- In-Store QR Table Code Root URI -->
+<div class="bg-surface-container-low p-3 rounded-lg flex items-center gap-3">
+<div class="w-12 h-12 rounded bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-accent-amber text-[24px]">qr_code_2</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<span class="font-label-sm text-label-sm text-text-primary font-medium truncate">Table QR Root URL</span>
+<span class="font-mono-meta text-mono-meta text-text-muted truncate select-all">yareh.coffee/qr/dharmahusada/[id]</span>
+</div>
+<button class="p-1.5 rounded-lg bg-surface-card hover:bg-surface-container text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (65% width -> 8 cols out of 12) -->
+<div class="lg:col-span-8 space-y-space-md">
+<!-- Batch Override Operational Banner -->
+<div class="bg-gradient-to-r from-surface-card via-surface-container to-surface-card p-space-md rounded-xl shadow-lg relative overflow-hidden">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm relative z-10">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-amber text-[20px]">bolt</span>
+<span class="font-headline-md text-headline-md text-text-primary text-base font-bold">Active Branch Campaign Override</span>
+<span class="font-mono-badge text-mono-badge bg-accent-amber/20 text-accent-amber px-2 py-0.5 rounded font-bold">LIVE ON POS</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted">
+                Rule ID: <code class="font-mono-meta text-mono-meta text-secondary">RULE-CAMPUS-10PCT</code> — Automatically computes a 10% markdown across all pour overs, cold brews, and teas for UNAIR / ITS student traffic.
+              </p>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-sm text-label-sm transition-colors flex items-center gap-1.5 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Recalculate</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-brand-coffee/30 hover:bg-brand-coffee/50 text-secondary font-label-sm text-label-sm font-semibold transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+<span>Edit Rule</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Matrix Filter & Search Toolbar -->
+<div class="bg-surface-card p-space-md rounded-xl shadow-md space-y-space-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<!-- Search SKU / Item -->
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
+<input class="w-full bg-surface-secondary pl-9 pr-4 py-2 rounded-lg text-text-primary placeholder:text-text-muted font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-high transition-all" placeholder="Search catalog SKUs, beans, brews, or toast items..." type="text"/>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button class="px-3 py-2 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-sm text-label-sm flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+<span>Filters</span>
+</button>
+<button class="px-3 py-2 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-sm text-label-sm flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+<span>Reset to Master Base</span>
+</button>
+</div>
+</div>
+<!-- Category Chips -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1 text-nowrap">
+<button class="px-3 py-1 rounded-full bg-primary-container text-text-primary font-label-sm text-label-sm font-semibold shadow-sm" type="button">
+              All Items (68)
+            </button>
+<button class="px-3 py-1 rounded-full bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-sm text-label-sm transition-colors" type="button">
+              Specialty Coffee (24)
+            </button>
+<button class="px-3 py-1 rounded-full bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-sm text-label-sm transition-colors" type="button">
+              Cold Brew & Signature (14)
+            </button>
+<button class="px-3 py-1 rounded-full bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-sm text-label-sm transition-colors" type="button">
+              Artisan Toast & Food (18)
+            </button>
+<button class="px-3 py-1 rounded-full bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-sm text-label-sm transition-colors" type="button">
+              Merch & Roasted Beans (12)
+            </button>
+</div>
+</div>
+<!-- High-Density Pricing Data Table -->
+<div class="bg-surface-card rounded-xl shadow-xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/80 text-text-muted font-mono-meta text-mono-meta uppercase tracking-wider">
+<th class="py-3 px-4">SKU & Item Spec</th>
+<th class="py-3 px-3">Master Base</th>
+<th class="py-3 px-3">Dharmahusada Localized</th>
+<th class="py-3 px-3">Margin (COGS)</th>
+<th class="py-3 px-3">Branch Availability</th>
+<th class="py-3 px-4 text-right">Audit Trail</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 font-body-sm text-body-sm">
+<!-- Row 1: Cold Brew Aren Brûlée (Inspiration match 1) -->
+<tr class="hover:bg-surface-container/60 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" data-alt="A dramatic close-up of Cold Brew Aren Brûlée served in a textured cut crystal tumbler on a dark rustic café counter, featuring creamy frothy foam topped with caramelized brown palm sugar crust, surrounded by scattered roasted coffee beans, backlit with warm golden amber lights in an obsidian dark atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2dCkbXknrOES56R1uopJ7KNMPEEThVab_kS6GxVsAy-jdbwkxB1YQGjiQkGjSxClEI9nRL3sBLdRvoajhrRsRGvdIUdIeJvd8RmFJn6e6MQWiajbsf4HVd-byl-me9tU450neDTdpeFePdqbLrYEdWbMNvP3d7AoMrg0Mlk4Zxnbzg3lSHR7oKcgzKS0y2kduINzhcLoqAWY1KOPQS0zzn70EE_JM8KIFanm2uBoyKuFAHtr0DI6iWw"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-primary font-semibold truncate">Cold Brew Aren Brûlée</span>
+<span class="font-mono-badge text-mono-badge text-accent-amber bg-accent-amber/10 px-1.5 py-0.2 rounded">Signature</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">PRD-CB-001 • 250ml Bottled & Glass</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-mono-meta text-mono-meta text-text-muted">Rp 38.000</span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="absolute left-2 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">Rp</span>
+<input class="w-24 pl-7 pr-2 py-1 bg-surface-secondary rounded font-mono-meta text-mono-meta text-primary font-bold focus:outline-none focus:bg-surface-container-high transition-all" type="text" value="34.200"/>
+</div>
+<span class="font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-bold">-10%</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-meta text-mono-meta text-secondary font-semibold">68.4%</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">(Rp 10.8k)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active Stock
+                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono-meta text-mono-meta text-text-muted block">Auto-Rule Engine</span>
+<span class="font-mono-meta text-mono-meta text-text-muted/60 text-[10px]">Today, 06:00 WIB</span>
+</td>
+</tr>
+<!-- Row 2: Single-Origin V60 Ijen Anaerobic -->
+<tr class="hover:bg-surface-container/60 transition-colors group bg-surface-secondary/20">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" data-alt="Barista pouring hot water from a brass gooseneck kettle into a glass V60 pour over dripper filled with fresh ground coffee bloom, glowing warm spotlight, dark mood mahogany backdrop, obsidian and bronze tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKinih2ym4K1BbVzWx1_ns3peWxS315MLPW5GuVFjqznM0d1ceD9u9aErfKV6DK8pHlTElJbpAWS2A6mz_8UC8pME17nZ1rf6s9v1FJqJLwsswydJQDYKXoYCB7nlNlIWinkPwpiwrVlf0clxkZOVm8U4HnE5vmqvOx_2fpfaKpOw8DbjT5yclv5i-3TfgSxdf_UlLmpSoQ2gMnzFqp7MqHTYHwRkhAlIeJnpHAqfycRx5_uqVFT3D1g"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-primary font-semibold truncate">Single-Origin V60 Ijen</span>
+<span class="font-mono-badge text-mono-badge text-tertiary bg-tertiary/10 px-1.5 py-0.2 rounded">Pour Over</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">PRD-PO-004 • Anaerobic Natural</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-mono-meta text-mono-meta text-text-muted">Rp 42.000</span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="absolute left-2 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">Rp</span>
+<input class="w-24 pl-7 pr-2 py-1 bg-surface-secondary rounded font-mono-meta text-mono-meta text-primary font-bold focus:outline-none focus:bg-surface-container-high transition-all" type="text" value="37.800"/>
+</div>
+<span class="font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-bold">-10%</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-meta text-mono-meta text-secondary font-semibold">62.1%</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">(Rp 14.3k)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active Stock
+                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono-meta text-mono-meta text-text-muted block">Dimas Kurnia (Head)</span>
+<span class="font-mono-meta text-mono-meta text-text-muted/60 text-[10px]">Yesterday 19:42</span>
+</td>
+</tr>
+<!-- Row 3: Artisan Pastrami Brioche Toast -->
+<tr class="hover:bg-surface-container/60 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" data-alt="Thick-cut golden toasted artisan brioche bread loaded with tender smoked pastrami, melted aged cheddar, caramelized onions, and whole grain mustard drizzle, plated on a matte black ceramic slab on a moody rustic wooden cafe table." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7VeIvXDNomayp2p9IDD5s3Xg-I9BA8qwG5rzO79ufkqqZktfFlJXTcdXe1Ux2VyHXbg2K45t6n1qDXmUcXI9U0XmsMWU1onXhgAvK2C7xGUMm8gzkK8uG6HK9-zwr9ZVPjeZB2C_iel22PW77TK_Ob8cGlcTxtThSt8x3tSzCKsRwfNsSyc0UUa3z2Rg_y5IbxILgsaeB5wdkP8H8Wb3zPxge1z2cl4MR6-X1nAEdCIIYKLUes6jldQ"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-primary font-semibold truncate">Artisan Pastrami Toast</span>
+<span class="font-mono-badge text-mono-badge text-primary-fixed bg-primary-container/20 px-1.5 py-0.2 rounded">Hot Kitchen</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">PRD-FD-012 • Brioche Toast</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-mono-meta text-mono-meta text-text-muted">Rp 52.000</span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="absolute left-2 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">Rp</span>
+<input class="w-24 pl-7 pr-2 py-1 bg-surface-secondary rounded font-mono-meta text-mono-meta text-text-primary font-bold focus:outline-none focus:bg-surface-container-high transition-all" type="text" value="52.000"/>
+</div>
+<span class="font-mono-badge text-mono-badge text-text-muted bg-surface-container px-1.5 py-0.5 rounded">0% Base</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-meta text-mono-meta text-secondary font-semibold">54.0%</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">(Rp 23.9k)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-accent-amber bg-accent-amber/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-amber"></span> Low Stock (4 left)
+                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono-meta text-mono-meta text-text-muted block">Kitchen Lead Dharma</span>
+<span class="font-mono-meta text-mono-meta text-text-muted/60 text-[10px]">2 days ago</span>
+</td>
+</tr>
+<!-- Row 4: Iced Ceremonial Matcha Pandan (Inspiration match 2) -->
+<tr class="hover:bg-surface-container/60 transition-colors group bg-surface-secondary/20">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" data-alt="A tall faceted cut-crystal glass filled with iced ceremonial matcha latte layered over emerald pandan coconut cream, topped with thick whipped velvet foam, a delicate pandan leaf garnish and a gold straw, set against a dark cozy speakeasy bar counter with gentle amber hanging bulbs." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJSGJtp2oijNeiQsqhNg9bFDWd6wqy7B93V0MRun2Tinm6XWcGuSNRika0rKI8K5jgHgmLU-x_10kxzkJP7WJxJKn0iRpxr1mcK06aUo28tDfSyZQ24MEbtLA_i6gYlnPLSbigZ_a_4M-63d7Xh1IlalU5F8kc2dFhb7EAEzd06wrLITOYcMZfnOdU6RbEUQJDm7-e8CkVPn-7lnnP-pEHP0xRs_EDz2EYNAtNIa8RyD7xTM-sa8fORw"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-primary font-semibold truncate">Iced Matcha Pandan</span>
+<span class="font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">Ceremonial</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">PRD-TEA-003 • Uji Grade A + Fresh Pandan</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-mono-meta text-mono-meta text-text-muted">Rp 36.000</span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="absolute left-2 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">Rp</span>
+<input class="w-24 pl-7 pr-2 py-1 bg-surface-secondary rounded font-mono-meta text-mono-meta text-primary font-bold focus:outline-none focus:bg-surface-container-high transition-all" type="text" value="32.400"/>
+</div>
+<span class="font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-bold">-10%</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-meta text-mono-meta text-secondary font-semibold">71.2%</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">(Rp 9.3k)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active Stock
+                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono-meta text-mono-meta text-text-muted block">Auto-Rule Engine</span>
+<span class="font-mono-meta text-mono-meta text-text-muted/60 text-[10px]">Today, 06:00 WIB</span>
+</td>
+</tr>
+<!-- Row 5: Midnight Nitro Cold Brew -->
+<tr class="hover:bg-surface-container/60 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" data-alt="A pint of cascading midnight nitro cold brew coffee with a thick Guinness-style creamy head inside a chilled stemless glass, condensation droplets, set on a dark slate coaster on an obsidian counter." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzePpMoSns-SLVeTjnB8p1QykQxws0KgbWHpr4dXM9D_ICfG55S3qabRxmUFlADVXB_OnB-Nqaacr0ISOH1-sxRtX1gjmRM9ndA0ptSS1KK1hJpIZCXfArnuNA05SwYDy74Jl3Yc1vOum-YdY3NxUr45vK04B2OIAUyMtCEKQnGYdfp2lkxGk7WdLyeIYVvVngDT3XrO0TEAWtM-0GHua5mboD40Y3zpVMvJuvrdr7Py3C2HNh9uUwYA"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-primary font-semibold truncate">Midnight Nitro Draft</span>
+<span class="font-mono-badge text-mono-badge text-accent-amber bg-accent-amber/10 px-1.5 py-0.2 rounded">Draft Tap</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">PRD-CB-008 • 16-Hour Nitrogen Infused</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-mono-meta text-mono-meta text-text-muted">Rp 40.000</span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="absolute left-2 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">Rp</span>
+<input class="w-24 pl-7 pr-2 py-1 bg-surface-secondary rounded font-mono-meta text-mono-meta text-primary font-bold focus:outline-none focus:bg-surface-container-high transition-all" type="text" value="36.000"/>
+</div>
+<span class="font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-bold">-10%</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-meta text-mono-meta text-secondary font-semibold">74.5%</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">(Rp 9.1k)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active Tap
+                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono-meta text-mono-meta text-text-muted block">Auto-Rule Engine</span>
+<span class="font-mono-meta text-mono-meta text-text-muted/60 text-[10px]">Today, 06:00 WIB</span>
+</td>
+</tr>
+<!-- Row 6: Micro-Lot Geisha Pour Over Reserve (Sold out) -->
+<tr class="hover:bg-surface-container/60 transition-colors group bg-surface-secondary/20">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm opacity-60" data-alt="Exclusive roasted geisha coffee beans displayed in a luxury amber glass jar with brass lid, resting on dark charcoal linen with tasting notes cards, warm cafe glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1tR0ypNYz0OGzeqdyj2bfAn6pWvEFZ-NaEz8ELGgOZIEvD0o6nGIWwJPoyaGnxDj6WB_h5FnTKfN28qDN9KLLq0f4vRfMz0kDntmrkyOWx7usCDhksoH2qayilbQG8NN_35NRd2oj1-92LGWXSWqkxk1vFxyraoMTBhuYNpXPA2-cQSI4ZS0IVt2yr7lw6CPsdgb0U8BbTP9ho2r3rXOBHnjCi18hnm-iqe1Cr9f_8DLJrHXBkbhmOQ"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-muted font-semibold truncate line-through">Micro-Lot Geisha Reserve</span>
+<span class="font-mono-badge text-mono-badge text-error bg-error-container/20 px-1.5 py-0.2 rounded">Depleted</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted/60">PRD-PO-009 • Panama Boquete Micro-lot</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-mono-meta text-mono-meta text-text-muted">Rp 65.000</span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="absolute left-2 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">Rp</span>
+<input class="w-24 pl-7 pr-2 py-1 bg-surface-container-lowest rounded font-mono-meta text-mono-meta text-text-muted focus:outline-none cursor-not-allowed" disabled="" type="text" value="65.000"/>
+</div>
+<span class="font-mono-badge text-mono-badge text-text-muted bg-surface-container px-1.5 py-0.5 rounded">Reserve</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-meta text-mono-meta text-text-muted font-semibold">58.2%</span>
+<span class="text-text-muted/60 font-mono-meta text-mono-meta">(Rp 27.1k)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-error bg-error-container/20 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Sold Out
+                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono-meta text-mono-meta text-text-muted block">Barista Lead</span>
+<span class="font-mono-meta text-mono-meta text-text-muted/60 text-[10px]">Today 11:30 WIB</span>
+</td>
+</tr>
+<!-- Row 7: Truffle Parmesan Hand-cut Fries -->
+<tr class="hover:bg-surface-container/60 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" data-alt="Crispy golden hand-cut russet fries tossed with black truffle oil, fresh parsley flakes and finely grated aged parmigiano-reggiano in a dark stoneware bowl, moody gastropub atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXCNGiGsR2PnVCjVrTDfu37Y6Zl7dGrBs8iRtBj7PPLrBC9mi-PBwpesyogl6OWNsyzMX_C0XehFfU5dhn27EQDa_HPih-k5xgt0iBLHf2X0HNak6kd5y89fa0QYZNjXGyrAmsZr4N-2OUnD3IhAgXlNl7PR7y8vXF01CsRp5-AYepc6DkEa3FEX3KVYaJCQPHCDUP-G6eruV-DnvCUA_xdwo44W9oQyplncLLcdWRK6CZ5NCoYmYpVQ"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-primary font-semibold truncate">Truffle Parmesan Fries</span>
+<span class="font-mono-badge text-mono-badge text-cream-beige bg-tertiary-container/30 px-1.5 py-0.2 rounded">Bar Snack</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-muted">PRD-SNK-002 • Russet Hand-Cut</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-mono-meta text-mono-meta text-text-muted">Rp 32.000</span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="absolute left-2 top-1/2 -translate-y-1/2 font-mono-meta text-mono-meta text-text-muted">Rp</span>
+<input class="w-24 pl-7 pr-2 py-1 bg-surface-secondary rounded font-mono-meta text-mono-meta text-primary font-bold focus:outline-none focus:bg-surface-container-high transition-all" type="text" value="28.800"/>
+</div>
+<span class="font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-bold">-10%</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="font-mono-meta text-mono-meta text-secondary font-semibold">66.0%</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">(Rp 9.8k)</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 font-mono-badge text-mono-badge text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active Stock
+                    </span>
+</td>
+<td class="py-3 px-4 text-right">
+<span class="font-mono-meta text-mono-meta text-text-muted block">Kitchen Lead</span>
+<span class="font-mono-meta text-mono-meta text-text-muted/60 text-[10px]">1 day ago</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination & Schema Metadata -->
+<div class="p-space-sm bg-surface-container-high/40 flex flex-col sm:flex-row items-center justify-between gap-space-xs font-mono-meta text-mono-meta text-text-muted">
+<div class="flex items-center gap-2">
+<span>Showing 7 of 68 localized items</span>
+<span class="text-text-muted/30">•</span>
+<span class="text-accent-amber font-semibold">Schema: BranchProduct (PostgreSQL)</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-card hover:bg-surface-container text-text-muted hover:text-text-primary transition-colors" type="button">Prev</button>
+<button class="px-2.5 py-1 rounded bg-primary-container text-text-primary font-bold" type="button">1</button>
+<button class="px-2.5 py-1 rounded bg-surface-card hover:bg-surface-container text-text-muted hover:text-text-primary transition-colors" type="button">2</button>
+<button class="px-2.5 py-1 rounded bg-surface-card hover:bg-surface-container text-text-muted hover:text-text-primary transition-colors" type="button">3</button>
+<button class="px-2.5 py-1 rounded bg-surface-card hover:bg-surface-container text-text-muted hover:text-text-primary transition-colors" type="button">Next</button>
+</div>
+</div>
+</div>
+<!-- 3. Staged Actions Floating Bar -->
+<div class="bg-surface-card p-space-md rounded-xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-accent-amber/10 flex items-center justify-center text-accent-amber shrink-0">
+<span class="material-symbols-outlined text-[22px]">pending_actions</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-text-primary font-semibold flex items-center gap-2">
+<span>3 Localized Price Overrides Staged</span>
+<span class="font-mono-badge text-mono-badge text-primary bg-primary/10 px-2 py-0.5 rounded">Uncommitted</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted">Changes will invalidate Redis edge cache across Surabaya Dharmahusada tablet terminals and QR table ordering web clients.</p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0 w-full md:w-auto justify-end">
+<button class="px-4 py-2 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-text-primary font-label-md text-label-md transition-colors" type="button">
+              Discard Changes
+            </button>
+<button class="px-5 py-2 rounded-lg bg-gradient-to-r from-brand-coffee via-secondary-container to-secondary hover:brightness-110 text-text-primary font-label-md text-label-md font-bold transition-all shadow-[0_8px_24px_-4px_rgba(245,158,11,0.3)] flex items-center gap-2" id="publish-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">publish</span>
+<span>Publish to Dharmahusada POS</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Simple micro-interaction for feedback when clicking publish
+  document.getElementById('publish-btn')?.addEventListener('click', function() {
+    const originalText = this.innerHTML;
+    this.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span><span>Syncing Edge Nodes...</span>`;
+    this.disabled = true;
+    setTimeout(() => {
+      this.innerHTML = `<span class="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span><span>Pushed Successfully!</span>`;
+      setTimeout(() => {
+        this.innerHTML = originalText;
+        this.disabled = false;
+      }, 2500);
+    }, 1200);
+  });
+</script></main><footer class="w-full bg-surface-secondary border-t border-border-subtle py-space-3xl mt-space-3xl"><div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet lg:px-margin-desktop"><div class="grid grid-cols-1 md:grid-cols-4 gap-space-xl pb-space-2xl border-b border-border-subtle"><div class="space-y-space-sm md:col-span-1"><div class="flex items-center gap-space-sm"><img alt="Warkop Ya'reh Brand Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VxOpmWOCCL9LQk98Vn8jwnvDL38lXhpROB7-9xnzlOrk_iEoLkZTJRADHtVsQCWOvrJZ2Rr4tKnVXh1yjzh8sDyRch2crVAGNHA7Msp_Gk3itTp4BQ1EavEuLW07fSrx-647n-MEbaiEc1anewoHwd6tgj6wpv31gcFN11fJ8j1ZwN37rutrQ41did441vMyf5rJ_3s7eriZ1vOJtHHO8D-sNba-KqHC9_6MMuEO8X7kr872S_AI213_U"/><span class="font-headline-md text-headline-md text-text-primary">Warkop Ya'reh</span></div><p class="font-body-sm text-body-sm text-text-muted">The artisan 24-hour sanctuary for midnight coders, coffee purists, and creative founders in Surabaya.</p><div class="flex items-center gap-2 pt-2"><span class="font-mono-meta text-mono-meta text-accent-amber bg-accent-amber/10 px-2.5 py-1 rounded-full border border-accent-amber/20">Darmo Flagship • Gubeng Annex</span></div></div><div class="space-y-space-xs"><div class="font-headline-md text-headline-md text-text-primary text-base font-bold">Catering & Brew</div><div class="flex flex-col space-y-2 pt-2"><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Specialty Pour Over</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Midnight Cold Drip</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Surabaya Toast Bites</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="menu" href="#">Artisanal Beans</a></div></div><div class="space-y-space-xs"><div class="font-headline-md text-headline-md text-text-primary text-base font-bold">Ecosystem</div><div class="flex flex-col space-y-2 pt-2"><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="workspace-vip" href="#">VIP Pods & Desks</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="community-hub" href="#">Late Night Tech Talks</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="loyalty-tier" href="#">Kawan Ya'reh Tier</a><a class="font-body-sm text-body-sm text-text-muted hover:text-primary transition-colors" data-path="workspace-vip" href="#">Private Boardrooms</a></div></div><div class="space-y-space-xs"><div class="font-headline-md text-headline-md text-text-primary text-base font-bold">Sanctuary Hours</div><div class="pt-2 space-y-2"><div class="flex justify-between font-mono-meta text-mono-meta"><span class="text-text-muted">Darmo Central:</span><span class="text-emerald-400">24 Hours Nonstop</span></div><div class="flex justify-between font-mono-meta text-mono-meta"><span class="text-text-muted">Barista Service:</span><span class="text-text-primary">07:00 — 04:00 WIB</span></div><div class="flex justify-between font-mono-meta text-mono-meta"><span class="text-text-muted">Gigabit Fiber:</span><span class="text-emerald-400">99.9% Uptime</span></div><p class="font-body-sm text-body-sm text-text-muted pt-2">Jl. Raya Darmo No. 42, Tegalsari, Surabaya, Jawa Timur.</p></div></div></div><div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-sm text-center md:text-left"><span class="font-mono-meta text-mono-meta text-text-muted">© 2025 Warkop Ya'reh Indonesia. Crafted for late-night artisans.</span><div class="flex items-center gap-space-md font-mono-meta text-mono-meta text-text-muted"><a class="hover:text-primary transition-colors" href="#">Privacy Protocol</a><a class="hover:text-primary transition-colors" href="#">Wifi Terms</a><a class="hover:text-primary transition-colors" href="#">Community Guild</a></div></div></div></footer></body></html>

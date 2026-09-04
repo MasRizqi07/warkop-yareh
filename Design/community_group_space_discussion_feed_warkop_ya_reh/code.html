@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-variant": "#353437",
+          "on-error": "#690005",
+          "surface-card": "#18181c",
+          "secondary": "#ffb95f",
+          "on-tertiary": "#402d00",
+          "on-primary-container": "#fffdff",
+          "tertiary-fixed-dim": "#e6c278",
+          "on-error-container": "#ffdad6",
+          "text-muted": "#94a3b8",
+          "cream-beige": "#e8c47a",
+          "brand-coffee": "#9c6b3a",
+          "border-subtle": "rgba(255, 255, 255, 0.08)",
+          "on-secondary": "#472a00",
+          "on-tertiary-container": "#fffdff",
+          "accent-amber": "#f59e0b",
+          "on-primary-fixed-variant": "#663d10",
+          "surface-container-high": "#2a2a2c",
+          "on-background": "#e5e1e4",
+          "on-surface": "#e5e1e4",
+          "primary-container": "#9c6b3a",
+          "surface-tint": "#f7bb82",
+          "on-tertiary-fixed": "#261a00",
+          "on-primary": "#4a2800",
+          "surface-container": "#201f21",
+          "tertiary-container": "#8e7130",
+          "primary-fixed-dim": "#f7bb82",
+          "surface": "#131315",
+          "tertiary-fixed": "#ffdf9f",
+          "surface-dim": "#131315",
+          "outline": "#9d8e82",
+          "secondary-fixed": "#ffddb8",
+          "background": "#131315",
+          "text-primary": "#f8fafc",
+          "outline-variant": "#51453a",
+          "error-container": "#93000a",
+          "inverse-on-surface": "#313032",
+          "on-primary-fixed": "#2d1600",
+          "surface-bright": "#39393b",
+          "on-surface-variant": "#d5c3b6",
+          "inverse-surface": "#e5e1e4",
+          "secondary-fixed-dim": "#ffb95f",
+          "primary": "#f7bb82",
+          "on-tertiary-fixed-variant": "#5b4303",
+          "surface-container-low": "#1c1b1d",
+          "error": "#ffb4ab",
+          "on-secondary-fixed-variant": "#653e00",
+          "surface-secondary": "#111114",
+          "primary-fixed": "#ffdcbf",
+          "inverse-primary": "#825426",
+          "tertiary": "#e6c278",
+          "secondary-container": "#ee9800",
+          "surface-container-lowest": "#0e0e10",
+          "on-secondary-fixed": "#2a1700",
+          "canvas-obsidian": "#0a0a0c",
+          "surface-container-highest": "#353437"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-md": "1rem",
+          "space-3xl": "4rem",
+          "space-sm": "0.75rem",
+          "space-xs": "0.5rem",
+          "gutter-desktop": "1.5rem",
+          "space-lg": "1.5rem",
+          "margin-desktop": "3rem",
+          "space-2xl": "3rem",
+          "gutter-mobile": "1rem",
+          "space-xl": "2rem",
+          "margin-tablet": "2rem",
+          "space-xxs": "0.25rem",
+          "margin-mobile": "1rem"
+        },
+        "fontFamily": {
+          "body-lg": [
+            "inter"
+          ],
+          "label-sm": [
+            "inter"
+          ],
+          "body-md": [
+            "inter"
+          ],
+          "display-lg-mobile": [
+            "plusJakartaSans"
+          ],
+          "display-lg": [
+            "plusJakartaSans"
+          ],
+          "headline-lg": [
+            "plusJakartaSans"
+          ],
+          "headline-xl": [
+            "plusJakartaSans"
+          ],
+          "body-sm": [
+            "inter"
+          ],
+          "mono-meta": [
+            "jetbrainsMono"
+          ],
+          "label-md": [
+            "inter"
+          ],
+          "headline-md": [
+            "plusJakartaSans"
+          ],
+          "mono-badge": [
+            "jetbrainsMono"
+          ]
+        },
+        "fontSize": {
+          "body-lg": [
+            "18px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "500"
+            }
+          ],
+          "body-md": [
+            "15px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "display-lg-mobile": [
+            "36px",
+            {
+              "lineHeight": "44px",
+              "fontWeight": "800"
+            }
+          ],
+          "display-lg": [
+            "48px",
+            {
+              "lineHeight": "56px",
+              "fontWeight": "800"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "fontWeight": "700"
+            }
+          ],
+          "body-sm": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "mono-meta": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "500"
+            }
+          ],
+          "label-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "600"
+            }
+          ],
+          "mono-badge": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "fontWeight": "500"
+            }
+          ]
+        }
+      }
+    }
+  };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface select-none antialiased min-h-screen flex flex-col justify-between"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)]"><div class="h-20 w-full px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-max"><img alt="Brand logo. - Primary color: #9c6b3a
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VxOpmWOCCL9LQk98Vn8jwnvDL38lXhpROB7-9xnzlOrk_iEoLkZTJRADHtVsQCWOvrJZ2Rr4tKnVXh1yjzh8sDyRch2crVAGNHA7Msp_Gk3itTp4BQ1EavEuLW07fSrx-647n-MEbaiEc1anewoHwd6tgj6wpv31gcFN11fJ8j1ZwN37rutrQ41did441vMyf5rJ_3s7eriZ1vOJtHHO8D-sNba-KqHC9_6MMuEO8X7kr872S_AI213_U"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-primary tracking-tight">Warkop Ya'reh</span><span class="px-space-xs py-space-xxs rounded bg-surface-container font-mono-badge text-mono-badge text-accent-amber">POS-TERMINAL-01 (Gubeng 24H Sanctuary)</span></div><div class="flex items-center gap-space-xs mt-0.5"><span class="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-mono-meta text-mono-meta text-on-surface-variant">SHIFT #3 LATE NIGHT</span><span class="text-on-surface-variant font-mono-meta text-mono-meta">•</span><span class="font-mono-meta text-mono-meta text-secondary font-semibold">22:45:18 WIB</span></div></div></div><nav class="hidden xl:flex items-center gap-space-xs px-space-xs py-space-xxs rounded-xl bg-surface-container-lowest" data-active-classes="bg-primary-container text-on-primary-container font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)] rounded-lg"><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="register-kasir" href="#">Register / Kasir</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="table-map" href="#">Table Map</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="order-queue" href="#">Order Queue</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="shift-drawer" href="#">Shift &amp; Drawer (Active)</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="kitchen-display" href="#">Kitchen Display</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="receipt-history" href="#">Receipt History</a></nav><div class="flex items-center gap-space-sm min-w-max"><button class="flex items-center gap-space-xxs px-space-sm py-space-xs rounded-lg bg-surface-container-high hover:bg-error-container hover:text-on-error-container text-error transition-colors" title="Emergency Manager Call" type="button"><span class="material-symbols-outlined text-[20px]">sos</span><span class="font-label-sm text-label-sm uppercase font-bold tracking-wider hidden sm:inline">Help Call</span></button><div class="h-7 w-[1px] bg-surface-container-highest"></div><div class="flex items-center gap-space-xs"><div class="text-right hidden md:block"><div class="font-label-sm text-label-sm font-semibold text-on-surface">Budi Santoso</div><div class="font-mono-badge text-mono-badge text-text-muted">Head Barista / Lead</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(247,187,130,0.3)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-secondary transition-colors" title="Fast Lock POS / Switch Cashier" type="button"><span class="material-symbols-outlined text-[20px]">lock</span></button></div></div></div></header><main class="w-full pt-20 pb-12 bg-surface"><div class="flex flex-col w-full">
+<!-- Dynamic Atmospheric Header & Hero -->
+<div class="relative w-full overflow-hidden bg-surface-container-lowest">
+<!-- Background Image with Scrim -->
+<div class="absolute inset-0 z-0 opacity-40 bg-cover bg-center" data-alt="Late-night moody specialty coffee sanctuary in Surabaya with warm ambient pendant globes, long dark timber communal co-working tables where programmers work on laptops, lush indoor tropical plants, marble brew bar, and floor-to-ceiling glass meeting pods bathed in amber glow." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBLXXwUZmkEkZ2CYeUMxrvvP-IYveQ7RoEqtoxAlnl87B1HilgzMcQ6B0jhuG2UP-mVBrKO__4w7lbQCobjoBU1UsUWChR4xKrvsC4ZUQGXR_LznfRZbNDcDtYBdsNuG6NfLhLJLSPB87zqFglLNLQNnEXnuWgdGpj9TLkI87iYg5KHqqD09sPMwIRfLJdnM-sS7mznVPUumFe7RFf6AT7bvErs0VAhQ3yV2-NDE52uVtT9rRGweOGzxQ')"></div>
+<div class="absolute inset-0 z-0 bg-gradient-to-t from-surface via-surface/80 to-transparent"></div>
+<div class="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-accent-amber/10 blur-3xl pointer-events-none"></div>
+<!-- Hero Content Container -->
+<div class="relative z-10 max-w-7xl mx-auto px-gutter-desktop pt-8 pb-10 flex flex-col gap-space-lg">
+<!-- Breadcrumb & Metadata Badges -->
+<div class="flex flex-wrap items-center gap-space-xs font-mono-meta text-mono-meta text-text-muted">
+<span class="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">groups</span>
+          Circles &amp; Guilds
+        </span>
+<span>/</span>
+<span class="text-primary font-medium">East Java Tech Hubs</span>
+<div class="ml-auto flex items-center gap-space-xs">
+<span class="px-space-xs py-space-xxs rounded bg-surface-container-high text-accent-amber font-mono-badge text-mono-badge shadow-[0_0_12px_rgba(245,158,11,0.2)]">Official Ya'reh Guild (Verified)</span>
+<span class="px-space-xs py-space-xxs rounded bg-surface-card text-tertiary-fixed font-mono-badge text-mono-badge">Weekly Fri &amp; Sat Nights</span>
+</div>
+</div>
+<!-- Identity Header Split -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
+<div class="flex items-start gap-space-md">
+<!-- Guild Logo Emblem -->
+<div class="relative flex-shrink-0 w-20 h-20 rounded-xl bg-surface-card flex items-center justify-center shadow-xl shadow-black/40 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-brand-coffee/40 via-transparent to-accent-amber/20"></div>
+<span class="material-symbols-outlined text-[42px] text-secondary relative z-10">terminal</span>
+<div class="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-accent-amber ring-2 ring-surface"></div>
+</div>
+<div class="flex flex-col gap-space-xxs">
+<h1 class="font-headline-xl text-headline-xl text-text-primary tracking-tight">Surabaya Tech &amp; Startup Coffee Circle</h1>
+<div class="flex flex-wrap items-center gap-space-xs text-text-muted font-body-sm text-body-sm">
+<span class="flex items-center gap-1 text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-secondary">group</span>
+<strong class="text-text-primary">340</strong> Active Builders
+              </span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-accent-amber">local_cafe</span>
+                Sanctuary Hub: <span class="text-primary font-medium">Gubeng 24H Co-Lab</span>
+</span>
+<span>•</span>
+<span class="font-mono-meta text-mono-meta">Est. Oct 2023</span>
+<span>•</span>
+<span class="text-secondary font-mono-badge text-mono-badge flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                Lead: Rayhan Al-Farisi (Platinum)
+              </span>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<!-- Status Dropdown Button -->
+<div class="inline-flex rounded-lg bg-surface-card shadow-sm p-0.5">
+<button class="px-space-md py-space-xs rounded-l-lg bg-surface-container text-primary font-label-md text-label-md flex items-center gap-space-xxs hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+              Joined (Active Member)
+            </button>
+<button class="px-space-xs py-space-xs rounded-r-lg bg-surface-container text-text-muted hover:text-text-primary hover:bg-surface-container-high transition-colors" title="Notification Settings">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+</button>
+</div>
+<!-- Secondary Action -->
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-space-xxs transition-colors">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+            Invite Builder
+          </button>
+<!-- Primary CTA -->
+<button class="px-space-lg py-space-xs rounded-lg bg-primary-container hover:bg-brand-coffee text-on-primary-container font-label-md text-label-md font-semibold flex items-center gap-space-xxs shadow-[0_4px_16px_rgba(156,107,58,0.35)] transition-all">
+<span class="material-symbols-outlined text-[18px]">meeting_room</span>
+            Host a Meetup Here
+          </button>
+</div>
+</div>
+<!-- Navigation Tabs & Search Row -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pt-space-xs">
+<div class="flex items-center gap-space-xxs overflow-x-auto pb-1 md:pb-0">
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container-high text-primary font-label-md text-label-md font-semibold whitespace-nowrap shadow-sm">
+            Discussions (Active)
+          </button>
+<button class="px-space-md py-space-xs rounded-lg text-text-muted hover:text-on-surface hover:bg-surface-container font-label-md text-label-md whitespace-nowrap transition-colors">
+            Upcoming Meetups <span class="px-1.5 py-0.5 ml-1 rounded-full bg-surface-card text-accent-amber font-mono-badge text-mono-badge">3</span>
+</button>
+<button class="px-space-md py-space-xs rounded-lg text-text-muted hover:text-on-surface hover:bg-surface-container font-label-md text-label-md whitespace-nowrap transition-colors">
+            Shared Perks <span class="px-1.5 py-0.5 ml-1 rounded-full bg-surface-card text-secondary font-mono-badge text-mono-badge">12</span>
+</button>
+<button class="px-space-md py-space-xs rounded-lg text-text-muted hover:text-on-surface hover:bg-surface-container font-label-md text-label-md whitespace-nowrap transition-colors">
+            Builder Directory <span class="px-1.5 py-0.5 ml-1 rounded-full bg-surface-card text-on-surface-variant font-mono-badge text-mono-badge">340</span>
+</button>
+</div>
+<!-- Live Circle Filter & Search -->
+<div class="flex items-center gap-space-xs w-full md:w-auto">
+<div class="relative flex-1 md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-text-muted pointer-events-none">search</span>
+<input class="w-full pl-9 pr-3 py-1.5 bg-surface-secondary text-text-primary placeholder:text-text-muted font-body-sm text-body-sm rounded-lg outline-none focus:ring-1 focus:ring-accent-amber transition-all" placeholder="Search threads or tags..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-surface-secondary hover:bg-surface-card text-text-muted hover:text-secondary transition-colors" title="Filter Feed">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Workspace Grid (70% feed / 30% contextual sidebar) -->
+<div class="max-w-7xl mx-auto w-full px-gutter-desktop py-space-lg">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- LEFT COLUMN: THREAD COMPOSER & FEEDS (8 cols = ~67-70%) -->
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- PINNED ANNOUNCEMENT BANNER (Sticky Highlight) -->
+<div class="rounded-xl bg-surface-card p-space-md relative overflow-hidden shadow-lg shadow-black/20">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-accent-amber"></div>
+<div class="flex flex-col gap-space-xs pl-space-xs">
+<div class="flex items-center justify-between gap-space-xs">
+<span class="font-mono-meta text-mono-meta text-accent-amber flex items-center gap-1 font-semibold">
+<span class="material-symbols-outlined text-[16px]">push_pin</span>
+                PINNED BY ORGANIZER • 2 HOURS AGO
+              </span>
+<span class="px-space-xs py-space-xxs rounded bg-surface-container font-mono-badge text-mono-badge text-secondary">
+                VIP-TABLE 1 • GUBENG 24H
+              </span>
+</div>
+<h2 class="font-headline-md text-headline-md text-text-primary tracking-tight">
+              Weekly Saturday Night Coding Session &amp; Mini Pitch — Table VIP-1
+            </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Surabaya founders &amp; senior devs: bring your current repo or sprint board. 1 Gbps dedicated Wi-Fi bridge active on SSID <span class="font-mono-meta text-secondary font-semibold">#YAREH-DEV-PRIORITY</span> with complimentary French Press Arabica refills for all confirmed seats.
+            </p>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pt-space-xs">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-1.5 font-mono-meta text-mono-meta text-text-muted">
+<span class="material-symbols-outlined text-[18px] text-accent-amber">calendar_clock</span>
+<span>Sat, 20:00 - 02:00 WIB</span>
+</div>
+<!-- Attendees Pile -->
+<div class="flex items-center">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-brand-coffee flex items-center justify-center font-mono-badge text-mono-badge text-on-primary font-bold ring-2 ring-surface-card">RA</div>
+<div class="w-7 h-7 rounded-full bg-tertiary-container flex items-center justify-center font-mono-badge text-mono-badge text-on-tertiary font-bold ring-2 ring-surface-card">NK</div>
+<div class="w-7 h-7 rounded-full bg-surface-bright flex items-center justify-center font-mono-badge text-mono-badge text-text-primary font-bold ring-2 ring-surface-card">DK</div>
+</div>
+<span class="ml-2 font-mono-meta text-mono-meta text-secondary font-semibold">28 / 30 Seats Claimed</span>
+</div>
+</div>
+<button class="px-space-md py-space-xs rounded-lg bg-accent-amber hover:bg-secondary text-canvas-obsidian font-label-md text-label-md font-bold flex items-center justify-center gap-space-xxs transition-colors shadow-md">
+<span class="material-symbols-outlined text-[18px]">airline_seat_recline_normal</span>
+                RSVP My Seat [Free]
+              </button>
+</div>
+</div>
+</div>
+<!-- Tag Quick Filter Strip -->
+<div class="flex items-center gap-space-xs overflow-x-auto py-1">
+<span class="font-mono-meta text-mono-meta text-text-muted uppercase tracking-wider pl-1">Tags:</span>
+<button class="px-space-xs py-space-xxs rounded-full bg-surface-card text-accent-amber font-mono-badge text-mono-badge shadow-[0_0_8px_rgba(245,158,11,0.2)]">#All Threads</button>
+<button class="px-space-xs py-space-xxs rounded-full bg-surface-container hover:bg-surface-card text-on-surface-variant font-mono-badge text-mono-badge transition-colors">#TechStack</button>
+<button class="px-space-xs py-space-xxs rounded-full bg-surface-container hover:bg-surface-card text-on-surface-variant font-mono-badge text-mono-badge transition-colors">#CareerHiring</button>
+<button class="px-space-xs py-space-xxs rounded-full bg-surface-container hover:bg-surface-card text-on-surface-variant font-mono-badge text-mono-badge transition-colors">#CoffeeCupping</button>
+<button class="px-space-xs py-space-xxs rounded-full bg-surface-container hover:bg-surface-card text-on-surface-variant font-mono-badge text-mono-badge transition-colors">#ProductShowcase</button>
+<button class="px-space-xs py-space-xxs rounded-full bg-surface-container hover:bg-surface-card text-on-surface-variant font-mono-badge text-mono-badge transition-colors">#LateNightOps</button>
+</div>
+<!-- Inline Thread Composer Box -->
+<div class="rounded-xl bg-surface-card p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-primary flex-shrink-0 flex items-center justify-center font-bold text-on-primary">
+              BS
+            </div>
+<div class="flex-1 flex flex-col gap-space-xs">
+<input class="w-full bg-transparent font-headline-md text-headline-md text-text-primary placeholder:text-text-muted outline-none border-b-0 pb-1" placeholder="Topic headline (e.g., Scaling Postgres on Ya'reh late-night Wi-Fi...)" type="text"/>
+<textarea class="w-full bg-transparent font-body-md text-body-md text-on-surface placeholder:text-text-muted resize-none outline-none" placeholder="Start a conversation with fellow builders in Surabaya... Share architecture hurdles, hiring needs, or brewing observations." rows="2"></textarea>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-xs pt-space-xs bg-surface-secondary p-space-xs rounded-lg">
+<!-- Composer Formatting Toolbar -->
+<div class="flex items-center gap-space-xxs text-text-muted">
+<button class="p-1.5 rounded hover:bg-surface-card hover:text-text-primary transition-colors" title="Bold"><span class="material-symbols-outlined text-[18px]">format_bold</span></button>
+<button class="p-1.5 rounded hover:bg-surface-card hover:text-text-primary transition-colors" title="Italic"><span class="material-symbols-outlined text-[18px]">format_italic</span></button>
+<button class="p-1.5 rounded hover:bg-surface-card hover:text-accent-amber transition-colors" title="Embed Code Block"><span class="material-symbols-outlined text-[18px]">code</span></button>
+<button class="p-1.5 rounded hover:bg-surface-card hover:text-text-primary transition-colors" title="Attach Architecture Diagram"><span class="material-symbols-outlined text-[18px]">image</span></button>
+<button class="p-1.5 rounded hover:bg-surface-card hover:text-secondary transition-colors" title="Create Community Poll"><span class="material-symbols-outlined text-[18px]">poll</span></button>
+<span class="h-4 w-[1px] bg-surface-container-high mx-1"></span>
+<button class="text-text-muted hover:text-accent-amber font-mono-badge text-mono-badge flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">sell</span>
+                + Add Tag
+              </button>
+</div>
+<!-- Post Trigger -->
+<button class="px-space-md py-1.5 rounded-lg bg-primary hover:bg-secondary text-on-primary font-label-md text-label-md font-bold flex items-center gap-space-xxs transition-colors">
+<span>Post to Circle</span>
+<span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</div>
+</div>
+<!-- THREAD 1: In-depth Technical Benchmarks & Code Snippet -->
+<article class="rounded-xl bg-surface-card p-space-lg shadow-md flex flex-col gap-space-md hover:shadow-black/40 transition-shadow">
+<!-- Author Header -->
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-full bg-brand-coffee flex items-center justify-center font-bold text-on-primary text-base shadow-sm">
+                RA
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-bold text-text-primary">Rayhan Al-Farisi</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-accent-amber font-mono-badge text-mono-badge font-semibold">Platinum Guild Lead</span>
+</div>
+<div class="flex items-center gap-space-xs font-mono-meta text-mono-meta text-text-muted">
+<span>Founder @ Tech Guild SBY</span>
+<span>•</span>
+<span>Today 21:15 WIB</span>
+<span>•</span>
+<span class="text-secondary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+                    Darmo Central Pod #14
+                  </span>
+</div>
+</div>
+</div>
+<button class="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Thread Body -->
+<div class="flex flex-col gap-space-sm">
+<h3 class="font-headline-lg text-headline-lg text-text-primary font-bold">
+              Benchmarking Next.js 15 Server Actions vs NestJS Microservices over 100Mbps Warkop WiFi
+            </h3>
+<p class="font-body-md text-body-md text-on-surface">
+              Ran a live stress-test tonight at Pod #14 comparing payload roundtrips over Ya'reh's dedicated fiber node. With edge function warmups, cold starts are negligible if you configure streaming suspense boundaries properly on Next.js 15. Here is our stripped RPC benchmark payload:
+            </p>
+<!-- Code Block Highlight -->
+<div class="rounded-lg bg-surface-secondary p-space-md font-mono-meta text-mono-meta overflow-x-auto shadow-inner text-on-surface-variant">
+<div class="flex items-center justify-between pb-space-xs mb-space-xs text-text-muted">
+<div class="flex items-center gap-space-xs">
+<span class="inline-block w-2.5 h-2.5 rounded-full bg-error-container"></span>
+<span class="inline-block w-2.5 h-2.5 rounded-full bg-secondary-container"></span>
+<span class="inline-block w-2.5 h-2.5 rounded-full bg-tertiary-container"></span>
+<span class="ml-2 text-text-muted">actions/stream-order-v60.ts</span>
+</div>
+<span class="text-accent-amber">TypeScript • Turbopack</span>
+</div>
+<pre class="font-mono-meta text-mono-meta leading-relaxed"><span class="text-secondary">export async function</span> <span class="text-cream-beige">dispatchBaristaOrder</span>(tableId: <span class="text-primary">string</span>, brewId: <span class="text-primary">string</span>) {
+  <span class="text-text-muted">// Authenticated through Ya'reh Local Gateway Mesh</span>
+  <span class="text-secondary">const</span> session = <span class="text-secondary">await</span> auth();
+  <span class="text-secondary">if</span> (!session?.user) <span class="text-secondary">throw new</span> <span class="text-primary">Error</span>(<span class="text-accent-amber">"UNAUTHORIZED_POD_GUEST"</span>);
+
+  <span class="text-secondary">return await</span> db.order.create({
+    data: { tableId, brew: <span class="text-accent-amber">"COLD_BREW_AREN_BRULEE"</span>, priority: <span class="text-primary-container">1</span> },
+  });
+}</pre>
+</div>
+<!-- In-line Data Benchmark Grid -->
+<div class="grid grid-cols-3 gap-space-xs bg-surface-container p-space-xs rounded-lg">
+<div class="flex flex-col items-center justify-center p-space-xs bg-surface-card rounded text-center">
+<span class="font-mono-meta text-mono-meta text-text-muted">Server Action p95</span>
+<span class="font-headline-md text-headline-md text-secondary font-bold">48ms</span>
+</div>
+<div class="flex flex-col items-center justify-center p-space-xs bg-surface-card rounded text-center">
+<span class="font-mono-meta text-mono-meta text-text-muted">NestJS REST p95</span>
+<span class="font-headline-md text-headline-md text-primary font-bold">59ms</span>
+</div>
+<div class="flex flex-col items-center justify-center p-space-xs bg-surface-card rounded text-center">
+<span class="font-mono-meta text-mono-meta text-text-muted">Local Mesh Ping</span>
+<span class="font-headline-md text-headline-md text-accent-amber font-bold">2ms</span>
+</div>
+</div>
+<div class="p-space-xs rounded bg-surface-container text-on-surface-variant font-body-sm text-body-sm flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-accent-amber">coffee</span>
+<span><strong>Barista Pairing Recommendation:</strong> Match this debugging flow with the <em>Cold Brew Aren Brûlée</em>—high caffeine kick without the jitter!</span>
+</div>
+</div>
+<!-- Tags & Social Metrics -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge hover:text-accent-amber cursor-pointer">#WebDev</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge hover:text-accent-amber cursor-pointer">#NextJS</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge hover:text-accent-amber cursor-pointer">#Architecture</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge hover:text-accent-amber cursor-pointer">#LateNightCoding</span>
+</div>
+<div class="flex items-center gap-space-md">
+<!-- Upvote Pill -->
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-bright text-secondary font-mono-meta text-mono-meta font-semibold transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>42 Upvotes</span>
+</button>
+<!-- Comments -->
+<button class="flex items-center gap-1.5 text-text-muted hover:text-text-primary font-mono-meta text-mono-meta transition-colors">
+<span class="material-symbols-outlined text-[16px]">chat_bubble</span>
+<span>18 Replies</span>
+</button>
+<button class="text-text-muted hover:text-secondary transition-colors" title="Bookmark">
+<span class="material-symbols-outlined text-[18px]">bookmark</span>
+</button>
+<button class="text-text-muted hover:text-secondary transition-colors" title="Share">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+</div>
+</article>
+<!-- THREAD 2: Product Showcase & Beta Testing Request -->
+<article class="rounded-xl bg-surface-card p-space-lg shadow-md flex flex-col gap-space-md hover:shadow-black/40 transition-shadow">
+<!-- Author Header -->
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-full bg-tertiary-container flex items-center justify-center font-bold text-on-tertiary text-base shadow-sm">
+                NK
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-bold text-text-primary">Nadia Kusuma</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-secondary font-mono-badge text-mono-badge font-semibold">Gold Tier</span>
+</div>
+<div class="flex items-center gap-space-xs font-mono-meta text-mono-meta text-text-muted">
+<span>Senior Product Designer</span>
+<span>•</span>
+<span>Yesterday 19:40 WIB</span>
+<span>•</span>
+<span class="text-accent-amber flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">local_cafe</span>
+                    Gubeng 24H Sanctuary
+                  </span>
+</div>
+</div>
+</div>
+<button class="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Thread Body -->
+<div class="flex flex-col gap-space-sm">
+<h3 class="font-headline-lg text-headline-lg text-text-primary font-bold">
+              Looking for 3 beta testers for our Surabaya local artisan supply-chain app tonight at Gubeng!
+            </h3>
+<p class="font-body-md text-body-md text-on-surface">
+              Hey circle! We are prototyping an offline-first inventory tracker built specifically for traditional roasteries and micro-cafés in East Java. If you are sitting on Table B4 through B9, drop by—I’ll buy you a pour-over of your choice from the Ya’reh Single Origin menu (the Ijen Honey anaerob is fantastic tonight) in exchange for 15 minutes of UI usability testing.
+            </p>
+<!-- Product Mockup Visual Preview -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm pt-space-xs">
+<div class="relative rounded-lg overflow-hidden h-48 bg-surface-secondary shadow">
+<img class="w-full h-full object-cover" data-alt="High fidelity mobile UI design mockup on a smartphone display showing a dark-themed Indonesian coffee supply chain inventory dashboard with coffee cherry analytics, bean moisture percentages, and amber accent charts." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjQPG0kaMJrLXmXVO8rC_1IQZDX70QrD1utzekFM1Gr4XUF6ct1N3PAUT-lyGKEKRxtZvcZeRfv6pgoGha50gN5FPs8hbOE89jqL9t0MCd7cdc091NK0I14MpjQmy-4RCra9DJVLsDtOKC152yNg12-rtu8BMNBBEqPBg_9eZpIhrHbraU1hbISq6RDt0uxMimO-9HVLsHUk7YoMnRJKqg7DgKzU2BdH4cWLUtiMBsxUG77LCI9SU-QA"/>
+<div class="absolute bottom-2 left-2 px-2 py-1 rounded bg-surface-card/90 backdrop-blur font-mono-badge text-mono-badge text-primary">
+                  Mobile Wireframe v0.9
+                </div>
+</div>
+<div class="relative rounded-lg overflow-hidden h-48 bg-surface-secondary shadow">
+<img class="w-full h-full object-cover" data-alt="Close up of a wooden cafe table at Warkop Yareh with a hot artisan V60 coffee dripper, a dark roasted coffee cup, a laptop running code editor, and user test notes notebook." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC80FpgmUqkO7wvvt9GDHO9O_dfpMARgYIlF5SAHwzFb4gjjSCZVWiBVz9-COxAMXvaRCS7U3xatL4xBShclqQFKx6zLdS9MFF-0gq1sL9sfLPzywQYD37wIpoEcPzLcoHGB8_w0aDdleYJA8ltpDQmTyA5pCi1ozJtVmEgsp2gARE0kDwHotVY1PHVsCC6WMns_a5cqCtj4SNpp_vjapbXJm-0UX0Hs2RBKSmHzq4kuxKz1LPrALIUiw"/>
+<div class="absolute bottom-2 left-2 px-2 py-1 rounded bg-surface-card/90 backdrop-blur font-mono-badge text-mono-badge text-secondary">
+                  Testing Station @ Table B-06
+                </div>
+</div>
+</div>
+</div>
+<!-- Tags & Social Metrics -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge hover:text-accent-amber cursor-pointer">#ProductHunt</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge hover:text-accent-amber cursor-pointer">#UserTesting</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge hover:text-accent-amber cursor-pointer">#SurabayaStartup</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-accent-amber font-mono-badge text-mono-badge">🎁 Free Brew Voucher</span>
+</div>
+<div class="flex items-center gap-space-md">
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-bright text-secondary font-mono-meta text-mono-meta font-semibold transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>31 Upvotes</span>
+</button>
+<button class="flex items-center gap-1.5 text-text-muted hover:text-text-primary font-mono-meta text-mono-meta transition-colors">
+<span class="material-symbols-outlined text-[16px]">chat_bubble</span>
+<span>12 Replies</span>
+</button>
+<button class="text-text-muted hover:text-secondary transition-colors" title="Bookmark">
+<span class="material-symbols-outlined text-[18px]">bookmark</span>
+</button>
+<button class="text-text-muted hover:text-secondary transition-colors" title="Share">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+</div>
+</article>
+<!-- THREAD 3: Coffee, Acoustics & Remote Rituals -->
+<article class="rounded-xl bg-surface-card p-space-lg shadow-md flex flex-col gap-space-md hover:shadow-black/40 transition-shadow">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-full bg-surface-bright flex items-center justify-center font-bold text-text-primary text-base shadow-sm">
+                DK
+              </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-bold text-text-primary">Dimas Kurniawan</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-tertiary-fixed font-mono-badge text-mono-badge font-semibold">Gold Tier</span>
+</div>
+<div class="flex items-center gap-space-xs font-mono-meta text-mono-meta text-text-muted">
+<span>Fullstack Engineer</span>
+<span>•</span>
+<span>2 days ago</span>
+<span>•</span>
+<span class="text-primary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">volume_down</span>
+                    Dharmahusada Hub (Quiet Zone)
+                  </span>
+</div>
+</div>
+</div>
+<button class="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs">
+<h3 class="font-headline-md text-headline-md text-text-primary font-semibold">
+              The acoustic paneling at Dharmahusada Hub 2nd floor is a game-changer for deep focus sprints
+            </h3>
+<p class="font-body-md text-body-md text-on-surface">
+              Shoutout to the Ya'reh sound design team. Clocked 6 uninterrupted hours of refactoring without hearing the espresso grinders below. What is everyone’s favorite late-night pour-over bean this week? Looking for something high in floral notes to get through midnight sprint goals.
+            </p>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge">#QuietZone</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge">#V60Specialty</span>
+<span class="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono-badge text-mono-badge">#SurabayaDev</span>
+</div>
+<div class="flex items-center gap-space-md">
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-bright text-secondary font-mono-meta text-mono-meta font-semibold transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>19 Upvotes</span>
+</button>
+<button class="flex items-center gap-1.5 text-text-muted hover:text-text-primary font-mono-meta text-mono-meta transition-colors">
+<span class="material-symbols-outlined text-[16px]">chat_bubble</span>
+<span>7 Replies</span>
+</button>
+<button class="text-text-muted hover:text-secondary transition-colors" title="Bookmark">
+<span class="material-symbols-outlined text-[18px]">bookmark</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Pagination / Stream status -->
+<div class="flex items-center justify-center py-space-md">
+<button class="px-space-lg py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-secondary font-mono-meta text-mono-meta flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+            Load More Community Discussions (24 older threads)
+          </button>
+</div>
+</div>
+<!-- RIGHT COLUMN: GUILD META, PERKS & CALENDAR (4 cols = ~30%) -->
+<aside class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Module 1: Sanctuary Exclusive Perks for this Guild -->
+<div class="rounded-xl bg-surface-card p-space-md shadow-md flex flex-col gap-space-sm relative overflow-hidden">
+<div class="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-brand-coffee/20 blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-accent-amber">workspace_premium</span>
+              Active Circle Perks
+            </h3>
+<span class="px-2 py-0.5 rounded bg-surface-container text-secondary font-mono-badge text-mono-badge">TIER 2</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted">
+            Automatically applied to your Warkop Ya'reh POS order barcode when checked-in to this circle.
+          </p>
+<div class="flex flex-col gap-space-xs pt-1">
+<div class="p-space-xs rounded-lg bg-surface-secondary flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary flex-shrink-0 mt-0.5">percent</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">15% Off All Pour-Over Brews</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Valid during any registered meetup hours</span>
+</div>
+</div>
+<div class="p-space-xs rounded-lg bg-surface-secondary flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-accent-amber flex-shrink-0 mt-0.5">lock_clock</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">VIP Meeting Room Priority</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Zero deposit for 4+ person dev squads</span>
+</div>
+</div>
+<div class="p-space-xs rounded-lg bg-surface-secondary flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-primary flex-shrink-0 mt-0.5">wifi</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Low-Latency SSID Bypass</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Direct fiber routing to SG/ID AWS clusters</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Module 2: Upcoming Circles Calendar Preview -->
+<div class="rounded-xl bg-surface-card p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-secondary">event_available</span>
+              Upcoming Meetups
+            </h3>
+<a class="font-mono-meta text-mono-meta text-accent-amber hover:underline" href="#">View All (3)</a>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Event 1 -->
+<div class="p-space-xs rounded-lg bg-surface-secondary flex flex-col gap-space-xxs">
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-brand-coffee/30 text-primary font-mono-badge text-mono-badge">TOMORROW</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">20:00 WIB</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-text-primary">Late Night Code Sprint &amp; Show</span>
+<span class="font-body-sm text-body-sm text-text-muted">Gubeng 24H Sanctuary • Table VIP-1</span>
+<div class="flex items-center justify-between pt-1">
+<span class="font-mono-badge text-mono-badge text-secondary">28 / 30 RSVP'd</span>
+<button class="text-accent-amber hover:text-secondary font-mono-meta text-mono-meta font-semibold">Seat Details →</button>
+</div>
+</div>
+<!-- Event 2 -->
+<div class="p-space-xs rounded-lg bg-surface-secondary flex flex-col gap-space-xxs">
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-text-muted font-mono-badge text-mono-badge">WED, 12 NOV</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">19:30 WIB</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-text-primary">AI Agents &amp; Single-Origin Cupping</span>
+<span class="font-body-sm text-body-sm text-text-muted">Darmo Hub • Tasting Lab #2</span>
+<div class="flex items-center justify-between pt-1">
+<span class="font-mono-badge text-mono-badge text-secondary">14 / 20 RSVP'd</span>
+<button class="text-accent-amber hover:text-secondary font-mono-meta text-mono-meta font-semibold">Join Waitlist →</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Module 3: Group Organizers & Core Mentors -->
+<div class="rounded-xl bg-surface-card p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">supervisor_account</span>
+              Circle Mentors &amp; Leads
+            </h3>
+<span class="font-mono-meta text-mono-meta text-text-muted">3 Active</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Mentor 1 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-brand-coffee flex items-center justify-center font-mono-badge text-mono-badge text-on-primary font-bold">
+                  RA
+                </div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-text-primary">Rayhan Al-Farisi</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Founder • Systems Architect</span>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-secondary transition-colors" title="Message on WhatsApp">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-accent-amber transition-colors" title="View Profile">
+<span class="material-symbols-outlined text-[16px]">badge</span>
+</button>
+</div>
+</div>
+<!-- Mentor 2 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-tertiary-container flex items-center justify-center font-mono-badge text-mono-badge text-on-tertiary font-bold">
+                  NK
+                </div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-text-primary">Nadia Kusuma</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Product &amp; UX Director</span>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-secondary transition-colors" title="Message on WhatsApp">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-accent-amber transition-colors" title="View Profile">
+<span class="material-symbols-outlined text-[16px]">badge</span>
+</button>
+</div>
+</div>
+<!-- Mentor 3 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center font-mono-badge text-mono-badge text-on-primary font-bold">
+                  BS
+                </div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-semibold text-text-primary">Budi Santoso</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Head Barista &amp; Tech Host</span>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-secondary transition-colors" title="Message on WhatsApp">
+<span class="material-symbols-outlined text-[16px]">chat</span>
+</button>
+<button class="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-accent-amber transition-colors" title="View Profile">
+<span class="material-symbols-outlined text-[16px]">badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Module 4: Hub Location Widget -->
+<div class="rounded-xl bg-surface-card p-space-md shadow-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-mono-meta text-mono-meta text-text-muted uppercase">Home Base</span>
+<span class="font-mono-badge text-mono-badge text-secondary flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> Open 24 Hours
+            </span>
+</div>
+<div class="relative w-full h-36 rounded-lg overflow-hidden my-1 bg-surface-container">
+<div class="w-full h-full bg-cover bg-center" data-location="Surabaya, Gubeng, East Java, Indonesia" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD3ticC3LO1DkqLBmvtBZKnicj1oc-TF_YhfZ5dt8xquUUdYK5-1c_FnYkx-KxvJxvhvW6sU_JDKNShWzBgmqHAOhPcZ8FSzXIRXqfKbCTwKiSQA8Kw9FY4IH3YTnsu64FYJLuzHoH3lUhmSNcdUjEW7Mi-Heo1hSeYkwId8VpQtXiUswcTAxcN8bW2HflKc2pF1aqfi7U79hKRufmb3sD5x9s70_i5-H3oZhheXcVrJCQYWu0IlDWCvQ')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-canvas-obsidian via-transparent to-transparent"></div>
+<div class="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-primary font-semibold">Warkop Ya'reh Gubeng</span>
+<a class="px-2 py-0.5 rounded bg-brand-coffee text-on-primary font-mono-badge text-mono-badge flex items-center gap-0.5" href="https://maps.google.com" target="_blank">
+                Navigate <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+</a>
+</div>
+</div>
+<p class="font-mono-meta text-mono-meta text-on-surface-variant">
+            Jl. Raya Gubeng No. 44, Surabaya • Power sockets available at 100% of tables.
+          </p>
+</div>
+</aside>
+</div>
+</div>
+</div></main><footer class="fixed bottom-0 left-0 right-0 z-40 h-10 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-2px_12px_rgba(0,0,0,0.3)] px-gutter-desktop flex items-center justify-between font-mono-badge text-mono-badge text-text-muted"><div class="flex items-center gap-space-lg overflow-x-auto py-1"><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">PRINTER:</span><span class="text-text-primary font-medium">EPSON TM-T82III (Online)</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">DRAWER:</span><span class="text-text-primary font-medium">RJ11 Armed</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">SCANNER:</span><span class="text-text-primary font-medium">QRIS USB Scanner</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">EDC:</span><span class="text-text-primary font-medium">Midtrans Terminal (Online)</span></div></div><div class="hidden md:flex items-center gap-space-xs"><span class="text-outline font-mono-meta text-mono-meta">WARKOP YA'REH CORE OS v4.2.1</span></div></footer></body></html>

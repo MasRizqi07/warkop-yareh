@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-variant": "#353437",
+          "on-error": "#690005",
+          "surface-card": "#18181c",
+          "secondary": "#ffb95f",
+          "on-tertiary": "#402d00",
+          "on-primary-container": "#fffdff",
+          "tertiary-fixed-dim": "#e6c278",
+          "on-error-container": "#ffdad6",
+          "text-muted": "#94a3b8",
+          "cream-beige": "#e8c47a",
+          "brand-coffee": "#9c6b3a",
+          "border-subtle": "rgba(255, 255, 255, 0.08)",
+          "on-secondary": "#472a00",
+          "on-tertiary-container": "#fffdff",
+          "accent-amber": "#f59e0b",
+          "on-primary-fixed-variant": "#663d10",
+          "surface-container-high": "#2a2a2c",
+          "on-background": "#e5e1e4",
+          "on-surface": "#e5e1e4",
+          "primary-container": "#9c6b3a",
+          "surface-tint": "#f7bb82",
+          "on-tertiary-fixed": "#261a00",
+          "on-primary": "#4a2800",
+          "surface-container": "#201f21",
+          "tertiary-container": "#8e7130",
+          "primary-fixed-dim": "#f7bb82",
+          "surface": "#131315",
+          "tertiary-fixed": "#ffdf9f",
+          "surface-dim": "#131315",
+          "outline": "#9d8e82",
+          "secondary-fixed": "#ffddb8",
+          "background": "#131315",
+          "text-primary": "#f8fafc",
+          "outline-variant": "#51453a",
+          "error-container": "#93000a",
+          "inverse-on-surface": "#313032",
+          "on-primary-fixed": "#2d1600",
+          "surface-bright": "#39393b",
+          "on-surface-variant": "#d5c3b6",
+          "inverse-surface": "#e5e1e4",
+          "secondary-fixed-dim": "#ffb95f",
+          "primary": "#f7bb82",
+          "on-tertiary-fixed-variant": "#5b4303",
+          "surface-container-low": "#1c1b1d",
+          "error": "#ffb4ab",
+          "on-secondary-fixed-variant": "#653e00",
+          "surface-secondary": "#111114",
+          "primary-fixed": "#ffdcbf",
+          "inverse-primary": "#825426",
+          "tertiary": "#e6c278",
+          "secondary-container": "#ee9800",
+          "surface-container-lowest": "#0e0e10",
+          "on-secondary-fixed": "#2a1700",
+          "canvas-obsidian": "#0a0a0c",
+          "surface-container-highest": "#353437"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-md": "1rem",
+          "space-3xl": "4rem",
+          "space-sm": "0.75rem",
+          "space-xs": "0.5rem",
+          "gutter-desktop": "1.5rem",
+          "space-lg": "1.5rem",
+          "margin-desktop": "3rem",
+          "space-2xl": "3rem",
+          "gutter-mobile": "1rem",
+          "space-xl": "2rem",
+          "margin-tablet": "2rem",
+          "space-xxs": "0.25rem",
+          "margin-mobile": "1rem"
+        },
+        "fontFamily": {
+          "body-lg": [
+            "inter"
+          ],
+          "label-sm": [
+            "inter"
+          ],
+          "body-md": [
+            "inter"
+          ],
+          "display-lg-mobile": [
+            "plusJakartaSans"
+          ],
+          "display-lg": [
+            "plusJakartaSans"
+          ],
+          "headline-lg": [
+            "plusJakartaSans"
+          ],
+          "headline-xl": [
+            "plusJakartaSans"
+          ],
+          "body-sm": [
+            "inter"
+          ],
+          "mono-meta": [
+            "jetbrainsMono"
+          ],
+          "label-md": [
+            "inter"
+          ],
+          "headline-md": [
+            "plusJakartaSans"
+          ],
+          "mono-badge": [
+            "jetbrainsMono"
+          ]
+        },
+        "fontSize": {
+          "body-lg": [
+            "18px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "500"
+            }
+          ],
+          "body-md": [
+            "15px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "display-lg-mobile": [
+            "36px",
+            {
+              "lineHeight": "44px",
+              "fontWeight": "800"
+            }
+          ],
+          "display-lg": [
+            "48px",
+            {
+              "lineHeight": "56px",
+              "fontWeight": "800"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "fontWeight": "700"
+            }
+          ],
+          "body-sm": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "mono-meta": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "500"
+            }
+          ],
+          "label-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "600"
+            }
+          ],
+          "mono-badge": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "fontWeight": "500"
+            }
+          ]
+        }
+      }
+    }
+  };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface select-none antialiased min-h-screen flex flex-col justify-between"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)]"><div class="h-20 w-full px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-max"><img alt="Brand logo. - Primary color: #9c6b3a
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VxOpmWOCCL9LQk98Vn8jwnvDL38lXhpROB7-9xnzlOrk_iEoLkZTJRADHtVsQCWOvrJZ2Rr4tKnVXh1yjzh8sDyRch2crVAGNHA7Msp_Gk3itTp4BQ1EavEuLW07fSrx-647n-MEbaiEc1anewoHwd6tgj6wpv31gcFN11fJ8j1ZwN37rutrQ41did441vMyf5rJ_3s7eriZ1vOJtHHO8D-sNba-KqHC9_6MMuEO8X7kr872S_AI213_U"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-primary tracking-tight">Warkop Ya'reh</span><span class="px-space-xs py-space-xxs rounded bg-surface-container font-mono-badge text-mono-badge text-accent-amber">POS-TERMINAL-01 (Gubeng 24H Sanctuary)</span></div><div class="flex items-center gap-space-xs mt-0.5"><span class="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-mono-meta text-mono-meta text-on-surface-variant">SHIFT #3 LATE NIGHT</span><span class="text-on-surface-variant font-mono-meta text-mono-meta">•</span><span class="font-mono-meta text-mono-meta text-secondary font-semibold">22:45:18 WIB</span></div></div></div><nav class="hidden xl:flex items-center gap-space-xs px-space-xs py-space-xxs rounded-xl bg-surface-container-lowest" data-active-classes="bg-primary-container text-on-primary-container font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)] rounded-lg"><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="register-kasir" href="#">Register / Kasir</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="table-map" href="#">Table Map</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="order-queue" href="#">Order Queue</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="shift-drawer" href="#">Shift &amp; Drawer (Active)</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="kitchen-display" href="#">Kitchen Display</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all whitespace-nowrap" data-path="receipt-history" href="#">Receipt History</a></nav><div class="flex items-center gap-space-sm min-w-max"><button class="flex items-center gap-space-xxs px-space-sm py-space-xs rounded-lg bg-surface-container-high hover:bg-error-container hover:text-on-error-container text-error transition-colors" title="Emergency Manager Call" type="button"><span class="material-symbols-outlined text-[20px]">sos</span><span class="font-label-sm text-label-sm uppercase font-bold tracking-wider hidden sm:inline">Help Call</span></button><div class="h-7 w-[1px] bg-surface-container-highest"></div><div class="flex items-center gap-space-xs"><div class="text-right hidden md:block"><div class="font-label-sm text-label-sm font-semibold text-on-surface">Budi Santoso</div><div class="font-mono-badge text-mono-badge text-text-muted">Head Barista / Lead</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(247,187,130,0.3)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-secondary transition-colors" title="Fast Lock POS / Switch Cashier" type="button"><span class="material-symbols-outlined text-[20px]">lock</span></button></div></div></div></header><main class="w-full pt-20 pb-12 bg-surface"><div class="flex flex-col w-full">
+<!-- Subtle Ambient Glow Orbs behind main content -->
+<div class="relative w-full max-w-7xl mx-auto px-gutter-mobile md:px-gutter-desktop py-space-md">
+<!-- Ambient Backdrop Light Glows (purely CSS layout contained) -->
+<div class="absolute top-12 left-1/4 w-96 h-96 bg-accent-amber/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-48 right-1/4 w-80 h-80 bg-brand-coffee/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- Persistent Breadcrumb & Context Header Bar -->
+<section class="w-full bg-surface-card rounded-xl p-space-sm md:p-space-md shadow-md mb-space-lg">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-sm">
+<!-- Left: Context trail & Order Identity -->
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-accent-amber shadow-sm flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">point_of_sale</span>
+</div>
+<div class="min-w-0 flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-mono-meta text-mono-meta text-text-muted">Ya'reh Gateway Core</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">•</span>
+<span class="font-mono-meta text-mono-meta text-accent-amber font-semibold">Table 08 (Gubeng 24H Sanctuary)</span>
+<span class="text-text-muted font-mono-meta text-mono-meta hidden sm:inline">•</span>
+<span class="font-mono-badge text-mono-badge bg-surface-container-high px-space-xs py-space-xxs rounded text-on-surface">Order #YRH-89241</span>
+</div>
+<div class="flex items-center gap-space-xs mt-0.5">
+<h2 class="font-headline-md text-headline-md text-text-primary tracking-tight">Checkout Payment Terminal</h2>
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-surface-container-highest text-cream-beige font-mono-badge text-mono-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+                Webhook Sync Live
+              </span>
+</div>
+</div>
+</div>
+<!-- Right: Real-time Price Tag & Fast Copy Action -->
+<div class="flex items-center justify-between lg:justify-end gap-space-md bg-surface-secondary px-space-md py-space-xs rounded-lg">
+<div class="text-left lg:text-right">
+<div class="font-mono-badge text-mono-badge text-text-muted uppercase tracking-wider">Total Pembayaran</div>
+<div class="font-headline-lg text-headline-lg text-primary font-bold tracking-tight">Rp 103.350</div>
+</div>
+<button class="p-space-xs rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('103350'); alert('Nominal Rp 103.350 disalin ke clipboard');" title="Salin Nominal Total" type="button">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</div>
+</div>
+</section>
+<!-- State Switcher Control (Interactive Showcase Bar) -->
+<div class="w-full flex flex-col md:flex-row items-center justify-between gap-space-sm bg-surface-container-lowest p-space-xs rounded-xl mb-space-xl shadow-sm">
+<div class="flex items-center gap-space-xs px-space-sm py-space-xxs text-text-muted font-mono-meta text-mono-meta">
+<span class="material-symbols-outlined text-[16px] text-accent-amber">hub</span>
+<span>ENGINE TEST STATE:</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs w-full md:w-auto">
+<!-- Tab 1: Pending -->
+<button class="state-tab-btn flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-card text-accent-amber font-label-sm text-label-sm font-semibold shadow-[0_0_12px_rgba(245,158,11,0.2)] transition-all" id="tab-btn-pending" onclick="switchPaymentState('pending')" type="button">
+<span class="w-2 h-2 rounded-full bg-accent-amber animate-ping"></span>
+<span>1. QRIS Pending</span>
+</button>
+<!-- Tab 2: Expired -->
+<button class="state-tab-btn flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high font-label-sm text-label-sm transition-all" id="tab-btn-expired" onclick="switchPaymentState('expired')" type="button">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span>2. QRIS Expired</span>
+</button>
+<!-- Tab 3: Declined -->
+<button class="state-tab-btn flex items-center justify-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high font-label-sm text-label-sm transition-all" id="tab-btn-declined" onclick="switchPaymentState('declined')" type="button">
+<span class="material-symbols-outlined text-[16px] text-error">cancel</span>
+<span>3. Failed / Declined</span>
+</button>
+</div>
+<div class="hidden xl:flex items-center gap-space-xs pr-space-sm text-text-muted font-mono-badge text-mono-badge">
+<span class="material-symbols-outlined text-[15px] text-secondary">verified_user</span>
+<span>Sandbox Webhook Active</span>
+</div>
+</div>
+<!-- ========================================================= -->
+<!-- STATE 1: PENDING / AWAITING PAYMENT VIEW -->
+<!-- ========================================================= -->
+<div class="w-full flex flex-col gap-space-xl" id="view-state-pending">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Column Left: High-Contrast Dynamic QRIS Module (7 cols) -->
+<div class="lg:col-span-7 flex flex-col items-center bg-surface-card rounded-2xl p-space-lg md:p-space-xl shadow-xl relative overflow-hidden">
+<!-- Subtle Top Ambient Bar -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-amber via-primary to-accent-amber"></div>
+<!-- Live Status Telemetry Pill -->
+<div class="w-full flex items-center justify-between mb-space-md bg-surface-container px-space-md py-space-xs rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+</span>
+<span class="font-mono-meta text-mono-meta text-text-primary">Menunggu Transaksi QRIS</span>
+</div>
+<div class="flex items-center gap-space-xxs text-accent-amber font-mono-meta text-mono-meta font-bold">
+<span class="material-symbols-outlined text-[16px] animate-spin">sync</span>
+<span class="hidden sm:inline">Midtrans Realtime</span>
+</div>
+</div>
+<!-- Dynamic QRIS Canvas Presentation -->
+<div class="w-full max-w-sm bg-surface-container-lowest rounded-xl p-space-md shadow-2xl flex flex-col items-center">
+<!-- QRIS Official Banner Header -->
+<div class="w-full bg-surface-bright rounded-md py-space-xs px-space-sm flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-text-primary font-black tracking-tighter">QRIS</span>
+<span class="font-mono-badge text-mono-badge text-text-muted bg-surface-container px-1 py-0.5 rounded">GPN</span>
+</div>
+<div class="text-right">
+<span class="font-mono-badge text-mono-badge text-text-muted tracking-tight">STANDAR PEMBAYARAN NASIONAL</span>
+</div>
+</div>
+<!-- Authentic Stylized QR Code Box with Coffee Bean Motif Badge -->
+<div class="relative bg-white p-3 rounded-lg shadow-inner flex items-center justify-center aspect-square w-64 md:w-72">
+<!-- High-resolution inline SVG Dynamic QR pattern -->
+<svg class="w-full h-full text-surface-container-lowest" fill="currentColor" viewbox="0 0 200 200">
+<!-- Top-Left Target Finder -->
+<rect fill="#0e0e10" height="50" rx="4" width="50" x="10" y="10"></rect>
+<rect fill="#ffffff" height="34" rx="2" width="34" x="18" y="18"></rect>
+<rect fill="#0e0e10" height="18" rx="1" width="18" x="26" y="26"></rect>
+<!-- Top-Right Target Finder -->
+<rect fill="#0e0e10" height="50" rx="4" width="50" x="140" y="10"></rect>
+<rect fill="#ffffff" height="34" rx="2" width="34" x="148" y="18"></rect>
+<rect fill="#0e0e10" height="18" rx="1" width="18" x="156" y="26"></rect>
+<!-- Bottom-Left Target Finder -->
+<rect fill="#0e0e10" height="50" rx="4" width="50" x="10" y="140"></rect>
+<rect fill="#ffffff" height="34" rx="2" width="34" x="18" y="148"></rect>
+<rect fill="#0e0e10" height="18" rx="1" width="18" x="26" y="156"></rect>
+<!-- QR Data Matrix Dots & Clusters -->
+<rect height="8" width="8" x="68" y="14"></rect>
+<rect height="8" width="16" x="82" y="14"></rect>
+<rect height="8" width="8" x="106" y="14"></rect>
+<rect height="8" width="12" x="120" y="14"></rect>
+<rect height="8" width="14" x="68" y="28"></rect>
+<rect height="8" width="8" x="90" y="28"></rect>
+<rect height="8" width="22" x="106" y="28"></rect>
+<rect height="16" width="8" x="68" y="42"></rect>
+<rect height="8" width="24" x="84" y="42"></rect>
+<rect height="16" width="8" x="116" y="42"></rect>
+<rect height="16" width="8" x="14" y="68"></rect>
+<rect height="8" width="20" x="30" y="68"></rect>
+<rect height="8" width="16" x="58" y="68"></rect>
+<rect height="8" width="8" x="82" y="68"></rect>
+<rect height="8" width="28" x="98" y="68"></rect>
+<rect height="8" width="16" x="134" y="68"></rect>
+<rect height="8" width="28" x="158" y="68"></rect>
+<rect height="8" width="16" x="14" y="92"></rect>
+<rect height="8" width="16" x="38" y="92"></rect>
+<rect height="8" width="20" x="62" y="92"></rect>
+<rect height="8" width="14" x="124" y="92"></rect>
+<rect height="14" width="8" x="146" y="92"></rect>
+<rect height="8" width="24" x="162" y="92"></rect>
+<rect height="8" width="30" x="14" y="108"></rect>
+<rect height="14" width="8" x="52" y="108"></rect>
+<rect height="8" width="16" x="68" y="108"></rect>
+<rect height="8" width="20" x="122" y="108"></rect>
+<rect height="8" width="12" x="150" y="108"></rect>
+<rect height="8" width="16" x="170" y="108"></rect>
+<rect height="10" width="8" x="14" y="124"></rect>
+<rect height="8" width="24" x="30" y="124"></rect>
+<rect height="8" width="8" x="62" y="124"></rect>
+<rect height="8" width="28" x="78" y="124"></rect>
+<rect height="8" width="14" x="114" y="124"></rect>
+<rect height="8" width="18" x="136" y="124"></rect>
+<rect height="8" width="24" x="162" y="124"></rect>
+<!-- Bottom Right Module Blocks -->
+<rect height="8" width="14" x="68" y="140"></rect>
+<rect height="8" width="22" x="90" y="140"></rect>
+<rect height="8" width="16" x="120" y="140"></rect>
+<rect height="18" width="8" x="144" y="140"></rect>
+<rect height="8" width="26" x="160" y="140"></rect>
+<rect height="8" width="20" x="68" y="156"></rect>
+<rect height="20" width="8" x="96" y="156"></rect>
+<rect height="8" width="16" x="112" y="156"></rect>
+<rect height="8" width="16" x="136" y="156"></rect>
+<rect height="8" width="12" x="160" y="156"></rect>
+<rect height="20" width="8" x="180" y="156"></rect>
+<rect height="14" width="8" x="68" y="172"></rect>
+<rect height="8" width="24" x="84" y="172"></rect>
+<rect height="14" width="8" x="116" y="172"></rect>
+<rect height="8" width="20" x="132" y="172"></rect>
+<rect height="8" width="14" x="160" y="172"></rect>
+</svg>
+<!-- Center Logo Emblem: Artisan Coffee Bean -->
+<div class="absolute inset-0 m-auto w-12 h-12 bg-canvas-obsidian rounded-lg shadow-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px]">coffee</span>
+</div>
+</div>
+<!-- Merchant Identification & Dynamic Amount -->
+<div class="w-full mt-space-md text-center">
+<div class="font-headline-md text-headline-md text-text-primary font-bold">WARKOP YA'REH GUBENG</div>
+<div class="font-mono-meta text-mono-meta text-text-muted mt-0.5">NMID: ID1024098812903 • A01</div>
+<div class="mt-space-sm py-space-xs px-space-md rounded-lg bg-surface-card flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted">Total Bayar:</span>
+<span class="font-mono-meta text-mono-meta text-secondary font-bold">Rp 103.350,00</span>
+</div>
+</div>
+</div>
+<!-- Dynamic Realtime Countdown Timer Box -->
+<div class="w-full max-w-sm mt-space-md bg-surface-container rounded-xl p-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-full bg-accent-amber/10 flex items-center justify-center text-accent-amber">
+<span class="material-symbols-outlined text-[20px] animate-pulse">timer</span>
+</div>
+<div class="flex flex-col">
+<span class="font-mono-badge text-mono-badge text-text-muted">BATAS WAKTU BAYAR</span>
+<span class="font-label-sm text-label-sm text-text-primary">Selesaikan sebelum sesi habis</span>
+</div>
+</div>
+<!-- Countdown Display Pill -->
+<div class="px-space-md py-space-xxs rounded-lg bg-surface-card text-accent-amber font-mono-meta text-mono-meta font-bold tracking-widest text-base shadow-sm">
+<span id="qris-timer-text">04:59</span>
+</div>
+</div>
+<!-- Telemetry Live Listener -->
+<div class="mt-space-sm flex items-center gap-space-xs text-text-muted font-mono-badge text-mono-badge text-center">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span>Checking payment status via Midtrans Webhook automatically...</span>
+</div>
+<!-- Quick Action Buttons on QR Container -->
+<div class="w-full max-w-sm grid grid-cols-2 gap-space-xs mt-space-md">
+<button class="flex items-center justify-center gap-space-xxs px-space-sm py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" onclick="alert('QRIS dynamic berhasil diunduh ke galeri perangkat.')" type="button">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span>Unduh QRIS</span>
+</button>
+<button class="flex items-center justify-center gap-space-xxs px-space-sm py-space-xs rounded-lg bg-brand-coffee hover:bg-primary-container text-text-primary font-label-sm text-label-sm font-semibold shadow-md transition-colors" onclick="alert('Pemeriksaan status manual: Menunggu pembayaran oleh customer...')" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Cek Status</span>
+</button>
+</div>
+</div>
+<!-- Column Right: Order Breakdown & Payment App Guides (5 cols) -->
+<div class="lg:col-span-5 flex flex-col gap-space-md">
+<!-- Order Summary Card -->
+<div class="bg-surface-card rounded-2xl p-space-md md:p-space-lg shadow-md">
+<div class="flex items-center justify-between pb-space-xs mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+<span class="font-headline-md text-headline-md text-text-primary">Ringkasan Pesanan</span>
+</div>
+<span class="font-mono-badge text-mono-badge px-space-xs py-0.5 rounded bg-surface-container text-secondary">3 Item</span>
+</div>
+<!-- Items List -->
+<div class="flex flex-col gap-space-xs text-body-sm text-body-sm">
+<div class="flex items-start justify-between py-1 bg-surface-secondary px-space-sm rounded-lg">
+<div class="flex flex-col">
+<span class="font-medium text-text-primary">2x Cold Brew Aren Brûlée</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Less Sugar 70%, Regular Oat Milk</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-primary font-semibold">Rp 64.000</span>
+</div>
+<div class="flex items-start justify-between py-1 bg-surface-secondary px-space-sm rounded-lg">
+<div class="flex flex-col">
+<span class="font-medium text-text-primary">1x Brioche Pastrami Toast</span>
+<span class="font-mono-meta text-mono-meta text-text-muted">Extra Pickled Gherkins, Honey Mustard</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-text-primary font-semibold">Rp 32.000</span>
+</div>
+</div>
+<!-- Fee Calculation Details -->
+<div class="mt-space-sm pt-space-xs flex flex-col gap-1 text-label-sm text-label-sm bg-surface-container-lowest p-space-sm rounded-lg font-mono-meta text-mono-meta">
+<div class="flex justify-between text-text-muted">
+<span>Subtotal Items:</span>
+<span>Rp 96.000</span>
+</div>
+<div class="flex justify-between text-text-muted">
+<span>Pajak Restoran (PB1 11% Gubeng):</span>
+<span>Rp 7.350</span>
+</div>
+<div class="flex justify-between text-text-muted">
+<span>Biaya QRIS Gateway (ASPI 0% Promo):</span>
+<span class="text-secondary">Rp 0 (FREE)</span>
+</div>
+<div class="h-[1px] bg-surface-container-highest my-1"></div>
+<div class="flex justify-between font-headline-md text-headline-md text-primary font-bold">
+<span>Total Ditagihkan:</span>
+<span>Rp 103.350</span>
+</div>
+</div>
+</div>
+<!-- Step-by-Step Payment App Guides Accordion -->
+<div class="bg-surface-card rounded-2xl p-space-md shadow-md">
+<div class="flex items-center gap-space-xs mb-space-sm">
+<span class="material-symbols-outlined text-secondary text-[20px]">account_balance_wallet</span>
+<h3 class="font-headline-md text-headline-md text-text-primary">Panduan Scan QRIS</h3>
+</div>
+<!-- App Guide Accordion List -->
+<div class="flex flex-col gap-space-xs">
+<!-- App 1: GoPay -->
+<details class="group bg-surface-secondary rounded-lg overflow-hidden" open="">
+<summary class="flex items-center justify-between p-space-sm cursor-pointer list-none hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded-full bg-surface-bright flex items-center justify-center font-mono-badge text-mono-badge font-bold text-accent-amber">GP</span>
+<span class="font-label-md text-label-md text-text-primary font-medium">GoPay / Gojek App</span>
+</div>
+<span class="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180 text-[18px]">expand_more</span>
+</summary>
+<div class="px-space-sm pb-space-sm pt-1 text-body-sm text-body-sm text-text-muted bg-surface-container-lowest font-mono-meta text-mono-meta">
+<ol class="list-decimal list-inside space-y-1">
+<li>Buka aplikasi <span class="text-text-primary">Gojek</span> atau <span class="text-text-primary">GoPay</span>.</li>
+<li>Ketuk ikon <span class="text-text-primary font-medium">Bayar / Scan</span> di beranda.</li>
+<li>Arahkan kamera smartphone ke kode QRIS di samping.</li>
+<li>Periksa nama <span class="text-primary font-semibold">WARKOP YA'REH GUBENG</span> &amp; nominal Rp 103.350.</li>
+<li>Masukkan PIN GoPay Anda untuk verifikasi instan.</li>
+</ol>
+</div>
+</details>
+<!-- App 2: BCA Mobile -->
+<details class="group bg-surface-secondary rounded-lg overflow-hidden">
+<summary class="flex items-center justify-between p-space-sm cursor-pointer list-none hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded-full bg-surface-bright flex items-center justify-center font-mono-badge text-mono-badge font-bold text-primary">BCA</span>
+<span class="font-label-md text-label-md text-text-primary font-medium">BCA Mobile / myBCA</span>
+</div>
+<span class="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180 text-[18px]">expand_more</span>
+</summary>
+<div class="px-space-sm pb-space-sm pt-1 text-body-sm text-body-sm text-text-muted bg-surface-container-lowest font-mono-meta text-mono-meta">
+<ol class="list-decimal list-inside space-y-1">
+<li>Buka aplikasi <span class="text-text-primary">BCA Mobile / myBCA</span>.</li>
+<li>Pilih tombol <span class="text-text-primary font-medium">QRIS</span> di tengah bilah navigasi bawah.</li>
+<li>Pindai QR code dan pastikan saldo rekening mencukupi.</li>
+<li>Masukkan 6 digit m-PIN BCA Anda.</li>
+</ol>
+</div>
+</details>
+<!-- App 3: ShopeePay -->
+<details class="group bg-surface-secondary rounded-lg overflow-hidden">
+<summary class="flex items-center justify-between p-space-sm cursor-pointer list-none hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded-full bg-surface-bright flex items-center justify-center font-mono-badge text-mono-badge font-bold text-accent-amber">SP</span>
+<span class="font-label-md text-label-md text-text-primary font-medium">ShopeePay / Shopee</span>
+</div>
+<span class="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180 text-[18px]">expand_more</span>
+</summary>
+<div class="px-space-sm pb-space-sm pt-1 text-body-sm text-body-sm text-text-muted bg-surface-container-lowest font-mono-meta text-mono-meta">
+<ol class="list-decimal list-inside space-y-1">
+<li>Buka aplikasi Shopee &gt; Ketuk logo Scan QRIS di sebelah saldo.</li>
+<li>Arahkan kamera ke layar ini.</li>
+<li>Pilih sumber dana (ShopeePay atau SPayLater).</li>
+<li>Konfirmasi pembayaran dengan PIN / Sidik Jari.</li>
+</ol>
+</div>
+</details>
+<!-- App 4: Livin' by Mandiri -->
+<details class="group bg-surface-secondary rounded-lg overflow-hidden">
+<summary class="flex items-center justify-between p-space-sm cursor-pointer list-none hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded-full bg-surface-bright flex items-center justify-center font-mono-badge text-mono-badge font-bold text-cream-beige">LIV</span>
+<span class="font-label-md text-label-md text-text-primary font-medium">Livin' by Mandiri</span>
+</div>
+<span class="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180 text-[18px]">expand_more</span>
+</summary>
+<div class="px-space-sm pb-space-sm pt-1 text-body-sm text-body-sm text-text-muted bg-surface-container-lowest font-mono-meta text-mono-meta">
+<ol class="list-decimal list-inside space-y-1">
+<li>Buka aplikasi Livin' by Mandiri (bisa scan langsung dari quick action).</li>
+<li>Ketuk menu <span class="text-text-primary font-medium">QR Bayar</span>.</li>
+<li>Pindai barcode QRIS Ya'reh.</li>
+<li>Pilih rekening debit Anda dan masukkan PIN transaksi.</li>
+</ol>
+</div>
+</details>
+</div>
+<!-- Customer Service Quick Assistance -->
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-text-muted font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-accent-amber">headset_mic</span>
+                Kasir Barista Meja 08
+              </span>
+<a class="text-primary hover:underline font-mono-badge text-mono-badge" href="https://wa.me/6281234908812" target="_blank">
+                WhatsApp Kasir →
+              </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ========================================================= -->
+<!-- STATE 2: QRIS EXPIRED / TIMEOUT VIEW (Hidden by default) -->
+<!-- ========================================================= -->
+<div class="w-full hidden flex-col gap-space-xl" id="view-state-expired">
+<div class="max-w-3xl mx-auto w-full bg-surface-card rounded-2xl p-space-lg md:p-space-xl shadow-2xl relative overflow-hidden">
+<!-- Amber Status Warning Header Bar -->
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-accent-amber"></div>
+<!-- Expired Warning Banner -->
+<div class="flex items-start gap-space-md p-space-md rounded-xl bg-surface-container mb-space-lg">
+<div class="w-12 h-12 rounded-xl bg-accent-amber/10 flex items-center justify-center text-accent-amber flex-shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[30px]">hourglass_disabled</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-mono-badge text-mono-badge px-space-xs py-0.5 rounded bg-accent-amber/20 text-accent-amber font-bold">STATUS: EXPIRED / TIMEOUT</span>
+<span class="text-text-muted font-mono-meta text-mono-meta">• Sesi Berakhir (15:00 min)</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg text-text-primary mt-1 font-bold">Waktu Pembayaran QRIS Telah Habis</h3>
+<p class="font-body-md text-body-md text-text-muted mt-1">
+              Batas waktu aman pembayaran 15 menit telah terlampaui. QR Code ini dinonaktifkan demi keamanan transaksi perbankan Anda agar tidak terjadi pendebetan ganda.
+            </p>
+</div>
+</div>
+<!-- Center Inactive QR Code with Frosted Watermark Overlay -->
+<div class="flex flex-col items-center justify-center p-space-md bg-surface-container-lowest rounded-xl mb-space-lg relative">
+<div class="relative w-56 h-56 bg-surface-secondary p-4 rounded-xl flex items-center justify-center opacity-40 grayscale filter blur-[1px]">
+<!-- Faded QR Graphic -->
+<svg class="w-full h-full text-text-muted" fill="currentColor" viewbox="0 0 100 100">
+<rect height="30" rx="3" width="30" x="5" y="5"></rect>
+<rect height="30" rx="3" width="30" x="65" y="5"></rect>
+<rect height="30" rx="3" width="30" x="5" y="65"></rect>
+<rect height="8" width="16" x="42" y="10"></rect>
+<rect height="18" width="8" x="42" y="24"></rect>
+<rect height="8" width="20" x="10" y="42"></rect>
+<rect height="8" width="20" x="70" y="42"></rect>
+<rect height="18" width="18" x="42" y="65"></rect>
+<rect height="15" width="25" x="65" y="70"></rect>
+</svg>
+</div>
+<!-- Absolute Expiration Floating Watermark Badge -->
+<div class="absolute inset-0 m-auto w-max h-max px-space-lg py-space-xs rounded-xl bg-surface-card/90 backdrop-blur-md shadow-2xl flex flex-col items-center justify-center">
+<span class="material-symbols-outlined text-accent-amber text-[32px] mb-1">lock_clock</span>
+<span class="font-headline-md text-headline-md text-accent-amber font-black tracking-wider">KEDALUWARSA</span>
+<span class="font-mono-badge text-mono-badge text-text-muted mt-0.5">QR Dynamic #YRH-89241-EXP</span>
+</div>
+<!-- Table Order Reservation Notice -->
+<div class="mt-space-md w-full bg-surface-secondary p-space-sm rounded-lg flex items-center justify-between text-body-sm text-body-sm">
+<div class="flex items-center gap-space-xs text-text-muted">
+<span class="material-symbols-outlined text-[18px] text-cream-beige">inventory_2</span>
+<span>Reservasi pesanan tersimpan di POS Kasir Gubeng selama:</span>
+</div>
+<span class="font-mono-meta text-mono-meta text-primary font-bold">09:42 menit tersisa</span>
+</div>
+</div>
+<!-- Primary & Secondary Resolution Actions -->
+<div class="flex flex-col sm:flex-row items-center gap-space-sm w-full">
+<button class="w-full sm:flex-1 py-space-md px-space-lg rounded-xl bg-brand-coffee hover:bg-primary-container text-text-primary font-headline-md text-headline-md font-bold shadow-lg hover:shadow-accent-amber/20 transition-all flex items-center justify-center gap-space-xs" onclick="switchPaymentState('pending'); alert('QRIS baru berhasil dibuat. Countdown direset ke 05:00.');" type="button">
+<span class="material-symbols-outlined text-[22px]">refresh</span>
+<span>Generate QR Code Baru</span>
+</button>
+<button class="w-full sm:w-auto py-space-md px-space-lg rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center justify-center gap-space-xs" onclick="alert('Pilihan metode lain: Kasir Tunai, EDC BCA/Mandiri, atau Virtual Account.');" type="button">
+<span class="material-symbols-outlined text-[20px]">credit_card</span>
+<span>Ganti Metode Pembayaran</span>
+</button>
+</div>
+<!-- Direct Barista Cashier Support Line -->
+<div class="mt-space-lg pt-space-sm flex flex-col sm:flex-row items-center justify-between gap-space-xs text-mono-meta text-mono-meta text-text-muted bg-surface-container-lowest p-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-accent-amber">contact_support</span>
+<span>Saldo Anda terlanjur terpotong saat masa kedaluwarsa?</span>
+</div>
+<a class="text-primary hover:text-cream-beige hover:underline font-semibold flex items-center gap-1" href="https://wa.me/6281234908812?text=Halo%20Kasir%20Warkop%20Yareh,%20saldo%20saya%20terpotong%20pada%20order%20YRH-89241" target="_blank">
+<span>Klaim Refund Kasir via WA</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+</div>
+</div>
+<!-- ========================================================= -->
+<!-- STATE 3: TRANSACTION FAILED / DECLINED VIEW (Hidden by default) -->
+<!-- ========================================================= -->
+<div class="w-full hidden flex-col gap-space-xl" id="view-state-declined">
+<div class="max-w-3xl mx-auto w-full bg-surface-card rounded-2xl p-space-lg md:p-space-xl shadow-2xl relative overflow-hidden">
+<!-- Red Failure Header Glow Bar -->
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-error"></div>
+<!-- Error Icon & Headline Hero Area -->
+<div class="flex flex-col items-center text-center py-space-md">
+<div class="w-16 h-16 rounded-2xl bg-error-container/40 text-error flex items-center justify-center shadow-lg shadow-error/20 mb-space-md">
+<span class="material-symbols-outlined text-[40px]">dangerous</span>
+</div>
+<span class="font-mono-badge text-mono-badge px-space-sm py-0.5 rounded-full bg-error-container text-on-error-container font-semibold uppercase tracking-wider mb-space-xs">
+            HTTP 402 / PAYMENT_DECLINED
+          </span>
+<h3 class="font-headline-xl text-headline-xl text-text-primary font-bold tracking-tight">Pembayaran Tidak Dapat Diproses</h3>
+<p class="font-body-md text-body-md text-text-muted max-w-lg mt-space-xs">
+            Penyedia dompet digital menolak otorisasi transaksi ini. Saldo di rekening Anda belum didebit oleh sistem Warkop Ya'reh.
+          </p>
+</div>
+<!-- Failure Telemetry Box -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md mb-space-lg shadow-inner">
+<div class="flex items-center justify-between pb-space-xs mb-space-xs">
+<div class="flex items-center gap-space-xs text-error font-mono-meta text-mono-meta font-bold uppercase">
+<span class="material-symbols-outlined text-[18px]">report_problem</span>
+<span>MIDTRANS TELEMETRY LOG</span>
+</div>
+<span class="font-mono-badge text-mono-badge text-text-muted">Node: ID-CGK-SRV04</span>
+</div>
+<!-- Reason Alert Pill -->
+<div class="bg-surface-card p-space-sm rounded-lg mb-space-md">
+<span class="font-mono-badge text-mono-badge text-text-muted uppercase">Penyebab Kegagalan:</span>
+<div class="font-headline-md text-headline-md text-error font-bold mt-0.5">
+              Batas Saldo E-Wallet Tidak Mencukupi (Insufficient Funds)
+            </div>
+<div class="font-mono-badge text-mono-badge text-text-muted mt-1">
+              ErrCode: <code class="text-cream-beige">MIDTRANS_402_INSUFFICIENT_BALANCE</code> • Issuer Code: <code class="text-cream-beige">GP_402_LOW_CREDIT</code>
+</div>
+</div>
+<!-- Key Diagnostic Key-Values -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-xs font-mono-meta text-mono-meta">
+<div class="bg-surface-secondary p-space-xs rounded flex justify-between">
+<span class="text-text-muted">Transaction ID:</span>
+<span class="text-text-primary font-medium">TX-MID-20241024-998124</span>
+</div>
+<div class="bg-surface-secondary p-space-xs rounded flex justify-between">
+<span class="text-text-muted">Payment Rail:</span>
+<span class="text-accent-amber font-medium">GoPay QRIS Dynamic</span>
+</div>
+<div class="bg-surface-secondary p-space-xs rounded flex justify-between">
+<span class="text-text-muted">Waktu Percobaan:</span>
+<span class="text-text-primary">22:46:12 WIB</span>
+</div>
+<div class="bg-surface-secondary p-space-xs rounded flex justify-between">
+<span class="text-text-muted">Bank Reference:</span>
+<span class="text-cream-beige font-mono-badge text-mono-badge">BR-0988123-DECLINE</span>
+</div>
+</div>
+<!-- Failure Simulation Dropdown (Explore other test cases) -->
+<div class="mt-space-md pt-space-xs flex flex-col sm:flex-row items-center justify-between gap-space-xs">
+<span class="font-mono-badge text-mono-badge text-text-muted">Simulasi Jenis Kegagalan Lain:</span>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-xs py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-mono-badge text-mono-badge" onclick="alert('Simulasi Diubah: Bank Issuer Timeout (HTTP 504) - Sistem perbankan mitra sedang maintenance berkala.')" type="button">
+                Issuer Timeout (504)
+              </button>
+<button class="px-space-xs py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-mono-badge text-mono-badge" onclick="alert('Simulasi Diubah: Limit Harian Transaksi QRIS Terlampaui (Err: 403_DAILY_LIMIT_EXCEEDED).')" type="button">
+                Daily Limit (403)
+              </button>
+</div>
+</div>
+</div>
+<!-- Remediation Actions -->
+<div class="flex flex-col sm:flex-row items-center gap-space-sm">
+<button class="w-full sm:flex-1 py-space-md px-space-lg rounded-xl bg-accent-amber hover:bg-secondary-container text-on-secondary-container font-headline-md text-headline-md font-bold shadow-lg shadow-accent-amber/20 transition-all flex items-center justify-center gap-space-xs" onclick="switchPaymentState('pending'); alert('Membuka kembali QRIS untuk percobaan pembayaran ulang.');" type="button">
+<span class="material-symbols-outlined text-[22px]">replay</span>
+<span>Coba Bayar Ulang (Retry)</span>
+</button>
+<button class="w-full sm:w-auto py-space-md px-space-lg rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center justify-center gap-space-xs" onclick="alert('Pindah ke pembayaran EDC Fisik di kasir atau Tunai.');" type="button">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+<span>Bayar di Meja Kasir</span>
+</button>
+</div>
+<!-- Hotlines -->
+<div class="mt-space-lg flex items-center justify-between text-body-sm text-body-sm text-text-muted">
+<span>Meja 08 • Warkop Ya'reh Gubeng</span>
+<span class="font-mono-meta text-mono-meta text-primary">Hotline Kasir: +62 812-3490-8812</span>
+</div>
+</div>
+</div>
+<!-- Persistent Trust & Compliance Badges Footer Area -->
+<section class="w-full mt-space-2xl bg-surface-card rounded-xl p-space-md shadow-sm">
+<div class="flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md flex-wrap justify-center md:justify-start">
+<div class="flex items-center gap-space-xs text-text-muted font-mono-badge text-mono-badge">
+<span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+<span>BANK INDONESIA ASPI CERTIFIED</span>
+</div>
+<div class="flex items-center gap-space-xs text-text-muted font-mono-badge text-mono-badge">
+<span class="material-symbols-outlined text-accent-amber text-[18px]">lock</span>
+<span>256-BIT SSL ENCRYPTED GATEWAY</span>
+</div>
+<div class="flex items-center gap-space-xs text-text-muted font-mono-badge text-mono-badge">
+<span class="material-symbols-outlined text-primary text-[18px]">bolt</span>
+<span>MIDTRANS SNAP WEBHOOK API</span>
+</div>
+</div>
+<div class="text-text-muted font-mono-badge text-mono-badge text-center md:text-right">
+<span>Session Nonce: </span>
+<code class="text-cream-beige">0x889241_YA_REH_GUBENG_LATE_NIGHT</code>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Interactive Tab Switcher & Dynamic Countdown JavaScript Engine -->
+<script>
+  // State Switching Engine
+  function switchPaymentState(stateKey) {
+    const pendingView = document.getElementById('view-state-pending');
+    const expiredView = document.getElementById('view-state-expired');
+    const declinedView = document.getElementById('view-state-declined');
+
+    const btnPending = document.getElementById('tab-btn-pending');
+    const btnExpired = document.getElementById('tab-btn-expired');
+    const btnDeclined = document.getElementById('tab-btn-declined');
+
+    // Default classes
+    const inactiveClassList = ['bg-surface-container-low', 'text-on-surface-variant'];
+    const activeClassList = ['bg-surface-card', 'text-accent-amber', 'shadow-[0_0_12px_rgba(245,158,11,0.2)]'];
+
+    // Reset views
+    pendingView.classList.add('hidden');
+    expiredView.classList.add('hidden');
+    declinedView.classList.add('hidden');
+
+    [btnPending, btnExpired, btnDeclined].forEach(btn => {
+      btn.classList.remove(...activeClassList);
+      btn.classList.add(...inactiveClassList);
+    });
+
+    if (stateKey === 'pending') {
+      pendingView.classList.remove('hidden');
+      btnPending.classList.add(...activeClassList);
+      btnPending.classList.remove(...inactiveClassList);
+    } else if (stateKey === 'expired') {
+      expiredView.classList.remove('hidden');
+      btnExpired.classList.add(...activeClassList);
+      btnExpired.classList.remove(...inactiveClassList);
+    } else if (stateKey === 'declined') {
+      declinedView.classList.remove('hidden');
+      btnDeclined.classList.add(...activeClassList);
+      btnDeclined.classList.remove(...inactiveClassList);
+    }
+  }
+
+  // Realtime Countdown Simulator (04:59 downward countdown)
+  (function initTimer() {
+    let totalSeconds = 299;
+    const timerElem = document.getElementById('qris-timer-text');
+    if (!timerElem) return;
+
+    setInterval(() => {
+      if (totalSeconds <= 0) {
+        timerElem.textContent = "00:00";
+        return;
+      }
+      totalSeconds--;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      timerElem.textContent = 
+        String(minutes).padStart(2, '0') + ':' + 
+        String(seconds).padStart(2, '0');
+    }, 1000);
+  })();
+</script></main><footer class="fixed bottom-0 left-0 right-0 z-40 h-10 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-2px_12px_rgba(0,0,0,0.3)] px-gutter-desktop flex items-center justify-between font-mono-badge text-mono-badge text-text-muted"><div class="flex items-center gap-space-lg overflow-x-auto py-1"><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">PRINTER:</span><span class="text-text-primary font-medium">EPSON TM-T82III (Online)</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">DRAWER:</span><span class="text-text-primary font-medium">RJ11 Armed</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">SCANNER:</span><span class="text-text-primary font-medium">QRIS USB Scanner</span></div><div class="flex items-center gap-space-xxs"><span class="inline-block w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface-variant">EDC:</span><span class="text-text-primary font-medium">Midtrans Terminal (Online)</span></div></div><div class="hidden md:flex items-center gap-space-xs"><span class="text-outline font-mono-meta text-mono-meta">WARKOP YA'REH CORE OS v4.2.1</span></div></footer></body></html>
