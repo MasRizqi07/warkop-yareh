@@ -38,7 +38,7 @@ Tujuan digitalisasi adalah membangun ekosistem digital terintegrasi yang mampu m
 
 ## **2. PRODUCT VISION** 
 
-Menjadi coffee shop digital-first terbaik di Surabaya yang menghadirkan pengalaman pemesanan, pembayaran, loyalitas pelanggan, dan operasional bisnis secara terintegrasi dalam satu platform. 
+Menjadi coffee shop digital-first terbaik di Surabaya yang menghadirkan pengalaman digital premium dan *immersive*. Kami memadukan kemudahan pemesanan, pembayaran, loyalitas pelanggan, dan operasional bisnis dalam satu platform dengan standar desain **UI/UX tingkat tinggi (Wow Factor)** yang setara dengan aplikasi gaya hidup modern berkelas dunia.
 
 1 
 
@@ -70,11 +70,11 @@ Meningkatkan customer satisfaction score menjadi >90%.
 
 Platform harus memungkinkan: 
 
-- Pemesanan digital 
+- Pemesanan digital dengan *fluid navigation* dan animasi 
 
-- Loyalty Program 
+- Loyalty Program yang digamifikasi (Gamified Dashboard) 
 
-- Membership 
+- Membership dengan efek visual eksklusif (Glassmorphism & 3D Elements) 
 
 - Customer Analytics 
 
@@ -87,6 +87,8 @@ Platform harus memungkinkan:
 - Event Management 
 
 - Multi Channel Ordering 
+
+- Personalized AI Menu Recommendations dengan antarmuka dinamis
 
 ## **5. TARGET USERS** 
 
@@ -478,11 +480,17 @@ Purchase → Earn Points → Reach Threshold → Redeem Rewards
 
 ## **9. NON-FUNCTIONAL REQUIREMENTS** 
 
-## **Performance** 
+## **Performance & UI/UX Standards** 
 
 Page Load: < 2 Seconds 
 
 API Response: < 500ms 
+
+Animation Frame Rate: Konsisten 60fps (memanfaatkan hardware acceleration) 
+
+Cumulative Layout Shift (CLS): Hampir 0 (Zero CLS) 
+
+Accessibility Score: > 95 (WCAG 2.1 AA Compliance) 
 
 Concurrent Users: 10,000+ 
 

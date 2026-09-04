@@ -6,12 +6,13 @@ This document defines the visual guidelines, typography, color system, and layou
 
 ## 👁️ Core Aesthetic Principles
 
-Our interface is designed to evoke the warm, welcoming feel of a premium, modern coffee house while maintaining developer-friendly utility:
+Our interface is designed to evoke the warm, welcoming feel of a premium, modern coffee house combined with **State-of-the-Art Dynamic Web Design**. We aim for a "Wow Factor" that immediately captivates the user:
 
-1. **Rich Aesthetics**: High contrast, elegant dark and light interfaces, soft glow highlights, and glassmorphic overlays.
-2. **Harmonious Palettes**: Clean browns, warm creams, and premium gold accents that align with specialty coffee styling.
-3. **Responsive Interactivity**: Smooth micro-animations (spring curves) on hover, active states, and transitions that make the app feel alive and responsive.
-4. **Accessibility First**: Visible, high-contrast focus rings and reduced-motion fallbacks for all key interactive elements.
+1. **Rich, Immersive Aesthetics**: High contrast, elegant and sleek dark/light interfaces, neon soft glow highlights, and advanced Glassmorphism 2.0 overlays that feel premium and tactile.
+2. **Harmonious Premium Palettes**: Clean browns, warm creams, and vibrant premium gold accents that align with specialty coffee styling but punch with high digital saturation.
+3. **Dynamic & Responsive Interactivity**: The UI must feel *alive*. We use smooth micro-animations (spring curves), magnetic hover effects, interactive parallax, and seamless page transitions (via Framer Motion).
+4. **Fluid Typography & Layout**: Responsive font scaling and meticulously crafted spacing to ensure an editorial, uncluttered layout that guides the user's eye naturally.
+5. **Accessibility First**: Visible, high-contrast focus rings and reduced-motion fallbacks for all key interactive elements without sacrificing the premium aesthetic.
 
 ---
 
@@ -159,16 +160,22 @@ Consistency in layout gaps and borders is critical.
 
 Special tailwind-integrated utility classes provide visual polish:
 
-### 1. `.glass`
+### 1. `.glass` & `.glass-premium`
 
-Used for sticky headers, modal covers, and side navigation.
+Used for sticky headers, modal covers, and side navigation. The premium version adds dynamic noise and glowing edges.
 
 ```css
 .glass {
   background: var(--surface-glass);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.glass-premium {
+  /* Extended version with inner shadows and subtle highlights */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 ```
 
@@ -200,18 +207,20 @@ Used to indicate loading states during server fetches.
 }
 ```
 
-### 5. `.card-hover`
+### 5. `.card-hover` & `.card-magnetic`
 
-Applied on interactive product, event, and group cards to create a lifelike elevation when hovered.
+Applied on interactive product, event, and group cards to create a lifelike elevation and spatial interaction.
 
 ```css
 .card-hover {
-  transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 400ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08); /* Dark mode: rgba(0,0,0,0.3) */
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12); /* Dark mode: rgba(0,0,0,0.4) */
 }
+
+/* Magnetic effect handled via Framer Motion in React components */
 ```
 
 ---
