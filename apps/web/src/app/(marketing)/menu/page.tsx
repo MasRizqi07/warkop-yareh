@@ -1,321 +1,302 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { useCartStore } from "@/stores";
-import { api } from "@/lib/api";
-import type { Product } from "@warkop-yareh/types";
-import { 
-  IconLocation, 
-  IconSearch, 
-  IconSearchOff, 
-  IconTrending, 
-  IconPlus, 
-  IconCart 
-} from "@/lib/icons";
-import { BaristaConciergeModal } from "@/components/ai/barista-concierge-modal";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+  ShoppingBag,
+  Heart,
+  Star,
+  Clock,
+  Coffee,
+} from "lucide-react";
+import { MOCK_PRODUCTS, MockProduct } from "@/lib/mockData";
+import { useAppStore } from "@/store/useAppStore";
+import { ProductCustomizerModal } from "@/components/menu/ProductCustomizerModal";
 
-interface CategoryItem {
-  id: string;
-  label: string;
-}
-
-interface ApiCategory {
-  id?: string;
-  name: string;
-  slug?: string;
-}
-
-interface ApiProduct {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image?: string;
-  category?: { slug?: string; name?: string };
-  categoryId?: string;
-  tags?: string[];
-  isPopular?: boolean;
-  isNew?: boolean;
-  rating?: number;
-  reviewCount?: number;
-  preparationTime?: number;
-  calories?: number;
-}
+const CATEGORIES = [
+  { id: "all", label: "Semua Menu" },
+  { id: "coffee", label: "Kopi Specialty" },
+  { id: "non-coffee", label: "Non-Coffee & Matcha" },
+  { id: "pastry", label: "Artisan Pastry" },
+  { id: "food", label: "Makanan & Snack" },
+];
 
 export default function MenuPage() {
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [branch, setBranch] = useState("coldnbrew-gubeng-001");
-  const [productsList, setProductsList] = useState<Product[]>([]);
-  const [categoriesList, setCategoriesList] = useState<CategoryItem[]>([
-    { id: "all", label: "All Menu" },
-  ]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { itemCount, addItem, toggleCart } = useCartStore();
-  
-  const count = itemCount();
+  const { getActiveBranch, user, updateProfile } = useAppStore();
+  const activeBranch = getActiveBranch();
 
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchCatalog() {
-      try {
-        setIsLoading(true);
-        const res = await api.get(`/catalog?branchId=${branch}`);
-        if (res.data?.data && isMounted) {
-          const { categories, products: rawProducts } = res.data.data;
-          
-          if (categories && Array.isArray(categories)) {
-            const apiCats: ApiCategory[] = categories;
-            setCategoriesList([
-              { id: "all", label: "All Menu" },
-              ...apiCats.map((c) => ({
-                id: c.slug || c.id || c.name.toLowerCase(),
-                label: c.name,
-              })),
-            ]);
-          }
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [customizingProduct, setCustomizingProduct] = useState<MockProduct | null>(null);
 
-          if (rawProducts && Array.isArray(rawProducts)) {
-            const apiProds: ApiProduct[] = rawProducts;
-            const mapped: Product[] = apiProds.map((p) => ({
-              id: p.id,
-              name: p.name,
-              description: p.description || "",
-              price: p.price,
-              image:
-                p.image && p.image.startsWith("http")
-                  ? p.image
-                  : "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA",
-              category: p.category?.slug || p.category?.name || "espresso",
-              tags: p.tags || [],
-              isPopular: p.isPopular ?? false,
-              isNew: p.isNew ?? false,
-              rating: p.rating || 4.8,
-              reviewCount: p.reviewCount || 0,
-              preparationTime: p.preparationTime || 5,
-              calories: p.calories || 120,
-              branchAvailability: [branch],
-            }));
-            setProductsList(mapped);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load catalog:", err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
+  // Available tags
+  const allTags = ["Signature", "Bestseller", "Cold Brew", "Single Origin", "Plant-Based", "Spicy", "Artisan"];
 
-    fetchCatalog();
-    return () => {
-      isMounted = false;
-    };
-  }, [branch]);
-
-  // Filter products by category and search query
+  // Filtered products
   const filteredProducts = useMemo(() => {
-    let result = [...productsList];
+    return MOCK_PRODUCTS.filter((prod) => {
+      const matchSearch =
+        prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prod.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prod.ingredients.some((ing) => ing.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // Filter by category
-    if (activeCategory !== "all") {
-      result = result.filter(
-        (p) =>
-          p.category?.toLowerCase() === activeCategory.toLowerCase() ||
-          p.tags?.some((t) => t.toLowerCase() === activeCategory.toLowerCase()),
-      );
-    }
+      const matchCategory =
+        selectedCategory === "all" || prod.category === selectedCategory;
 
-    // Filter by search
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.tags?.some((t: string) => t.toLowerCase().includes(q)),
-      );
-    }
+      const matchTag =
+        !selectedTag || prod.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase());
 
-    return result;
-  }, [search, activeCategory, productsList]);
+      return matchSearch && matchCategory && matchTag;
+    });
+  }, [searchQuery, selectedCategory, selectedTag]);
+
+  const toggleFavorite = (prodId: string) => {
+    const favs = user.favoriteOrderIds || [];
+    const isFav = favs.includes(prodId);
+    const updated = isFav ? favs.filter((id) => id !== prodId) : [...favs, prodId];
+    updateProfile({ favoriteOrderIds: updated });
+  };
 
   return (
-    <div className="bg-background text-on-background font-body-md min-h-screen">
-      {/* Noise Overlay */}
-      <div className="fixed inset-0 organic-noise pointer-events-none z-[-1]"></div>
-
-      {/* Main Content Area */}
-      <main className="pt-24 pb-32 px-margin-mobile max-w-container-max mx-auto">
-        
-        {/* Search & Branding */}
-        <section className="mb-8">
-          <h1 className="font-display-lg text-headline-md text-primary dark:text-primary-fixed tracking-tight mb-6">Warkop Ya&apos;reh</h1>
-          
-          <div className="flex flex-col gap-4">
-            {/* Branch Selector */}
-            <div className="flex items-center gap-3">
-              <IconLocation size={24} className="text-primary dark:text-primary-fixed" />
-              <div className="flex flex-col">
-                <span className="font-receipt-label text-receipt-label opacity-60">Pick up from</span>
-                <select
-                  title="Select Branch"
-                  aria-label="Select Branch"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  className="bg-transparent border-none p-0 font-headline-md text-headline-md text-primary dark:text-primary-fixed focus:ring-0 cursor-pointer outline-none"
-                >
-                  <option value="coldnbrew-gubeng-001" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Gubeng (Surabaya)</option>
-                  <option value="darmo" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Darmo</option>
-                  <option value="dharmahusada" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Dharmahusada</option>
-                </select>
-              </div>
+    <div className="min-h-screen bg-[#0a0a0c] text-white pt-8 sm:pt-10 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/5 pb-6">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono text-[#f59e0b] uppercase tracking-wider mb-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Menu Resmi • {activeBranch.name}</span>
             </div>
-
-            <div className="relative mt-2">
-              <IconSearch size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-outline" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-surface-container-highest/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 font-receipt-label text-receipt-label focus:border-primary focus:ring-1 focus:ring-primary outline-none backdrop-blur-md"
-                placeholder="Search your fuel..."
-                type="text"
-              />
-            </div>
+            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-white tracking-tight">
+              Katalog Specialty & Artisan
+            </h1>
+            <p className="text-sm text-neutral-400 mt-1 max-w-xl">
+              Dipanggang mikro, diracik presisi oleh barista bersertifikasi. Nikmati pengalaman rasa autentik kopi Jawa Timur.
+            </p>
           </div>
-        </section>
 
-        {/* Categories Bar */}
-        <nav className="flex gap-4 mb-10 overflow-x-auto pb-4 custom-scroll no-scrollbar">
-          {categoriesList.map((cat) => {
-            const isActive = activeCategory === cat.id;
+          <div className="flex items-center gap-3">
+            <Link
+              href="/cart"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#18181c] border border-white/10 hover:border-white/20 text-xs font-semibold text-neutral-300 transition-colors"
+            >
+              <ShoppingBag className="w-4 h-4 text-[#f59e0b]" />
+              <span>Lihat Keranjang</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Bar & Dietary Filter Pills */}
+      <div className="space-y-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-500">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari kopi, cold brew, aren brulee, v60, makanan..."
+              className="w-full pl-11 pr-4 py-3 rounded-2xl bg-[#141418] border border-white/10 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-[#f59e0b]"
+            />
+          </div>
+
+          {/* Tag Filter Strip */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {allTags.map((tag) => {
+              const active = selectedTag?.toLowerCase() === tag.toLowerCase();
+              return (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTag(active ? null : tag)}
+                  className={`px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                    active
+                      ? "bg-[#f59e0b] text-black font-bold shadow-md"
+                      : "bg-[#18181c] border border-white/10 text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  #{tag}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-white/5 scrollbar-none">
+          {CATEGORIES.map((cat) => {
+            const active = selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`flex-shrink-0 px-6 py-2 rounded-full font-headline-md text-[14px] transition-all ${
-                  isActive
-                    ? "bg-primary-container text-on-primary-container"
-                    : "bg-surface-container-highest/50 text-on-surface-variant hover:bg-surface-container-high"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  active
+                    ? "bg-[#9c6b3a] text-white shadow-[0_4px_12px_rgba(156,107,58,0.4)]"
+                    : "bg-[#111114] text-neutral-400 hover:text-white hover:bg-white/5"
                 }`}
               >
                 {cat.label}
               </button>
             );
           })}
-        </nav>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
-          <AnimatePresence mode="popLayout">
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
-                  key={product.id} 
-                  className="glass-card rounded-2xl overflow-hidden flex flex-col group hover:-translate-y-2 transition-all duration-300"
-                >
-                  <div className="relative h-56 w-full overflow-hidden">
-                    <Image
-                      alt={product.name}
-                      className="object-cover transition-transform duration-700 hover:scale-110"
-                      src={product.image && product.image.startsWith("http") ? product.image : "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA"}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    {product.isPopular && (
-                      <div className="absolute top-4 right-4 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-full px-3 py-1">
-                        <span className="font-receipt-label text-receipt-label text-primary">Best Seller</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-headline-md text-headline-md text-on-surface">
-                        {product.name}
-                      </h3>
-                      <span className="font-code-sm text-code-sm text-primary-fixed">
-                        Rp {(product.price / 1000).toFixed(0)}k
-                      </span>
-                    </div>
-                    <p className="text-on-surface-variant/70 text-sm mb-6 flex-grow">
-                      {product.description}
-                    </p>
-                    <div className="flex justify-between items-center mt-auto">
-                      <div className="flex items-center gap-2 text-outline">
-                        <IconTrending size={18} />
-                        <span className="font-receipt-label text-receipt-label">{product.calories || 120} kcal</span>
-                      </div>
-                      <button
-                        title={`Add ${product.name} to cart`}
-                        aria-label={`Add ${product.name} to cart`}
-                        onClick={(e) => {
-                          addItem(product);
-                          
-                          // Splash effect
-                          const splash = document.createElement('div');
-                          splash.className = 'fixed w-2 h-2 bg-primary rounded-full z-[100] pointer-events-none transition-all duration-500';
-                          splash.style.left = e.clientX + 'px';
-                          splash.style.top = e.clientY + 'px';
-                          document.body.appendChild(splash);
-                          
-                          requestAnimationFrame(() => {
-                              const cartBtn = document.getElementById('cartBtn');
-                              if(cartBtn) {
-                                const rect = cartBtn.getBoundingClientRect();
-                                splash.style.left = (rect.left + rect.width / 2) + 'px';
-                                splash.style.top = (rect.top + rect.height / 2) + 'px';
-                                splash.style.opacity = '0';
-                                splash.style.transform = 'scale(0.1)';
-                              }
-                          });
-                          
-                          setTimeout(() => splash.remove(), 500);
-                        }}
-                        className="bg-primary-container text-on-primary-container w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-transform active:scale-90"
-                      >
-                        <IconPlus size={24} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-24 glass-card rounded-2xl border border-white/5">
-                <IconSearchOff size={48} className="text-outline mb-2 mx-auto" />
-                <h3 className="text-lg font-bold">{isLoading ? "Loading menu..." : "No items found"}</h3>
-                <p className="text-sm text-on-surface-variant/70 mt-1">
-                  {isLoading ? "Fetching fresh products from kitchen..." : "Try another search keyword or category."}
-                </p>
-              </div>
-            )}
-          </AnimatePresence>
         </div>
-      </main>
-
-      <div className="fixed bottom-24 right-6 z-[60] md:bottom-28">
-        <button 
-          id="cartBtn"
-          onClick={toggleCart}
-          className="bg-primary-container text-on-primary-container flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl shadow-roasted-black/50 hover:scale-105 active:scale-95 transition-all group"
-        >
-          <IconCart size={24} />
-          <span className="font-headline-md text-[16px]">View Cart</span>
-          {count > 0 && (
-            <div className="bg-primary-fixed text-on-primary-fixed w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold animate-in zoom-in duration-300">
-              {count}
-            </div>
-          )}
-        </button>
       </div>
 
-      {/* AI Barista Concierge Interactive Modal */}
-      <BaristaConciergeModal />
+      {/* Products Grid */}
+      {filteredProducts.length === 0 ? (
+        <div className="text-center py-20 p-6 rounded-3xl bg-[#111114] border border-white/5">
+          <Coffee className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+          <h3 className="font-heading text-lg font-bold text-white mb-1">
+            Menu tidak ditemukan
+          </h3>
+          <p className="text-xs text-neutral-400 max-w-sm mx-auto mb-4">
+            Coba gunakan kata kunci pencarian lain atau hilangkan filter tag yang sedang aktif.
+          </p>
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedCategory("all");
+              setSelectedTag(null);
+            }}
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white font-medium"
+          >
+            Reset Filter
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => {
+            const isFav = user.favoriteOrderIds?.includes(product.id);
+
+            return (
+              <motion.div
+                key={product.id}
+                layout
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                className="group relative rounded-3xl bg-[#18181c] border border-white/10 hover:border-[#f59e0b]/40 overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:-translate-y-1"
+              >
+                {/* Product Image */}
+                <div className="relative h-48 w-full overflow-hidden bg-[#111114]">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#18181c] via-black/30 to-transparent" />
+
+                  {/* Badges */}
+                  <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                    {product.isPopular && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#f59e0b] text-black shadow-md flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> BESTSELLER
+                      </span>
+                    )}
+                    {product.isNew && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500 text-white shadow-md">
+                        BARU
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Favorite Heart Button */}
+                  <button
+                    onClick={() => toggleFavorite(product.id)}
+                    className="absolute top-3 right-3 p-2 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white transition-colors"
+                    aria-label="Favorit"
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${
+                        isFav ? "fill-rose-500 text-rose-500" : "text-white"
+                      }`}
+                    />
+                  </button>
+
+                  {/* Prep time & rating bottom overlay */}
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] font-mono text-neutral-300">
+                    <span className="flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-md backdrop-blur-sm">
+                      <Star className="w-3.5 h-3.5 text-[#f59e0b] fill-[#f59e0b]" />
+                      <span>{product.rating}</span>
+                      <span className="text-neutral-400">({product.reviewCount})</span>
+                    </span>
+                    <span className="flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-md backdrop-blur-sm">
+                      <Clock className="w-3 h-3 text-neutral-400" />
+                      <span>{product.preparationTime} mnt</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card Details */}
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-heading font-bold text-base text-white group-hover:text-[#fcd34d] transition-colors line-clamp-1">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
+                      {product.description}
+                    </p>
+
+                    {/* Ingredients summary */}
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {product.ingredients.slice(0, 2).map((ing, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] text-neutral-400 font-mono"
+                        >
+                          {ing}
+                        </span>
+                      ))}
+                      {product.ingredients.length > 2 && (
+                        <span className="text-[10px] text-neutral-500 self-center font-mono">
+                          +{product.ingredients.length - 2} lagi
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Price & Action Button */}
+                  <div className="pt-4 mt-4 border-t border-white/5 flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] text-neutral-500 uppercase font-mono">Harga</div>
+                      <div className="font-mono font-bold text-base text-[#f59e0b]">
+                        Rp {product.price.toLocaleString("id-ID")}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setCustomizingProduct(product)}
+                      className="px-3.5 py-2 rounded-xl bg-[#9c6b3a] hover:bg-[#b07b44] text-white text-xs font-semibold flex items-center gap-1.5 shadow-[0_4px_12px_rgba(156,107,58,0.3)] transition-all active:scale-95"
+                    >
+                      <span>Custom</span>
+                      <SlidersHorizontal className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Product Customizer Slide-over / Modal */}
+      <ProductCustomizerModal
+        product={customizingProduct}
+        isOpen={Boolean(customizingProduct)}
+        onClose={() => setCustomizingProduct(null)}
+      />
     </div>
   );
 }

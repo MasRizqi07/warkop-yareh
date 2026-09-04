@@ -103,6 +103,40 @@
   --color-on-tertiary-fixed-variant: #653e00;
   --color-secondary-fixed: #ffdf9f;
 
+  /* ── Obsidian Artisan Roast (Official Design Tokens) ── */
+  --color-canvas-obsidian: #0a0a0c;
+  --color-surface-secondary: #111114;
+  --color-surface-card: #18181c;
+  --color-surface-container: #201f21;
+  --color-surface-container-high: #2a2a2c;
+  --color-surface-container-highest: #353437;
+  --color-surface-container-low: #1c1b1d;
+  --color-surface-container-lowest: #0e0e10;
+  --color-brand-coffee: #9c6b3a;
+  --color-accent-amber: #f59e0b;
+  --color-cream-beige: #e8c47a;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-text-primary: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-outline: #9d8e82;
+  --color-outline-variant: #51453a;
+
+  /* ── Spacing Scale (Obsidian Prototypes) ── */
+  --spacing-space-xxs: 0.25rem;
+  --spacing-space-xs: 0.5rem;
+  --spacing-space-sm: 0.75rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2rem;
+  --spacing-space-2xl: 3rem;
+  --spacing-space-3xl: 4rem;
+
+  --spacing-margin-mobile: 1rem;
+  --spacing-margin-tablet: 2rem;
+  --spacing-margin-desktop: 3rem;
+  --spacing-gutter-mobile: 1rem;
+  --spacing-gutter-desktop: 1.5rem;
+
   /* Font Families */
   --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;

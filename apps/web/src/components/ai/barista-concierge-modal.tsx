@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, X, Send, Coffee, Plus, Check, MessageSquare } from "lucide-react";
+import { Sparkles, X, Send, Coffee, Plus, Check } from "lucide-react";
 import { useCartStore } from "@/stores";
+import type { Product } from "@warkop-yareh/types";
 
 interface Message {
   id: string;
@@ -119,18 +120,22 @@ export function BaristaConciergeModal() {
   };
 
   const handleAddToCart = (item: { id: string; name: string; price: number }) => {
-    addItem(
-      {
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        slug: item.id,
-        category: "coffee",
-        description: item.name,
-        image: "https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=400",
-      } as any,
-      1
-    );
+    const productItem: Product = {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      description: item.name,
+      image: "https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=400",
+      category: "coffee",
+      tags: ["Specialty", "Concierge"],
+      isPopular: true,
+      isNew: false,
+      rating: 4.9,
+      reviewCount: 120,
+      preparationTime: 5,
+      branchAvailability: ["all"],
+    };
+    addItem(productItem, 1);
     setAddedItems((prev) => ({ ...prev, [item.id]: true }));
     setTimeout(() => {
       setAddedItems((prev) => ({ ...prev, [item.id]: false }));

@@ -1,174 +1,155 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  Coffee,
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  Heart,
-  Globe,
-  ExternalLink,
-  MessageCircle,
-} from "lucide-react";
+import { BrandLogo } from "@warkop-yareh/ui";
 import { SITE, NAV_LINKS } from "@/lib/constants";
-import { staggerContainer, staggerItem, VIEWPORT } from "@/lib/animations";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-[var(--bg-canvas)] text-[var(--text-primary)] border-t border-[var(--border-default)] overflow-hidden">
-      {/* Brand gradient separator */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--accent-fill)] to-transparent opacity-60" />
-
-      {/* Noise texture */}
-      <div className="absolute inset-0 bg-noise pointer-events-none" />
+    <footer className="relative bg-[#0a0a0c] text-[#e5e1e4] border-t border-white/[0.08] overflow-hidden">
+      {/* Top subtle glow line */}
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-[#f59e0b]/30 to-transparent" />
 
       {/* Footer Content */}
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={VIEWPORT.once}
-        className="relative z-10 max-w-[var(--container-xl)] mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-28 md:pb-12"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 mb-12">
-          {/* Brand */}
-          <motion.div variants={staggerItem} className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-primary-500)] to-[var(--color-primary-700)] flex items-center justify-center">
-                <Coffee className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="font-bold text-[var(--text-primary)] leading-none">WARKOP</div>
-                <div className="text-[9px] font-semibold tracking-[0.2em] text-[var(--accent-fill)] leading-none mt-0.5">
-                  YA&apos;REH
-                </div>
-              </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-32 md:pb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 mb-14">
+          {/* Brand Column (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            <Link href="/" className="inline-block group">
+              <BrandLogo size={40} />
             </Link>
-            <p className="text-sm text-[var(--text-secondary)] mb-6 leading-relaxed">
-              Platform digital ekosistem — kopi premium, coworking space,
-              community hub di Wonokromo, Surabaya.
+            <p className="text-sm text-[#94a3b8] max-w-sm leading-relaxed">
+              Surabaya&apos;s 24/7 nexus for artisanal single-origin coffees, gigabit mesh networking, and inspiring coworking spaces engineered for creators, engineers, and night owls.
             </p>
-            <div className="flex items-center gap-3">
-              {[
-                { icon: Globe, href: SITE.social.instagram, label: "Instagram" },
-                { icon: ExternalLink, href: SITE.social.youtube, label: "YouTube" },
-                {
-                  icon: MessageCircle,
-                  href: `https://wa.me/${SITE.whatsapp}`,
-                  label: "WhatsApp",
-                  isWhatsApp: true,
-                },
-              ].map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-10 h-10 rounded-xl bg-[var(--bg-surface-raised)] border border-[var(--border-default)] hover:bg-[var(--bg-surface-overlay)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all duration-200 ${
-                    (social as { isWhatsApp?: boolean }).isWhatsApp ? "animate-pulse-ring" : ""
-                  }`}
-                  aria-label={social.label}
-                >
-                  <social.icon className="w-4 h-4" />
-                </a>
-              ))}
+            {/* Sanctuary Status Badge */}
+            <div className="inline-flex items-center gap-2 bg-[#18181c] px-3.5 py-1.5 rounded-full border border-white/[0.08]">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="font-mono text-[11px] text-emerald-400 font-semibold tracking-wider uppercase">
+                Dual-WAN Gigabit Fiber Nominal • 940 Mbps
+              </span>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Quick Links */}
-          <motion.div variants={staggerItem}>
-            <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-5 uppercase tracking-widest">
-              Quick Links
+          {/* Outlets Sanctuary (3 cols) */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="font-mono text-xs font-semibold text-[#f8fafc] uppercase tracking-widest text-[#f59e0b]">
+              Sanctuary Outlets
             </h4>
-            <ul className="space-y-3">
+            <div className="space-y-2.5 text-sm text-[#94a3b8]">
+              <div className="bg-[#111114] p-2.5 rounded-xl border border-white/[0.06]">
+                <p className="text-[#f8fafc] font-semibold text-xs">Darmo Flagship (SBY Pusat)</p>
+                <p className="text-[11px] text-[#94a3b8] mt-0.5">Jl. Raya Darmo No. 88, Surabaya</p>
+                <span className="inline-block mt-1 text-[10px] font-mono text-[#e8c47a] bg-[#9c6b3a]/20 px-1.5 py-0.5 rounded">
+                  24/7 Nonstop Ops
+                </span>
+              </div>
+              <div className="bg-[#111114] p-2.5 rounded-xl border border-white/[0.06]">
+                <p className="text-[#f8fafc] font-semibold text-xs">Gubeng 24H Hub (SBY Timur)</p>
+                <p className="text-[11px] text-[#94a3b8] mt-0.5">Jl. Raya Gubeng No. 42, Surabaya</p>
+                <span className="inline-block mt-1 text-[10px] font-mono text-[#e8c47a] bg-[#9c6b3a]/20 px-1.5 py-0.5 rounded">
+                  24/7 Nonstop Ops
+                </span>
+              </div>
+              <div className="bg-[#111114] p-2.5 rounded-xl border border-white/[0.06]">
+                <p className="text-[#f8fafc] font-semibold text-xs">Dharmahusada Campus (Unair)</p>
+                <p className="text-[11px] text-[#94a3b8] mt-0.5">Jl. Dharmahusada No. 115, Surabaya</p>
+                <span className="inline-block mt-1 text-[10px] font-mono text-[#e8c47a] bg-[#9c6b3a]/20 px-1.5 py-0.5 rounded">
+                  07:00 - 02:00 WIB
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Links (2 cols) */}
+          <div className="lg:col-span-2 space-y-3">
+            <h4 className="font-mono text-xs font-semibold text-[#f8fafc] uppercase tracking-widest text-[#f59e0b]">
+              Navigation
+            </h4>
+            <ul className="space-y-2.5">
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-fill)] transition-colors duration-200"
+                    className="text-sm text-[#94a3b8] hover:text-[#f7bb82] transition-colors"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
-            </ul>
-          </motion.div>
-
-          {/* Services */}
-          <motion.div variants={staggerItem}>
-            <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-5 uppercase tracking-widest">
-              Services
-            </h4>
-            <ul className="space-y-3">
-              {[
-                "Online Ordering",
-                "Table Reservation",
-                "Coworking Space",
-                "Event Space",
-                "Meeting Room",
-                "Catering",
-              ].map((item) => (
-                <li key={item}>
-                  <span className="text-sm text-[var(--text-secondary)]">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Contact */}
-          <motion.div variants={staggerItem}>
-            <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-5 uppercase tracking-widest">
-              Visit Us
-            </h4>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-[var(--accent-fill)] mt-0.5 shrink-0" />
-                <span className="text-sm text-[var(--text-secondary)]">{SITE.address}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-[var(--accent-fill)] shrink-0" />
-                <a
-                  href={`tel:${SITE.phone}`}
-                  className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              <li>
+                <Link
+                  href="/account"
+                  className="text-sm text-[#94a3b8] hover:text-[#f7bb82] transition-colors"
                 >
-                  {SITE.phone}
-                </a>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-[var(--accent-fill)] shrink-0" />
-                <a
-                  href={`mailto:${SITE.email}`}
-                  className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                  Account Portal
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/checkout"
+                  className="text-sm text-[#94a3b8] hover:text-[#f7bb82] transition-colors"
                 >
-                  {SITE.email}
-                </a>
-              </div>
-              <div className="flex items-center gap-3">
-                <Clock className="w-4 h-4 text-[var(--accent-fill)] shrink-0" />
-                <div className="text-sm text-[var(--text-secondary)]">
-                  <div>Weekday: {SITE.operatingHours.weekday}</div>
-                  <div>Weekend: {SITE.operatingHours.weekend}</div>
-                </div>
-              </div>
+                  Cart & Orders
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Social & Contact (2 cols) */}
+          <div className="lg:col-span-2 space-y-3">
+            <h4 className="font-mono text-xs font-semibold text-[#f8fafc] uppercase tracking-widest text-[#f59e0b]">
+              Connect
+            </h4>
+            <div className="flex flex-col gap-2 text-sm text-[#94a3b8]">
+              <a
+                href={SITE.social.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+              >
+                <span>Instagram</span>
+              </a>
+              <a
+                href={`https://wa.me/${SITE.whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+              >
+                <span>WhatsApp Official</span>
+              </a>
+              <a
+                href={SITE.social.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+              >
+                <span>TikTok</span>
+              </a>
+              <a
+                href={`mailto:${SITE.email}`}
+                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+              >
+                <span>{SITE.email}</span>
+              </a>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-[var(--border-default)] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[var(--text-secondary)]">
-            © {currentYear} {SITE.name}. All rights reserved.
-          </p>
-          <p className="text-xs text-[var(--text-secondary)] flex items-center gap-1">
-            Made with <Heart className="w-3 h-3 text-[var(--color-error-500)] fill-[var(--color-error-500)]" /> in Surabaya
-          </p>
+        <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94a3b8]">
+          <p>© {currentYear} Warkop Ya&apos;reh Indonesia. All Rights Reserved.</p>
+          <div className="flex items-center gap-6 font-mono text-[11px]">
+            <span className="text-[#e8c47a]">Surabaya, East Java</span>
+            <span>•</span>
+            <span className="text-[#94a3b8]">Crafted with Precision & Single Origin</span>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </footer>
   );
 }

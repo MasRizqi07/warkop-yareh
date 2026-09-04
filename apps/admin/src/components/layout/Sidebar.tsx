@@ -5,8 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, ShoppingCart, Package, CalendarCheck, MapPin, 
-  Users, CalendarDays, MessageSquare, Star, BarChart3, Settings, Coffee, X
+  Users, CalendarDays, MessageSquare, Star, BarChart3, Settings, Coffee, X,
+  Boxes, Receipt, Send, UserCheck, MonitorPlay
 } from "lucide-react";
+import { BrandEmblem } from "@warkop-yareh/ui";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -18,73 +20,79 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navGroups = [
     {
-      label: "Overview",
+      label: "Intelligence",
       items: [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+        { icon: LayoutDashboard, label: "Overview", href: "/" },
+        { icon: BarChart3, label: "Analytics & Telemetry", href: "/analytics" },
       ]
     },
     {
       label: "Operations",
       items: [
-        { icon: ShoppingCart,   label: "Orders",       href: "/orders" },
-        { icon: Package,        label: "Products",     href: "/products" },
+        { icon: ShoppingCart,   label: "Orders", href: "/orders" },
+        { icon: Package,        label: "Products Catalog", href: "/products" },
+        { icon: Boxes,          label: "Inventory & Silos", href: "/inventory" },
+        { icon: Receipt,        label: "Shifts & Drawer", href: "/shifts" },
         { icon: CalendarCheck,  label: "Reservations", href: "/reservations" },
-        { icon: MapPin,         label: "Branches",     href: "/branches" },
+        { icon: MapPin,         label: "Branches & Pricing", href: "/branches" },
       ]
     },
     {
-      label: "Community",
+      label: "Patron Growth",
       items: [
-        { icon: Users,          label: "Users",        href: "/users" },
-        { icon: CalendarDays,   label: "Events",       href: "/events" },
-        { icon: MessageSquare,  label: "Community",    href: "/community" },
+        { icon: UserCheck,      label: "Patron CRM", href: "/crm" },
+        { icon: Send,           label: "WhatsApp Studio", href: "/marketing" },
+        { icon: Star,           label: "Loyalty Tier", href: "/loyalty" },
+        { icon: MessageSquare,  label: "Community Hub", href: "/community" },
+        { icon: CalendarDays,   label: "Events & Meetups", href: "/events" },
+        { icon: Users,          label: "User Accounts", href: "/users" },
       ]
     },
     {
-      label: "Growth",
+      label: "Live Terminals",
       items: [
-        { icon: Star,           label: "Loyalty",      href: "/loyalty" },
-        { icon: BarChart3,      label: "Analytics",    href: "/analytics" },
+        { icon: Coffee,         label: "POS Cashier", href: "/pos" },
+        { icon: MonitorPlay,    label: "Kitchen Display (KDS)", href: "/kitchen" },
       ]
     },
     {
       label: "System",
       items: [
-        { icon: Settings,       label: "Settings",     href: "/settings" },
+        { icon: Settings,       label: "Settings", href: "/settings" },
       ]
     }
   ];
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen w-64 bg-[var(--surface-secondary)] dark:bg-[var(--surface-secondary)] border-r border-[var(--border-default)] flex flex-col z-50 transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
+    <aside className={`fixed left-0 top-0 h-screen w-64 bg-[#111114] border-r border-white/[0.08] flex flex-col z-50 transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
       {/* Logo area */}
-      <div className="p-6 border-b border-[var(--border-default)] flex items-center justify-between">
+      <div className="p-5 border-b border-white/[0.08] flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center text-white">
-            <Coffee className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-[#9c6b3a] flex items-center justify-center text-white shadow-md">
+            <BrandEmblem className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-heading font-extrabold text-xl text-[var(--text-primary)] tracking-tight">
-              Warkop<span className="text-[var(--interactive-primary)]">.</span>Ya&apos;reh
+            <h1 className="font-heading font-extrabold text-base text-white tracking-tight flex items-center gap-1">
+              Warkop<span className="text-[#f59e0b]">.</span>Ya&apos;reh
             </h1>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-tertiary)]">
-              Admin Terminal
+            <p className="font-mono text-[9px] uppercase tracking-widest text-[#f59e0b]">
+              Enterprise Admin
             </p>
           </div>
         </div>
-        <button className="md:hidden p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)]" onClick={onClose} aria-label="Close Sidebar">
+        <button className="md:hidden p-1 text-[#94a3b8] hover:text-white" onClick={onClose} aria-label="Close Sidebar">
           <X className="w-5 h-5" />
         </button>
       </div>
       
       {/* Navigation */}
-      <nav className="flex-grow overflow-y-auto p-4 space-y-6 no-scrollbar">
+      <nav className="flex-grow overflow-y-auto p-3 space-y-5 no-scrollbar">
         {navGroups.map((group, i) => (
           <div key={i}>
-            <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+            <p className="px-3 mb-1.5 text-[10px] font-mono uppercase tracking-wider text-[#94a3b8]/70">
               {group.label}
             </p>
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {group.items.map((item, j) => {
                 const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
                 const Icon = item.icon;
@@ -92,13 +100,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <li key={j}>
                     <Link 
                       href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-r-lg rounded-l-sm border-l-4 text-sm font-medium transition-all ${
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                         isActive 
-                          ? "border-[var(--interactive-primary)] bg-[var(--interactive-primary)]/10 text-[var(--interactive-primary)]" 
-                          : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-tertiary)]"
+                          ? "bg-[#201f21] text-[#f59e0b] shadow-sm border border-white/[0.08]" 
+                          : "text-[#94a3b8] hover:text-white hover:bg-white/[0.04]"
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className={`w-4 h-4 ${isActive ? "text-[#f59e0b]" : "text-[#94a3b8]"}`} />
                       {item.label}
                     </Link>
                   </li>
@@ -109,18 +117,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         ))}
       </nav>
       
-      {/* Footer / Brew Report */}
-      <div className="p-4 border-t border-[var(--border-default)]">
-        <button
-          onClick={() => alert("Generating reports...")}
-          className="w-full bg-[var(--interactive-primary)] text-white hover:bg-[var(--interactive-primary-hover)] font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all text-xs uppercase tracking-wider active:scale-95 pulse-glow"
-        >
-          <Coffee className="w-4 h-4" />
-          Brew Report
-        </button>
-        <div className="flex items-center gap-2 mt-4 px-2 text-[var(--success-500)] text-[10px]">
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--success-500)] animate-pulse"></div>
-          <span className="font-mono uppercase">Roasters Online</span>
+      {/* Footer */}
+      <div className="p-4 border-t border-white/[0.08] space-y-2">
+        <div className="flex items-center justify-between text-[10px] font-mono text-[#94a3b8]">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-emerald-400">Nodes Online</span>
+          </span>
+          <span>v4.2.1-prod</span>
         </div>
       </div>
     </aside>

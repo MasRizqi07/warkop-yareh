@@ -4,6 +4,7 @@ import * as React from "react";
 import { cn } from "./lib/utils";
 
 export { cn };
+export * from "./BrandLogo";
 
 // Button
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

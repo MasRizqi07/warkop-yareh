@@ -2,19 +2,29 @@
 
 import React, { useEffect } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { useCartStore, getCartItemId } from "@/stores";
-import { IconClose, IconMinus, IconPlus, IconTrash } from "@/lib/icons";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Tag } from "lucide-react";
+import { useAppStore } from "@/store/useAppStore";
 
 export function CartDrawer() {
-  const { items, isOpen, toggleCart, updateQuantity, removeItem, total } =
-    useCartStore();
   const router = useRouter();
+  const {
+    cartItems,
+    isCartDrawerOpen,
+    setCartDrawerOpen,
+    updateCartQuantity,
+    removeCartItem,
+    getCartSubtotal,
+    getCartTotal,
+    appliedVoucher,
+    redeemedPoints,
+  } = useAppStore();
 
-  // Prevent scrolling when the drawer is open
+  // Disable body scroll when drawer is open
   useEffect(() => {
-    if (isOpen) {
+    if (isCartDrawerOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -22,202 +32,207 @@ export function CartDrawer() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isCartDrawerOpen]);
 
-  const handleCheckout = () => {
-    toggleCart();
-    router.push("/checkout");
-  };
+  const subtotal = getCartSubtotal();
+  const total = getCartTotal();
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <>
+      {isCartDrawerOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-end">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={toggleCart}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            onClick={() => setCartDrawerOpen(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
           />
 
-          {/* Drawer */}
+          {/* Drawer Container */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-surface border-l border-white/10 z-[101] shadow-2xl flex flex-col"
+            transition={{ type: "spring", damping: 26, stiffness: 280 }}
+            className="relative w-full max-w-md h-full bg-[#111114] border-l border-white/10 shadow-2xl flex flex-col z-10"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h2 className="font-display-sm text-headline-md text-on-surface">
-                Your Cart
-              </h2>
+            <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#9c6b3a]/20 text-[#f59e0b]">
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-heading font-bold text-base text-white">
+                    Keranjang Pesanan
+                  </h2>
+                  <p className="text-xs text-neutral-400 font-mono">
+                    {cartItems.length} menu dipilih
+                  </p>
+                </div>
+              </div>
               <button
-                onClick={toggleCart}
-                className="p-2 rounded-full hover:bg-surface-container-highest transition-colors text-on-surface-variant"
-                aria-label="Close cart"
+                onClick={() => setCartDrawerOpen(false)}
+                className="p-2 rounded-full hover:bg-white/5 text-neutral-400 hover:text-white transition-colors"
+                aria-label="Tutup"
               >
-                <IconClose size={24} />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scroll">
-              {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center opacity-70">
-                  <div className="w-24 h-24 bg-surface-container-highest rounded-full flex items-center justify-center mb-4">
-                    <IconTrash size={40} className="text-outline" />
+            {/* Cart Items List */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {cartItems.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 text-neutral-400">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                    <ShoppingBag className="w-8 h-8 text-neutral-500" />
                   </div>
-                  <h3 className="font-headline-md text-lg text-on-surface">
-                    Your cart is empty
+                  <h3 className="font-heading text-lg font-bold text-white mb-1">
+                    Keranjang masih kosong
                   </h3>
-                  <p className="text-sm text-on-surface-variant mt-2">
-                    Looks like you haven&apos;t added anything to your cart yet.
+                  <p className="text-xs text-neutral-400 mb-6 max-w-xs">
+                    Yuk pilih kopi specialty atau artisan snack favoritmu untuk memulai pesanan.
                   </p>
-                  <button
-                    onClick={toggleCart}
-                    className="mt-6 px-6 py-2 bg-primary text-on-primary rounded-full font-headline-md text-sm hover:bg-primary/90 transition-colors"
+                  <Link
+                    href="/menu"
+                    onClick={() => setCartDrawerOpen(false)}
+                    className="px-5 py-2.5 rounded-full bg-[#9c6b3a] hover:bg-[#b07b44] text-white text-xs font-semibold shadow-lg transition-colors"
                   >
-                    Start Ordering
-                  </button>
+                    Jelajahi Menu Ya&apos;reh
+                  </Link>
                 </div>
               ) : (
-                items.map((item) => {
-                  const itemKey = getCartItemId(
-                    item.product.id,
-                    item.customizations,
-                    item.notes,
-                  );
-                  return (
-                    <div
-                      key={itemKey}
-                      className="flex gap-4 p-4 rounded-xl bg-surface-container-highest/30 border border-white/5"
-                    >
-                      <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                        <Image
-                          src={
-                            item.product.image ||
-                            "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA"
-                          }
-                          alt={item.product.name}
-                          fill
-                          className="object-cover"
-                        />
+                cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3.5 rounded-2xl bg-[#18181c] border border-white/5 flex gap-3 group hover:border-white/10 transition-colors"
+                  >
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#111114] flex-shrink-0">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-medium text-white text-xs leading-snug line-clamp-1">
+                          {item.name}
+                        </h4>
+                        <button
+                          onClick={() => removeCartItem(item.id)}
+                          className="text-neutral-500 hover:text-rose-400 transition-colors p-1"
+                          aria-label="Hapus item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                      <div className="flex flex-col flex-1 justify-between py-1">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-headline-md text-on-surface line-clamp-1">
-                              {item.product.name}
-                            </h4>
-                            {item.customizations &&
-                              Object.keys(item.customizations).length > 0 && (
-                                <p className="text-xs text-on-surface-variant/80 mt-0.5">
-                                  {Object.entries(item.customizations)
-                                    .map(([k, v]) => `${k}: ${v}`)
-                                    .join(", ")}
-                                </p>
-                              )}
-                            {item.notes && (
-                              <p className="text-xs italic text-on-surface-variant/60 mt-0.5">
-                                Notes: &quot;{item.notes}&quot;
-                              </p>
-                            )}
-                            <p className="text-sm text-primary-fixed mt-1">
-                              Rp {(item.product.price / 1000).toFixed(0)}k
-                            </p>
-                          </div>
+
+                      {/* Customization Pills */}
+                      <div className="text-[10px] text-neutral-400 mt-1 space-y-0.5">
+                        <div>{item.customizations.sweetness} • {item.customizations.iceLevel}</div>
+                        {item.customizations.milkType !== "None" && item.customizations.milkType !== "Fresh Milk" && (
+                          <div className="text-[#f59e0b]">{item.customizations.milkType}</div>
+                        )}
+                        {item.customizations.notes && (
+                          <div className="italic text-neutral-400">&ldquo;{item.customizations.notes}&rdquo;</div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="font-mono font-bold text-xs text-white">
+                          Rp {item.subtotal.toLocaleString("id-ID")}
+                        </span>
+
+                        <div className="flex items-center gap-2 bg-[#111114] border border-white/10 rounded-lg p-1">
                           <button
-                            onClick={() =>
-                              removeItem(
-                                item.product.id,
-                                item.customizations,
-                                item.notes,
-                              )
-                            }
-                            className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-md transition-colors"
-                            aria-label="Remove item"
+                            onClick={() => updateCartQuantity(item.id, -1)}
+                            className="w-5 h-5 rounded flex items-center justify-center text-neutral-300 hover:text-white hover:bg-white/10"
                           >
-                            <IconTrash size={16} />
+                            <Minus className="w-3 h-3" />
                           </button>
-                        </div>
-                        <div className="flex items-center gap-3 mt-3">
-                          <div className="flex items-center bg-surface border border-white/10 rounded-full px-1 py-1">
-                            <button
-                              onClick={() =>
-                                updateQuantity(
-                                  item.product.id,
-                                  item.quantity - 1,
-                                  item.customizations,
-                                  item.notes,
-                                )
-                              }
-                              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-highest transition-colors text-on-surface"
-                              disabled={item.quantity <= 1}
-                              title="Decrease quantity"
-                              aria-label="Decrease quantity"
-                            >
-                              <IconMinus size={14} />
-                            </button>
-                            <span className="w-8 text-center font-receipt-label text-sm text-on-surface">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() =>
-                                updateQuantity(
-                                  item.product.id,
-                                  item.quantity + 1,
-                                  item.customizations,
-                                  item.notes,
-                                )
-                              }
-                              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-highest transition-colors text-on-surface"
-                              title="Increase quantity"
-                              aria-label="Increase quantity"
-                            >
-                              <IconPlus size={14} />
-                            </button>
-                          </div>
-                          <span className="ml-auto font-code-sm text-sm text-on-surface">
-                            Rp{" "}
-                            {(
-                              (item.product.price * item.quantity) /
-                              1000
-                            ).toFixed(0)}
-                            k
+                          <span className="font-mono font-bold text-xs w-4 text-center text-white">
+                            {item.quantity}
                           </span>
+                          <button
+                            onClick={() => updateCartQuantity(item.id, 1)}
+                            className="w-5 h-5 rounded flex items-center justify-center text-neutral-300 hover:text-white hover:bg-white/10"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
                     </div>
-                  );
-                })
+                  </div>
+                ))
               )}
             </div>
 
-            {/* Footer */}
-            {items.length > 0 && (
-              <div className="p-6 border-t border-white/10 bg-surface/50 backdrop-blur-md">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-on-surface-variant font-receipt-label">
-                    Subtotal
-                  </span>
-                  <span className="font-display-sm text-xl text-primary-fixed">
-                    Rp {(total() / 1000).toFixed(0)}k
-                  </span>
+            {/* Footer Summary & Checkout Trigger */}
+            {cartItems.length > 0 && (
+              <div className="p-5 bg-[#141418] border-t border-white/10 space-y-3">
+                {/* Promo Applied Chip if any */}
+                {appliedVoucher && (
+                  <div className="flex items-center justify-between text-xs px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <span className="flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5" /> Voucher: {appliedVoucher.code}
+                    </span>
+                    <span>Aktif</span>
+                  </div>
+                )}
+
+                {/* Subtotal & Total Breakdown */}
+                <div className="space-y-1.5 text-xs text-neutral-400">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="font-mono text-white">
+                      Rp {subtotal.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                  {redeemedPoints > 0 && (
+                    <div className="flex justify-between text-[#f59e0b]">
+                      <span>Diskon Poin ({redeemedPoints} pts)</span>
+                      <span className="font-mono">-Rp {(redeemedPoints * 10).toLocaleString("id-ID")}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t border-white/5 font-bold text-sm text-white">
+                    <span>Estimasi Total</span>
+                    <span className="font-mono text-[#f59e0b]">
+                      Rp {total.toLocaleString("id-ID")}
+                    </span>
+                  </div>
                 </div>
-                <button
-                  onClick={handleCheckout}
-                  className="w-full py-4 bg-primary text-on-primary rounded-xl font-headline-md text-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20"
-                >
-                  Proceed to Checkout
-                </button>
+
+                {/* Buttons: Detail Keranjang & Langsung Checkout */}
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      setCartDrawerOpen(false);
+                      router.push("/cart");
+                    }}
+                    className="py-3 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-semibold text-neutral-200 text-center transition-colors"
+                  >
+                    Split-Bill & Promo
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCartDrawerOpen(false);
+                      router.push("/checkout");
+                    }}
+                    className="py-3 px-4 rounded-xl bg-gradient-to-r from-[#9c6b3a] to-[#d4b488] hover:opacity-95 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-[0_4px_16px_rgba(156,107,58,0.4)] transition-all"
+                  >
+                    <span>Bayar Sekarang</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             )}
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );

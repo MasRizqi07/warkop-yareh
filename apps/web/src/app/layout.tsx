@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { SITE } from "@/lib/constants";
+import { UniversalHeader } from "@/components/layout/UniversalHeader";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { PwaBottomDock } from "@/components/navigation/PwaBottomDock";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -21,6 +23,18 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 const playfairDisplay = Playfair_Display({
@@ -151,12 +165,6 @@ export default function RootLayout({
   return (
     <html lang="id" className="dark" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin=""
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -164,11 +172,13 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable} ${inter.variable} ${playfairDisplay.variable} min-h-screen bg-[var(--surface-base)] text-[var(--text-primary)] antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} ${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} min-h-screen bg-[#0a0a0c] text-[#e5e1e4] antialiased selection:bg-[#9c6b3a] selection:text-[#f8fafc]`}
       >
         <Providers>
+          <UniversalHeader />
           {children}
           <CartDrawer />
+          <PwaBottomDock />
         </Providers>
       </body>
     </html>

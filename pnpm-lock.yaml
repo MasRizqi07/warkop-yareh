@@ -311,6 +311,9 @@ importers:
       '@warkop-yareh/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@warkop-yareh/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       axios:
         specifier: ^1.7.0
         version: 1.17.0
