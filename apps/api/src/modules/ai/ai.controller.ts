@@ -1,7 +1,17 @@
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Controller, Post, Get, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { AiService } from './ai.service';
-import { RecommendationRequestDto, BaristaChatDto } from './dto/recommendation.dto';
+import {
+  RecommendationRequestDto,
+  BaristaChatDto,
+} from './dto/recommendation.dto';
 
 @ApiTags('ai')
 @Controller('api/v1/ai')

@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import Image from "next/image";
 
+type CampaignObjective = "birthday" | "night" | "single_origin" | "rsvp";
+
 export default function MarketingCampaignStudioPage() {
   const [campaignName, setCampaignName] = useState(
     "Weekend Midnight Dev Boost — 25% Off Aren Brew & Nitro"
   );
-  const [selectedObjective, setSelectedObjective] = useState<"birthday" | "night" | "single_origin" | "rsvp">("night");
+  const [selectedObjective, setSelectedObjective] = useState<CampaignObjective>("night");
   const [selectedAudience, setSelectedAudience] = useState("night_owls");
   const [discountPercent, setDiscountPercent] = useState("25%");
   const [expiryHours, setExpiryHours] = useState("48");
@@ -153,7 +155,7 @@ export default function MarketingCampaignStudioPage() {
                     ].map((preset) => (
                       <div
                         key={preset.id}
-                        onClick={() => setSelectedObjective(preset.id as any)}
+                        onClick={() => setSelectedObjective(preset.id as CampaignObjective)}
                         className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-2.5 ${
                           selectedObjective === preset.id
                             ? "bg-[#201f21] border-[#f59e0b] shadow-[0_0_12px_rgba(245,158,11,0.15)]"
@@ -323,6 +325,7 @@ export default function MarketingCampaignStudioPage() {
                           src="/images/cold-brew-aren-brulee.png"
                           alt="Cold Brew Aren Brûlée"
                           fill
+                          sizes="340px"
                           className="object-cover"
                         />
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur font-mono text-[9px] text-[#f59e0b] font-bold">

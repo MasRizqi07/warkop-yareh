@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { CartItem, Product } from "@warkop-yareh/types";
 
 // ---- Theme Store ----
@@ -14,7 +14,7 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      isDark: false,
+      isDark: true,
       toggle: () =>
         set((state) => {
           const newDark = !state.isDark;
@@ -30,7 +30,11 @@ export const useThemeStore = create<ThemeStore>()(
         set({ isDark: dark });
       },
     }),
-    { name: "warkop-theme" },
+    {
+      name: "warkop-theme",
+      version: 1,
+      storage: createJSONStorage(() => window.localStorage),
+    },
   ),
 );
 
@@ -163,7 +167,10 @@ export const useCartStore = create<CartStore>()(
       itemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
-    { name: "warkop-cart" },
+    {
+      name: "warkop-cart",
+      storage: createJSONStorage(() => window.localStorage),
+    },
   ),
 );
 

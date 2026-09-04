@@ -38,7 +38,7 @@ const REWARDS: RewardItem[] = [
     title: "Croissant Butter Artisan Warm",
     category: "Artisan Bakery",
     pointsCost: 260,
-    image: "https://images.unsplash.com/photo-1555507036-ab1f4038024a?w=800&auto=format&fit=crop&q=80",
+    image: "/images/artisan-toasted-sourdough.png",
     available: true,
   },
   {

@@ -5,7 +5,8 @@ import io from 'socket.io-client';
 import { Clock, Play, CheckCircle2, CheckSquare } from 'lucide-react';
 import { canTransitionOrder } from '../../lib/order-logic';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const SOCKET_URL = API_URL?.replace(/\/api\/v1\/?$/, '');
 
 type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'SERVED';
 
@@ -129,6 +130,8 @@ export default function KitchenPage() {
     // fetch('/api/v1/orders/kitchen/active').then(...)
 
     // 2. Connect to Socket.IO
+    if (!SOCKET_URL) return;
+
     const socket = io(SOCKET_URL);
     
     socket.on('connect', () => {
@@ -155,22 +158,29 @@ export default function KitchenPage() {
   }, []);
 
   const handleUpdateStatus = async (orderId: string, status: string) => {
+    const previousOrders = orders;
+
     // Optimistic update
     setOrders(prev => {
       if (status === 'SERVED') return prev.filter(o => o.id !== orderId);
       return prev.map(o => o.id === orderId ? { ...o, status: status as OrderStatus } : o);
     });
 
+    if (!API_URL) return;
+
     // Call API
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
+      if (!response.ok) {
+        throw new Error(`Order status update failed with HTTP ${response.status}`);
+      }
     } catch (e) {
+      setOrders(previousOrders);
       console.error('Failed to update status', e);
-      // Revert in real app
     }
   };
 

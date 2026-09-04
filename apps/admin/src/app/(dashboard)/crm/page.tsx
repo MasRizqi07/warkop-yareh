@@ -105,7 +105,7 @@ const PATRONS_DATA: Patron[] = [
 ];
 
 export default function PatronCrmLifecyclePage() {
-  const [patrons, setPatrons] = useState<Patron[]>(PATRONS_DATA);
+  const patrons = PATRONS_DATA;
   const [selectedCohort, setSelectedCohort] = useState<"all" | "vip" | "regular" | "at-risk" | "new">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [whatsappToast, setWhatsappToast] = useState<string | null>(null);

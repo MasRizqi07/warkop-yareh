@@ -127,7 +127,7 @@ const INITIAL_ITEMS: InventoryItem[] = [
 ];
 
 export default function EnterpriseInventoryPage() {
-  const [items, setItems] = useState<InventoryItem[]>(INITIAL_ITEMS);
+  const items = INITIAL_ITEMS;
   const [activeTab, setActiveTab] = useState<"master" | "opname" | "po" | "waste">("master");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");

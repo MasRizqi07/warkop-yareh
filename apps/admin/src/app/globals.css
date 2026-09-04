@@ -243,6 +243,7 @@
    BASE STYLES
    ============================================ */
 
+@layer base {
 * {
   margin: 0;
   padding: 0;
@@ -274,11 +275,13 @@ h4, h5, h6 {
   letter-spacing: -0.025em;
   color: var(--text-primary);
 }
+}
 
 /* ============================================
    GLASS STYLES & MOCKUP COMPATIBILITY
    ============================================ */
 
+@layer components {
 /* Glassmorphism */
 .glass {
   background: var(--surface-glass);
@@ -383,5 +386,6 @@ h4, h5, h6 {
 
 .unfilled-icon {
   font-variation-settings: 'FILL' 0;
+}
 }
 

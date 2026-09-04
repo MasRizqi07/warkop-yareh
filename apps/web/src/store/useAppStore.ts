@@ -871,7 +871,7 @@ export const useAppStore = create<AppStoreState>()(
     }),
     {
       name: "warkop-yareh-unified-state-v1",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => window.localStorage),
       partialize: (state) => ({
         activeBranchId: state.activeBranchId,
         user: state.user,

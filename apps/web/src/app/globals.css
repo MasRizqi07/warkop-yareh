@@ -367,6 +367,7 @@
    BASE STYLES
    ══════════════════════════════════════════ */
 
+@layer base {
 * {
   margin: 0;
   padding: 0;
@@ -470,11 +471,13 @@ img {
 .dark ::selection {
   background-color: rgba(220, 128, 80, 0.25);
 }
+}
 
 /* ══════════════════════════════════════════
    GRADIENTS
    ══════════════════════════════════════════ */
 
+@layer components {
 .gradient-hero {
   background: linear-gradient(135deg, #1C0A02 0%, #3D1A08 40%, #6B2E14 70%, #4A1F0A 100%);
 }
@@ -813,4 +816,5 @@ img {
   .animate-marquee-reverse {
     animation: none !important;
   }
+}
 }

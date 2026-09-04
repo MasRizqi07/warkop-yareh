@@ -40,7 +40,7 @@ export function UniversalHeader() {
     { href: "/reservations", label: "Reservasi" },
     { href: "/community", label: "Komunitas" },
     { href: "/loyalty", label: "Rewards" },
-    { href: "/locations", label: "Cabang" },
+    { href: "/#locations", label: "Cabang" },
   ];
 
   return (

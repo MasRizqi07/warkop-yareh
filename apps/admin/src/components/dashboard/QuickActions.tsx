@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Plus, CalendarPlus, ListOrdered, Download, Boxes, Receipt, Send } from "lucide-react";
+import { Plus, ListOrdered, Download, Boxes, Receipt, Send } from "lucide-react";
 
 export function QuickActions() {
   const actions = [

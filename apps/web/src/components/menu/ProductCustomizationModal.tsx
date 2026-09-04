@@ -94,6 +94,7 @@ export function ProductCustomizationModal({
                 src={product.image}
                 alt={product.name}
                 fill
+                sizes="(min-width: 640px) 512px, 100vw"
                 className="object-cover"
               />
             )}

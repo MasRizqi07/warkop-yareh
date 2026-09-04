@@ -36,7 +36,7 @@ export function Footer() {
           </div>
 
           {/* Outlets Sanctuary (3 cols) */}
-          <div className="lg:col-span-3 space-y-3">
+          <div id="locations" className="lg:col-span-3 space-y-3 scroll-mt-24">
             <h4 className="font-mono text-xs font-semibold text-[#f8fafc] uppercase tracking-widest text-[#f59e0b]">
               Sanctuary Outlets
             </h4>

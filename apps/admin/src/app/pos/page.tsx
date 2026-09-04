@@ -6,7 +6,8 @@ import { Bell, Plus, Minus, ShoppingCart, Check } from 'lucide-react';
 import { Button, useToast, Dialog } from '@warkop-yareh/ui';
 import { cn } from '@warkop-yareh/ui';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const SOCKET_URL = API_URL?.replace(/\/api\/v1\/?$/, '');
 
 interface WaiterCall {
   id: string;
@@ -49,6 +50,8 @@ export default function POSPage() {
   const { success, error: toastError } = useToast();
 
   useEffect(() => {
+    if (!SOCKET_URL) return;
+
     const socket = io(SOCKET_URL);
     
     socket.on('connect', () => {

@@ -1,6 +1,11 @@
 export class RecommendationRequestDto {
   preferences?: string[];
-  tasteProfile?: 'sweet_creamy' | 'fruity_acidic' | 'bold_chocolatey' | 'spiced_herbal' | 'refreshing';
+  tasteProfile?:
+    | 'sweet_creamy'
+    | 'fruity_acidic'
+    | 'bold_chocolatey'
+    | 'spiced_herbal'
+    | 'refreshing';
   currentCartItems?: string[];
   userQuery?: string;
 }

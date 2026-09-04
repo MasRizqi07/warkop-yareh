@@ -106,6 +106,7 @@ export default function HomePage() {
                     src="/images/darmo-interior.png"
                     alt="Spacious interior of Warkop Ya'reh featuring tech workers and warm ambient lighting"
                     fill
+                    sizes="(min-width: 1024px) 43vw, 86vw"
                     className="object-cover"
                     priority
                   />
@@ -126,6 +127,7 @@ export default function HomePage() {
                     src="/images/cold-brew-aren-brulee.png"
                     alt="Signature Cold Brew Aren Brulee"
                     fill
+                    sizes="(min-width: 1024px) 28vw, (min-width: 640px) 56vw, 65vw"
                     className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c]/95 via-[#0a0a0c]/40 to-transparent" />
@@ -305,6 +307,7 @@ export default function HomePage() {
                   src="/images/cold-brew-aren-brulee.png"
                   alt="Cold Brew Aren Brulee"
                   fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-[#0a0a0c]/80 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-mono font-bold text-[#f59e0b] uppercase tracking-wider border border-[#f59e0b]/30">
@@ -339,6 +342,7 @@ export default function HomePage() {
                   src="/images/matcha-pandan-latte.png"
                   alt="Iced Matcha Pandan Latte"
                   fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-[#0a0a0c]/80 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider border border-emerald-500/30">
@@ -373,6 +377,7 @@ export default function HomePage() {
                   src="/images/artisan-toasted-sourdough.png"
                   alt="Artisan Toasted Sourdough"
                   fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-[#0a0a0c]/80 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-mono font-bold text-[#f7bb82] uppercase tracking-wider border border-[#f7bb82]/30">
@@ -470,9 +475,10 @@ export default function HomePage() {
             <div className="lg:col-span-6 relative">
               <div className="relative w-full h-[480px] rounded-2xl overflow-hidden border border-white/[0.08] bg-[#18181c] shadow-2xl">
                 <Image
-                  src="/images/darmo-interior.png"
+                  src="/images/hero/hero-coffee.png"
                   alt="Warkop Ya'reh Coworking Environment"
                   fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-transparent to-transparent" />

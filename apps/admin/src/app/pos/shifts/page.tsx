@@ -26,10 +26,9 @@ export default function PosCashierShiftManagementPage() {
   const [elapsedTime, setElapsedTime] = useState("07h 45m 18s");
   const [currentTime, setCurrentTime] = useState("22:45:18 WIB");
   const [drawerPopped, setDrawerPopped] = useState(false);
-  const [showZReport, setShowZReport] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const updateClocks = () => {
       const now = new Date();
       setCurrentTime(
         `${now.getHours().toString().padStart(2, "0")}:${now
@@ -37,7 +36,22 @@ export default function PosCashierShiftManagementPage() {
           .toString()
           .padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")} WIB`
       );
-    }, 1000);
+
+      const shiftStart = new Date(now);
+      shiftStart.setHours(15, 0, 0, 0);
+      const elapsedMs = Math.max(0, now.getTime() - shiftStart.getTime());
+      const hours = Math.floor(elapsedMs / 3_600_000);
+      const minutes = Math.floor((elapsedMs % 3_600_000) / 60_000);
+      const seconds = Math.floor((elapsedMs % 60_000) / 1_000);
+      setElapsedTime(
+        `${hours.toString().padStart(2, "0")}h ${minutes
+          .toString()
+          .padStart(2, "0")}m ${seconds.toString().padStart(2, "0")}s`,
+      );
+    };
+
+    updateClocks();
+    const timer = setInterval(updateClocks, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -176,7 +190,7 @@ export default function PosCashierShiftManagementPage() {
                 <span>Pop Drawer [F2]</span>
               </button>
               <button
-                onClick={() => setShowZReport(true)}
+                onClick={() => window.print()}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#9c6b3a] hover:bg-[#825426] text-white text-xs font-bold transition-all shadow-md"
               >
                 <span className="material-symbols-outlined text-[18px]">print</span>

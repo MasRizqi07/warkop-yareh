@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 
+type BranchScope = "consolidated" | "darmo" | "gubeng";
+
 export default function ExecutiveOperationsAnalyticsPage() {
   const [period, setPeriod] = useState<"today" | "7d" | "mtd" | "custom">("7d");
-  const [selectedBranch, setSelectedBranch] = useState<"consolidated" | "darmo" | "gubeng">("consolidated");
+  const [selectedBranch, setSelectedBranch] = useState<BranchScope>("consolidated");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
@@ -151,7 +153,7 @@ export default function ExecutiveOperationsAnalyticsPage() {
                 <span className="material-symbols-outlined text-[16px] text-[#f7bb82]">storefront</span>
                 <select
                   value={selectedBranch}
-                  onChange={(e) => setSelectedBranch(e.target.value as any)}
+                  onChange={(e) => setSelectedBranch(e.target.value as BranchScope)}
                   className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
                 >
                   <option className="bg-[#18181c] text-white" value="consolidated">
