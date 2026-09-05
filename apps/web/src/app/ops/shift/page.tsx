@@ -140,6 +140,7 @@ export default function ShiftReconciliationPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-neutral-500 font-mono text-[11px]">x</span>
                     <input
+                      aria-label={`Jumlah lembar Rp ${denom.toLocaleString("id-ID")}`}
                       type="number"
                       min={0}
                       value={denominations[denom] || ""}
@@ -217,10 +218,11 @@ export default function ShiftReconciliationPage() {
             {/* Closing Form */}
             <form onSubmit={handleCloseShift} className="space-y-4 pt-2">
               <div>
-                <label className="block text-xs font-medium text-neutral-300 mb-1">
+                <label htmlFor="shift-handover-notes" className="block text-xs font-medium text-neutral-300 mb-1">
                   Catatan Handover / Serah Terima Shift
                 </label>
                 <textarea
+                  id="shift-handover-notes"
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}

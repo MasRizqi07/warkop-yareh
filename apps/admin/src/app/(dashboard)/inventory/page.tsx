@@ -299,6 +299,7 @@ export default function EnterpriseInventoryPage() {
                 search
               </span>
               <input
+                aria-label="Search inventory"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -309,6 +310,7 @@ export default function EnterpriseInventoryPage() {
 
             <div className="md:col-span-3">
               <select
+                aria-label="Filter inventory by category"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full px-3 py-2 bg-[#111114] border border-white/[0.08] text-white text-xs rounded-xl outline-none"
@@ -326,6 +328,7 @@ export default function EnterpriseInventoryPage() {
 
             <div className="md:col-span-3">
               <select
+                aria-label="Filter inventory by stock health"
                 value={selectedHealth}
                 onChange={(e) => setSelectedHealth(e.target.value)}
                 className="w-full px-3 py-2 bg-[#111114] border border-white/[0.08] text-[#f59e0b] text-xs rounded-xl outline-none font-semibold"
@@ -668,6 +671,7 @@ export default function EnterpriseInventoryPage() {
                 <div className="p-3 bg-[#111114] rounded-xl font-mono text-xs">
                   <span className="text-[#f59e0b] block mb-1">Physical Scale Reading</span>
                   <input
+                    aria-label="Physical scale reading in kilograms"
                     type="number"
                     step="0.1"
                     value={scaleReading}

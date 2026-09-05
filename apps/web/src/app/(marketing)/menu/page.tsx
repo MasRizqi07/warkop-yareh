@@ -102,6 +102,7 @@ export default function MenuPage() {
               <Search className="w-4 h-4" />
             </div>
             <input
+              aria-label="Cari menu"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -175,7 +176,7 @@ export default function MenuPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => {
+          {filteredProducts.map((product, index) => {
             const isFav = user.favoriteOrderIds?.includes(product.id);
 
             return (
@@ -195,6 +196,7 @@ export default function MenuPage() {
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    loading={index < 4 ? "eager" : "lazy"}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#18181c] via-black/30 to-transparent" />
 
@@ -206,7 +208,7 @@ export default function MenuPage() {
                       </span>
                     )}
                     {product.isNew && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500 text-white shadow-md">
+                      <span className="rounded-full bg-emerald-700 px-2.5 py-0.5 font-mono text-[10px] font-bold text-white shadow-md">
                         BARU
                       </span>
                     )}

@@ -82,7 +82,7 @@ export default function RegisterPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label htmlFor="register-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Full Name
                 </label>
                 <div className="mt-2 relative">
@@ -90,6 +90,7 @@ export default function RegisterPage() {
                     <User className="h-5 w-5 text-slate-400" />
                   </div>
                   <Input
+                    id="register-name"
                     type="text"
                     required
                     value={name}
@@ -101,7 +102,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label htmlFor="register-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Email address
                 </label>
                 <div className="mt-2 relative">
@@ -109,6 +110,7 @@ export default function RegisterPage() {
                     <Mail className="h-5 w-5 text-slate-400" />
                   </div>
                   <Input
+                    id="register-email"
                     type="email"
                     required
                     value={email}
@@ -120,7 +122,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label htmlFor="register-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Password
                 </label>
                 <div className="mt-2 relative">
@@ -128,6 +130,7 @@ export default function RegisterPage() {
                     <Lock className="h-5 w-5 text-slate-400" />
                   </div>
                   <Input
+                    id="register-password"
                     type="password"
                     required
                     minLength={8}

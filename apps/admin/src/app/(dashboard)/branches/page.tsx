@@ -315,6 +315,7 @@ export default function MultiBranchManagementPage() {
                 search
               </span>
               <input
+                aria-label="Filter branch catalog"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -358,6 +359,7 @@ export default function MultiBranchManagementPage() {
                         <div className="flex items-center gap-1 text-white font-bold">
                           <span>Rp</span>
                           <input
+                            aria-label={`${item.name} price at Darmo`}
                             type="number"
                             value={item.darmoPrice}
                             onChange={(e) =>
@@ -371,6 +373,7 @@ export default function MultiBranchManagementPage() {
                         <div className="flex items-center gap-1 text-[#f59e0b] font-bold">
                           <span>Rp</span>
                           <input
+                            aria-label={`${item.name} price at Gubeng`}
                             type="number"
                             value={item.gubengPrice}
                             onChange={(e) =>
@@ -384,6 +387,7 @@ export default function MultiBranchManagementPage() {
                         <div className="flex items-center gap-1 text-emerald-400 font-bold">
                           <span>Rp</span>
                           <input
+                            aria-label={`${item.name} price at Dharmahusada`}
                             type="number"
                             value={item.dharmahusadaPrice}
                             onChange={(e) =>

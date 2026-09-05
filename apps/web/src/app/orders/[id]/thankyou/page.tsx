@@ -10,11 +10,14 @@ const StarRating = ({ value, onChange, label }: { value: number, onChange: (v: n
   return (
     <div className="mb-4">
       <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{label}</p>
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="radiogroup" aria-label={label}>
         {[1, 2, 3, 4, 5].map(star => (
           <button
             key={star}
             type="button"
+            role="radio"
+            aria-checked={star === value}
+            aria-label={`${star} out of 5 stars`}
             onClick={() => onChange(star)}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
               star <= value ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -96,8 +99,9 @@ export default function ThankYouPage() {
         <StarRating label="Atmosphere & Cleanliness" value={atmosphereRating} onChange={setAtmosphereRating} />
 
         <div className="mt-6 mb-8">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Any additional comments?</label>
+          <label htmlFor="feedback-comment" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Any additional comments?</label>
           <textarea 
+            id="feedback-comment"
             rows={3}
             value={comment}
             onChange={e => setComment(e.target.value)}

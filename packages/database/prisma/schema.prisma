@@ -221,6 +221,8 @@ model Order {
   customerPhone       String?
   loyaltyPointsEarned Int         @default(0)
   loyaltyPointsUsed   Int         @default(0)
+  idempotencyKeyHash  String?     @unique
+  requestFingerprint String?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   deletedAt           DateTime?
@@ -235,6 +237,8 @@ model Order {
   @@index([status])
   @@index([type])
   @@index([createdAt])
+  @@index([branchId, createdAt])
+  @@index([userId, createdAt])
   @@map("orders")
 }
 

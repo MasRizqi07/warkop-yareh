@@ -116,10 +116,11 @@ export default function AdminMarketingPage() {
             className="p-6 sm:p-7 rounded-3xl bg-[#18181c] border border-white/10 space-y-5 shadow-xl"
           >
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+              <label htmlFor="broadcast-campaign-name" className="block text-xs font-semibold text-neutral-300 mb-1.5">
                 Nama Kampanye Pesan
               </label>
               <input
+                id="broadcast-campaign-name"
                 type="text"
                 required
                 value={campaignTitle}
@@ -130,10 +131,11 @@ export default function AdminMarketingPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+                <label htmlFor="broadcast-segment" className="block text-xs font-semibold text-neutral-300 mb-1.5">
                   Target Segmen Pelanggan
                 </label>
                 <select
+                  id="broadcast-segment"
                   value={targetSegment}
                   onChange={(e) => setTargetSegment(e.target.value)}
                   className="w-full p-2.5 rounded-xl bg-[#111114] border border-white/10 text-white text-xs"
@@ -146,10 +148,11 @@ export default function AdminMarketingPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+                <label htmlFor="broadcast-voucher" className="block text-xs font-semibold text-neutral-300 mb-1.5">
                   Lampirkan Kode Voucher
                 </label>
                 <input
+                  id="broadcast-voucher"
                   type="text"
                   value={voucherCode}
                   onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
@@ -186,10 +189,11 @@ export default function AdminMarketingPage() {
 
             {/* Message Template Textarea */}
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+              <label htmlFor="broadcast-template" className="block text-xs font-semibold text-neutral-300 mb-1.5">
                 Template Pesan WhatsApp
               </label>
               <textarea
+                id="broadcast-template"
                 rows={7}
                 required
                 value={templateText}

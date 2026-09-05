@@ -152,6 +152,7 @@ export default function ExecutiveOperationsAnalyticsPage() {
               <div className="flex items-center gap-2 bg-[#111114] border border-white/[0.06] px-3 py-1.5 rounded-lg">
                 <span className="material-symbols-outlined text-[16px] text-[#f7bb82]">storefront</span>
                 <select
+                  aria-label="Analytics branch scope"
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value as BranchScope)}
                   className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"

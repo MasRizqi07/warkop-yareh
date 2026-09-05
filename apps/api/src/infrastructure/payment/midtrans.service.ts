@@ -6,15 +6,38 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as midtransClient from 'midtrans-client';
+import { randomBytes } from 'node:crypto';
+
+interface MidtransTransactionStatusResponse {
+  transaction_status?: string;
+  fraud_status?: string;
+  status_code?: string;
+}
+
+interface MidtransCoreApiClient {
+  transaction: {
+    status(orderId: string): Promise<MidtransTransactionStatusResponse>;
+  };
+}
+
+interface MidtransSnapClient {
+  createTransaction(parameters: unknown): Promise<{
+    token: string;
+    redirect_url: string;
+  }>;
+}
 
 @Injectable()
 export class MidtransService {
-  public coreApi: any;
-  public snap: any;
+  private readonly coreApi: MidtransCoreApiClient;
+  private readonly snap: MidtransSnapClient;
   private readonly logger = new Logger(MidtransService.name);
 
   constructor(private configService: ConfigService) {
     const serverKey = this.configService.get<string>('MIDTRANS_SERVER_KEY');
+    if (!serverKey && this.configService.get<string>('NODE_ENV') === 'production') {
+      throw new Error('MIDTRANS_SERVER_KEY is required in production');
+    }
     if (!serverKey) {
       this.logger.warn(
         'MIDTRANS_SERVER_KEY is missing! Payment gateway will not work.',
@@ -27,7 +50,7 @@ export class MidtransService {
       clientKey:
         this.configService.get<string>('MIDTRANS_CLIENT_KEY') ||
         'sandbox_client_key',
-    });
+    }) as unknown as MidtransCoreApiClient;
 
     this.snap = new midtransClient.Snap({
       isProduction:
@@ -36,7 +59,7 @@ export class MidtransService {
       clientKey:
         this.configService.get<string>('MIDTRANS_CLIENT_KEY') ||
         'sandbox_client_key',
-    });
+    }) as unknown as MidtransSnapClient;
   }
 
   async createSnapTransaction(params: {
@@ -71,7 +94,7 @@ export class MidtransService {
       this.logger.log(
         'Midtrans server key is placeholder/missing in non-production. Generating mock snap transaction.',
       );
-      const mockToken = `mock-snap-token-${Math.random().toString(36).substring(2, 10)}`;
+      const mockToken = `mock-snap-token-${randomBytes(12).toString('hex')}`;
       return {
         token: mockToken,
         redirect_url: `https://app.sandbox.midtrans.com/snap/v2/vtweb/${mockToken}`,
@@ -90,8 +113,23 @@ export class MidtransService {
     try {
       const transaction = await this.snap.createTransaction(transactionDetails);
       return transaction;
-    } catch (error: any) {
-      throw new BadRequestException(`Midtrans Error: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Midtrans Snap request failed: ${message}`);
+      throw new BadRequestException('Unable to initialize payment transaction');
     }
+  }
+
+  async getTransactionStatus(orderId: string): Promise<{
+    transactionStatus: string;
+    fraudStatus?: string;
+    statusCode?: string;
+  }> {
+    const response = await this.coreApi.transaction.status(orderId);
+    return {
+      transactionStatus: response.transaction_status ?? 'PAYMENT_PENDING',
+      ...(response.fraud_status ? { fraudStatus: response.fraud_status } : {}),
+      ...(response.status_code ? { statusCode: response.status_code } : {}),
+    };
   }
 }

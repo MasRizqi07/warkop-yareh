@@ -10,6 +10,10 @@ import * as bcrypt from 'bcrypt';
 import { createHash } from 'node:crypto';
 import { IdentityService } from './identity.service';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
+import type {
+  InternalUser,
+  SafeUser,
+} from '../../domain/repositories/user.repository.interface';
 
 export interface TokenResponse {
   accessToken: string;
@@ -180,7 +184,8 @@ export class AuthService {
 
     await this.redisService.del(`otp:${email}`);
 
-    let user = await this.identityService.getUserByEmail(email);
+    let user: InternalUser | SafeUser | null =
+      await this.identityService.getUserByEmail(email);
     if (!user) {
       // Auto register for OTP users
       user = await this.identityService.createUser({

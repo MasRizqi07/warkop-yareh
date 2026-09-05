@@ -358,6 +358,7 @@ export default function CommunityGroupDetailPage() {
                 search
               </span>
               <input
+                aria-label="Search group threads"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -485,6 +486,7 @@ export default function CommunityGroupDetailPage() {
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
                   <input
+                    aria-label="Thread title"
                     type="text"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
@@ -492,6 +494,7 @@ export default function CommunityGroupDetailPage() {
                     className="w-full bg-transparent font-bold text-base text-white placeholder:text-[#94a3b8] outline-none"
                   />
                   <textarea
+                    aria-label="Thread content"
                     rows={2}
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
@@ -512,6 +515,7 @@ export default function CommunityGroupDetailPage() {
                 <div className="flex items-center gap-2 text-xs">
                   <span className="font-mono text-[11px] text-[#94a3b8]">Tag:</span>
                   <select
+                    aria-label="Thread tag"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     className="bg-[#111114] border border-white/[0.08] text-[#f7bb82] text-xs rounded-lg px-2 py-1 outline-none"

@@ -1,6 +1,11 @@
 /* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ReservationService } from './reservation.service';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
@@ -13,7 +18,7 @@ describe('ReservationService', () => {
     userId: 'user-1',
     branchId: 'branch-1',
     tableId: 'table-1',
-    date: new Date('2026-08-10'),
+    date: new Date('2026-10-10'),
     startTime: '14:00',
     endTime: '16:00',
     guestCount: 2,
@@ -23,7 +28,16 @@ describe('ReservationService', () => {
 
   beforeEach(async () => {
     mockPrisma = {
-      $transaction: jest.fn((cb) => cb(mockPrisma)),
+      $transaction: jest.fn((operation) =>
+        Array.isArray(operation) ? Promise.all(operation) : operation(mockPrisma),
+      ),
+      $executeRaw: jest.fn(),
+      branch: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }),
+      },
+      user: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'user-1' }),
+      },
       reservation: {
         findMany: jest.fn(),
         create: jest.fn(),
@@ -36,6 +50,7 @@ describe('ReservationService', () => {
       },
       table: {
         findMany: jest.fn(),
+        findFirst: jest.fn().mockResolvedValue({ id: 'table-1', capacity: 10 }),
       },
     };
 
@@ -60,7 +75,7 @@ describe('ReservationService', () => {
           userId: 'user-2',
           branchId: 'branch-1',
           tableId: 'table-1',
-          date: '2026-08-10',
+          date: '2026-10-10',
           startTime: '15:00',
           endTime: '17:00',
           guestCount: 4,
@@ -81,7 +96,7 @@ describe('ReservationService', () => {
         userId: 'user-2',
         branchId: 'branch-1',
         tableId: 'table-1',
-        date: '2026-08-10',
+        date: '2026-10-10',
         startTime: '16:00',
         endTime: '18:00',
         guestCount: 2,
@@ -103,7 +118,7 @@ describe('ReservationService', () => {
         userId: 'user-2',
         branchId: 'branch-1',
         tableId: 'table-2',
-        date: '2026-08-10',
+        date: '2026-10-10',
         startTime: '14:00',
         endTime: '16:00',
         guestCount: 2,
@@ -120,6 +135,8 @@ describe('ReservationService', () => {
       await expect(
         service.updateStatus('non-existent', 'CANCELLED', {
           id: 'user-1',
+          name: 'Customer',
+          email: 'customer@example.com',
           role: 'CUSTOMER',
           branchId: 'branch-1',
         }),
@@ -135,6 +152,8 @@ describe('ReservationService', () => {
 
       const result = await service.updateStatus('res-1', 'COMPLETED', {
         id: 'admin-1',
+        name: 'Admin',
+        email: 'admin@example.com',
         role: 'ADMIN',
         branchId: 'branch-99',
       });
@@ -146,24 +165,28 @@ describe('ReservationService', () => {
       mockPrisma.reservation.findUnique.mockResolvedValue(mockReservation);
       mockPrisma.reservation.update.mockResolvedValue({
         ...mockReservation,
-        status: 'SEATED',
+        status: 'COMPLETED',
       });
 
-      const result = await service.updateStatus('res-1', 'SEATED', {
+      const result = await service.updateStatus('res-1', 'COMPLETED', {
         id: 'staff-1',
+        name: 'Staff',
+        email: 'staff@example.com',
         role: 'STAFF',
         branchId: 'branch-1',
       });
 
-      expect(result.status).toBe('SEATED');
+      expect(result.status).toBe('COMPLETED');
     });
 
     it('should throw ForbiddenException if employee updates reservation of another branch', async () => {
       mockPrisma.reservation.findUnique.mockResolvedValue(mockReservation);
 
       await expect(
-        service.updateStatus('res-1', 'SEATED', {
+        service.updateStatus('res-1', 'COMPLETED', {
           id: 'staff-1',
+          name: 'Staff',
+          email: 'staff@example.com',
           role: 'STAFF',
           branchId: 'other-branch',
         }),
@@ -182,6 +205,8 @@ describe('ReservationService', () => {
 
       const result = await service.updateStatus('res-1', 'CANCELLED', {
         id: 'user-1',
+        name: 'Customer',
+        email: 'customer@example.com',
         role: 'CUSTOMER',
         branchId: 'branch-1',
       });
@@ -195,6 +220,8 @@ describe('ReservationService', () => {
       await expect(
         service.updateStatus('res-1', 'CANCELLED', {
           id: 'other-user',
+          name: 'Other Customer',
+          email: 'other@example.com',
           role: 'CUSTOMER',
           branchId: 'branch-1',
         }),
@@ -207,6 +234,8 @@ describe('ReservationService', () => {
       await expect(
         service.updateStatus('res-1', 'CONFIRMED', {
           id: 'user-1',
+          name: 'Customer',
+          email: 'customer@example.com',
           role: 'CUSTOMER',
           branchId: 'branch-1',
         }),
@@ -222,10 +251,12 @@ describe('ReservationService', () => {
       await expect(
         service.updateStatus('res-1', 'CANCELLED', {
           id: 'user-1',
+          name: 'Customer',
+          email: 'customer@example.com',
           role: 'CUSTOMER',
           branchId: 'branch-1',
         }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -237,7 +268,7 @@ describe('ReservationService', () => {
       const result = await service.listReservations({
         branchId: 'branch-1',
         userId: 'user-1',
-        date: '2026-08-10',
+        date: '2026-10-10',
         status: 'CONFIRMED',
         page: 1,
         limit: 10,

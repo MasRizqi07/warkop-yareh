@@ -55,6 +55,10 @@ describe('IdentityService', () => {
 
   it('should update user profile', async () => {
     const updateData = { name: 'Updated Name' };
+    mockUserRepository.findById.mockResolvedValue({
+      id: 'user-1',
+      name: 'Before Update',
+    });
     mockUserRepository.update.mockResolvedValue({ id: 'user-1', name: 'Updated Name' });
 
     const result = await service.updateUser('user-1', updateData);

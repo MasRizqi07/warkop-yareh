@@ -164,7 +164,7 @@ export default function ProfilePage() {
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
                         ord.orderStatus === "completed"
                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse"
+                          : "bg-amber-500/10 text-amber-300 border border-amber-500/20"
                       }`}
                     >
                       {ord.orderStatus}

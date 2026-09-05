@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   MOCK_BRANCHES,
   MOCK_TABLES,
@@ -16,18 +16,23 @@ import {
   VoucherPromo,
   CommunityEvent,
   ForumPost,
-} from "@/lib/mockData";
-import { soundEffects } from "@/lib/audioAlerts";
+} from '@/lib/mockData';
+import { soundEffects } from '@/lib/audioAlerts';
 
 /* =========================================================
    TYPES & INTERFACES
    ========================================================= */
 
 export interface CartCustomization {
-  sweetness: "Normal (100%)" | "Less Sweet (50%)" | "Quarter (25%)" | "No Sugar (0%)";
-  iceLevel: "Normal Ice" | "Less Ice" | "No Ice" | "Hot";
-  milkType: "Fresh Milk" | "Oat Milk (+Rp 6.000)" | "Almond Milk (+Rp 8.000)" | "None";
-  beanRoast: "Signature House Blend" | "Single Origin Ijen (+Rp 4.000)" | "Dampit Robusta Dark";
+  sweetness:
+    'Normal (100%)' | 'Less Sweet (50%)' | 'Quarter (25%)' | 'No Sugar (0%)';
+  iceLevel: 'Normal Ice' | 'Less Ice' | 'No Ice' | 'Hot';
+  milkType:
+    'Fresh Milk' | 'Oat Milk (+Rp 6.000)' | 'Almond Milk (+Rp 8.000)' | 'None';
+  beanRoast:
+    | 'Signature House Blend'
+    | 'Single Origin Ijen (+Rp 4.000)'
+    | 'Dampit Robusta Dark';
   notes?: string;
 }
 
@@ -42,9 +47,11 @@ export interface AppCartItem {
   subtotal: number;
 }
 
-export type OrderStatus = "pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled";
-export type FulfillmentType = "dine-in" | "pickup" | "drive-thru" | "delivery";
-export type PaymentMethod = "qris" | "bca-va" | "mandiri-va" | "credit-card" | "cash";
+export type OrderStatus =
+  'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+export type FulfillmentType = 'dine-in' | 'pickup' | 'drive-thru' | 'delivery';
+export type PaymentMethod =
+  'qris' | 'bca-va' | 'mandiri-va' | 'credit-card' | 'cash';
 
 export interface MasterOrder {
   id: string; // e.g. YRH-8492
@@ -66,7 +73,7 @@ export interface MasterOrder {
   serviceFee: number;
   total: number;
   paymentMethod: PaymentMethod;
-  paymentStatus: "paid" | "pending" | "failed";
+  paymentStatus: 'paid' | 'pending' | 'failed';
   orderStatus: OrderStatus;
   estimatedMinutes: number;
   isKdsBumped?: boolean;
@@ -78,7 +85,7 @@ export interface UserProfile {
   phone: string;
   email: string;
   avatar: string;
-  tier: "Bronze" | "Silver" | "Gold" | "Platinum";
+  tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
   points: number;
   savedAddresses: string[];
   favoriteOrderIds: string[];
@@ -98,7 +105,7 @@ export interface TableReservation {
   customerPhone: string;
   notes?: string;
   depositAmount: number;
-  status: "confirmed" | "seated" | "completed" | "cancelled";
+  status: 'confirmed' | 'seated' | 'completed' | 'cancelled';
   createdAt: string;
 }
 
@@ -149,7 +156,11 @@ export interface AppStoreState {
   setFulfillmentType: (type: FulfillmentType) => void;
   setTableNumber: (table: string) => void;
   setDeliveryAddress: (address: string) => void;
-  addToCart: (product: MockProduct, quantity: number, customizations: CartCustomization) => void;
+  addToCart: (
+    product: MockProduct,
+    quantity: number,
+    customizations: CartCustomization
+  ) => void;
   updateCartQuantity: (itemId: string, delta: number) => void;
   removeCartItem: (itemId: string) => void;
   clearCart: () => void;
@@ -177,8 +188,13 @@ export interface AppStoreState {
   // 6. Reservation Slice
   tables: CafeTable[];
   reservations: TableReservation[];
-  createReservation: (reservation: Omit<TableReservation, "id" | "code" | "createdAt" | "status">) => TableReservation;
-  updateReservationStatus: (id: string, status: TableReservation["status"]) => void;
+  createReservation: (
+    reservation: Omit<TableReservation, 'id' | 'code' | 'createdAt' | 'status'>
+  ) => TableReservation;
+  updateReservationStatus: (
+    id: string,
+    status: TableReservation['status']
+  ) => void;
 
   // 7. Community Slice
   events: CommunityEvent[];
@@ -198,101 +214,104 @@ export interface AppStoreState {
    ========================================================= */
 
 const INITIAL_USER: UserProfile = {
-  id: "user-1",
-  name: "Achmad Rizqi",
-  phone: "08123456789",
-  email: "achmad.rizqi@surabayacreative.id",
-  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&fit=crop&crop=faces",
-  tier: "Gold",
+  id: 'user-1',
+  name: 'Achmad Rizqi',
+  phone: '08123456789',
+  email: 'achmad.rizqi@surabayacreative.id',
+  avatar:
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&fit=crop&crop=faces',
+  tier: 'Gold',
   points: 850,
   savedAddresses: [
-    "Jl. Mayjen Sungkono No. 102, Surabaya",
-    "Spazio Tower Lt. 8, Graha Famili, Surabaya",
+    'Jl. Mayjen Sungkono No. 102, Surabaya',
+    'Spazio Tower Lt. 8, Graha Famili, Surabaya',
   ],
-  favoriteOrderIds: ["prod-1", "prod-2", "prod-5"],
+  favoriteOrderIds: ['prod-1', 'prod-2', 'prod-5'],
   isLoggedIn: true,
 };
 
 const INITIAL_ORDERS: MasterOrder[] = [
   {
-    id: "YRH-8492",
-    createdAt: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-    customerName: "Achmad Rizqi",
-    customerPhone: "08123456789",
-    branchId: "darmo",
-    branchName: "Darmo Flagship",
-    fulfillmentType: "dine-in",
-    tableNumber: "T-04",
+    id: 'YRH-8492',
+    createdAt: '2026-09-05T01:42:00+07:00',
+    customerName: 'Achmad Rizqi',
+    customerPhone: '08123456789',
+    branchId: 'darmo',
+    branchName: 'Darmo Flagship',
+    fulfillmentType: 'dine-in',
+    tableNumber: 'T-04',
     items: [
       {
-        id: "item-init-1",
-        productId: "prod-1",
-        name: "Kopi Susu Aren Brulee",
+        id: 'item-init-1',
+        productId: 'prod-1',
+        name: 'Kopi Susu Aren Brulee',
         price: 28000,
-        image: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop&q=80",
+        image:
+          'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop&q=80',
         quantity: 2,
         customizations: {
-          sweetness: "Less Sweet (50%)",
-          iceLevel: "Normal Ice",
-          milkType: "Fresh Milk",
-          beanRoast: "Signature House Blend",
-          notes: "Tolong foam brulee-nya agak tebal ya kak",
+          sweetness: 'Less Sweet (50%)',
+          iceLevel: 'Normal Ice',
+          milkType: 'Fresh Milk',
+          beanRoast: 'Signature House Blend',
+          notes: 'Tolong foam brulee-nya agak tebal ya kak',
         },
         subtotal: 56000,
       },
       {
-        id: "item-init-2",
-        productId: "prod-5",
-        name: "Croissant Butter Artisan",
+        id: 'item-init-2',
+        productId: 'prod-5',
+        name: 'Croissant Butter Artisan',
         price: 26000,
-        image: "/images/artisan-toasted-sourdough.png",
+        image: '/images/artisan-toasted-sourdough.png',
         quantity: 1,
         customizations: {
-          sweetness: "No Sugar (0%)",
-          iceLevel: "Hot",
-          milkType: "None",
-          beanRoast: "Signature House Blend",
-          notes: "Dipanaskan crispy",
+          sweetness: 'No Sugar (0%)',
+          iceLevel: 'Hot',
+          milkType: 'None',
+          beanRoast: 'Signature House Blend',
+          notes: 'Dipanaskan crispy',
         },
         subtotal: 26000,
       },
     ],
     subtotal: 82000,
-    voucherCode: "YAREHHEMAT10",
+    voucherCode: 'YAREHHEMAT10',
     voucherDiscount: 8200,
     pointsRedeemed: 200,
     pointsDiscount: 2000,
     tax: 7180,
     serviceFee: 2000,
     total: 80980,
-    paymentMethod: "qris",
-    paymentStatus: "paid",
-    orderStatus: "preparing",
+    paymentMethod: 'qris',
+    paymentStatus: 'paid',
+    orderStatus: 'preparing',
     estimatedMinutes: 6,
     isKdsBumped: false,
   },
   {
-    id: "YRH-8491",
-    createdAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-    customerName: "Clarissa Putri",
-    customerPhone: "08198765432",
-    branchId: "darmo",
-    branchName: "Darmo Flagship",
-    fulfillmentType: "dine-in",
-    tableNumber: "T-01",
+    id: 'YRH-8491',
+    createdAt: '2026-09-05T01:25:00+07:00',
+    customerName: 'Clarissa Putri',
+    customerPhone: '08198765432',
+    branchId: 'darmo',
+    branchName: 'Darmo Flagship',
+    fulfillmentType: 'dine-in',
+    tableNumber: 'T-01',
     items: [
       {
-        id: "item-init-3",
-        productId: "prod-2",
-        name: "Nitro Honey Cold Brew",
+        id: 'item-init-3',
+        productId: 'prod-2',
+        name: 'Nitro Honey Cold Brew',
         price: 34000,
-        image: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=800&auto=format&fit=crop&q=80",
+        image:
+          'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=800&auto=format&fit=crop&q=80',
         quantity: 1,
         customizations: {
-          sweetness: "Normal (100%)",
-          iceLevel: "Normal Ice",
-          milkType: "None",
-          beanRoast: "Signature House Blend",
+          sweetness: 'Normal (100%)',
+          iceLevel: 'Normal Ice',
+          milkType: 'None',
+          beanRoast: 'Signature House Blend',
         },
         subtotal: 34000,
       },
@@ -304,34 +323,35 @@ const INITIAL_ORDERS: MasterOrder[] = [
     tax: 3400,
     serviceFee: 2000,
     total: 39400,
-    paymentMethod: "bca-va",
-    paymentStatus: "paid",
-    orderStatus: "ready",
+    paymentMethod: 'bca-va',
+    paymentStatus: 'paid',
+    orderStatus: 'ready',
     estimatedMinutes: 0,
     isKdsBumped: false,
   },
   {
-    id: "YRH-8490",
-    createdAt: new Date(Date.now() - 1000 * 60 * 70).toISOString(),
-    customerName: "Budi Santoso",
-    customerPhone: "08133344455",
-    branchId: "darmo",
-    branchName: "Darmo Flagship",
-    fulfillmentType: "pickup",
+    id: 'YRH-8490',
+    createdAt: '2026-09-05T00:50:00+07:00',
+    customerName: 'Budi Santoso',
+    customerPhone: '08133344455',
+    branchId: 'darmo',
+    branchName: 'Darmo Flagship',
+    fulfillmentType: 'pickup',
     items: [
       {
-        id: "item-init-4",
-        productId: "prod-6",
+        id: 'item-init-4',
+        productId: 'prod-6',
         name: "Nasi Kulit Sambal Matah Ya'reh",
         price: 38000,
-        image: "https://images.unsplash.com/photo-1562967914-608f82629710?w=800&auto=format&fit=crop&q=80",
+        image:
+          'https://images.unsplash.com/photo-1562967914-608f82629710?w=800&auto=format&fit=crop&q=80',
         quantity: 1,
         customizations: {
-          sweetness: "No Sugar (0%)",
-          iceLevel: "Hot",
-          milkType: "None",
-          beanRoast: "Signature House Blend",
-          notes: "Sambal matah dipisah ya",
+          sweetness: 'No Sugar (0%)',
+          iceLevel: 'Hot',
+          milkType: 'None',
+          beanRoast: 'Signature House Blend',
+          notes: 'Sambal matah dipisah ya',
         },
         subtotal: 38000,
       },
@@ -343,37 +363,38 @@ const INITIAL_ORDERS: MasterOrder[] = [
     tax: 3800,
     serviceFee: 2000,
     total: 43800,
-    paymentMethod: "credit-card",
-    paymentStatus: "paid",
-    orderStatus: "completed",
+    paymentMethod: 'credit-card',
+    paymentStatus: 'paid',
+    orderStatus: 'completed',
     estimatedMinutes: 0,
   },
 ];
 
 const INITIAL_RESERVATIONS: TableReservation[] = [
   {
-    id: "res-1",
-    code: "RSV-DARMO-01",
-    branchId: "darmo",
-    tableId: "VIP-01",
-    tableLabel: "VIP Suite 01 (Majapahit)",
-    date: "2026-09-06",
-    timeSlot: "14:00 - 17:00",
+    id: 'res-1',
+    code: 'RSV-DARMO-01',
+    branchId: 'darmo',
+    tableId: 'VIP-01',
+    tableLabel: 'VIP Suite 01 (Majapahit)',
+    date: '2026-09-06',
+    timeSlot: '14:00 - 17:00',
     guestCount: 8,
-    customerName: "Achmad Rizqi",
-    customerPhone: "08123456789",
-    notes: "Persiapan meeting pitching agency kreatif. Butuh kabel HDMI & kopi break.",
+    customerName: 'Achmad Rizqi',
+    customerPhone: '08123456789',
+    notes:
+      'Persiapan meeting pitching agency kreatif. Butuh kabel HDMI & kopi break.',
     depositAmount: 200000,
-    status: "confirmed",
-    createdAt: new Date(Date.now() - 1000 * 3600 * 12).toISOString(),
+    status: 'confirmed',
+    createdAt: '2026-09-04T14:00:00+07:00',
   },
 ];
 
 const INITIAL_SHIFT: CashierShift = {
-  id: "shift-20260905-01",
-  cashierName: "Siti Rahmawati (Kasir #1)",
-  branchId: "darmo",
-  shiftStart: "07:00 WIB",
+  id: 'shift-20260905-01',
+  cashierName: 'Siti Rahmawati (Kasir #1)',
+  branchId: 'darmo',
+  shiftStart: '07:00 WIB',
   openingFloat: 500000, // Rp 500.000 modal awal
   totalCashSales: 1240000,
   totalQrisSales: 4680000,
@@ -390,7 +411,7 @@ export const useAppStore = create<AppStoreState>()(
   persist(
     (set, get) => ({
       // 1. Branch Slice
-      activeBranchId: "darmo",
+      activeBranchId: 'darmo',
       branches: MOCK_BRANCHES,
       setActiveBranch: (branchId: string) => {
         set({ activeBranchId: branchId });
@@ -441,9 +462,9 @@ export const useAppStore = create<AppStoreState>()(
 
       // 3. Cart Slice
       cartItems: [],
-      fulfillmentType: "dine-in",
-      tableNumber: "T-04",
-      deliveryAddress: "Jl. Mayjen Sungkono No. 102, Surabaya",
+      fulfillmentType: 'dine-in',
+      tableNumber: 'T-04',
+      deliveryAddress: 'Jl. Mayjen Sungkono No. 102, Surabaya',
       appliedVoucher: null,
       redeemedPoints: 0,
       splitBillCount: 1,
@@ -456,9 +477,11 @@ export const useAppStore = create<AppStoreState>()(
       addToCart: (product, quantity, customizations) => {
         // compute price additions for customization
         let pricePerUnit = product.price;
-        if (customizations.milkType.includes("Oat Milk")) pricePerUnit += 6000;
-        if (customizations.milkType.includes("Almond Milk")) pricePerUnit += 8000;
-        if (customizations.beanRoast.includes("Single Origin")) pricePerUnit += 4000;
+        if (customizations.milkType.includes('Oat Milk')) pricePerUnit += 6000;
+        if (customizations.milkType.includes('Almond Milk'))
+          pricePerUnit += 8000;
+        if (customizations.beanRoast.includes('Single Origin'))
+          pricePerUnit += 4000;
 
         const subtotal = pricePerUnit * quantity;
         const newItem: AppCartItem = {
@@ -488,7 +511,7 @@ export const useAppStore = create<AppStoreState>()(
                 return {
                   ...item,
                   quantity: newQty,
-                  subtotal: (item.price * newQty),
+                  subtotal: item.price * newQty,
                 };
               }
               return item;
@@ -544,7 +567,7 @@ export const useAppStore = create<AppStoreState>()(
         let voucherDiscount = 0;
         const { appliedVoucher, redeemedPoints } = get();
         if (appliedVoucher) {
-          if (appliedVoucher.discountType === "percentage") {
+          if (appliedVoucher.discountType === 'percentage') {
             voucherDiscount = (subtotal * appliedVoucher.discountValue) / 100;
           } else {
             voucherDiscount = appliedVoucher.discountValue;
@@ -553,7 +576,10 @@ export const useAppStore = create<AppStoreState>()(
 
         // Each 10 points = Rp 100 discount (1 pt = Rp 10)
         const pointsDiscount = redeemedPoints * 10;
-        const taxable = Math.max(0, subtotal - voucherDiscount - pointsDiscount);
+        const taxable = Math.max(
+          0,
+          subtotal - voucherDiscount - pointsDiscount
+        );
         const tax = Math.round(taxable * 0.1); // 10% PB1 Restaurant Tax
         const serviceFee = 2000;
 
@@ -562,7 +588,7 @@ export const useAppStore = create<AppStoreState>()(
 
       // 4. Order Slice
       orders: INITIAL_ORDERS,
-      activeTrackingOrderId: "YRH-8492",
+      activeTrackingOrderId: 'YRH-8492',
 
       createOrder: (customParams) => {
         const state = get();
@@ -578,13 +604,15 @@ export const useAppStore = create<AppStoreState>()(
         let voucherDiscount = 0;
         if (state.appliedVoucher) {
           voucherDiscount =
-            state.appliedVoucher.discountType === "percentage"
+            state.appliedVoucher.discountType === 'percentage'
               ? (subtotal * state.appliedVoucher.discountValue) / 100
               : state.appliedVoucher.discountValue;
         }
 
         const pointsDiscount = state.redeemedPoints * 10;
-        const tax = Math.round(Math.max(0, subtotal - voucherDiscount - pointsDiscount) * 0.1);
+        const tax = Math.round(
+          Math.max(0, subtotal - voucherDiscount - pointsDiscount) * 0.1
+        );
 
         const newOrder: MasterOrder = {
           id: orderId,
@@ -593,32 +621,39 @@ export const useAppStore = create<AppStoreState>()(
           customerPhone: customParams?.customerPhone || state.user.phone,
           branchId: customParams?.branchId || activeBranch.id,
           branchName: customParams?.branchName || activeBranch.name,
-          fulfillmentType: customParams?.fulfillmentType || state.fulfillmentType,
+          fulfillmentType:
+            customParams?.fulfillmentType || state.fulfillmentType,
           tableNumber:
-            customParams?.fulfillmentType === "dine-in" || state.fulfillmentType === "dine-in"
-              ? (customParams?.tableNumber || state.tableNumber || "T-04")
+            customParams?.fulfillmentType === 'dine-in' ||
+            state.fulfillmentType === 'dine-in'
+              ? customParams?.tableNumber || state.tableNumber || 'T-04'
               : undefined,
           deliveryAddress:
-            customParams?.fulfillmentType === "delivery" || state.fulfillmentType === "delivery"
-              ? (customParams?.deliveryAddress || state.deliveryAddress)
+            customParams?.fulfillmentType === 'delivery' ||
+            state.fulfillmentType === 'delivery'
+              ? customParams?.deliveryAddress || state.deliveryAddress
               : undefined,
-          items: items.length > 0 ? items : [
-            {
-              id: `item-${Date.now()}`,
-              productId: "prod-1",
-              name: "Kopi Susu Aren Brulee",
-              price: 28000,
-              image: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop&q=80",
-              quantity: 1,
-              customizations: {
-                sweetness: "Normal (100%)",
-                iceLevel: "Normal Ice",
-                milkType: "Fresh Milk",
-                beanRoast: "Signature House Blend",
-              },
-              subtotal: 28000,
-            },
-          ],
+          items:
+            items.length > 0
+              ? items
+              : [
+                  {
+                    id: `item-${Date.now()}`,
+                    productId: 'prod-1',
+                    name: 'Kopi Susu Aren Brulee',
+                    price: 28000,
+                    image:
+                      'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop&q=80',
+                    quantity: 1,
+                    customizations: {
+                      sweetness: 'Normal (100%)',
+                      iceLevel: 'Normal Ice',
+                      milkType: 'Fresh Milk',
+                      beanRoast: 'Signature House Blend',
+                    },
+                    subtotal: 28000,
+                  },
+                ],
           subtotal: subtotal > 0 ? subtotal : 28000,
           voucherCode: state.appliedVoucher?.code,
           voucherDiscount,
@@ -627,9 +662,9 @@ export const useAppStore = create<AppStoreState>()(
           tax: tax > 0 ? tax : 2800,
           serviceFee: 2000,
           total: total > 0 ? total : 32800,
-          paymentMethod: customParams?.paymentMethod || "qris",
-          paymentStatus: "paid",
-          orderStatus: "pending",
+          paymentMethod: customParams?.paymentMethod || 'qris',
+          paymentStatus: 'paid',
+          orderStatus: 'pending',
           estimatedMinutes: 8,
           isKdsBumped: false,
           ...customParams,
@@ -648,14 +683,18 @@ export const useAppStore = create<AppStoreState>()(
 
         // Auto decrement mock inventory
         newOrder.items.forEach((orderItem) => {
-          if (orderItem.name.includes("Kopi") || orderItem.name.includes("Brew") || orderItem.name.includes("V60")) {
-            get().updateStock("inv-1", -(0.02 * orderItem.quantity)); // 20g beans per cup
-            get().updateStock("inv-6", -orderItem.quantity); // 1 cup
+          if (
+            orderItem.name.includes('Kopi') ||
+            orderItem.name.includes('Brew') ||
+            orderItem.name.includes('V60')
+          ) {
+            get().updateStock('inv-1', -(0.02 * orderItem.quantity)); // 20g beans per cup
+            get().updateStock('inv-6', -orderItem.quantity); // 1 cup
           }
-          if (orderItem.customizations.milkType.includes("Oat Milk")) {
-            get().updateStock("inv-3", -(0.2 * orderItem.quantity)); // 200ml oat milk
-          } else if (orderItem.customizations.milkType.includes("Fresh Milk")) {
-            get().updateStock("inv-4", -(0.2 * orderItem.quantity)); // 200ml fresh milk
+          if (orderItem.customizations.milkType.includes('Oat Milk')) {
+            get().updateStock('inv-3', -(0.2 * orderItem.quantity)); // 200ml oat milk
+          } else if (orderItem.customizations.milkType.includes('Fresh Milk')) {
+            get().updateStock('inv-4', -(0.2 * orderItem.quantity)); // 200ml fresh milk
           }
         });
 
@@ -683,13 +722,13 @@ export const useAppStore = create<AppStoreState>()(
                 ...ord,
                 orderStatus: status,
                 estimatedMinutes:
-                  status === "completed"
+                  status === 'completed'
                     ? 0
-                    : status === "ready"
-                    ? 1
-                    : status === "preparing"
-                    ? 5
-                    : ord.estimatedMinutes,
+                    : status === 'ready'
+                      ? 1
+                      : status === 'preparing'
+                        ? 5
+                        : ord.estimatedMinutes,
                 isKdsBumped: true,
               };
             }
@@ -698,7 +737,8 @@ export const useAppStore = create<AppStoreState>()(
         }));
       },
 
-      setActiveTrackingOrder: (orderId) => set({ activeTrackingOrderId: orderId }),
+      setActiveTrackingOrder: (orderId) =>
+        set({ activeTrackingOrderId: orderId }),
 
       getOrderById: (orderId) => {
         return get().orders.find((o) => o.id === orderId);
@@ -710,7 +750,10 @@ export const useAppStore = create<AppStoreState>()(
         set((state) => ({
           inventory: state.inventory.map((inv) => {
             if (inv.id === itemId) {
-              const newStock = Math.max(0, parseFloat((inv.stock + delta).toFixed(2)));
+              const newStock = Math.max(
+                0,
+                parseFloat((inv.stock + delta).toFixed(2))
+              );
               return { ...inv, stock: newStock };
             }
             return inv;
@@ -724,7 +767,7 @@ export const useAppStore = create<AppStoreState>()(
               return {
                 ...inv,
                 stock: actualStock,
-                lastRestocked: new Date().toISOString().split("T")[0],
+                lastRestocked: new Date().toISOString().split('T')[0],
               };
             }
             return inv;
@@ -742,7 +785,7 @@ export const useAppStore = create<AppStoreState>()(
           id: `res-${Date.now()}`,
           code: `RSV-${params.branchId.toUpperCase()}-${resNum}`,
           ...params,
-          status: "confirmed",
+          status: 'confirmed',
           createdAt: new Date().toISOString(),
         };
 
@@ -750,7 +793,7 @@ export const useAppStore = create<AppStoreState>()(
         set((state) => ({
           reservations: [newRes, ...state.reservations],
           tables: state.tables.map((t) =>
-            t.id === params.tableId ? { ...t, status: "reserved" } : t
+            t.id === params.tableId ? { ...t, status: 'reserved' } : t
           ),
         }));
 
@@ -779,7 +822,9 @@ export const useAppStore = create<AppStoreState>()(
                 ...ev,
                 isAttending: nextState,
                 spotsLeft: nextState ? ev.spotsLeft - 1 : ev.spotsLeft + 1,
-                attendeesCount: nextState ? ev.attendeesCount + 1 : ev.attendeesCount - 1,
+                attendeesCount: nextState
+                  ? ev.attendeesCount + 1
+                  : ev.attendeesCount - 1,
               };
             }
             return ev;
@@ -795,7 +840,9 @@ export const useAppStore = create<AppStoreState>()(
               return {
                 ...post,
                 isLiked: nextLiked,
-                likesCount: nextLiked ? post.likesCount + 1 : post.likesCount - 1,
+                likesCount: nextLiked
+                  ? post.likesCount + 1
+                  : post.likesCount - 1,
               };
             }
             return post;
@@ -809,9 +856,9 @@ export const useAppStore = create<AppStoreState>()(
           id: `post-${Date.now()}`,
           authorName: user.name,
           authorAvatar: user.avatar,
-          authorRole: "Active Community Member",
+          authorRole: 'Active Community Member',
           authorTier: user.tier,
-          timestamp: "Baru saja",
+          timestamp: 'Baru saja',
           title,
           content,
           tags,
@@ -832,7 +879,7 @@ export const useAppStore = create<AppStoreState>()(
           id: `reply-${Date.now()}`,
           authorName: user.name,
           authorAvatar: user.avatar,
-          timestamp: "Baru saja",
+          timestamp: 'Baru saja',
           content,
         };
 
@@ -854,7 +901,8 @@ export const useAppStore = create<AppStoreState>()(
       currentShift: INITIAL_SHIFT,
       reconcileShift: (actualCash, notes) => {
         set((state) => {
-          const expectedCash = state.currentShift.openingFloat + state.currentShift.totalCashSales;
+          const expectedCash =
+            state.currentShift.openingFloat + state.currentShift.totalCashSales;
           const variance = actualCash - expectedCash;
           return {
             currentShift: {
@@ -862,7 +910,11 @@ export const useAppStore = create<AppStoreState>()(
               cashDrawerActual: actualCash,
               variance,
               isClosed: true,
-              shiftEnd: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB",
+              shiftEnd:
+                new Date().toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }) + ' WIB',
               notes: notes || state.currentShift.notes,
             },
           };
@@ -870,7 +922,7 @@ export const useAppStore = create<AppStoreState>()(
       },
     }),
     {
-      name: "warkop-yareh-unified-state-v1",
+      name: 'warkop-yareh-unified-state-v1',
       storage: createJSONStorage(() => window.localStorage),
       partialize: (state) => ({
         activeBranchId: state.activeBranchId,

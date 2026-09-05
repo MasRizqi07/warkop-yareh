@@ -1,77 +1,104 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Param,
   Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Role } from '@warkop-yareh/database';
 import { ReservationService } from '../../application/services/reservation.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import {
   CreateReservationDto,
+  ListReservationsQueryDto,
   UpdateReservationStatusDto,
 } from '../dtos/reservation.dto';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
+import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 
-const RESERVATION_OPERATOR_ROLES = [
-  'STAFF',
-  'CASHIER',
-  'KITCHEN',
-  'MANAGER',
-  'ADMIN',
-  'OWNER',
-  'SUPERADMIN',
+const GLOBAL_RESERVATION_ROLES: readonly Role[] = [Role.ADMIN, Role.SUPERADMIN];
+const BRANCH_RESERVATION_ROLES: readonly Role[] = [
+  Role.STAFF,
+  Role.CASHIER,
+  Role.MANAGER,
+  Role.OWNER,
 ];
 
+@ApiTags('reservations')
+@ApiBearerAuth('JWT')
+@UseGuards(JwtAuthGuard)
 @Controller('api/v1')
 export class ReservationsController {
   constructor(private readonly reservationService: ReservationService) {}
 
   @Post('reservations')
   async create(
-    @CurrentUser() user: { id: string; role: string },
+    @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateReservationDto,
   ) {
-    const isEmployee = RESERVATION_OPERATOR_ROLES.includes(user.role);
-    const resolvedUserId = isEmployee ? body.userId || '' : user.id;
+    const isGlobal = GLOBAL_RESERVATION_ROLES.includes(user.role);
+    const isBranchOperator = BRANCH_RESERVATION_ROLES.includes(user.role);
+    const branchId = isGlobal
+      ? body.branchId
+      : isBranchOperator
+        ? this.requireAssignedBranch(user)
+        : body.branchId;
+    const userId =
+      isGlobal || isBranchOperator ? (body.userId ?? user.id) : user.id;
 
     const reservation = await this.reservationService.createReservation({
-      ...body,
-      userId: resolvedUserId,
+      userId,
+      branchId,
+      tableId: body.tableId,
+      date: body.date,
+      startTime: body.startTime,
+      endTime: body.endTime,
+      guestCount: body.guestCount,
+      specialRequests: body.specialRequests,
     });
     return { data: reservation };
   }
 
   @Get('reservations')
   async list(
-    @CurrentUser() user: { id: string; role: string },
-    @Query('branchId') branchId?: string,
-    @Query('userId') queryUserId?: string,
-    @Query('date') date?: string,
-    @Query('status') status?: string,
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: ListReservationsQueryDto,
   ) {
-    const isEmployee = RESERVATION_OPERATOR_ROLES.includes(user.role);
-    const resolvedUserId = isEmployee ? queryUserId : user.id;
+    const isGlobal = GLOBAL_RESERVATION_ROLES.includes(user.role);
+    const isBranchOperator = BRANCH_RESERVATION_ROLES.includes(user.role);
+    const branchId = isGlobal
+      ? query.branchId
+      : isBranchOperator
+        ? this.requireAssignedBranch(user)
+        : query.branchId;
+    const userId = isGlobal
+      ? query.userId
+      : isBranchOperator
+        ? query.userId
+        : user.id;
+
     const result = await this.reservationService.listReservations({
       branchId,
-      userId: resolvedUserId,
-      date,
-      status,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      userId,
+      date: query.date,
+      status: query.status,
+      page: query.page,
+      limit: query.limit,
     });
-    return paginate(result.data, result.total, parseInt(page), parseInt(limit));
+    return paginate(result.data, result.total, query.page, query.limit);
   }
 
   @Patch('reservations/:id/status')
   async updateStatus(
     @Param('id') id: string,
     @Body() body: UpdateReservationStatusDto,
-    @CurrentUser() user: { id: string; role: string; branchId: string },
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     const reservation = await this.reservationService.updateStatus(
       id,
@@ -85,5 +112,12 @@ export class ReservationsController {
   async listTables(@Param('branchId') branchId: string) {
     const tables = await this.reservationService.listTables(branchId);
     return { data: tables };
+  }
+
+  private requireAssignedBranch(user: AuthenticatedUser): string {
+    if (!user.branchId) {
+      throw new ForbiddenException('A branch assignment is required');
+    }
+    return user.branchId;
   }
 }

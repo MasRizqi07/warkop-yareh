@@ -169,10 +169,11 @@ export default function AdminBranchesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">
+              <label htmlFor="branch-address" className="block text-xs font-semibold text-neutral-300 mb-1">
                 Alamat Lengkap
               </label>
               <input
+                id="branch-address"
                 type="text"
                 disabled
                 value={selectedBranch.address}
@@ -182,12 +183,13 @@ export default function AdminBranchesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                <label htmlFor="branch-wifi-name" className="block text-xs font-semibold text-neutral-300 mb-1">
                   Nama SSID Wi-Fi
                 </label>
                 <div className="relative">
                   <Wifi className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
                   <input
+                    id="branch-wifi-name"
                     type="text"
                     value={wifiName}
                     onChange={(e) => setWifiName(e.target.value)}
@@ -197,10 +199,11 @@ export default function AdminBranchesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                <label htmlFor="branch-wifi-password" className="block text-xs font-semibold text-neutral-300 mb-1">
                   Password Wi-Fi Pelanggan
                 </label>
                 <input
+                  id="branch-wifi-password"
                   type="text"
                   value={wifiPass}
                   onChange={(e) => setWifiPass(e.target.value)}
@@ -212,7 +215,7 @@ export default function AdminBranchesPage() {
             {/* Global Multiplier */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-semibold text-neutral-300">
+                <label htmlFor="branch-price-multiplier" className="text-xs font-semibold text-neutral-300">
                   Multiplier Harga Cabang (Regional Pricing)
                 </label>
                 <span className="font-mono text-xs text-[#f59e0b] font-bold">
@@ -220,6 +223,7 @@ export default function AdminBranchesPage() {
                 </span>
               </div>
               <input
+                id="branch-price-multiplier"
                 type="range"
                 min="0.85"
                 max="1.20"
@@ -286,6 +290,7 @@ export default function AdminBranchesPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-neutral-400 text-[11px]">Rp</span>
                       <input
+                        aria-label={`Harga ${prod.name} di ${selectedBranch.name}`}
                         type="number"
                         step="1000"
                         value={currentOverride}

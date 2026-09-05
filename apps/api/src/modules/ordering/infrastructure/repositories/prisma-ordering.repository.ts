@@ -1,73 +1,158 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  OrderStatus,
+  PaymentStatus,
+  Prisma,
+} from '@warkop-yareh/database';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
-import { IOrderingRepository } from '../../domain/repositories/ordering.repository.interface';
+import {
+  CreateOrderData,
+  DuplicateIdempotencyKeyError,
+  IOrderingRepository,
+  OrderItemInput,
+} from '../../domain/repositories/ordering.repository.interface';
+
+const orderDetailsInclude = Prisma.validator<Prisma.OrderInclude>()({
+  items: { include: { product: true } },
+  payment: true,
+  feedback: true,
+  user: {
+    select: { id: true, name: true, email: true, phone: true },
+  },
+});
+
+const orderListInclude = Prisma.validator<Prisma.OrderInclude>()({
+  items: true,
+  payment: true,
+  user: {
+    select: { id: true, name: true, email: true, phone: true },
+  },
+});
 
 @Injectable()
 export class PrismaOrderingRepository implements IOrderingRepository {
   constructor(private readonly prisma: DatabaseService) {}
 
-  async getProductsByIds(ids: string[]) {
-    return this.prisma.product.findMany({
-      where: { id: { in: ids } },
+  async getAvailableProductsByIds(branchId: string, ids: string[]) {
+    const branchProducts = await this.prisma.branchProduct.findMany({
+      where: {
+        branchId,
+        productId: { in: ids },
+        isAvailable: true,
+        branch: { isActive: true, deletedAt: null },
+        product: { isActive: true, deletedAt: null },
+      },
+      select: {
+        priceOverride: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            customizations: { select: { name: true, options: true } },
+          },
+        },
+      },
+    });
+
+    return branchProducts.map(({ priceOverride, product }) => ({
+      id: product.id,
+      name: product.name,
+      unitPrice: priceOverride ?? product.price,
+      customizations: product.customizations,
+    }));
+  }
+
+  async getActiveTableForBranch(tableId: string, branchId: string) {
+    return this.prisma.table.findFirst({
+      where: { id: tableId, branchId, isActive: true },
+      select: { id: true },
     });
   }
 
-  async createOrder(data: any, orderItems: any[], outboxPayload: any) {
-    return this.prisma.$transaction(async (tx: any) => {
-      const order = await tx.order.create({
-        data: {
-          ...data,
-          items: { create: orderItems },
-        },
-        include: { items: true },
-      });
-
-      await tx.outboxEvent.create({
-        data: {
-          aggregateType: 'Order',
-          aggregateId: order.id,
-          eventType: 'OrderCreated',
-          payload: {
-            ...outboxPayload,
-            orderId: order.id,
-            orderNumber: order.orderNumber,
-          },
-        },
-      });
-
-      return order;
+  async findByIdempotencyKeyHash(hash: string) {
+    return this.prisma.order.findUnique({
+      where: { idempotencyKeyHash: hash },
+      include: orderDetailsInclude,
     });
+  }
+
+  async createOrder(
+    data: CreateOrderData,
+    orderItems: OrderItemInput[],
+    outboxPayload: Prisma.InputJsonObject,
+  ) {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const order = await tx.order.create({
+          data: {
+            ...data,
+            items: {
+              create: orderItems.map((item) => ({
+                ...item,
+                customizations: item.customizations ?? Prisma.JsonNull,
+              })),
+            },
+          },
+          include: orderDetailsInclude,
+        });
+
+        await tx.outboxEvent.create({
+          data: {
+            aggregateType: 'Order',
+            aggregateId: order.id,
+            eventType: 'OrderCreated',
+            payload: {
+              ...outboxPayload,
+              orderId: order.id,
+              orderNumber: order.orderNumber,
+            },
+          },
+        });
+
+        return order;
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002' &&
+        this.isIdempotencyConstraint(error.meta?.target)
+      ) {
+        throw new DuplicateIdempotencyKeyError();
+      }
+      throw error;
+    }
   }
 
   async getOrder(id: string) {
     return this.prisma.order.findFirst({
       where: {
+        deletedAt: null,
         OR: [{ id }, { orderNumber: id }],
       },
-      include: { items: { include: { product: true } }, user: true },
+      include: orderDetailsInclude,
     });
   }
 
   async listOrders(params: {
     userId?: string;
     branchId?: string;
-    status?: string;
+    status?: OrderStatus;
     page: number;
     limit: number;
   }) {
     const { userId, branchId, status, page, limit } = params;
-    const where: any = {};
-    if (userId) where.userId = userId;
-    if (branchId) where.branchId = branchId;
-    if (status) where.status = status;
+    const where: Prisma.OrderWhereInput = {
+      deletedAt: null,
+      ...(userId ? { userId } : {}),
+      ...(branchId ? { branchId } : {}),
+      ...(status ? { status } : {}),
+    };
 
-    const [data, total] = await Promise.all([
+    const [data, total] = await this.prisma.$transaction([
       this.prisma.order.findMany({
         where,
-        include: {
-          items: true,
-          user: { select: { id: true, name: true, email: true } },
-        },
+        include: orderListInclude,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -77,21 +162,20 @@ export class PrismaOrderingRepository implements IOrderingRepository {
     return { data, total };
   }
 
-  async updateOrderStatus(id: string, status: string) {
-    return this.prisma.$transaction(async (tx: any) => {
+  async updateOrderStatus(id: string, status: OrderStatus) {
+    return this.prisma.$transaction(async (tx) => {
       const existing = await tx.order.findFirst({
-        where: {
-          OR: [{ id }, { orderNumber: id }],
-        },
+        where: { deletedAt: null, OR: [{ id }, { orderNumber: id }] },
+        select: { id: true },
       });
       if (!existing) {
-        throw new BadRequestException(`Order not found: ${id}`);
+        throw new NotFoundException(`Order not found: ${id}`);
       }
 
       const order = await tx.order.update({
         where: { id: existing.id },
-        data: { status: status as any },
-        include: { items: true },
+        data: { status },
+        include: orderDetailsInclude,
       });
 
       await tx.outboxEvent.create({
@@ -107,21 +191,20 @@ export class PrismaOrderingRepository implements IOrderingRepository {
     });
   }
 
-  async updatePaymentStatus(id: string, paymentStatus: string) {
-    return this.prisma.$transaction(async (tx: any) => {
+  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus) {
+    return this.prisma.$transaction(async (tx) => {
       const existing = await tx.order.findFirst({
-        where: {
-          OR: [{ id }, { orderNumber: id }],
-        },
+        where: { deletedAt: null, OR: [{ id }, { orderNumber: id }] },
+        select: { id: true },
       });
       if (!existing) {
-        throw new BadRequestException(`Order not found: ${id}`);
+        throw new NotFoundException(`Order not found: ${id}`);
       }
 
       const order = await tx.order.update({
         where: { id: existing.id },
-        data: { paymentStatus: paymentStatus as any },
-        include: { items: true },
+        data: { paymentStatus },
+        include: orderDetailsInclude,
       });
 
       await tx.outboxEvent.create({
@@ -137,12 +220,32 @@ export class PrismaOrderingRepository implements IOrderingRepository {
     });
   }
 
-  async createFeedback(id: string, data: any) {
-    return this.prisma.orderFeedback.create({
-      data: {
-        orderId: id,
-        ...data,
-      },
+  async createFeedback(
+    id: string,
+    data: {
+      productRating: number;
+      serviceRating: number;
+      atmosphereRating: number;
+      comment?: string;
+    },
+  ) {
+    const order = await this.prisma.order.findFirst({
+      where: { deletedAt: null, OR: [{ id }, { orderNumber: id }] },
+      select: { id: true },
     });
+    if (!order) {
+      throw new NotFoundException(`Order not found: ${id}`);
+    }
+
+    return this.prisma.orderFeedback.create({
+      data: { orderId: order.id, ...data },
+    });
+  }
+
+  private isIdempotencyConstraint(target: unknown): boolean {
+    if (Array.isArray(target)) {
+      return target.some((field) => field === 'idempotencyKeyHash');
+    }
+    return String(target).includes('idempotencyKeyHash');
   }
 }

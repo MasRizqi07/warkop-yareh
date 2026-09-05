@@ -167,10 +167,11 @@ export default function AuthPage() {
               >
                 {mode === "register" && (
                   <div>
-                    <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+                    <label htmlFor="auth-full-name" className="block text-xs font-semibold text-neutral-300 mb-1.5">
                       Nama Lengkap
                     </label>
                     <input
+                      id="auth-full-name"
                       type="text"
                       required
                       value={fullName}
@@ -182,7 +183,7 @@ export default function AuthPage() {
                 )}
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+                  <label htmlFor="auth-phone" className="block text-xs font-semibold text-neutral-300 mb-1.5">
                     Nomor WhatsApp
                   </label>
                   <div className="relative">
@@ -190,6 +191,7 @@ export default function AuthPage() {
                       <Phone className="w-4 h-4" />
                     </div>
                     <input
+                      id="auth-phone"
                       type="tel"
                       required
                       value={phoneNumber}
@@ -257,6 +259,7 @@ export default function AuthPage() {
                     <input
                       key={i}
                       id={`otp-${i}`}
+                      aria-label={`OTP digit ${i + 1} of 6`}
                       type="text"
                       inputMode="numeric"
                       maxLength={1}

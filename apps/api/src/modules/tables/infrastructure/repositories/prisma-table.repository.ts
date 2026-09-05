@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 import { ITableRepository } from '../../domain/repositories/table.repository.interface';
 import { TableStatus } from '@warkop-yareh/database';
+import { WaiterCallType } from '@warkop-yareh/database';
 
 @Injectable()
 export class PrismaTableRepository implements ITableRepository {
@@ -46,9 +47,26 @@ export class PrismaTableRepository implements ITableRepository {
     });
   }
 
+  async getRecentPendingWaiterCall(
+    tableId: string,
+    type: WaiterCallType,
+    since: Date,
+  ) {
+    return this.prisma.waiterCall.findFirst({
+      where: {
+        tableId,
+        type,
+        status: 'PENDING',
+        createdAt: { gte: since },
+      },
+      include: { table: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async createWaiterCall(
     tableId: string,
-    type: 'CALL_WAITER' | 'REQUEST_BILL' | 'NEED_ASSISTANCE',
+    type: WaiterCallType,
   ) {
     return this.prisma.waiterCall.create({
       data: {

@@ -1,21 +1,67 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
+import {
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+import { OrderStatus, OrderType } from '@warkop-yareh/database';
 import { OrderingService } from './ordering.service';
 import { EventsGateway } from '../../../websockets/events.gateway';
-import { BadRequestException, ConflictException } from '@nestjs/common';
-import { IOrderingRepository } from '../../domain/repositories/ordering.repository.interface';
+import {
+  DuplicateIdempotencyKeyError,
+  IOrderingRepository,
+  OrderDetails,
+} from '../../domain/repositories/ordering.repository.interface';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
-import { RedisService } from '../../../../infrastructure/redis/redis.service';
+
+const makeOrder = (
+  overrides: Partial<OrderDetails> = {},
+): OrderDetails =>
+  ({
+    id: 'order-1',
+    orderNumber: 'WY-20260905-0011223344556677',
+    userId: 'user-1',
+    branchId: 'branch-1',
+    tableId: null,
+    type: OrderType.DINE_IN,
+    status: OrderStatus.PENDING,
+    subtotal: 10_000,
+    tax: 1_100,
+    discount: 0,
+    total: 11_100,
+    paymentStatus: 'UNPAID',
+    pickupTime: null,
+    notes: null,
+    customerName: null,
+    customerPhone: null,
+    loyaltyPointsEarned: 0,
+    loyaltyPointsUsed: 0,
+    idempotencyKeyHash: 'hash',
+    requestFingerprint: 'fingerprint',
+    createdAt: new Date('2026-09-05T00:00:00.000Z'),
+    updatedAt: new Date('2026-09-05T00:00:00.000Z'),
+    deletedAt: null,
+    items: [],
+    payment: null,
+    feedback: null,
+    user: {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      phone: null,
+    },
+    ...overrides,
+  }) as OrderDetails;
 
 describe('OrderingService', () => {
   let service: OrderingService;
-  let mockOrderingRepo: jest.Mocked<IOrderingRepository>;
-  let mockEventsGateway: jest.Mocked<EventsGateway>;
-  let mockMidtransService: jest.Mocked<MidtransService>;
+  let repository: jest.Mocked<IOrderingRepository>;
+  let eventsGateway: jest.Mocked<EventsGateway>;
 
   beforeEach(async () => {
-    mockOrderingRepo = {
-      getProductsByIds: jest.fn(),
+    repository = {
+      getAvailableProductsByIds: jest.fn(),
+      getActiveTableForBranch: jest.fn(),
+      findByIdempotencyKeyHash: jest.fn().mockResolvedValue(null),
       createOrder: jest.fn(),
       getOrder: jest.fn(),
       listOrders: jest.fn(),
@@ -24,166 +70,258 @@ describe('OrderingService', () => {
       createFeedback: jest.fn(),
     };
 
-    mockEventsGateway = {
+    eventsGateway = {
       broadcastOrderCreated: jest.fn(),
       broadcastOrderUpdated: jest.fn(),
       broadcastPaymentUpdated: jest.fn(),
-      broadcastWaiterCalled: jest.fn(),
-      broadcastTableUpdated: jest.fn(),
     } as unknown as jest.Mocked<EventsGateway>;
-
-    mockMidtransService = {
-      getTransactionStatus: jest.fn(),
-    } as unknown as jest.Mocked<MidtransService>;
-
-    const mockRedisStore = new Map<string, any>();
-    const mockRedisService = {
-      getJson: jest
-        .fn()
-        .mockImplementation((key: string) =>
-          Promise.resolve(mockRedisStore.get(key) || null),
-        ),
-      setJson: jest
-        .fn()
-        .mockImplementation((key: string, value: any) => {
-          mockRedisStore.set(key, value);
-          return Promise.resolve();
-        }),
-    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrderingService,
-        { provide: 'IOrderingRepository', useValue: mockOrderingRepo },
-        { provide: EventsGateway, useValue: mockEventsGateway },
-        { provide: MidtransService, useValue: mockMidtransService },
-        { provide: RedisService, useValue: mockRedisService },
+        { provide: 'IOrderingRepository', useValue: repository },
+        { provide: EventsGateway, useValue: eventsGateway },
+        {
+          provide: MidtransService,
+          useValue: { getTransactionStatus: jest.fn() },
+        },
       ],
     }).compile();
 
-    service = module.get<OrderingService>(OrderingService);
+    service = module.get(OrderingService);
   });
 
-  it('should create an order and calculate totals correctly based on server catalog prices', async () => {
-    mockOrderingRepo.getProductsByIds.mockResolvedValue([
-      { id: 'prod-1', price: 10000, name: 'Kopi Susu' },
-      { id: 'prod-2', price: 20000, name: 'Nasi Goreng' },
+  it('uses authoritative branch prices and calculates tax server-side', async () => {
+    repository.getAvailableProductsByIds.mockResolvedValue([
+      {
+        id: 'prod-1',
+        name: 'Kopi Susu',
+        unitPrice: 12_000,
+        customizations: [],
+      },
+      {
+        id: 'prod-2',
+        name: 'Nasi Goreng',
+        unitPrice: 20_000,
+        customizations: [],
+      },
+    ]);
+    repository.createOrder.mockResolvedValue(makeOrder({ subtotal: 52_000 }));
+
+    await service.createOrder({
+      userId: 'user-1',
+      branchId: 'branch-1',
+      idempotencyKey: 'idem-key-001',
+      items: [
+        { productId: 'prod-1', quantity: 1 },
+        { productId: 'prod-2', quantity: 2 },
+      ],
+    });
+
+    expect(repository.getAvailableProductsByIds).toHaveBeenCalledWith(
+      'branch-1',
+      ['prod-1', 'prod-2'],
+    );
+    expect(repository.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: OrderType.DINE_IN,
+        subtotal: 52_000,
+        tax: 5_720,
+        total: 57_720,
+        idempotencyKeyHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        requestFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
+      }),
+      expect.any(Array),
+      expect.any(Object),
+    );
+  });
+
+  it('rejects missing or unavailable products instead of creating zero-price items', async () => {
+    repository.getAvailableProductsByIds.mockResolvedValue([]);
+
+    await expect(
+      service.createOrder({
+        userId: 'user-1',
+        branchId: 'branch-1',
+        idempotencyKey: 'idem-key-002',
+        items: [{ productId: 'missing', quantity: 1 }],
+      }),
+    ).rejects.toThrow(BadRequestException);
+    expect(repository.createOrder).not.toHaveBeenCalled();
+  });
+
+  it('adds only customization prices configured in the catalog', async () => {
+    repository.getAvailableProductsByIds.mockResolvedValue([
+      {
+        id: 'prod-1',
+        name: 'Latte',
+        unitPrice: 20_000,
+        customizations: [
+          {
+            name: 'milkType',
+            options: [
+              { label: 'Fresh Milk', price: 0 },
+              { label: 'Oat Milk', price: 6_000 },
+            ],
+          },
+        ],
+      },
+    ]);
+    repository.createOrder.mockResolvedValue(makeOrder({ subtotal: 26_000 }));
+
+    await service.createOrder({
+      userId: 'user-1',
+      branchId: 'branch-1',
+      idempotencyKey: 'idem-key-003',
+      items: [
+        {
+          productId: 'prod-1',
+          quantity: 1,
+          customizations: { milkType: 'Oat Milk' },
+        },
+      ],
+    });
+
+    expect(repository.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ subtotal: 26_000 }),
+      [expect.objectContaining({ unitPrice: 26_000, totalPrice: 26_000 })],
+      expect.any(Object),
+    );
+  });
+
+  it('replays the persisted response for the same idempotent request', async () => {
+    const payload = {
+      userId: 'user-1',
+      branchId: 'branch-1',
+      idempotencyKey: 'idem-key-004',
+      items: [{ productId: 'prod-1', quantity: 1 }],
+    };
+    repository.getAvailableProductsByIds.mockResolvedValue([
+      {
+        id: 'prod-1',
+        name: 'Espresso',
+        unitPrice: 18_000,
+        customizations: [],
+      },
     ]);
 
-    mockOrderingRepo.createOrder.mockResolvedValue({
-      id: 'order-1',
-      subtotal: 50000,
+    let persisted: OrderDetails | null = null;
+    repository.findByIdempotencyKeyHash.mockImplementation(async () => persisted);
+    repository.createOrder.mockImplementation(async (data) => {
+      persisted = makeOrder({
+        idempotencyKeyHash: data.idempotencyKeyHash,
+        requestFingerprint: data.requestFingerprint,
+      });
+      return persisted;
+    });
+
+    const first = await service.createOrder(payload);
+    const second = await service.createOrder(payload);
+
+    expect(second).toEqual(first);
+    expect(repository.createOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects reusing an idempotency key with a different payload', async () => {
+    repository.getAvailableProductsByIds.mockResolvedValue([
+      {
+        id: 'prod-1',
+        name: 'Espresso',
+        unitPrice: 18_000,
+        customizations: [],
+      },
+    ]);
+    repository.createOrder.mockImplementation(async (data) =>
+      makeOrder({
+        idempotencyKeyHash: data.idempotencyKeyHash,
+        requestFingerprint: data.requestFingerprint,
+      }),
+    );
+
+    const initial = await service.createOrder({
+      userId: 'user-1',
+      branchId: 'branch-1',
+      idempotencyKey: 'idem-key-005',
+      items: [{ productId: 'prod-1', quantity: 1 }],
+    });
+    repository.findByIdempotencyKeyHash.mockResolvedValue(initial);
+
+    await expect(
+      service.createOrder({
+        userId: 'user-1',
+        branchId: 'branch-1',
+        idempotencyKey: 'idem-key-005',
+        items: [{ productId: 'prod-1', quantity: 2 }],
+      }),
+    ).rejects.toThrow(ConflictException);
+  });
+
+  it('recovers a concurrent idempotency race by loading the winning order', async () => {
+    repository.getAvailableProductsByIds.mockResolvedValue([
+      {
+        id: 'prod-1',
+        name: 'Espresso',
+        unitPrice: 18_000,
+        customizations: [],
+      },
+    ]);
+    let winningOrder: OrderDetails | null = null;
+    repository.findByIdempotencyKeyHash.mockImplementation(
+      async () => winningOrder,
+    );
+    repository.createOrder.mockImplementation(async (data) => {
+      winningOrder = makeOrder({
+        idempotencyKeyHash: data.idempotencyKeyHash,
+        requestFingerprint: data.requestFingerprint,
+      });
+      throw new DuplicateIdempotencyKeyError();
     });
 
     const result = await service.createOrder({
       userId: 'user-1',
       branchId: 'branch-1',
-      items: [
-        { productId: 'prod-1', quantity: 1 }, // 1 * 10000 = 10000
-        { productId: 'prod-2', quantity: 2 }, // 2 * 20000 = 40000
-      ], // subtotal = 50000, tax = 5500, total = 55500
-    });
-
-    expect(mockOrderingRepo.createOrder).toHaveBeenCalledWith(
-      expect.objectContaining({
-        subtotal: 50000,
-        tax: 5500,
-        total: 55500,
-      }),
-      expect.any(Array),
-      expect.any(Object),
-    );
-    expect(result.id).toBe('order-1');
-  });
-
-  it('idempotency: same Idempotency-Key + same payload submitted twice replays first response without creating duplicate order', async () => {
-    mockOrderingRepo.getProductsByIds.mockResolvedValue([
-      { id: 'prod-1', price: 15000, name: 'Es Teh' },
-    ]);
-
-    mockOrderingRepo.createOrder.mockResolvedValue({
-      id: 'order-idempotent-1',
-      subtotal: 15000,
-    });
-
-    const payload = {
-      userId: 'user-1',
-      branchId: 'branch-1',
+      idempotencyKey: 'idem-key-006',
       items: [{ productId: 'prod-1', quantity: 1 }],
-      idempotencyKey: 'idem-key-999',
-    };
+    });
 
-    const firstCall = await service.createOrder(payload);
-    expect(mockOrderingRepo.createOrder).toHaveBeenCalledTimes(1);
-    expect(firstCall.id).toBe('order-idempotent-1');
-
-    // Second call with same idempotency key and same payload
-    const secondCall = await service.createOrder(payload);
-    expect(mockOrderingRepo.createOrder).toHaveBeenCalledTimes(1); // Not called again!
-    expect(secondCall).toEqual(firstCall);
+    expect(result).toBe(winningOrder);
   });
 
-  it('idempotency: different payload with same Idempotency-Key throws ConflictException', async () => {
-    mockOrderingRepo.getProductsByIds.mockResolvedValue([
-      { id: 'prod-1', price: 15000, name: 'Es Teh' },
-      { id: 'prod-2', price: 25000, name: 'Kopi' },
-    ]);
-
-    mockOrderingRepo.createOrder.mockResolvedValue({
-      id: 'order-idempotent-1',
-      subtotal: 15000,
-    });
-
-    const initialPayload = {
-      userId: 'user-1',
-      branchId: 'branch-1',
-      items: [{ productId: 'prod-1', quantity: 1 }],
-      idempotencyKey: 'idem-key-conflict',
-    };
-
-    await service.createOrder(initialPayload);
-
-    const tamperedPayload = {
-      userId: 'user-1',
-      branchId: 'branch-1',
-      items: [{ productId: 'prod-2', quantity: 1 }], // different item!
-      idempotencyKey: 'idem-key-conflict',
-    };
-
-    await expect(service.createOrder(tamperedPayload)).rejects.toThrow(ConflictException);
-  });
-
-  it('should allow valid status transition', async () => {
-    mockOrderingRepo.getOrder.mockResolvedValue({
-      id: 'order-1',
-      status: 'PENDING',
-      items: [],
-    });
-
-    mockOrderingRepo.updateOrderStatus.mockResolvedValue({
-      id: 'order-1',
-      status: 'CONFIRMED',
-    });
-
-    await service.updateOrderStatus('order-1', 'CONFIRMED');
-
-    expect(mockOrderingRepo.updateOrderStatus).toHaveBeenCalledWith(
-      'order-1',
-      'CONFIRMED',
-    );
-    expect(mockEventsGateway.broadcastOrderUpdated).toHaveBeenCalled();
-  });
-
-  it('should reject invalid status transition', async () => {
-    mockOrderingRepo.getOrder.mockResolvedValue({
-      id: 'order-1',
-      status: 'PENDING',
-      items: [],
-    });
+  it('validates table ownership by branch', async () => {
+    repository.getActiveTableForBranch.mockResolvedValue(null);
 
     await expect(
-      service.updateOrderStatus('order-1', 'COMPLETED'),
+      service.createOrder({
+        userId: 'user-1',
+        branchId: 'branch-1',
+        tableId: 'table-other-branch',
+        idempotencyKey: 'idem-key-007',
+        items: [{ productId: 'prod-1', quantity: 1 }],
+      }),
     ).rejects.toThrow(BadRequestException);
-    expect(mockOrderingRepo.updateOrderStatus).not.toHaveBeenCalled();
+  });
+
+  it('allows valid state transitions and broadcasts the update', async () => {
+    repository.getOrder.mockResolvedValue(makeOrder());
+    repository.updateOrderStatus.mockResolvedValue(
+      makeOrder({ status: OrderStatus.CONFIRMED }),
+    );
+
+    await service.updateOrderStatus('order-1', OrderStatus.CONFIRMED);
+
+    expect(repository.updateOrderStatus).toHaveBeenCalledWith(
+      'order-1',
+      OrderStatus.CONFIRMED,
+    );
+    expect(eventsGateway.broadcastOrderUpdated).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects invalid state transitions', async () => {
+    repository.getOrder.mockResolvedValue(makeOrder());
+
+    await expect(
+      service.updateOrderStatus('order-1', OrderStatus.COMPLETED),
+    ).rejects.toThrow(BadRequestException);
+    expect(repository.updateOrderStatus).not.toHaveBeenCalled();
   });
 });

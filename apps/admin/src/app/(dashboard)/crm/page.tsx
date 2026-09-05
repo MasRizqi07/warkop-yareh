@@ -373,6 +373,7 @@ export default function PatronCrmLifecyclePage() {
                 search
               </span>
               <input
+                aria-label="Search patrons"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

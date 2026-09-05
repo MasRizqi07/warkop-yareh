@@ -1,47 +1,52 @@
-import type { Metadata, Viewport } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import { Inter, Playfair_Display, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-import "./globals.css";
-import { Providers } from "./providers";
-import { SITE } from "@/lib/constants";
-import { UniversalHeader } from "@/components/layout/UniversalHeader";
-import { CartDrawer } from "@/components/cart/CartDrawer";
-import { PwaBottomDock } from "@/components/navigation/PwaBottomDock";
+import type { Metadata, Viewport } from 'next';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import {
+  Inter,
+  Playfair_Display,
+  Plus_Jakarta_Sans,
+  JetBrains_Mono,
+} from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
+import { SITE } from '@/lib/constants';
+import { UniversalHeader } from '@/components/layout/UniversalHeader';
+import { CartDrawer } from '@/components/cart/CartDrawer';
+import { PwaBottomDock } from '@/components/navigation/PwaBottomDock';
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8f5f0" },
-    { media: "(prefers-color-scheme: dark)", color: "#14110e" },
+    { media: '(prefers-color-scheme: light)', color: '#f8f5f0' },
+    { media: '(prefers-color-scheme: dark)', color: '#14110e' },
   ],
 };
 
 const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  variable: '--font-inter',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  variable: '--font-plus-jakarta-sans',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  variable: '--font-jetbrains-mono',
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
 });
 
 const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
@@ -52,29 +57,29 @@ export const metadata: Metadata = {
   },
   description: SITE.description,
   keywords: [
-    "warkop yareh surabaya",
-    "warkop wonokromo",
-    "coffee shop surabaya",
-    "tempat nongkrong surabaya",
-    "coworking space surabaya",
-    "cafe premium surabaya",
-    "community hub surabaya",
-    "event space surabaya",
-    "kopi specialty surabaya",
-    "warkop modern surabaya",
+    'warkop yareh surabaya',
+    'warkop wonokromo',
+    'coffee shop surabaya',
+    'tempat nongkrong surabaya',
+    'coworking space surabaya',
+    'cafe premium surabaya',
+    'community hub surabaya',
+    'event space surabaya',
+    'kopi specialty surabaya',
+    'warkop modern surabaya',
   ],
   authors: [{ name: SITE.name }],
   creator: SITE.name,
   openGraph: {
-    type: "website",
-    locale: "id_ID",
+    type: 'website',
+    locale: 'id_ID',
     url: SITE.url,
     siteName: SITE.name,
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
     images: [
       {
-        url: "/og-image.jpg",
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
         alt: SITE.name,
@@ -82,10 +87,10 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: 'summary_large_image',
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
-    images: ["/og-image.jpg"],
+    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
@@ -93,9 +98,9 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   },
   alternates: {
@@ -105,49 +110,49 @@ export const metadata: Metadata = {
 
 // JSON-LD Structured Data
 const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "CafeOrCoffeeShop",
+  '@context': 'https://schema.org',
+  '@type': 'CafeOrCoffeeShop',
   name: SITE.name,
   description: SITE.description,
   url: SITE.url,
   telephone: SITE.phone,
   email: SITE.email,
   address: {
-    "@type": "PostalAddress",
-    streetAddress: "Jl. Raya Wonokromo No. 42",
-    addressLocality: "Surabaya",
-    addressRegion: "Jawa Timur",
-    postalCode: "60243",
-    addressCountry: "ID",
+    '@type': 'PostalAddress',
+    streetAddress: 'Jl. Raya Wonokromo No. 42',
+    addressLocality: 'Surabaya',
+    addressRegion: 'Jawa Timur',
+    postalCode: '60243',
+    addressCountry: 'ID',
   },
   geo: {
-    "@type": "GeoCoordinates",
+    '@type': 'GeoCoordinates',
     latitude: SITE.coordinates.lat,
     longitude: SITE.coordinates.lng,
   },
   openingHoursSpecification: [
     {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens: "07:00",
-      closes: "02:00",
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '07:00',
+      closes: '02:00',
     },
     {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Saturday", "Sunday"],
-      opens: "07:00",
-      closes: "03:00",
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Saturday', 'Sunday'],
+      opens: '07:00',
+      closes: '03:00',
     },
   ],
-  priceRange: "$$",
-  servesCuisine: ["Coffee", "Indonesian Food", "Pastry"],
+  priceRange: '$$',
+  servesCuisine: ['Coffee', 'Indonesian Food', 'Pastry'],
   hasMenu: `${SITE.url}/menu`,
   acceptsReservations: true,
   aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "3000",
-    bestRating: "5",
+    '@type': 'AggregateRating',
+    ratingValue: '4.9',
+    reviewCount: '3000',
+    bestRating: '5',
   },
   sameAs: [
     SITE.social.instagram,
@@ -163,7 +168,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="dark" suppressHydrationWarning>
+    <html
+      lang="id"
+      className="dark"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <script
           type="application/ld+json"

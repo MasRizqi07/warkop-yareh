@@ -1,135 +1,190 @@
-/* eslint-disable */
+import { createHash, randomBytes } from 'node:crypto';
 import {
-  Injectable,
-  Inject,
   BadRequestException,
   ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
   forwardRef,
-  Optional,
 } from '@nestjs/common';
-import type { IOrderingRepository } from '../../domain/repositories/ordering.repository.interface';
+import {
+  OrderStatus,
+  OrderType,
+  PaymentStatus,
+  Prisma,
+} from '@warkop-yareh/database';
+import type {
+  DuplicateIdempotencyKeyError,
+  IOrderingRepository,
+  OrderDetails,
+  OrderItemInput,
+  ProductCustomizationDefinition,
+} from '../../domain/repositories/ordering.repository.interface';
 import { EventsGateway } from '../../../websockets/events.gateway';
 import { Order } from '../../domain/entities/order.entity';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
-import { RedisService } from '../../../../infrastructure/redis/redis.service';
+
+export interface CreateOrderInput {
+  userId: string;
+  branchId: string;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    customizations?: Record<string, string>;
+    notes?: string;
+  }>;
+  type?: OrderType;
+  tableId?: string;
+  notes?: string;
+  idempotencyKey: string;
+}
 
 @Injectable()
 export class OrderingService {
+  private readonly logger = new Logger(OrderingService.name);
+
   constructor(
     @Inject('IOrderingRepository')
     private readonly orderingRepo: IOrderingRepository,
     private readonly eventsGateway: EventsGateway,
     @Inject(forwardRef(() => MidtransService))
     private readonly midtransService: MidtransService,
-    @Optional()
-    private readonly redisService?: RedisService,
   ) {}
 
-  async createOrder(data: {
-    userId: string;
-    branchId: string;
-    items: Array<{
-      productId: string;
-      quantity: number;
-      customizations?: any;
-      notes?: string;
-    }>;
-    notes?: string;
-    idempotencyKey?: string;
-  }) {
-    const { userId, branchId, items, notes, idempotencyKey } = data;
+  async createOrder(data: CreateOrderInput) {
+    const idempotencyKey = data.idempotencyKey.trim();
+    if (idempotencyKey.length < 8 || idempotencyKey.length > 128) {
+      throw new BadRequestException(
+        'Idempotency-Key must contain between 8 and 128 characters',
+      );
+    }
 
-    if (idempotencyKey && this.redisService) {
-      const cacheKey = `idempotency:order:${idempotencyKey}`;
-      const cached = await this.redisService.getJson<{
-        payload: any;
-        response: any;
-      }>(cacheKey);
+    const type = data.type ?? OrderType.DINE_IN;
+    if (type !== OrderType.DINE_IN && data.tableId) {
+      throw new BadRequestException(
+        'tableId can only be used with DINE_IN orders',
+      );
+    }
 
-      if (cached) {
-        const currentPayload = JSON.stringify({ userId, branchId, items });
-        const cachedPayload = JSON.stringify(cached.payload);
-        if (currentPayload === cachedPayload) {
-          return cached.response;
-        }
-        throw new ConflictException(
-          'Idempotency key conflict: payload mismatch',
+    if (data.tableId) {
+      const table = await this.orderingRepo.getActiveTableForBranch(
+        data.tableId,
+        data.branchId,
+      );
+      if (!table) {
+        throw new BadRequestException(
+          'The selected table is not active at this branch',
         );
       }
     }
 
-    // Fetch product prices for snapshot
-    const productIds = items.map((i) => i.productId);
-    const products = await this.orderingRepo.getProductsByIds(productIds);
-
-    const productMap = new Map<string, any>(
-      products.map((p: any) => [p.id, p]),
+    const normalizedItems = data.items.map((item) => ({
+      ...item,
+      notes: item.notes?.trim() || undefined,
+      customizations: this.normalizeCustomizations(item.customizations),
+    }));
+    const requestFingerprint = this.sha256(
+      this.stableStringify({
+        userId: data.userId,
+        branchId: data.branchId,
+        type,
+        tableId: data.tableId,
+        notes: data.notes?.trim() || undefined,
+        items: normalizedItems,
+      }),
+    );
+    const idempotencyKeyHash = this.sha256(
+      `${data.userId}\u0000${idempotencyKey}`,
     );
 
-    const orderItems = items.map((item) => {
+    const existing =
+      await this.orderingRepo.findByIdempotencyKeyHash(idempotencyKeyHash);
+    if (existing) {
+      return this.replayIdempotentOrder(existing, requestFingerprint);
+    }
+
+    const productIds = [...new Set(normalizedItems.map((item) => item.productId))];
+    const products = await this.orderingRepo.getAvailableProductsByIds(
+      data.branchId,
+      productIds,
+    );
+    const productMap = new Map(products.map((product) => [product.id, product]));
+    const missingProductIds = productIds.filter((id) => !productMap.has(id));
+    if (missingProductIds.length > 0) {
+      throw new BadRequestException({
+        code: 'PRODUCT_UNAVAILABLE',
+        message: 'One or more products are unavailable at this branch',
+        details: { productIds: missingProductIds },
+      });
+    }
+
+    const orderItems: OrderItemInput[] = normalizedItems.map((item) => {
       const product = productMap.get(item.productId);
-      const unitPrice = product?.price || 0;
-      const totalPrice = unitPrice * item.quantity;
+      if (!product) {
+        throw new BadRequestException('Product is unavailable');
+      }
+
+      const customizationPrice = this.validateAndPriceCustomizations(
+        item.customizations,
+        product.customizations,
+      );
+      const unitPrice = product.unitPrice + customizationPrice;
       return {
         productId: item.productId,
         quantity: item.quantity,
         unitPrice,
-        totalPrice,
-        customizations: item.customizations || null,
-        notes: item.notes || null,
-        snapshotName: product?.name || '',
+        totalPrice: unitPrice * item.quantity,
+        customizations: item.customizations ?? null,
+        notes: item.notes ?? null,
+        snapshotName: product.name,
         snapshotPrice: unitPrice,
         snapshotTax: 0,
       };
     });
 
-    // Domain logic: calculate total
-    const orderEntity = new Order('PENDING', orderItems);
-    const subtotal = orderEntity.calculateTotal();
-
-    const tax = Math.round(subtotal * 0.11); // 11% PPN
+    const subtotal = new Order(OrderStatus.PENDING, orderItems).calculateTotal();
+    const tax = Math.round(subtotal * 0.11);
     const total = subtotal + tax;
-    const orderNumber = `WY-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Date.now()).slice(-4)}`;
-
+    const orderNumber = this.createOrderNumber();
     const orderData = {
       orderNumber,
-      userId,
-      branchId,
+      userId: data.userId,
+      branchId: data.branchId,
+      ...(data.tableId ? { tableId: data.tableId } : {}),
+      type,
       subtotal,
       tax,
       total,
-      notes,
+      ...(data.notes?.trim() ? { notes: data.notes.trim() } : {}),
+      idempotencyKeyHash,
+      requestFingerprint,
     };
 
-    const outboxPayload = {
-      userId,
-      branchId,
-      total,
-      itemCount: items.length,
-    };
-
-    const order = await this.orderingRepo.createOrder(
-      orderData,
-      orderItems,
-      outboxPayload,
-    );
-
-    if (idempotencyKey && this.redisService) {
-      const cacheKey = `idempotency:order:${idempotencyKey}`;
-      await this.redisService.setJson(
-        cacheKey,
+    try {
+      const order = await this.orderingRepo.createOrder(
+        orderData,
+        orderItems,
         {
-          payload: { userId, branchId, items },
-          response: order,
+          userId: data.userId,
+          branchId: data.branchId,
+          total,
+          itemCount: normalizedItems.length,
+          type,
         },
-        86400,
       );
+      this.eventsGateway.broadcastOrderCreated(order);
+      return order;
+    } catch (error) {
+      if (this.isDuplicateIdempotencyError(error)) {
+        const racedOrder =
+          await this.orderingRepo.findByIdempotencyKeyHash(idempotencyKeyHash);
+        if (racedOrder) {
+          return this.replayIdempotentOrder(racedOrder, requestFingerprint);
+        }
+      }
+      throw error;
     }
-
-    // Broadcast event directly
-    this.eventsGateway.broadcastOrderCreated(order);
-
-    return order;
   }
 
   async getOrder(id: string) {
@@ -139,20 +194,19 @@ export class OrderingService {
   async listOrders(params: {
     userId?: string;
     branchId?: string;
-    status?: string;
+    status?: OrderStatus;
     page: number;
     limit: number;
   }) {
     return this.orderingRepo.listOrders(params);
   }
 
-  async updateOrderStatus(id: string, status: string) {
+  async updateOrderStatus(id: string, status: OrderStatus) {
     const existingOrder = await this.orderingRepo.getOrder(id);
     if (!existingOrder) {
-      throw new BadRequestException('Order not found');
+      throw new NotFoundException('Order not found');
     }
 
-    // Domain logic: state machine validation
     const orderEntity = new Order(existingOrder.status, existingOrder.items);
     if (!orderEntity.canTransitionTo(status)) {
       throw new BadRequestException(
@@ -161,33 +215,29 @@ export class OrderingService {
     }
 
     const order = await this.orderingRepo.updateOrderStatus(id, status);
-
-    // Broadcast order update
     this.eventsGateway.broadcastOrderUpdated(order);
-
     return order;
   }
 
-  async updatePaymentStatus(id: string, paymentStatus: string) {
+  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus) {
     const order = await this.orderingRepo.updatePaymentStatus(
       id,
       paymentStatus,
     );
-
     this.eventsGateway.broadcastPaymentUpdated(order);
-
     return order;
   }
 
-  async getPaymentStatusFromMidtrans(orderId: string) {
+  async getPaymentStatusFromMidtrans(orderNumber: string) {
     try {
-      if (!this.midtransService.coreApi) {
-        return 'PAYMENT_PENDING';
-      }
-      const status =
-        await this.midtransService.coreApi.transaction.status(orderId);
-      return status.transaction_status || 'PAYMENT_PENDING';
+      const status = await this.midtransService.getTransactionStatus(orderNumber);
+      return status.transactionStatus;
     } catch (error) {
+      this.logger.warn(
+        `Could not refresh Midtrans status for ${orderNumber}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
       return 'PAYMENT_PENDING';
     }
   }
@@ -201,6 +251,139 @@ export class OrderingService {
       comment?: string;
     },
   ) {
-    return this.orderingRepo.createFeedback(id, data);
+    try {
+      return await this.orderingRepo.createFeedback(id, {
+        ...data,
+        ...(data.comment?.trim() ? { comment: data.comment.trim() } : {}),
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Feedback has already been submitted');
+      }
+      throw error;
+    }
+  }
+
+  private replayIdempotentOrder(
+    order: OrderDetails,
+    requestFingerprint: string,
+  ): OrderDetails {
+    if (order.requestFingerprint !== requestFingerprint) {
+      throw new ConflictException(
+        'Idempotency key conflict: request payload does not match',
+      );
+    }
+    return order;
+  }
+
+  private normalizeCustomizations(
+    customizations?: Record<string, string>,
+  ): Record<string, string> | undefined {
+    if (!customizations) return undefined;
+    const entries = Object.entries(customizations);
+    if (entries.length > 20) {
+      throw new BadRequestException('Too many product customizations');
+    }
+
+    const normalized: Record<string, string> = {};
+    for (const [rawKey, rawValue] of entries) {
+      const key = rawKey.trim();
+      const value = typeof rawValue === 'string' ? rawValue.trim() : '';
+      if (!key || key.length > 80 || !value || value.length > 200) {
+        throw new BadRequestException('Invalid product customization');
+      }
+      normalized[key] = value;
+    }
+    return normalized;
+  }
+
+  private validateAndPriceCustomizations(
+    selections: Record<string, string> | undefined,
+    definitions: ProductCustomizationDefinition[],
+  ): number {
+    if (!selections) return 0;
+    if (definitions.length === 0) return 0;
+
+    const definitionMap = new Map(
+      definitions.map((definition) => [
+        this.normalizeCustomizationName(definition.name),
+        definition,
+      ]),
+    );
+    let additionalPrice = 0;
+
+    for (const [name, selectedLabel] of Object.entries(selections)) {
+      const definition = definitionMap.get(
+        this.normalizeCustomizationName(name),
+      );
+      if (!definition || !Array.isArray(definition.options)) {
+        throw new BadRequestException(`Unsupported customization: ${name}`);
+      }
+
+      const option = definition.options.find(
+        (candidate): candidate is { label: string; price?: number } =>
+          typeof candidate === 'object' &&
+          candidate !== null &&
+          'label' in candidate &&
+          (candidate as { label?: unknown }).label === selectedLabel,
+      );
+      if (!option) {
+        throw new BadRequestException(
+          `Invalid option for customization: ${name}`,
+        );
+      }
+      if (
+        option.price !== undefined &&
+        (!Number.isSafeInteger(option.price) || option.price < 0)
+      ) {
+        throw new BadRequestException(
+          `Invalid price configuration for customization: ${name}`,
+        );
+      }
+      additionalPrice += option.price ?? 0;
+    }
+
+    return additionalPrice;
+  }
+
+  private normalizeCustomizationName(value: string): string {
+    return value.toLocaleLowerCase('en-US').replace(/[^a-z0-9]/g, '');
+  }
+
+  private createOrderNumber(): string {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const entropy = randomBytes(8).toString('hex').toUpperCase();
+    return `WY-${date}-${entropy}`;
+  }
+
+  private sha256(value: string): string {
+    return createHash('sha256').update(value).digest('hex');
+  }
+
+  private stableStringify(value: unknown): string {
+    const normalize = (input: unknown): unknown => {
+      if (Array.isArray(input)) return input.map(normalize);
+      if (input && typeof input === 'object') {
+        return Object.fromEntries(
+          Object.entries(input)
+            .filter(([, item]) => item !== undefined)
+            .sort(([left], [right]) => left.localeCompare(right))
+            .map(([key, item]) => [key, normalize(item)]),
+        );
+      }
+      return input;
+    };
+    return JSON.stringify(normalize(value));
+  }
+
+  private isDuplicateIdempotencyError(
+    error: unknown,
+  ): error is DuplicateIdempotencyKeyError {
+    return (
+      error instanceof Error && error.name === 'DuplicateIdempotencyKeyError'
+    );
   }
 }

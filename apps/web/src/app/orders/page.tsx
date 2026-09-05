@@ -36,6 +36,7 @@ export default function OrdersIndexPage() {
 
         <form onSubmit={handleSearch} className="space-y-3">
           <input
+            aria-label="Cari pesanan berdasarkan ID"
             type="text"
             value={orderIdInput}
             onChange={(e) => setOrderIdInput(e.target.value)}

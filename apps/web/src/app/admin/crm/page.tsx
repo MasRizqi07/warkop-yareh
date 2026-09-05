@@ -221,8 +221,9 @@ export default function AdminCrmPage() {
         <div className="flex flex-col sm:flex-row gap-3 justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
-            <input
-              type="text"
+          <input
+            aria-label="Cari pelanggan"
+            type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari pelanggan berdasarkan nama atau no WA..."

@@ -64,7 +64,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   ];
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen w-64 bg-[#111114] border-r border-white/[0.08] flex flex-col z-50 transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
+    <aside className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-white/[0.08] bg-[#111114] transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}>
       {/* Logo area */}
       <div className="p-5 border-b border-white/[0.08] flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </p>
           </div>
         </div>
-        <button className="md:hidden p-1 text-[#94a3b8] hover:text-white" onClick={onClose} aria-label="Close Sidebar">
+        <button className="p-1 text-[#94a3b8] hover:text-white lg:hidden" onClick={onClose} aria-label="Close Sidebar">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -89,7 +89,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <nav className="flex-grow overflow-y-auto p-3 space-y-5 no-scrollbar">
         {navGroups.map((group, i) => (
           <div key={i}>
-            <p className="px-3 mb-1.5 text-[10px] font-mono uppercase tracking-wider text-[#94a3b8]/70">
+            <p className="mb-1.5 px-3 font-mono text-[10px] uppercase tracking-wider text-[#94a3b8]">
               {group.label}
             </p>
             <ul className="space-y-0.5">

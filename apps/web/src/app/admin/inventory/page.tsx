@@ -112,6 +112,7 @@ export default function AdminInventoryPage() {
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
           <input
+            aria-label="Cari inventaris"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

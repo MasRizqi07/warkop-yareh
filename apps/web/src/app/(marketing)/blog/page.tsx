@@ -69,6 +69,7 @@ export default function BlogPage() {
           <div className="max-w-md mx-auto relative mt-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/60" />
             <input
+              aria-label="Search blog posts"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-surface-container-high/40 border border-white/5 rounded-2xl py-3 pl-11 pr-4 text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none backdrop-blur-md transition-all placeholder:text-[var(--text-ter)]"
@@ -120,7 +121,7 @@ export default function BlogPage() {
                     sizes="(max-w-768px) 100vw, 50vw"
                     className="object-cover group-hover:scale-102 transition-transform duration-1000 opacity-80"
                     src={categoryImages[featured.category] || categoryImages.default}
-                    priority
+                    loading="eager"
                   />
                   <div className="absolute top-4 left-4">
                     <Badge variant="gold" className="uppercase tracking-widest px-2.5 py-0.5 text-[9px]">Featured</Badge>
@@ -183,7 +184,7 @@ export default function BlogPage() {
               animate="visible"
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {listPosts.map((post) => (
+            {listPosts.map((post, index) => (
                 <motion.article
                   key={post.id}
                   variants={staggerItem}
@@ -198,6 +199,7 @@ export default function BlogPage() {
                         sizes="(max-w-768px) 100vw, 33vw"
                         className="object-cover opacity-75 group-hover:scale-102 transition-transform duration-1000"
                         src={categoryImages[post.category] || categoryImages.default}
+                        loading={index < 3 ? "eager" : "lazy"}
                       />
                       <div className="absolute top-3 left-3">
                         <Badge size="sm" className="bg-primary-container text-on-primary-container uppercase text-[9px] tracking-wider rounded-md font-bold">

@@ -71,7 +71,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Email address
               </label>
               <div className="mt-2 relative">
@@ -79,6 +79,7 @@ export default function LoginPage() {
                   <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <Input
+                  id="login-email"
                   type="email"
                   required
                   value={email}
@@ -90,7 +91,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Password
               </label>
               <div className="mt-2 relative">
@@ -98,6 +99,7 @@ export default function LoginPage() {
                   <Lock className="h-5 w-5 text-slate-400" />
                 </div>
                 <Input
+                  id="login-password"
                   type="password"
                   required
                   value={password}

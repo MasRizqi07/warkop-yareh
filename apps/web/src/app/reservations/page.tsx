@@ -339,8 +339,9 @@ export default function ReservationsPage() {
               <form onSubmit={handleConfirmReservation} className="space-y-4 pt-4 border-t border-white/10">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-neutral-300 mb-1">Jumlah Orang</label>
+                    <label htmlFor="reservation-guests" className="block text-xs text-neutral-300 mb-1">Jumlah Orang</label>
                     <input
+                      id="reservation-guests"
                       type="number"
                       min={1}
                       max={selectedTable.seats}
@@ -358,8 +359,9 @@ export default function ReservationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-300 mb-1">Nama Pemesan</label>
+                  <label htmlFor="reservation-name" className="block text-xs text-neutral-300 mb-1">Nama Pemesan</label>
                   <input
+                    id="reservation-name"
                     type="text"
                     required
                     value={customerName}
@@ -369,8 +371,9 @@ export default function ReservationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-300 mb-1">WhatsApp Konfirmasi</label>
+                  <label htmlFor="reservation-phone" className="block text-xs text-neutral-300 mb-1">WhatsApp Konfirmasi</label>
                   <input
+                    id="reservation-phone"
                     type="tel"
                     required
                     value={customerPhone}
@@ -380,8 +383,9 @@ export default function ReservationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-300 mb-1">Catatan Kebutuhan</label>
+                  <label htmlFor="reservation-notes" className="block text-xs text-neutral-300 mb-1">Catatan Kebutuhan</label>
                   <textarea
+                    id="reservation-notes"
                     rows={2}
                     value={specialNotes}
                     onChange={(e) => setSpecialNotes(e.target.value)}

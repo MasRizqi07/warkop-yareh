@@ -41,7 +41,7 @@ export function RecentOrders() {
         </Link>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} aria-label="Recent orders table">
         <table className="w-full text-left border-collapse min-w-[500px]">
           <thead>
             <tr className="border-b border-[var(--border-default)]">

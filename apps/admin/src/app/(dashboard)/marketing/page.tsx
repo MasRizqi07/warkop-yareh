@@ -133,8 +133,9 @@ export default function MarketingCampaignStudioPage() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="block font-mono text-[11px] text-[#94a3b8] mb-1 uppercase">Campaign Name</label>
+                  <label htmlFor="campaign-name" className="block font-mono text-[11px] text-[#94a3b8] mb-1 uppercase">Campaign Name</label>
                   <input
+                    id="campaign-name"
                     type="text"
                     value={campaignName}
                     onChange={(e) => setCampaignName(e.target.value)}
@@ -153,10 +154,12 @@ export default function MarketingCampaignStudioPage() {
                       { id: "single_origin", title: "New Single-Origin", desc: "Micro-lot Ijen Tasting", icon: "local_cafe" },
                       { id: "rsvp", title: "Community Event RSVP", desc: "Dev Meetup & Workshop", icon: "hub" },
                     ].map((preset) => (
-                      <div
+                      <button
+                        type="button"
                         key={preset.id}
                         onClick={() => setSelectedObjective(preset.id as CampaignObjective)}
-                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-2.5 ${
+                        aria-pressed={selectedObjective === preset.id}
+                        className={`flex w-full cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-[#f59e0b] ${
                           selectedObjective === preset.id
                             ? "bg-[#201f21] border-[#f59e0b] shadow-[0_0_12px_rgba(245,158,11,0.15)]"
                             : "bg-[#111114] border-white/[0.06] hover:border-white/[0.14]"
@@ -173,7 +176,7 @@ export default function MarketingCampaignStudioPage() {
                           <div className="text-xs font-bold text-white">{preset.title}</div>
                           <p className="text-[11px] text-[#94a3b8]">{preset.desc}</p>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -196,10 +199,11 @@ export default function MarketingCampaignStudioPage() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="block font-mono text-[11px] text-[#94a3b8] mb-1 uppercase">
+                  <label htmlFor="campaign-audience" className="block font-mono text-[11px] text-[#94a3b8] mb-1 uppercase">
                     Target Cohort
                   </label>
                   <select
+                    id="campaign-audience"
                     value={selectedAudience}
                     onChange={(e) => setSelectedAudience(e.target.value)}
                     className="w-full bg-[#111114] border border-white/[0.08] text-white text-xs px-3 py-2 rounded-xl outline-none"
@@ -240,7 +244,10 @@ export default function MarketingCampaignStudioPage() {
                 <div className="flex items-center justify-between p-3 rounded-xl bg-[#111114]">
                   <span className="text-xs text-white font-semibold">Include High-Res Cold Brew Header Photo</span>
                   <button
+                    type="button"
                     onClick={() => setHeaderMedia(!headerMedia)}
+                    aria-label="Include high-resolution campaign header image"
+                    aria-pressed={headerMedia}
                     className={`w-10 h-6 rounded-full transition-colors relative ${
                       headerMedia ? "bg-[#f59e0b]" : "bg-[#201f21]"
                     }`}
@@ -255,8 +262,9 @@ export default function MarketingCampaignStudioPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-mono text-[11px] text-[#94a3b8] mb-1">Discount Param</label>
+                    <label htmlFor="campaign-discount" className="block font-mono text-[11px] text-[#94a3b8] mb-1">Discount Param</label>
                     <input
+                      id="campaign-discount"
                       type="text"
                       value={discountPercent}
                       onChange={(e) => setDiscountPercent(e.target.value)}
@@ -264,8 +272,9 @@ export default function MarketingCampaignStudioPage() {
                     />
                   </div>
                   <div>
-                    <label className="block font-mono text-[11px] text-[#94a3b8] mb-1">Voucher Expiry (Hours)</label>
+                    <label htmlFor="campaign-expiry" className="block font-mono text-[11px] text-[#94a3b8] mb-1">Voucher Expiry (Hours)</label>
                     <input
+                      id="campaign-expiry"
                       type="text"
                       value={expiryHours}
                       onChange={(e) => setExpiryHours(e.target.value)}

@@ -63,7 +63,7 @@ export function UniversalHeader() {
           </Link>
 
           {/* Branch Selector Dropdown */}
-          <div className="relative hidden md:block">
+          <div className="relative hidden lg:block">
             <button
               onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#18181c] border border-white/10 hover:border-[#f59e0b]/40 text-xs text-neutral-300 transition-colors"
@@ -118,7 +118,7 @@ export function UniversalHeader() {
         </div>
 
         {/* Desktop Customer Nav Links */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden items-center gap-1 xl:flex">
           {navLinks.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -208,7 +208,7 @@ export function UniversalHeader() {
           </button>
 
           {/* Profile Avatar */}
-          <Link href="/profile" className="flex items-center gap-2 pl-1 group">
+          <Link href="/profile" aria-label="Open profile" className="flex items-center gap-2 pl-1 group">
             <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 group-hover:border-[#f59e0b] transition-colors">
               <Image
                 src={user.avatar}

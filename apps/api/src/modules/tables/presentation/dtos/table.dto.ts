@@ -1,6 +1,6 @@
-import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
+import { IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { TableStatus } from '@warkop-yareh/database';
+import { TableStatus, WaiterCallType } from '@warkop-yareh/database';
 
 export class UpdateTableStatusDto {
   @ApiProperty({ example: 'OCCUPIED', enum: TableStatus })
@@ -9,8 +9,7 @@ export class UpdateTableStatusDto {
 }
 
 export class CreateWaiterCallDto {
-  @ApiProperty({ example: 'CALL_WAITER' })
-  @IsString()
-  @IsNotEmpty()
-  type!: 'CALL_WAITER' | 'REQUEST_BILL' | 'NEED_ASSISTANCE';
+  @ApiProperty({ example: WaiterCallType.CALL_WAITER, enum: WaiterCallType })
+  @IsEnum(WaiterCallType)
+  type!: WaiterCallType;
 }

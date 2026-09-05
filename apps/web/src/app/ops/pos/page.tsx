@@ -209,6 +209,7 @@ export default function PosTerminalPage() {
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-3" />
               <input
+                aria-label="Cari menu POS"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -316,6 +317,7 @@ export default function PosTerminalPage() {
             <div className="flex items-center gap-2 mb-3 bg-[#111114] p-2 rounded-xl text-xs">
               <span className="text-neutral-400 font-mono text-[11px]">Meja:</span>
               <select
+                aria-label="Pilih meja"
                 value={selectedTable}
                 onChange={(e) => setSelectedTable(e.target.value)}
                 className="bg-[#18181c] border border-white/10 rounded-lg px-2 py-1 text-xs text-[#f59e0b] font-mono font-bold focus:outline-none"
@@ -501,8 +503,9 @@ export default function PosTerminalPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Uang Diterima (Rp)</label>
+                <label htmlFor="cash-tendered" className="block text-xs text-neutral-400 mb-1">Uang Diterima (Rp)</label>
                 <input
+                  id="cash-tendered"
                   type="number"
                   value={cashTendered || ""}
                   onChange={(e) => setCashTendered(parseInt(e.target.value) || 0)}

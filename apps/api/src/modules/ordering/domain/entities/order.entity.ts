@@ -1,28 +1,36 @@
+import { OrderStatus } from '@warkop-yareh/database';
+
+interface PricedOrderItem {
+  quantity: number;
+  unitPrice: number;
+}
+
 export class Order {
-  id?: string;
-  status: string;
-  items: any[];
+  private static readonly transitions: Readonly<
+    Record<OrderStatus, readonly OrderStatus[]>
+  > = {
+    PENDING: ['CONFIRMED', 'CANCELLED'],
+    CONFIRMED: ['PREPARING', 'CANCELLED'],
+    PREPARING: ['READY', 'CANCELLED'],
+    READY: ['SERVED', 'COMPLETED'],
+    SERVED: ['COMPLETED'],
+    COMPLETED: [],
+    CANCELLED: [],
+  };
 
-  constructor(status: string, items: any[]) {
-    this.status = status;
-    this.items = items;
-  }
+  constructor(
+    readonly status: OrderStatus,
+    readonly items: readonly PricedOrderItem[],
+  ) {}
 
-  canTransitionTo(newStatus: string): boolean {
-    const validTransitions: Record<string, string[]> = {
-      PENDING: ['CONFIRMED', 'CANCELLED'],
-      CONFIRMED: ['PREPARING', 'CANCELLED'],
-      PREPARING: ['READY'],
-      READY: ['COMPLETED'],
-      COMPLETED: [],
-      CANCELLED: [],
-    };
-    return validTransitions[this.status]?.includes(newStatus) || false;
+  canTransitionTo(newStatus: OrderStatus): boolean {
+    return Order.transitions[this.status].includes(newStatus);
   }
 
   calculateTotal(): number {
-    return this.items.reduce((acc, item) => {
-      return acc + item.quantity * item.unitPrice;
-    }, 0);
+    return this.items.reduce(
+      (total, item) => total + item.quantity * item.unitPrice,
+      0,
+    );
   }
 }
