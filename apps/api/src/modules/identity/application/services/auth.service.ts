@@ -1,14 +1,35 @@
-/* eslint-disable */
 import {
-  Injectable,
-  UnauthorizedException,
   BadRequestException,
-  Inject,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import {
+  createHash,
+  createHmac,
+  randomInt,
+  timingSafeEqual,
+} from 'node:crypto';
 import { IdentityService } from './identity.service';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
+import type {
+  InternalUser,
+  SafeUser,
+} from '../../domain/repositories/user.repository.interface';
+
+const REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
+const OTP_TTL_SECONDS = 5 * 60;
+const OTP_RESEND_COOLDOWN_SECONDS = 60;
+const OTP_MAX_ATTEMPTS = 5;
+const DUMMY_PASSWORD_HASH =
+  '$2b$12$uz9xGcKgNzf.AitjDCLo5.dUOR/r/Q5IPXjpA25b7mNt.I2tgaLy.';
+
+type SessionUser = Pick<SafeUser, 'id' | 'email' | 'role'>;
 
 export interface TokenResponse {
   accessToken: string;
@@ -16,49 +37,40 @@ export interface TokenResponse {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly identityService: IdentityService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<SafeUser | null> {
     const user = await this.identityService.getUserByEmail(email);
-    if (user && user.passwordHash) {
-      const isMatch = await bcrypt.compare(pass, user.passwordHash);
-      if (isMatch) {
-        const { passwordHash, ...result } = user;
-        return result;
-      }
-    }
-    return null;
+    const passwordHash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
+    const isMatch = await bcrypt.compare(password, passwordHash);
+    if (!user?.passwordHash || !isMatch) return null;
+    return this.toSafeUser(user);
   }
 
   async login(
-    user: any,
+    user: SessionUser,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = { email: user.email, sub: user.id, role: user.role };
-
     const accessToken = this.jwtService.sign(payload);
-
-    // Refresh token lives for 7 days
     const refreshToken = this.jwtService.sign(payload, {
-      secret: (() => {
-        if (!process.env.JWT_REFRESH_SECRET) {
-          throw new Error('JWT_REFRESH_SECRET environment variable is required');
-        }
-        return process.env.JWT_REFRESH_SECRET;
-      })(),
+      secret: this.requireRefreshSecret(),
       expiresIn: '7d',
     });
 
-    // Store refresh token in Redis for revocation
     await this.redisService.set(
-      `refresh_token:${user.id}:${refreshToken}`,
+      this.refreshTokenKey(user.id, refreshToken),
       'valid',
-      7 * 24 * 60 * 60, // 7 days in seconds
+      REFRESH_TOKEN_TTL_SECONDS,
     );
-
     return { accessToken, refreshToken };
   }
 
@@ -68,27 +80,24 @@ export class AuthService {
     phone?: string;
     password: string;
   }) {
-    const existing = await this.identityService.getUserByEmail(data.email);
+    const email = this.normalizeEmail(data.email);
+    const existing = await this.identityService.getUserByEmail(email);
     if (existing) {
       throw new BadRequestException('User with this email already exists');
     }
 
-    const salt = await bcrypt.genSalt(12);
-    const passwordHash = await bcrypt.hash(data.password, salt);
-
-    const user = await this.identityService.createUser({
-      email: data.email,
+    const passwordHash = await bcrypt.hash(data.password, 12);
+    return this.identityService.createUser({
+      email,
       name: data.name,
       phone: data.phone,
       passwordHash,
     });
-
-    return user;
   }
 
-  async logout(userId: string, refreshToken: string) {
+  async logout(userId: string, refreshToken?: string): Promise<void> {
     if (refreshToken) {
-      await this.redisService.del(`refresh_token:${userId}:${refreshToken}`);
+      await this.redisService.del(this.refreshTokenKey(userId, refreshToken));
     }
   }
 
@@ -96,100 +105,196 @@ export class AuthService {
     userId: string,
     oldRefreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const isValid = await this.redisService.get(
-      `refresh_token:${userId}:${oldRefreshToken}`,
-    );
+    if (!oldRefreshToken) {
+      throw new UnauthorizedException('Invalid or revoked refresh token');
+    }
+    const tokenKey = this.refreshTokenKey(userId, oldRefreshToken);
+    const isValid = await this.redisService.take(tokenKey);
     if (!isValid) {
+      await this.redisService.delPattern(`refresh_token:${userId}:*`);
       throw new UnauthorizedException('Invalid or revoked refresh token');
     }
 
     const user = await this.identityService.getUserProfile(userId);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    // Revoke old
-    await this.redisService.del(`refresh_token:${userId}:${oldRefreshToken}`);
-
-    // Generate new
+    if (!user) throw new UnauthorizedException('User not found');
     return this.login(user);
   }
 
-  async sendOtp(email: string): Promise<void> {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
-    await this.redisService.set(`otp:${email}`, otp, 300); // 5 minutes TTL
-
-    // In dev / non-production environments only, log OTP to console for local development
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`\n\n=== [DEV] OTP for ${email}: ${otp} ===\n\n`);
+  async sendOtp(rawEmail: string): Promise<void> {
+    const email = this.normalizeEmail(rawEmail);
+    const subjectHash = this.subjectHash(email);
+    const cooldownKey = `otp:cooldown:${subjectHash}`;
+    const acquired = await this.redisService.setIfAbsent(
+      cooldownKey,
+      '1',
+      OTP_RESEND_COOLDOWN_SECONDS,
+    );
+    if (!acquired) {
+      throw new HttpException(
+        'Please wait before requesting another verification code',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
-    // Real OTP delivery via SendGrid when configured
-    if (process.env.SENDGRID_API_KEY) {
-      try {
-        const fromEmail =
-          process.env.SENDGRID_FROM_EMAIL || 'no-reply@warkopyareh.com';
-        await fetch('https://api.sendgrid.com/v3/mail/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
-          },
-          body: JSON.stringify({
-            personalizations: [
-              {
-                to: [{ email }],
-                subject: "Your Warkop Ya'reh Verification Code",
-              },
-            ],
-            from: { email: fromEmail, name: "Warkop Ya'reh" },
-            content: [
-              {
-                type: 'text/html',
-                value: `
-                  <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-                    <h2 style="color: #c4622d;">Warkop Ya'reh</h2>
-                    <p>Your 6-digit login verification code is:</p>
-                    <div style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #111; padding: 12px 0;">${otp}</div>
-                    <p style="color: #666; font-size: 12px;">This code is valid for 5 minutes. Do not share this code with anyone.</p>
-                  </div>
-                `,
-              },
-            ],
-          }),
-        });
-      } catch (err) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('[OTP Delivery Error]', err);
-        }
-      }
+    const otp = randomInt(100_000, 1_000_000).toString();
+    const otpKey = `otp:${subjectHash}`;
+    const attemptsKey = `otp:attempts:${subjectHash}`;
+    await this.redisService.set(
+      otpKey,
+      this.hashOtp(email, otp),
+      OTP_TTL_SECONDS,
+    );
+    await this.redisService.del(attemptsKey);
+
+    try {
+      await this.deliverOtp(email, otp);
+    } catch (error: unknown) {
+      await Promise.all([
+        this.redisService.del(otpKey),
+        this.redisService.del(cooldownKey),
+      ]);
+      if (error instanceof ServiceUnavailableException) throw error;
+      throw new ServiceUnavailableException(
+        'Verification code delivery is temporarily unavailable',
+        { cause: error },
+      );
     }
   }
 
   async verifyOtp(
-    email: string,
+    rawEmail: string,
     code: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const storedOtp = await this.redisService.get(`otp:${email}`);
-    if (!storedOtp || storedOtp !== code) {
+    const email = this.normalizeEmail(rawEmail);
+    const subjectHash = this.subjectHash(email);
+    const otpKey = `otp:${subjectHash}`;
+    const attemptsKey = `otp:attempts:${subjectHash}`;
+    const expectedHash = await this.redisService.get(otpKey);
+    if (!expectedHash || !this.otpMatches(expectedHash, email, code)) {
+      const attempts = await this.redisService.incrementWithTtl(
+        attemptsKey,
+        OTP_TTL_SECONDS,
+      );
+      if (attempts >= OTP_MAX_ATTEMPTS) await this.redisService.del(otpKey);
       throw new UnauthorizedException('Invalid or expired OTP');
     }
 
-    await this.redisService.del(`otp:${email}`);
+    const claimedHash = await this.redisService.take(otpKey);
+    if (!claimedHash || !this.otpMatches(claimedHash, email, code)) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+    await this.redisService.del(attemptsKey);
 
-    let user = await this.identityService.getUserByEmail(email);
+    let user: InternalUser | SafeUser | null =
+      await this.identityService.getUserByEmail(email);
     if (!user) {
-      // Auto register for OTP users
       user = await this.identityService.createUser({
         email,
         name: email.split('@')[0],
-        passwordHash: await bcrypt.hash(
-          Math.random().toString(36).slice(-10),
-          12,
-        ),
       });
     }
-
     return this.login(user);
+  }
+
+  private async deliverOtp(email: string, otp: string): Promise<void> {
+    if (process.env.NODE_ENV !== 'production') {
+      this.logger.debug(`[DEV ONLY] OTP for ${email}: ${otp}`);
+    }
+    const apiKey = process.env.SENDGRID_API_KEY;
+    if (!apiKey) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new ServiceUnavailableException(
+          'Verification code delivery is not configured',
+        );
+      }
+      return;
+    }
+
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        personalizations: [
+          {
+            to: [{ email }],
+            subject: "Your Warkop Ya'reh Verification Code",
+          },
+        ],
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL ?? 'no-reply@warkopyareh.com',
+          name: "Warkop Ya'reh",
+        },
+        content: [
+          {
+            type: 'text/html',
+            value:
+              '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:20px">' +
+              "<h2>Warkop Ya'reh</h2><p>Your 6-digit login verification code is:</p>" +
+              `<p style="font-size:32px;font-weight:bold;letter-spacing:4px">${otp}</p>` +
+              '<p>This code expires in 5 minutes. Do not share it.</p></div>',
+          },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      throw new ServiceUnavailableException(
+        `Verification provider rejected the request (${response.status})`,
+      );
+    }
+  }
+
+  private otpMatches(
+    expectedHash: string,
+    email: string,
+    code: string,
+  ): boolean {
+    const actualHash = this.hashOtp(email, code);
+    const expected = Buffer.from(expectedHash, 'hex');
+    const actual = Buffer.from(actualHash, 'hex');
+    return (
+      expected.length === actual.length && timingSafeEqual(expected, actual)
+    );
+  }
+
+  private hashOtp(email: string, code: string): string {
+    return createHmac('sha256', this.requireOtpSecret())
+      .update(`${email}:${code}`)
+      .digest('hex');
+  }
+
+  private subjectHash(email: string): string {
+    return createHash('sha256').update(email).digest('hex');
+  }
+
+  private refreshTokenKey(userId: string, token: string): string {
+    const fingerprint = createHash('sha256').update(token).digest('hex');
+    return `refresh_token:${userId}:${fingerprint}`;
+  }
+
+  private normalizeEmail(email: string): string {
+    return email.trim().toLocaleLowerCase('en-US');
+  }
+
+  private requireRefreshSecret(): string {
+    if (!process.env.JWT_REFRESH_SECRET) {
+      throw new Error('JWT_REFRESH_SECRET environment variable is required');
+    }
+    return process.env.JWT_REFRESH_SECRET;
+  }
+
+  private requireOtpSecret(): string {
+    const secret = process.env.OTP_HMAC_SECRET ?? process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('OTP_HMAC_SECRET or JWT_SECRET is required');
+    }
+    return secret;
+  }
+
+  private toSafeUser(user: InternalUser): SafeUser {
+    const { passwordHash: _passwordHash, ...safeUser } = user;
+    return safeUser;
   }
 }

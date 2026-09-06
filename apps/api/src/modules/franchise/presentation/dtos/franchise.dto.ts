@@ -1,45 +1,61 @@
 import {
+  IsDateString,
+  IsEmail,
+  IsInt,
   IsString,
-  IsNotEmpty,
   IsNumber,
+  Matches,
+  Max,
+  MaxLength,
   Min,
   IsOptional,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateAgreementDto {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @MaxLength(160)
   ownerName!: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsEmail()
+  @MaxLength(254)
   ownerEmail!: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @MaxLength(128)
   branchId!: string;
 
   @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  companyName?: string;
+
+  @ApiPropertyOptional()
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
+  @Min(0)
+  @Max(100)
   royaltyPercentage?: number;
 
   @ApiProperty()
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   @Min(0)
+  @Max(1_000_000_000)
   monthlyFee!: number;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsDateString({ strict: true })
   agreementStart!: string;
 
   @ApiPropertyOptional()
-  @IsString()
+  @IsDateString({ strict: true })
   @IsOptional()
   agreementEnd?: string;
 }
@@ -47,21 +63,17 @@ export class CreateAgreementDto {
 export class GenerateBillingDto {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @MaxLength(128)
   agreementId!: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @Matches(/^\d{4}-(0[1-9]|1[0-2])$/, {
+    message: 'period must use YYYY-MM format',
+  })
   period!: string;
 
   @ApiProperty()
-  @IsNumber()
-  @Min(0)
-  amount!: number;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsDateString({ strict: true })
   dueDate!: string;
 }

@@ -18,9 +18,14 @@ describe('FranchiseService', () => {
 
   beforeEach(async () => {
     mockPrisma = {
+      branch: { findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }) },
+      order: {
+        aggregate: jest.fn().mockResolvedValue({ _sum: { total: 0 } }),
+      },
       franchiseAgreement: {
         create: jest.fn(),
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
         findMany: jest.fn(),
       },
       franchiseBilling: {
@@ -40,7 +45,7 @@ describe('FranchiseService', () => {
 
   it('createAgreement & getAgreement & listAgreements', async () => {
     mockPrisma.franchiseAgreement.create.mockResolvedValue(mockAgreement);
-    mockPrisma.franchiseAgreement.findUnique.mockResolvedValue(mockAgreement);
+    mockPrisma.franchiseAgreement.findFirst.mockResolvedValue(mockAgreement);
     mockPrisma.franchiseAgreement.findMany.mockResolvedValue([mockAgreement]);
 
     const createRes = await service.createAgreement({
@@ -66,11 +71,15 @@ describe('FranchiseService', () => {
       period: '2026-08',
       amount: 5000000,
     });
+    mockPrisma.franchiseAgreement.findUnique.mockResolvedValue({
+      ...mockAgreement,
+      status: 'ACTIVE',
+      agreementEnd: null,
+    });
 
     const res = await service.createBilling({
       agreementId: 'agr-1',
       period: '2026-08',
-      amount: 5000000,
       dueDate: '2026-08-10',
     });
     expect(res.id).toBe('bill-1');

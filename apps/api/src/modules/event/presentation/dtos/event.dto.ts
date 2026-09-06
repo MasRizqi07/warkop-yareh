@@ -1,57 +1,102 @@
+import { Type } from 'class-transformer';
 import {
-  IsString,
-  IsOptional,
-  IsInt,
-  Min,
   IsDateString,
-  IsNotEmpty,
-  IsNumber,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Matches,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { EventCategory } from '@warkop-yareh/database';
+
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export class CreateEventDto {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  title: string;
+  @MinLength(3)
+  @MaxLength(160)
+  title!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   description?: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  branchId: string;
+  @MaxLength(128)
+  branchId!: string;
 
   @ApiProperty()
-  @IsDateString()
-  date: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  startTime: string;
+  @IsDateString({ strict: true })
+  date!: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  endTime: string;
+  @Matches(TIME_PATTERN, { message: 'startTime must use HH:mm format' })
+  startTime!: string;
+
+  @ApiProperty()
+  @IsString()
+  @Matches(TIME_PATTERN, { message: 'endTime must use HH:mm format' })
+  endTime!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(250)
   location?: string;
 
   @ApiProperty()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
-  capacity: number;
+  @Max(10_000)
+  capacity!: number;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   @Min(0)
+  @Max(1_000_000_000)
   price?: number;
+
+  @ApiPropertyOptional({ enum: EventCategory })
+  @IsOptional()
+  @IsEnum(EventCategory)
+  category?: EventCategory;
+}
+
+export class ListEventsQueryDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  branchId?: string;
+
+  @ApiPropertyOptional({ enum: EventCategory })
+  @IsOptional()
+  @IsEnum(EventCategory)
+  category?: EventCategory;
+
+  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page = 1;
+
+  @ApiPropertyOptional({ default: 10, minimum: 1, maximum: 100 })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit = 10;
 }

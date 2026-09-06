@@ -1,5 +1,7 @@
 # 📄 Warkop Ya'reh — Enterprise Architecture Blueprint
 
+> **Status:** Target-state blueprint. Source versions and authentication flow are kept aligned, while named cloud services and rollout claims still require deployment evidence.
+
 This document defines the comprehensive enterprise architecture for the **Warkop Ya'reh Digital Ecosystem Platform**. It is designed as a scalable blueprint to support 100,000+ active users, 50+ branches, regional franchise operations, and automated AI operations over the next 5–10 years.
 
 ---
@@ -477,10 +479,10 @@ We implement URI-based API versioning (e.g., `/api/v1/...`) to maintain backward
 
 ### 6.3 Authentication & Session Flow
 
-We utilize standard OAuth2 with OpenID Connect patterns managed by Auth.js:
+The web and admin clients delegate credentials and session lifecycle to the centralized NestJS identity API:
 
 1. **Initiation**: Clients log in and receive an **Access Token (JWT)** (short-lived, 15-minute lifespan) and a **Refresh Token** (long-lived, 7-day lifespan, stored in a secure `HttpOnly`, `Secure`, `SameSite=Strict` cookie).
-2. **Access Token Verification**: The NestJS API verifies the cryptographic signature of the JWT using JSON Web Key Sets (JWKS).
+2. **Access Token Verification**: The NestJS Passport strategy verifies the HMAC-signed JWT and reloads the active user from PostgreSQL.
 3. **Session Refresh**: When the Access Token expires, the client sends a `POST /api/v1/auth/refresh` request to rotate the tokens automatically.
 
 ---

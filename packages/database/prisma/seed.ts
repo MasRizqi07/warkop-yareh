@@ -6,13 +6,24 @@
  * Run: pnpm --filter @warkop-yareh/database db:seed
  */
 
-import { PrismaClient, Role, TableType, TableStatus } from '../generated/client';
+import { PrismaClient, Role, TableType, TableStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 const BCRYPT_ROUNDS = 12;
 const BRANCH_ID = 'coldnbrew-gubeng-001'; // Fixed ID for single-branch
+
+function getSeedPassword(environmentName: string, developmentFallback: string) {
+  const configuredPassword = process.env[environmentName];
+  if (configuredPassword) return configuredPassword;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`${environmentName} is required for production seeding`);
+  }
+
+  return developmentFallback;
+}
 
 async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -233,19 +244,19 @@ async function main() {
     {
       email: 'admin@coldnbrew.id',
       name: 'Admin Cold N Brew',
-      password: 'Admin123!',
+      password: getSeedPassword('SEED_ADMIN_PASSWORD', 'Admin123!'),
       role: Role.ADMIN,
     },
     {
       email: 'kasir@coldnbrew.id',
       name: 'Kasir Gubeng',
-      password: 'Kasir123!',
+      password: getSeedPassword('SEED_CASHIER_PASSWORD', 'Kasir123!'),
       role: Role.CASHIER,
     },
     {
       email: 'kitchen@coldnbrew.id',
       name: 'Kitchen Staff',
-      password: 'Kitchen123!',
+      password: getSeedPassword('SEED_KITCHEN_PASSWORD', 'Kitchen123!'),
       role: Role.KITCHEN,
     },
   ];
@@ -265,15 +276,12 @@ async function main() {
         loyaltyPoints: 0,
       },
     });
-    console.log(`  👤 Staff: ${staff.email} (${staff.role}) — password: ${staff.password}`);
+    console.log(`  👤 Staff: ${staff.email} (${staff.role})`);
   }
 
   console.log('\n🎉 Seed completed successfully!');
   console.log('─────────────────────────────────────────');
-  console.log('Test credentials:');
-  console.log('  Admin:   admin@coldnbrew.id  / Admin123!');
-  console.log('  Kasir:   kasir@coldnbrew.id  / Kasir123!');
-  console.log('  Kitchen: kitchen@coldnbrew.id / Kitchen123!');
+  console.log('Development credentials use the documented local defaults unless overridden.');
   console.log('─────────────────────────────────────────');
 }
 

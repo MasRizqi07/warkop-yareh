@@ -1,79 +1,136 @@
-/* eslint-disable */
 import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
   CallHandler,
+  ExecutionContext,
+  Injectable,
+  Logger,
+  NestInterceptor,
 } from '@nestjs/common';
-import { Observable, tap } from 'rxjs';
+import { Prisma } from '@warkop-yareh/database';
+import type { Request } from 'express';
+import { Observable, mergeMap } from 'rxjs';
 import { DatabaseService } from '../../infrastructure/database/database.service';
+import type { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
+
+type AuditedRequest = Request & {
+  user?: AuthenticatedUser;
+  body?: unknown;
+};
+
+type SanitizedJson =
+  | string
+  | number
+  | boolean
+  | null
+  | SanitizedJson[]
+  | { [key: string]: SanitizedJson };
+
+const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const SENSITIVE_KEYS =
+  /password|passcode|code|token|secret|authorization|cookie/i;
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(AuditLogInterceptor.name);
+
   constructor(private readonly prisma: DatabaseService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const method = request.method;
-
-    // Only audit mutation operations
-    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    if (context.getType() !== 'http') return next.handle();
+    const request = context.switchToHttp().getRequest<AuditedRequest>();
+    if (
+      !MUTATION_METHODS.has(request.method) ||
+      request.path.startsWith('/api/v1/auth/')
+    ) {
       return next.handle();
     }
 
-    const userId = request.user?.id || null;
-    const entity = context
-      .getClass()
-      .name.replace('Controller', '')
-      .toLowerCase();
-    const action = this.mapMethodToAction(method);
-    const ipAddress = request.ip || request.headers['x-forwarded-for'];
-    const userAgent = request.headers['user-agent'];
-
     return next.handle().pipe(
-      tap(async (responseData) => {
+      mergeMap(async (responseData: unknown) => {
         try {
-          const entityId = responseData?.id || request.params?.id || null;
           await this.prisma.auditLog.create({
             data: {
-              userId,
-              action,
-              entity,
-              entityId,
+              userId: request.user?.id ?? null,
+              action: this.mapMethodToAction(request.method),
+              entity: context
+                .getClass()
+                .name.replace('Controller', '')
+                .toLowerCase(),
+              entityId: this.resolveEntityId(responseData, request),
               details: {
-                method,
-                path: request.url,
-                body: this.sanitizeBody(request.body),
-              },
-              ipAddress,
-              userAgent,
+                method: request.method,
+                path: request.originalUrl,
+                body: this.sanitizeValue(request.body),
+              } as Prisma.InputJsonObject,
+              ipAddress: request.ip,
+              userAgent: request.get('user-agent')?.slice(0, 500),
             },
           });
-        } catch (error) {
-          // Audit logging should never break the request
-          console.error('Audit log error:', error);
+        } catch (error: unknown) {
+          this.logger.error(
+            `Audit log write failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
+        return responseData;
       }),
     );
   }
 
   private mapMethodToAction(method: string): string {
-    const map: Record<string, string> = {
-      POST: 'CREATE',
-      PUT: 'UPDATE',
-      PATCH: 'UPDATE',
-      DELETE: 'DELETE',
-    };
-    return map[method] || 'UNKNOWN';
+    if (method === 'POST') return 'CREATE';
+    if (method === 'DELETE') return 'DELETE';
+    return 'UPDATE';
   }
 
-  private sanitizeBody(body: any): any {
-    if (!body) return null;
-    const sanitized = { ...body };
-    const sensitiveFields = ['password', 'passwordHash', 'token', 'secret'];
-    for (const field of sensitiveFields) {
-      if (sanitized[field]) sanitized[field] = '[REDACTED]';
+  private resolveEntityId(
+    responseData: unknown,
+    request: Request,
+  ): string | null {
+    const directId = this.readStringProperty(responseData, 'id');
+    const data = this.readProperty(responseData, 'data');
+    return (
+      directId ??
+      this.readStringProperty(data, 'id') ??
+      this.readRouteParam(request.params.id) ??
+      this.readRouteParam(request.params.eventId) ??
+      this.readRouteParam(request.params.orderId) ??
+      null
+    );
+  }
+
+  private sanitizeValue(value: unknown, depth = 0): SanitizedJson {
+    if (value === null || value === undefined) return null;
+    if (depth >= 5) return '[TRUNCATED]';
+    if (typeof value === 'string') return value.slice(0, 500);
+    if (typeof value === 'number' || typeof value === 'boolean') return value;
+    if (Array.isArray(value)) {
+      return value
+        .slice(0, 50)
+        .map((item) => this.sanitizeValue(item, depth + 1));
     }
-    return sanitized;
+    if (typeof value === 'object') {
+      const sanitized: Record<string, SanitizedJson> = {};
+      for (const [key, entry] of Object.entries(value).slice(0, 100)) {
+        sanitized[key] = SENSITIVE_KEYS.test(key)
+          ? '[REDACTED]'
+          : this.sanitizeValue(entry, depth + 1);
+      }
+      return sanitized;
+    }
+    return String(value).slice(0, 500);
+  }
+
+  private readProperty(value: unknown, key: string): unknown {
+    return typeof value === 'object' && value !== null
+      ? Reflect.get(value, key)
+      : undefined;
+  }
+
+  private readStringProperty(value: unknown, key: string): string | null {
+    const property = this.readProperty(value, key);
+    return typeof property === 'string' ? property : null;
+  }
+
+  private readRouteParam(value: string | string[] | undefined): string | null {
+    return typeof value === 'string' ? value : null;
   }
 }

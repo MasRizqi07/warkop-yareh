@@ -27,12 +27,11 @@ export const SITE = {
 } as const;
 
 export const NAV_LINKS = [
-  { label: "Home", href: "/", icon: "Home" },
   { label: "Menu", href: "/menu", icon: "Coffee" },
+  { label: "Workspace & VIP", href: "/booking", icon: "CalendarCheck" },
+  { label: "Community Hub", href: "/community", icon: "Users" },
+  { label: "Loyalty Tier", href: "/loyalty", icon: "Award" },
   { label: "About", href: "/about", icon: "Info" },
-  { label: "Events", href: "/events", icon: "Calendar" },
-  { label: "Community", href: "/community", icon: "Users" },
-  { label: "Booking", href: "/booking", icon: "CalendarCheck" },
 ] as const;
 
 export const MEMBERSHIP_TIERS = [

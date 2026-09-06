@@ -1,213 +1,140 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useCartStore } from "@/stores";
-import Image from "next/image";
-import { IconLocation, IconCoffee, IconArrowRight } from "@/lib/icons";
+import { useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Building2, CheckCircle2, CreditCard, Lock, QrCode, ShieldCheck, ShoppingBag } from 'lucide-react';
+import type { ApiOrderType, ApiPaymentMethod } from '@/features/api/contracts';
+import { useActiveBranch } from '@/features/catalog/catalog.hooks';
+import { createOrder, initializePayment } from '@/features/orders/orders.api';
+import { getApiErrorMessage } from '@/lib/api-error';
+import { useAuthStore } from '@/stores/auth.store';
+import { useCartStore, useCheckoutStore } from '@/stores';
 
-import { api } from "@/lib/api";
+const PAYMENT_OPTIONS: Array<{ id: ApiPaymentMethod; title: string; description: string; icon: typeof QrCode }> = [
+  { id: 'QRIS', title: 'QRIS', description: 'GoPay, OVO, ShopeePay, dan mobile banking.', icon: QrCode },
+  { id: 'E_WALLET', title: 'E-Wallet', description: 'Pilih dompet digital yang tersedia di Midtrans.', icon: Building2 },
+  { id: 'DEBIT', title: 'Virtual Account / Debit', description: 'Pilih bank dan instruksi transfer di halaman pembayaran.', icon: Building2 },
+  { id: 'CREDIT_CARD', title: 'Kartu Kredit / Debit Online', description: 'Diproses melalui halaman aman Midtrans.', icon: CreditCard },
+];
+
+function toApiOrderType(type: ReturnType<typeof useCheckoutStore.getState>['fulfillmentType']): ApiOrderType {
+  if (type === 'dine-in') return 'DINE_IN';
+  if (type === 'drive-thru') return 'DRIVE_THRU';
+  if (type === 'delivery') return 'DELIVERY';
+  return 'TAKE_AWAY';
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, total, clearCart } = useCartStore();
-  const [orderType, setOrderType] = useState<"dine_in" | "take_away">("dine_in");
-  const [tableNumber, setTableNumber] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("gopay");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const items = useCartStore((state) => state.items);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const estimatedSubtotal = useCartStore((state) => state.total());
+  const fulfillmentType = useCheckoutStore((state) => state.fulfillmentType);
+  const setFulfillmentType = useCheckoutStore((state) => state.setFulfillmentType);
+  const tableId = useCheckoutStore((state) => state.tableId);
+  const tableLabel = useCheckoutStore((state) => state.tableLabel);
+  const deliveryAddress = useCheckoutStore((state) => state.deliveryAddress);
+  const setDeliveryAddress = useCheckoutStore((state) => state.setDeliveryAddress);
+  const { activeBranch, isPending: branchPending } = useActiveBranch();
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const [paymentMethod, setPaymentMethod] = useState<ApiPaymentMethod>('QRIS');
+  const [notes, setNotes] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const idempotency = useRef<{ fingerprint: string; key: string } | null>(null);
 
-  // Redirect if cart is empty
-  if (items.length === 0) {
-    if (typeof window !== "undefined") {
-      router.push("/menu");
-    }
-    return null;
-  }
+  const estimatedTotal = estimatedSubtotal + Math.round(estimatedSubtotal * 0.11);
+  const requestFingerprint = useMemo(
+    () => JSON.stringify({ branchId: activeBranch?.id, items: items.map((item) => ({ id: item.product.id, quantity: item.quantity, customizations: item.customizations, notes: item.notes })), fulfillmentType, tableId, deliveryAddress, notes }),
+    [activeBranch?.id, deliveryAddress, fulfillmentType, items, notes, tableId],
+  );
 
-  const subtotal = total();
-  const tax = subtotal * 0.11; // PPN 11%
-  const grandTotal = subtotal + tax;
-
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (orderType === "dine_in" && !tableNumber) {
-      alert("Please enter a table number for Dine In.");
+  const handleProcessOrder = async () => {
+    if (!activeBranch || !isAuthenticated || !user || items.length === 0) return;
+    if (fulfillmentType === 'delivery' && deliveryAddress.trim().length < 10) {
+      setError('Alamat pengantaran harus diisi lengkap, minimal 10 karakter.');
       return;
     }
-    
+    setError('');
+    setIsProcessing(true);
+
     try {
-      setIsSubmitting(true);
-      setErrorMsg("");
-
-      // 1. Create real order in backend
-      const orderPayload = {
-        branchId: "coldnbrew-gubeng-001",
-        type: orderType === "dine_in" ? "DINE_IN" : "TAKE_AWAY",
-        notes: orderType === "dine_in" ? `Table: ${tableNumber}` : "Take Away",
-        items: items.map((i) => ({
-          productId: i.product.id,
-          quantity: i.quantity,
-          notes: i.notes || undefined,
-        })),
-      };
-
-      const orderRes = await api.post("/orders", orderPayload);
-      const createdOrder = orderRes.data?.data;
-
-      if (!createdOrder?.id) {
-        throw new Error("Order creation failed");
+      if (!idempotency.current || idempotency.current.fingerprint !== requestFingerprint) {
+        idempotency.current = { fingerprint: requestFingerprint, key: crypto.randomUUID() };
       }
-
-      // 2. Generate Midtrans Snap token for the created order
-      await api.post("/payments/midtrans/snap", {
-        orderId: createdOrder.id,
-      });
-
-      // 3. Clear cart and navigate to success
+      const combinedNotes = [
+        notes.trim(),
+        fulfillmentType === 'delivery' ? `Alamat pengantaran: ${deliveryAddress.trim()}` : '',
+        fulfillmentType === 'dine-in' && tableLabel ? `Label meja: ${tableLabel}` : '',
+      ].filter(Boolean).join('\n');
+      const order = await createOrder(
+        {
+          branchId: activeBranch.id,
+          type: toApiOrderType(fulfillmentType),
+          ...(fulfillmentType === 'dine-in' && tableId ? { tableId } : {}),
+          ...(combinedNotes ? { notes: combinedNotes } : {}),
+          items: items.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            ...(item.customizations ? { customizations: item.customizations } : {}),
+            ...(item.notes ? { notes: item.notes } : {}),
+          })),
+        },
+        idempotency.current.key,
+      );
+      setCreatedOrderId(order.id);
+      const payment = await initializePayment(order.id, paymentMethod);
       clearCart();
-      const orderRef = createdOrder.orderNumber || createdOrder.id;
-      router.push(`/checkout/success?orderNumber=${encodeURIComponent(orderRef)}&orderId=${encodeURIComponent(createdOrder.id)}`);
-    } catch (err: unknown) {
-      console.error("Checkout failed:", err);
-      let message = "Failed to place order. Please try again.";
-      if (err instanceof Error) {
-        message = err.message;
+
+      if (payment.redirectUrl && !payment.token.startsWith('mock-snap-token-')) {
+        window.location.assign(payment.redirectUrl);
+        return;
       }
-      if (typeof err === "object" && err !== null && "response" in err) {
-        const axiosErr = err as { response?: { data?: { message?: string } } };
-        if (axiosErr.response?.data?.message) {
-          message = axiosErr.response.data.message;
-        }
-      }
-      setErrorMsg(message);
+      router.push(`/order/track/${encodeURIComponent(order.id)}?payment=pending`);
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, 'Pesanan belum berhasil diproses. Silakan coba lagi.'));
     } finally {
-      setIsSubmitting(false);
+      setIsProcessing(false);
     }
   };
 
+  if (!isInitialized || branchPending) {
+    return <main className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0c] text-sm text-neutral-400"><span className="h-5 w-5 animate-spin rounded-full border-2 border-[#f59e0b] border-t-transparent" /><span className="ml-3">Menyiapkan checkout aman...</span></main>;
+  }
+
+  if (!isAuthenticated || !user) {
+    return <main className="mx-auto flex min-h-[75vh] max-w-lg items-center px-4 text-center text-white"><section className="w-full rounded-3xl border border-white/10 bg-[#18181c] p-8"><ShieldCheck className="mx-auto h-12 w-12 text-[#f59e0b]" /><h1 className="mt-4 font-heading text-2xl font-bold">Masuk untuk checkout</h1><p className="mt-2 text-sm text-neutral-400">Akun diperlukan agar order, pembayaran, dan status realtime hanya dapat dilihat oleh pemiliknya.</p><Link href="/login?returnTo=%2Fcheckout" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#9c6b3a] px-6 py-3 text-sm font-bold">Masuk ke Akun <ArrowRight className="h-4 w-4" /></Link></section></main>;
+  }
+
+  if (!activeBranch) {
+    return <main className="mx-auto flex min-h-[70vh] max-w-lg items-center px-4 text-center text-white"><section role="alert" className="w-full rounded-3xl border border-rose-500/20 bg-rose-500/10 p-8"><h1 className="font-heading text-xl font-bold">Cabang aktif tidak tersedia</h1><p className="mt-2 text-sm text-neutral-300">Pilih cabang yang tersedia sebelum melanjutkan checkout.</p><Link href="/menu" className="mt-5 inline-block rounded-xl bg-[#9c6b3a] px-5 py-2.5 text-sm font-bold">Kembali ke Menu</Link></section></main>;
+  }
+
   return (
-    <div className="bg-background text-on-background font-body-md min-h-screen pt-24 pb-32">
-      <div className="fixed inset-0 organic-noise pointer-events-none z-[-1]"></div>
-      
-      <main className="max-w-4xl mx-auto px-margin-mobile">
-        <h1 className="font-display-lg text-4xl text-primary mb-8">Checkout</h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form Section */}
-          <div className="lg:col-span-2 space-y-8">
-            <form id="checkout-form" onSubmit={handlePlaceOrder} className="space-y-8">
-              
-              {/* Order Type */}
-              <section className="glass-card p-6 rounded-2xl border border-white/5">
-                <h2 className="font-display-sm text-2xl mb-6">Order Details</h2>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <label className={`cursor-pointer rounded-xl border p-4 flex flex-col items-center gap-3 transition-all ${orderType === "dine_in" ? "border-primary bg-primary/10 text-primary" : "border-white/10 text-on-surface-variant hover:border-white/20"}`}>
-                    <input type="radio" name="orderType" value="dine_in" checked={orderType === "dine_in"} onChange={() => setOrderType("dine_in")} className="hidden" />
-                    <IconCoffee size={28} />
-                    <span className="font-headline-md">Dine In</span>
-                  </label>
-                  <label className={`cursor-pointer rounded-xl border p-4 flex flex-col items-center gap-3 transition-all ${orderType === "take_away" ? "border-primary bg-primary/10 text-primary" : "border-white/10 text-on-surface-variant hover:border-white/20"}`}>
-                    <input type="radio" name="orderType" value="take_away" checked={orderType === "take_away"} onChange={() => setOrderType("take_away")} className="hidden" />
-                    <IconLocation size={28} />
-                    <span className="font-headline-md">Take Away</span>
-                  </label>
-                </div>
+    <main className="mx-auto min-h-screen max-w-7xl bg-[#0a0a0c] px-4 pb-32 pt-8 text-white sm:px-6 sm:pt-10 lg:px-8">
+      <div className="mb-8 border-b border-white/5 pb-6"><div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-[#f59e0b]"><ShieldCheck className="h-4 w-4 text-emerald-400" />Checkout terautentikasi • harga divalidasi server</div><h1 className="font-heading text-3xl font-extrabold sm:text-4xl">Pembayaran Digital</h1><p className="mt-1 text-sm text-neutral-400">Cabang: <span className="font-semibold text-white">{activeBranch.name}</span> · Pemesan: <span className="font-semibold text-white">{user.name}</span></p></div>
 
-                {orderType === "dine_in" && (
-                  <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                    <label className="block text-sm text-on-surface-variant mb-2">Table Number</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 12"
-                      value={tableNumber}
-                      onChange={(e) => setTableNumber(e.target.value)}
-                      className="w-full bg-surface-container-highest/50 border border-white/10 rounded-xl px-4 py-3 text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      required
-                    />
-                  </div>
-                )}
-              </section>
+      {items.length === 0 ? (
+        <section className="mx-auto max-w-md rounded-3xl border border-white/5 bg-[#141418] p-8 py-20 text-center"><ShoppingBag className="mx-auto h-12 w-12 text-neutral-500" /><h2 className="mt-4 font-heading text-lg font-bold">Keranjang masih kosong</h2><p className="mt-2 text-xs text-neutral-400">Pilih menu dari katalog aktif sebelum checkout.</p><Link href="/menu" className="mt-6 inline-block rounded-xl bg-[#9c6b3a] px-5 py-2.5 text-xs font-bold">Buka Katalog</Link></section>
+      ) : (
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-7">
+            <section className="space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#f59e0b]">01. Tipe Pemesanan</h2><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{(['dine-in', 'pickup', 'drive-thru', 'delivery'] as const).map((type) => <button type="button" key={type} aria-pressed={fulfillmentType === type} onClick={() => setFulfillmentType(type)} className={`rounded-2xl border p-3 text-left text-xs font-bold capitalize ${fulfillmentType === type ? 'border-[#9c6b3a] bg-[#9c6b3a]/20' : 'border-white/5 bg-[#111114] text-neutral-400'}`}>{type.replace('-', ' ')}</button>)}</div>{fulfillmentType === 'dine-in' && <p className="rounded-xl bg-white/5 p-3 text-xs text-neutral-400">{tableLabel ? `Meja dari QR: ${tableLabel}` : 'Meja akan ditentukan staf. Scan QR meja untuk menautkan pesanan secara otomatis.'}</p>}{fulfillmentType === 'delivery' && <div><label htmlFor="delivery-address" className="mb-1.5 block text-xs font-medium text-neutral-300">Alamat pengantaran</label><textarea id="delivery-address" required minLength={10} maxLength={500} value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} rows={3} className="w-full rounded-xl border border-white/10 bg-[#111114] p-3 text-xs text-white focus:border-[#f59e0b] focus:outline-none" placeholder="Nama jalan, nomor, gedung, dan patokan..." /></div>}</section>
 
-              {/* Payment Method */}
-              <section className="glass-card p-6 rounded-2xl border border-white/5">
-                <h2 className="font-display-sm text-2xl mb-6">Payment Method</h2>
-                <div className="space-y-3">
-                  {["gopay", "qris", "cash"].map((method) => (
-                    <label key={method} className={`cursor-pointer flex items-center justify-between p-4 rounded-xl border transition-all ${paymentMethod === method ? "border-primary bg-primary/5" : "border-white/10 hover:border-white/20"}`}>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value={method}
-                          checked={paymentMethod === method}
-                          onChange={() => setPaymentMethod(method)}
-                          className="accent-primary"
-                        />
-                        <span className="font-headline-md capitalize">{method === "qris" ? "QRIS" : method}</span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </section>
-            </form>
+            <section className="space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#f59e0b]">02. Catatan Pesanan</h2><div className="grid grid-cols-1 gap-4 sm:grid-cols-2"><div><span className="mb-1.5 block text-xs font-medium text-neutral-300">Nama</span><div className="rounded-xl border border-white/5 bg-[#111114] px-4 py-2.5 text-xs text-neutral-300">{user.name}</div></div><div><span className="mb-1.5 block text-xs font-medium text-neutral-300">Kontak</span><div className="rounded-xl border border-white/5 bg-[#111114] px-4 py-2.5 text-xs text-neutral-300">{user.phone || user.email}</div></div></div><div><label htmlFor="order-notes" className="mb-1.5 block text-xs font-medium text-neutral-300">Catatan umum (opsional)</label><input id="order-notes" type="text" maxLength={500} value={notes} onChange={(event) => setNotes(event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#111114] px-4 py-2.5 text-xs text-white focus:border-[#f59e0b] focus:outline-none" placeholder="Contoh: pesanan dibungkus terpisah" /></div></section>
+
+            <section className="space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#f59e0b]">03. Metode Pembayaran</h2><div className="space-y-2.5">{PAYMENT_OPTIONS.map((option) => { const Icon = option.icon; const selected = paymentMethod === option.id; return <button key={option.id} type="button" aria-pressed={selected} onClick={() => setPaymentMethod(option.id)} className={`flex w-full items-start justify-between gap-3 rounded-2xl border p-4 text-left ${selected ? 'border-[#f59e0b] bg-[#9c6b3a]/15' : 'border-white/5 bg-[#111114]'}`}><div className="flex items-start gap-3"><span className={`rounded-xl p-2.5 ${selected ? 'bg-[#f59e0b] text-black' : 'bg-white/5 text-neutral-400'}`}><Icon className="h-5 w-5" /></span><span><span className="block text-sm font-bold text-white">{option.title}</span><span className="mt-0.5 block text-[11px] text-neutral-400">{option.description}</span></span></div>{selected && <CheckCircle2 className="mt-1 h-5 w-5 text-[#f59e0b]" />}</button>; })}</div></section>
           </div>
 
-          {/* Order Summary Section */}
-          <div className="lg:col-span-1">
-            <div className="glass-card p-6 rounded-2xl border border-white/5 sticky top-28">
-              <h2 className="font-display-sm text-2xl mb-6">Order Summary</h2>
-              
-              <div className="space-y-4 mb-6 max-h-64 overflow-y-auto custom-scroll pr-2">
-                {items.map((item) => (
-                  <div key={item.product.id} className="flex justify-between">
-                    <div className="flex gap-3">
-                      <div className="relative w-12 h-12 rounded bg-surface overflow-hidden shrink-0">
-                        <Image src={item.product.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA"} alt={item.product.name} fill className="object-cover" />
-                      </div>
-                      <div>
-                        <p className="font-headline-md text-sm line-clamp-1">{item.product.name}</p>
-                        <p className="text-on-surface-variant text-xs mt-1">Qty: {item.quantity}</p>
-                      </div>
-                    </div>
-                    <span className="font-code-sm text-sm">Rp {((item.product.price * item.quantity) / 1000).toFixed(0)}k</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t border-white/10 pt-4 space-y-3">
-                <div className="flex justify-between text-on-surface-variant text-sm">
-                  <span>Subtotal</span>
-                  <span className="font-code-sm">Rp {(subtotal / 1000).toFixed(0)}k</span>
-                </div>
-                <div className="flex justify-between text-on-surface-variant text-sm">
-                  <span>PB1 (10%)</span>
-                  <span className="font-code-sm">Rp {(tax / 1000).toFixed(1)}k</span>
-                </div>
-                <div className="flex justify-between items-center pt-3 border-t border-white/10 mt-3">
-                  <span className="font-headline-md text-lg">Total</span>
-                  <span className="font-display-sm text-2xl text-primary-fixed">Rp {(grandTotal / 1000).toFixed(1)}k</span>
-                </div>
-              </div>
-
-              {errorMsg && (
-                <div className="p-3 bg-error/20 border border-error/30 rounded-xl text-error text-xs mt-4">
-                  {errorMsg}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                form="checkout-form"
-                disabled={isSubmitting}
-                className="w-full mt-8 py-4 bg-primary text-on-primary rounded-xl font-headline-md text-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? "Processing Order..." : "Place Order"} <IconArrowRight size={20} />
-              </button>
-            </div>
-          </div>
+          <aside className="lg:col-span-5"><div className="sticky top-24 space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="flex items-center justify-between font-heading text-base font-bold"><span>Ringkasan Pesanan</span><span className="font-mono text-xs text-neutral-400">{items.reduce((count, item) => count + item.quantity, 0)} item</span></h2><div className="max-h-64 space-y-3 overflow-y-auto pr-1">{items.map((item) => <div key={`${item.product.id}-${JSON.stringify(item.customizations)}-${item.notes ?? ''}`} className="flex items-center justify-between gap-3 border-b border-white/5 pb-2.5 text-xs"><div className="min-w-0"><span className="block truncate font-medium text-white">{item.quantity}× {item.product.name}</span>{item.customizations && <span className="mt-0.5 block truncate text-[10px] text-neutral-400">{Object.values(item.customizations).join(' • ')}</span>}</div><span className="whitespace-nowrap font-mono font-semibold">Rp {(item.unitPrice * item.quantity).toLocaleString('id-ID')}</span></div>)}</div><div className="space-y-2 border-t border-white/5 pt-3 text-xs text-neutral-400"><div className="flex justify-between"><span>Estimasi subtotal</span><span className="font-mono text-white">Rp {estimatedSubtotal.toLocaleString('id-ID')}</span></div><div className="flex justify-between"><span>Estimasi pajak 11%</span><span className="font-mono text-white">Rp {Math.round(estimatedSubtotal * 0.11).toLocaleString('id-ID')}</span></div><div className="flex items-baseline justify-between border-t border-white/10 pt-3"><span className="font-heading text-base font-bold text-white">Estimasi total</span><span className="font-mono text-2xl font-extrabold text-[#f59e0b]">Rp {estimatedTotal.toLocaleString('id-ID')}</span></div></div>
+            {error && <div role="alert" className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-300">{error}{createdOrderId && <Link href={`/order/track/${createdOrderId}`} className="mt-2 block font-bold underline">Buka order yang sudah dibuat</Link>}</div>}
+            <button type="button" onClick={() => void handleProcessOrder()} disabled={isProcessing} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#9c6b3a] to-[#d4b488] px-6 py-4 font-heading text-sm font-bold text-white disabled:cursor-wait disabled:opacity-50">{isProcessing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />Memproses...</> : <><Lock className="h-4 w-4" />Buat Pesanan &amp; Bayar</>}</button><p className="text-center text-[11px] leading-relaxed text-neutral-500">Harga final berasal dari database cabang. Jika konfigurasi gateway lokal belum tersedia, order tetap tercatat sebagai belum dibayar dan dapat dilacak.</p></div></aside>
         </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }

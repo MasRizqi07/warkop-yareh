@@ -3,21 +3,29 @@
    ============================================ */
 
 // ---- User & Auth ----
-export type Role = "customer" | "staff" | "manager" | "admin" | "owner";
+export type Role =
+  | 'CUSTOMER'
+  | 'STAFF'
+  | 'CASHIER'
+  | 'KITCHEN'
+  | 'MANAGER'
+  | 'ADMIN'
+  | 'OWNER'
+  | 'SUPERADMIN';
 
-export type MembershipTier = "bronze" | "silver" | "gold" | "platinum";
+export type MembershipTier = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  phone?: string;
-  avatar?: string;
+  phone?: string | null;
+  avatar?: string | null;
   role: Role;
   membershipTier: MembershipTier;
   loyaltyPoints: number;
   joinedAt: string;
-  branchId?: string;
+  branchId?: string | null;
 }
 
 // ---- Products ----
@@ -56,12 +64,7 @@ export interface CartItem {
 }
 
 export type OrderStatus =
-  | "pending"
-  | "confirmed"
-  | "preparing"
-  | "ready"
-  | "completed"
-  | "cancelled";
+  'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
 
 export interface Order {
   id: string;
@@ -87,8 +90,8 @@ export interface Reservation {
   date: string;
   timeSlot: string;
   guestCount: number;
-  tableType: "indoor" | "outdoor" | "vip" | "meeting-room";
-  status: "pending" | "confirmed" | "cancelled" | "completed";
+  tableType: 'indoor' | 'outdoor' | 'vip' | 'meeting-room';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   specialRequests?: string;
   createdAt: string;
 }
@@ -101,13 +104,7 @@ export interface TimeSlot {
 
 // ---- Events ----
 export type EventCategory =
-  | "workshop"
-  | "music"
-  | "community"
-  | "business"
-  | "art"
-  | "tech"
-  | "food";
+  'workshop' | 'music' | 'community' | 'business' | 'art' | 'tech' | 'food';
 
 export interface Event {
   id: string;
@@ -128,7 +125,7 @@ export interface Event {
   isOnline: boolean;
   speakers?: EventSpeaker[];
   tags: string[];
-  status: "upcoming" | "ongoing" | "completed" | "cancelled";
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
 }
 
 export interface EventSpeaker {
@@ -187,7 +184,7 @@ export interface BlogPost {
 export interface LoyaltyTransaction {
   id: string;
   userId: string;
-  type: "earned" | "redeemed" | "expired" | "bonus";
+  type: 'earned' | 'redeemed' | 'expired' | 'bonus';
   points: number;
   description: string;
   orderId?: string;
@@ -227,7 +224,7 @@ export interface Notification {
   userId: string;
   title: string;
   message: string;
-  type: "order" | "event" | "loyalty" | "community" | "promo" | "system";
+  type: 'order' | 'event' | 'loyalty' | 'community' | 'promo' | 'system';
   isRead: boolean;
   actionUrl?: string;
   createdAt: string;

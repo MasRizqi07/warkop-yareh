@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThemeStore } from "@/stores";
+import { SessionBootstrap } from "@/components/auth/session-bootstrap";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeInitializer />
+      <SessionBootstrap />
       {children}
     </QueryClientProvider>
   );

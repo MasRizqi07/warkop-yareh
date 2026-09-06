@@ -2,7 +2,10 @@ import {
   Injectable,
   ConflictException,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@warkop-yareh/database';
+import { randomBytes } from 'node:crypto';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 @Injectable()
@@ -14,20 +17,40 @@ export class CommunityService {
     description?: string;
     category?: string;
   }) {
-    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    return this.prisma.communityGroup.create({
-      data: {
-        name: data.name,
-        slug,
-        description: data.description || '',
-        category: data.category || 'General',
-      },
+    const slugBase =
+      data.name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') || 'community';
+    return this.prisma.withTenantTransaction(async (tx) => {
+      const group = await tx.communityGroup.create({
+        data: {
+          name: data.name.trim(),
+          slug: `${slugBase}-${randomBytes(4).toString('hex')}`,
+          description: data.description?.trim() ?? '',
+          category: data.category?.trim() || 'General',
+        },
+      });
+      await tx.outboxEvent.create({
+        data: {
+          aggregateType: 'CommunityGroup',
+          aggregateId: group.id,
+          eventType: 'CommunityGroupCreated',
+          payload: { groupId: group.id },
+        },
+      });
+      return group;
     });
   }
 
   async listGroups(category?: string) {
     return this.prisma.communityGroup.findMany({
-      where: category ? { category } : {},
+      where: {
+        isActive: true,
+        deletedAt: null,
+        ...(category ? { category } : {}),
+      },
       include: {
         _count: {
           select: { memberships: true, posts: true },
@@ -37,6 +60,12 @@ export class CommunityService {
   }
 
   async joinGroup(userId: string, groupId: string) {
+    const group = await this.prisma.communityGroup.findFirst({
+      where: { id: groupId, isActive: true, deletedAt: null },
+      select: { id: true },
+    });
+    if (!group) throw new NotFoundException('Community group not found');
+
     try {
       return await this.prisma.communityMembership.create({
         data: {
@@ -45,8 +74,8 @@ export class CommunityService {
           role: 'MEMBER',
         },
       });
-    } catch (error: any) {
-      if (error?.code === 'P2002') {
+    } catch (error: unknown) {
+      if (this.getPrismaErrorCode(error) === 'P2002') {
         throw new ConflictException('Already a member of this group');
       }
       throw error;
@@ -58,11 +87,13 @@ export class CommunityService {
     authorId: string;
     content: string;
   }) {
-    return this.prisma.$transaction(async (tx: any) => {
+    const content = data.content.trim();
+    return this.prisma.withTenantTransaction(async (tx) => {
       const membership = await tx.communityMembership.findFirst({
         where: {
           userId: data.authorId,
           groupId: data.groupId,
+          group: { isActive: true, deletedAt: null },
         },
       });
 
@@ -74,7 +105,7 @@ export class CommunityService {
         data: {
           groupId: data.groupId,
           authorId: data.authorId,
-          content: data.content,
+          content,
         },
       });
 
@@ -98,17 +129,36 @@ export class CommunityService {
   async listPosts(groupId: string, page: number, limit: number) {
     const [data, total] = await Promise.all([
       this.prisma.communityPost.findMany({
-        where: { groupId },
+        where: {
+          groupId,
+          group: { isActive: true, deletedAt: null },
+        },
         include: {
-          author: { select: { id: true, name: true, email: true } },
+          author: { select: { id: true, name: true, avatar: true } },
         },
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.communityPost.count({ where: { groupId } }),
+      this.prisma.communityPost.count({
+        where: {
+          groupId,
+          group: { isActive: true, deletedAt: null },
+        },
+      }),
     ]);
 
     return { data, total };
+  }
+
+  private getPrismaErrorCode(error: unknown): string | undefined {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return error.code;
+    }
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+      const code = Reflect.get(error, 'code');
+      return typeof code === 'string' ? code : undefined;
+    }
+    return undefined;
   }
 }

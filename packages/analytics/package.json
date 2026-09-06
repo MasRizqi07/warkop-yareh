@@ -5,10 +5,10 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "dependencies": {
-    "posthog-node": "^3.6.3",
-    "posthog-js": "^1.111.0"
+    "posthog-js": "^1.427.2",
+    "posthog-node": "^3.6.3"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3"
   }
 }

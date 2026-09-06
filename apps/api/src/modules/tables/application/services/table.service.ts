@@ -5,7 +5,7 @@ import {
   NotFoundException,
   Inject,
 } from '@nestjs/common';
-import { TableStatus } from '@warkop-yareh/database';
+import { TableStatus, WaiterCallType } from '@warkop-yareh/database';
 import { EventsGateway } from '../../../websockets/events.gateway';
 import type { ITableRepository } from '../../domain/repositories/table.repository.interface';
 
@@ -33,6 +33,10 @@ export class TableService {
 
   async getTablesByBranch(branchId: string) {
     return this.tableRepo.getTablesByBranch(branchId);
+  }
+
+  async getTableById(tableId: string) {
+    return this.tableRepo.getTableById(tableId);
   }
 
   async updateStatus(tableId: string, newStatus: TableStatus) {
@@ -91,23 +95,36 @@ export class TableService {
 
   async createWaiterCall(
     tableId: string,
-    type: 'CALL_WAITER' | 'REQUEST_BILL' | 'NEED_ASSISTANCE',
+    type: WaiterCallType,
   ) {
     const table = await this.tableRepo.getTableById(tableId);
     if (!table) throw new NotFoundException('Table not found');
+    if (!table.isActive) {
+      throw new BadRequestException('This table is currently inactive');
+    }
+
+    const since = new Date(Date.now() - 2 * 60 * 1000);
+    const existing = await this.tableRepo.getRecentPendingWaiterCall(
+      tableId,
+      type,
+      since,
+    );
+    if (existing) return this.withPriority(existing, type);
 
     const call = await this.tableRepo.createWaiterCall(tableId, type);
-
-    // Append priority for the frontend
-    const priority =
-      type === 'NEED_ASSISTANCE'
-        ? 'HIGH'
-        : type === 'REQUEST_BILL'
-          ? 'MEDIUM'
-          : 'LOW';
-    const payload = { ...call, priority };
+    const payload = this.withPriority(call, type);
 
     this.eventsGateway.broadcastWaiterCalled(payload);
     return payload;
+  }
+
+  private withPriority<T extends object>(call: T, type: WaiterCallType) {
+    const priority =
+      type === WaiterCallType.NEED_ASSISTANCE
+        ? 'HIGH'
+        : type === WaiterCallType.REQUEST_BILL
+          ? 'MEDIUM'
+          : 'LOW';
+    return { ...call, priority };
   }
 }

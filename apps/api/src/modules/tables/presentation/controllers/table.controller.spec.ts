@@ -27,6 +27,7 @@ describe('TableController (E2E / Controller)', () => {
     tableService = {
       resolveQrCode: jest.fn().mockResolvedValue({ id: 'tbl_1', number: 'T1' }),
       getTablesByBranch: jest.fn().mockResolvedValue([]),
+      getTableById: jest.fn().mockResolvedValue({ id: 'tbl_1', branchId: 'branch_1' }),
       updateStatus: jest.fn().mockResolvedValue({ id: 'tbl_1', status: 'OCCUPIED' }),
       createWaiterCall: jest.fn().mockResolvedValue({ id: 'call_1' }),
     };

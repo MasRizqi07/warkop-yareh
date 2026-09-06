@@ -25,6 +25,7 @@ describe('TableService', () => {
       getTablesByBranch: jest.fn(),
       getTableById: jest.fn(),
       updateTableStatus: jest.fn(),
+      getRecentPendingWaiterCall: jest.fn().mockResolvedValue(null),
       createWaiterCall: jest.fn(),
     };
 

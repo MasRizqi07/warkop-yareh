@@ -36,7 +36,6 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      setIsLoading(true);
       const json = await apiFetch<{ data: ApiOrder[] }>("/orders");
       const list: ApiOrder[] = json.data || [];
 
@@ -66,9 +65,12 @@ export default function OrdersPage() {
   };
 
   useEffect(() => {
-    fetchOrders();
+    const initialRequest = setTimeout(fetchOrders, 0);
     const interval = setInterval(fetchOrders, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialRequest);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
@@ -103,6 +105,7 @@ export default function OrdersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)]" />
             <input
+              aria-label="Search orders or customers"
               type="text"
               placeholder="Search order or customer..."
               className="bg-[var(--surface-tertiary)] border border-[var(--border-default)] rounded-xl pl-10 pr-4 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] w-64 transition-all"

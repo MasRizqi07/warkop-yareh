@@ -5,7 +5,8 @@ import io from 'socket.io-client';
 import { Clock, Play, CheckCircle2, CheckSquare } from 'lucide-react';
 import { canTransitionOrder } from '../../lib/order-logic';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const SOCKET_URL = API_URL?.replace(/\/api\/v1\/?$/, '');
 
 type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'SERVED';
 
@@ -23,6 +24,34 @@ interface Order {
   createdAt: string;
   items: OrderItem[];
 }
+
+const DEMO_BOOT_TIME = Date.now();
+const DEMO_ORDERS: Order[] = [
+  {
+    id: '1',
+    orderNumber: '#CNB-1234',
+    status: 'PENDING',
+    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 2).toISOString(),
+    items: [
+      { id: 'i1', name: 'Cold Brew', quantity: 2 },
+      { id: 'i2', name: 'Croissant', quantity: 1 },
+    ],
+  },
+  {
+    id: '2',
+    orderNumber: '#CNB-1235',
+    status: 'PREPARING',
+    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 6).toISOString(),
+    items: [{ id: 'i3', name: 'Latte', quantity: 1 }],
+  },
+  {
+    id: '3',
+    orderNumber: '#CNB-1236',
+    status: 'PREPARING',
+    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 12).toISOString(),
+    items: [{ id: 'i4', name: 'Americano', quantity: 4 }],
+  },
+];
 
 // Kitchen Timer Hook
 function useKitchenTimer(createdAt: string) {
@@ -117,18 +146,15 @@ const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (i
 };
 
 export default function KitchenPage() {
-  const [orders, setOrders] = useState<Order[]>([
-    // Mock data for initial render if backend is empty
-    { id: '1', orderNumber: '#CNB-1234', status: 'PENDING', createdAt: new Date(Date.now() - 1000 * 60 * 2).toISOString(), items: [{ id: 'i1', name: 'Cold Brew', quantity: 2 }, { id: 'i2', name: 'Croissant', quantity: 1 }] },
-    { id: '2', orderNumber: '#CNB-1235', status: 'PREPARING', createdAt: new Date(Date.now() - 1000 * 60 * 6).toISOString(), items: [{ id: 'i3', name: 'Latte', quantity: 1 }] },
-    { id: '3', orderNumber: '#CNB-1236', status: 'PREPARING', createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(), items: [{ id: 'i4', name: 'Americano', quantity: 4 }] },
-  ]);
+  const [orders, setOrders] = useState<Order[]>(DEMO_ORDERS);
 
   useEffect(() => {
     // 1. Fetch initial active orders from REST API
     // fetch('/api/v1/orders/kitchen/active').then(...)
 
     // 2. Connect to Socket.IO
+    if (!SOCKET_URL) return;
+
     const socket = io(SOCKET_URL);
     
     socket.on('connect', () => {
@@ -155,22 +181,29 @@ export default function KitchenPage() {
   }, []);
 
   const handleUpdateStatus = async (orderId: string, status: string) => {
+    const previousOrders = orders;
+
     // Optimistic update
     setOrders(prev => {
       if (status === 'SERVED') return prev.filter(o => o.id !== orderId);
       return prev.map(o => o.id === orderId ? { ...o, status: status as OrderStatus } : o);
     });
 
+    if (!API_URL) return;
+
     // Call API
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
+      if (!response.ok) {
+        throw new Error(`Order status update failed with HTTP ${response.status}`);
+      }
     } catch (e) {
+      setOrders(previousOrders);
       console.error('Failed to update status', e);
-      // Revert in real app
     }
   };
 

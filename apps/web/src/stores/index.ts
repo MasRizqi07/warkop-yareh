@@ -1,8 +1,12 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { CartItem, Product } from "@warkop-yareh/types";
+
+export interface CommerceCartItem extends CartItem {
+  unitPrice: number;
+}
 
 // ---- Theme Store ----
 interface ThemeStore {
@@ -14,7 +18,7 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      isDark: false,
+      isDark: true,
       toggle: () =>
         set((state) => {
           const newDark = !state.isDark;
@@ -30,7 +34,11 @@ export const useThemeStore = create<ThemeStore>()(
         set({ isDark: dark });
       },
     }),
-    { name: "warkop-theme" },
+    {
+      name: "warkop-theme",
+      version: 1,
+      storage: createJSONStorage(() => window.localStorage),
+    },
   ),
 );
 
@@ -56,13 +64,14 @@ export function getCartItemId(
 
 // ---- Cart Store ----
 interface CartStore {
-  items: CartItem[];
+  items: CommerceCartItem[];
   isOpen: boolean;
   addItem: (
     product: Product,
     quantity?: number,
     customizations?: Record<string, string>,
     notes?: string,
+    unitPrice?: number,
   ) => void;
   removeItem: (
     productId: string,
@@ -87,8 +96,15 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       isOpen: false,
-      addItem: (product, quantity = 1, customizations, notes) =>
+      addItem: (
+        product,
+        quantity = 1,
+        customizations,
+        notes,
+        unitPrice = product.price,
+      ) =>
         set((state) => {
+          const safeQuantity = Math.min(100, Math.max(1, Math.trunc(quantity)));
           const itemKey = getCartItemId(product.id, customizations, notes);
           const existingIndex = state.items.findIndex(
             (item) =>
@@ -102,14 +118,24 @@ export const useCartStore = create<CartStore>()(
             const updatedItems = [...state.items];
             updatedItems[existingIndex] = {
               ...updatedItems[existingIndex],
-              quantity: updatedItems[existingIndex].quantity + quantity,
+              quantity: Math.min(
+                100,
+                updatedItems[existingIndex].quantity + safeQuantity,
+              ),
+              unitPrice,
             };
             return { items: updatedItems };
           }
           return {
             items: [
               ...state.items,
-              { product, quantity, customizations, notes },
+              {
+                product,
+                quantity: safeQuantity,
+                customizations,
+                notes,
+                unitPrice,
+              },
             ],
           };
         }),
@@ -147,7 +173,7 @@ export const useCartStore = create<CartStore>()(
                       item.customizations,
                       item.notes,
                     ) === itemKey
-                      ? { ...item, quantity }
+                      ? { ...item, quantity: Math.min(100, Math.trunc(quantity)) }
                       : item,
                   ),
           };
@@ -157,18 +183,24 @@ export const useCartStore = create<CartStore>()(
       setCartOpen: (open) => set({ isOpen: open }),
       total: () =>
         get().items.reduce(
-          (sum, item) => sum + item.product.price * item.quantity,
+          (sum, item) => sum + item.unitPrice * item.quantity,
           0,
         ),
       itemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
-    { name: "warkop-cart" },
+    {
+      name: "warkop-cart",
+      version: 2,
+      storage: createJSONStorage(() => window.localStorage),
+    },
   ),
 );
 
 export * from "./useUserStore";
 export * from "./useReservationStore";
+export * from "./branch.store";
+export * from "./checkout.store";
 
 // ---- UI Store ----
 interface UIStore {

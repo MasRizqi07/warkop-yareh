@@ -31,7 +31,7 @@ export function RevenueChart() {
       </div>
       
       <div className="w-full h-[250px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={250} minWidth={0}>
           <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" vertical={false} />
             <XAxis 

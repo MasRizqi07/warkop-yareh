@@ -16,7 +16,7 @@ export default function DashboardLayout({
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -25,7 +25,7 @@ export default function DashboardLayout({
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content Area */}
-      <main className="flex flex-col min-h-screen min-w-0 md:pl-64 transition-all duration-300">
+      <main className="flex min-h-screen min-w-0 flex-col transition-all duration-300 lg:pl-64">
         {/* Top Header */}
         <Header onMenuClick={() => setSidebarOpen(true)} />
 

@@ -5,7 +5,6 @@
 
 generator client {
   provider      = "prisma-client-js"
-  output        = "../generated/client"
   binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
@@ -222,6 +221,8 @@ model Order {
   customerPhone       String?
   loyaltyPointsEarned Int         @default(0)
   loyaltyPointsUsed   Int         @default(0)
+  idempotencyKeyHash  String?     @unique
+  requestFingerprint String?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   deletedAt           DateTime?
@@ -236,6 +237,8 @@ model Order {
   @@index([status])
   @@index([type])
   @@index([createdAt])
+  @@index([branchId, createdAt])
+  @@index([userId, createdAt])
   @@map("orders")
 }
 
@@ -296,6 +299,7 @@ model Payment {
   amount          Int
   midtransToken   String?       // Snap token for online payment
   midtransOrderId String?       @unique
+  redirectUrl     String?
   reference       String?
   paidAt          DateTime?
   createdAt       DateTime      @default(now())

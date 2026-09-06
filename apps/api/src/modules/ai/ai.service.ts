@@ -1,18 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CatalogService } from '../catalog/application/services/catalog.service';
+import type { CatalogProduct } from '../catalog/domain/repositories/catalog.repository.interface';
+import {
+  TasteProfile,
+  type RecommendationRequestDto,
+} from './dto/recommendation.dto';
 
 export interface FlavorProfile {
-  id: string;
+  id: TasteProfile;
   name: string;
   description: string;
   recommendedProducts: string[];
   suggestedPairings: string[];
-}
-
-export interface RecommendationRequest {
-  preferences?: string[];
-  tasteProfile?: 'sweet_creamy' | 'fruity_acidic' | 'bold_chocolatey' | 'spiced_herbal' | 'refreshing';
-  currentCartItems?: string[];
-  userQuery?: string;
 }
 
 export interface RecommendationResult {
@@ -23,6 +22,7 @@ export interface RecommendationResult {
     category: string;
     price: number;
     description: string;
+    image: string | null;
     flavorNotes: string[];
     pairingReason: string;
   }>;
@@ -35,186 +35,253 @@ export interface RecommendationResult {
   flavorTags: string[];
 }
 
+const PROFILE_KEYWORDS: Readonly<Record<TasteProfile, readonly string[]>> = {
+  [TasteProfile.SWEET_CREAMY]: [
+    'latte',
+    'milk',
+    'susu',
+    'caramel',
+    'creamy',
+    'sweet',
+  ],
+  [TasteProfile.FRUITY_ACIDIC]: [
+    'v60',
+    'toraja',
+    'cold brew',
+    'fruity',
+    'citrus',
+    'bright',
+    'asam',
+    'asem',
+    'seger',
+  ],
+  [TasteProfile.BOLD_CHOCOLATEY]: [
+    'espresso',
+    'americano',
+    'long black',
+    'bold',
+    'dark',
+    'chocolate',
+    'ngantuk',
+    'begadang',
+    'kafein',
+    'kuat',
+    'pahit',
+  ],
+  [TasteProfile.SPICED_HERBAL]: [
+    'tea',
+    'teh',
+    'spice',
+    'herbal',
+    'cinnamon',
+    'matcha',
+  ],
+  [TasteProfile.REFRESHING]: [
+    'non kopi',
+    'bukan kopi',
+    'cold',
+    'sparkling',
+    'lemon',
+    'lychee',
+    'orange',
+    'strawberry',
+  ],
+};
+
 @Injectable()
 export class AiService {
-  private readonly logger = new Logger(AiService.name);
+  private readonly flavorMatrix: Readonly<Record<TasteProfile, FlavorProfile>> =
+    {
+      [TasteProfile.SWEET_CREAMY]: {
+        id: TasteProfile.SWEET_CREAMY,
+        name: 'Manis & Creamy',
+        description: 'Minuman lembut dengan susu dan rasa manis yang nyaman.',
+        recommendedProducts: ['Caramel Latte', 'Cappuccino', 'Matcha Latte'],
+        suggestedPairings: ['Croissant Mentega', 'Banana Bread'],
+      },
+      [TasteProfile.FRUITY_ACIDIC]: {
+        id: TasteProfile.FRUITY_ACIDIC,
+        name: 'Fruity & Bright Acidity',
+        description: 'Kopi beraroma buah dengan rasa ringan dan segar.',
+        recommendedProducts: ['Toraja V60', 'Classic Cold Brew'],
+        suggestedPairings: ['Croissant Mentega', 'Granola Bar'],
+      },
+      [TasteProfile.BOLD_CHOCOLATEY]: {
+        id: TasteProfile.BOLD_CHOCOLATEY,
+        name: 'Bold, Dark & Nutty',
+        description: 'Kopi dengan body tebal dan karakter panggang yang kuat.',
+        recommendedProducts: ['Espresso', 'Americano', 'Long Black'],
+        suggestedPairings: ['Cheese Toast', 'Nasi Goreng Kampung'],
+      },
+      [TasteProfile.SPICED_HERBAL]: {
+        id: TasteProfile.SPICED_HERBAL,
+        name: 'Spiced & Herbal',
+        description: 'Profil aromatik, earthy, dan hangat.',
+        recommendedProducts: ['Matcha Latte'],
+        suggestedPairings: ['Karipap (Curry Puff)'],
+      },
+      [TasteProfile.REFRESHING]: {
+        id: TasteProfile.REFRESHING,
+        name: 'Segar & Ringan',
+        description: 'Minuman dingin yang ringan dan menyegarkan.',
+        recommendedProducts: [
+          'Lychee Sparkling',
+          'Blue Lemonade',
+          'Strawberry Milk',
+        ],
+        suggestedPairings: ['Granola Bar', 'Croissant Mentega'],
+      },
+    };
 
-  // Flavor matrix with curated Indonesian specialty coffee profiles & snack pairings
-  private readonly flavorMatrix: Record<string, FlavorProfile> = {
-    sweet_creamy: {
-      id: 'sweet_creamy',
-      name: 'Manis & Creamy (Comforting)',
-      description: 'Perpaduan espresso lembut dengan gula aren organik dan fresh milk pilihan.',
-      recommendedProducts: ['Kopi Susu Aren Signature', 'Caramel Macchiato', 'Premium Matcha Latte'],
-      suggestedPairings: ['Tahu Walik Crispy', 'Cireng Salju Rujak'],
-    },
-    fruity_acidic: {
-      id: 'fruity_acidic',
-      name: 'Fruity & Bright Acidity',
-      description: 'Single origin dengan profil floral, berry, dan aroma buah segar yang menyegarkan.',
-      recommendedProducts: ['V60 Single Origin Ijen Strawberry', 'V60 Toraja Sapan', 'Cold Brew Citrus Peach'],
-      suggestedPairings: ['Croissant Butter', 'Pisang Goreng Keju'],
-    },
-    bold_chocolatey: {
-      id: 'bold_chocolatey',
-      name: 'Bold, Dark Chocolate & Nutty',
-      description: 'Ekstraksi pekat dengan body tebal, rasa dark chocolate, karamel matang, dan roasted almond.',
-      recommendedProducts: ['Espresso Double Shot', 'Americano Robusta Dampit', 'Kopi Tubruk Ya\'reh'],
-      suggestedPairings: ['Nasi Goreng Ya\'reh', 'Roti Bakar Coklat Keju'],
-    },
-    refreshing: {
-      id: 'refreshing',
-      name: 'Segar & Ringan (Low Caffeine)',
-      description: 'Pilihan non-kopi atau mocktail dingin untuk menyegarkan hari di tengah cuaca Surabaya.',
-      recommendedProducts: ['Es Teh Manis Jumbo', 'Berry Mint Mocktail', 'Yuzu Sparkling Tea'],
-      suggestedPairings: ['Kentang Goreng Truffle', 'Tahu Walik Crispy'],
-    },
-  };
+  constructor(private readonly catalogService: CatalogService) {}
 
-  private readonly catalogProducts = [
-    {
-      id: 'p1',
-      name: 'Kopi Susu Aren Signature',
-      category: 'Coffee',
-      price: 28000,
-      description: 'Espresso blend Arabica-Robusta dengan gula aren murni Tuban dan susu segar.',
-      flavorNotes: ['Aren', 'Creamy', 'Caramel'],
-    },
-    {
-      id: 'p2',
-      name: 'V60 Single Origin Toraja Sapan',
-      category: 'Manual Brew',
-      price: 38000,
-      description: 'Seduhan manual filter V60 dengan notes red apple, dark berry, dan floral clean finish.',
-      flavorNotes: ['Floral', 'Red Apple', 'Clean Finish'],
-    },
-    {
-      id: 'p3',
-      name: 'V60 Single Origin Ijen Strawberry',
-      category: 'Manual Brew',
-      price: 38000,
-      description: 'Proses natural anaerobic menghadirkan rasa manis asam stroberi yang intens dan harum.',
-      flavorNotes: ['Strawberry', 'Winey', 'Citrus'],
-    },
-    {
-      id: 'p4',
-      name: 'Premium Matcha Latte',
-      category: 'Non-Coffee',
-      price: 35000,
-      description: 'Matcha Uji Kyoto grade A berpadu dengan susu steamed lembut.',
-      flavorNotes: ['Uji Matcha', 'Creamy', 'Earthy'],
-    },
-    {
-      id: 'p5',
-      name: 'Cold Brew Citrus Peach',
-      category: 'Coffee',
-      price: 34000,
-      description: 'Cold brew 16 jam dengan infusi potongan peach segar dan perasan jeruk nipis lokal.',
-      flavorNotes: ['Peach', 'Citrus', 'Crisp'],
-    },
-    {
-      id: 'p6',
-      name: 'Americano Robusta Dampit',
-      category: 'Coffee',
-      price: 22000,
-      description: 'Robusta murni lereng Semeru Dampit Malang dengan aroma nutty pekat dan kafein mantap.',
-      flavorNotes: ['Dark Chocolate', 'Nutty', 'High Caffeine'],
-    },
-  ];
-
-  private readonly snackPairings = [
-    { id: 's1', name: 'Tahu Walik Crispy', price: 18000, reason: 'Gurih renyah menyeimbangkan rasa manis kopi susu.' },
-    { id: 's2', name: 'Cireng Salju Rujak', price: 16000, reason: 'Sensasi pedas manis sambal rujak cocok menemani manual brew.' },
-    { id: 's3', name: 'Nasi Goreng Ya\'reh', price: 38000, reason: 'Porsi lengkap dan mantap untuk teman begadang kerja/diskusi.' },
-    { id: 's4', name: 'Croissant Butter', price: 24000, reason: 'Tekstur flaky buttery sempurna untuk dinikmati bersama espresso base.' },
-  ];
-
-  async getFlavorProfiles(): Promise<FlavorProfile[]> {
+  getFlavorProfiles(): FlavorProfile[] {
     return Object.values(this.flavorMatrix);
   }
 
-  async recommend(dto: RecommendationRequest): Promise<RecommendationResult> {
-    const profileKey = dto.tasteProfile || this.inferProfileFromQuery(dto.userQuery || '');
-    const profile = this.flavorMatrix[profileKey] || this.flavorMatrix.sweet_creamy;
+  async recommend(
+    dto: RecommendationRequestDto,
+  ): Promise<RecommendationResult> {
+    const profileKey =
+      dto.tasteProfile ?? this.inferProfileFromQuery(dto.userQuery ?? '');
+    const profile = this.flavorMatrix[profileKey];
+    const catalog = await this.catalogService.getFullCatalog(dto.branchId);
+    const excludedIds = new Set(dto.currentCartItems ?? []);
+    const beverageProducts = catalog.products.filter(
+      (product) => !this.isFoodCategory(product),
+    );
+    const ranked = beverageProducts
+      .map((product) => ({
+        product,
+        score: this.scoreProduct(product, profile, dto),
+      }))
+      .filter(({ product }) => !excludedIds.has(product.id))
+      .sort(
+        (left, right) =>
+          right.score - left.score ||
+          Number(right.product.isPopular) - Number(left.product.isPopular) ||
+          right.product.rating - left.product.rating,
+      );
+    const selected = ranked.slice(0, 3).map(({ product }) => product);
+    if (selected.length === 0) {
+      throw new NotFoundException(
+        'No available menu products match this branch',
+      );
+    }
 
-    // Filter matching products from catalog
-    const matchedProducts = this.catalogProducts.filter((p) =>
-      profile.recommendedProducts.some((rec) => {
-        const recWords = rec.toLowerCase().split(' ').filter((w) => w.length > 3);
-        return recWords.some((w) => p.name.toLowerCase().includes(w) || p.flavorNotes.some((f) => f.toLowerCase().includes(w)));
+    const snack = catalog.products
+      .filter((product) => this.isFoodCategory(product))
+      .sort((left, right) => {
+        const leftPreferred = profile.suggestedPairings.includes(left.name);
+        const rightPreferred = profile.suggestedPairings.includes(right.name);
+        return Number(rightPreferred) - Number(leftPreferred);
+      })[0];
+    const flavorTags = [
+      ...new Set(selected.flatMap((product) => product.tags)),
+    ];
+
+    return {
+      message: dto.userQuery
+        ? `Berdasarkan preferensimu, rekomendasi utama kami adalah ${selected[0].name}.`
+        : `Rekomendasi Barista untuk profil ${profile.name}:`,
+      highlightedProducts: selected.map((product) => ({
+        id: product.id,
+        name: product.name,
+        category: product.category.name,
+        price: product.price,
+        description: product.description,
+        image: product.image,
+        flavorNotes:
+          product.tags.length > 0
+            ? product.tags.slice(0, 5)
+            : PROFILE_KEYWORDS[profile.id].slice(0, 3).map(this.titleCase),
+        pairingReason: `Sesuai dengan profil ${profile.name.toLowerCase()} dan tersedia di cabang pilihanmu.`,
+      })),
+      ...(snack
+        ? {
+            pairingSnack: {
+              id: snack.id,
+              name: snack.name,
+              price: snack.price,
+              reason: `Pilihan pendamping yang seimbang untuk ${selected[0].name}.`,
+            },
+          }
+        : {}),
+      flavorTags,
+    };
+  }
+
+  async chatWithBarista(
+    userMessage: string,
+    previousContext?: string,
+    branchId?: string,
+  ): Promise<{
+    reply: string;
+    suggestedAction: string;
+    recommendedProductId: string;
+  }> {
+    const combinedQuery = `${previousContext ?? ''} ${userMessage}`.trim();
+    const profile = this.inferProfileFromQuery(combinedQuery);
+    const recommendation = await this.recommend({
+      branchId,
+      userQuery: combinedQuery,
+      tasteProfile: profile,
+    });
+    const product = recommendation.highlightedProducts[0];
+    return {
+      reply: `Saya merekomendasikan **${product.name}** — ${product.description}`,
+      suggestedAction: `ORDER_${profile.toUpperCase()}`,
+      recommendedProductId: product.id,
+    };
+  }
+
+  private scoreProduct(
+    product: CatalogProduct,
+    profile: FlavorProfile,
+    dto: RecommendationRequestDto,
+  ): number {
+    const haystack = [
+      product.name,
+      product.description,
+      product.category.name,
+      ...product.tags,
+      ...(dto.preferences ?? []),
+      dto.userQuery ?? '',
+    ]
+      .join(' ')
+      .toLowerCase();
+    const keywordScore = PROFILE_KEYWORDS[profile.id].reduce(
+      (score, keyword) => score + (haystack.includes(keyword) ? 3 : 0),
+      0,
+    );
+    const namedRecommendationScore = profile.recommendedProducts.some((name) =>
+      product.name.toLowerCase().includes(name.toLowerCase()),
+    )
+      ? 10
+      : 0;
+    return keywordScore + namedRecommendationScore + Number(product.isPopular);
+  }
+
+  private isFoodCategory(product: CatalogProduct): boolean {
+    const category = product.category.slug.toLowerCase();
+    return ['snacks', 'main-course', 'desserts'].includes(category);
+  }
+
+  private inferProfileFromQuery(query: string): TasteProfile {
+    const normalized = query.toLowerCase();
+    const matches = Object.entries(PROFILE_KEYWORDS).map(
+      ([profile, keywords]) => ({
+        profile: profile as TasteProfile,
+        score: keywords.filter((keyword) => normalized.includes(keyword))
+          .length,
       }),
     );
-
-    // Pick top pairings
-    const highlighted = (matchedProducts.length > 0 ? matchedProducts : this.catalogProducts.slice(0, 2)).map((p) => ({
-      ...p,
-      pairingReason: `Cocok untuk kamu yang menyukai sensasi ${profile.name.toLowerCase()}.`,
-    }));
-
-    // Pick appropriate snack pairing
-    const snack = this.snackPairings.find((s) => profile.suggestedPairings.includes(s.name)) || this.snackPairings[0];
-
-    const message = dto.userQuery
-      ? `Berdasarkan preferensimu ("${dto.userQuery}"), Barista AI merekomendasikan racikan ${highlighted[0]?.name || 'Signature Brew'}!`
-      : `Rekomendasi Barista untuk profil ${profile.name}:`;
-
-    return {
-      message,
-      highlightedProducts: highlighted,
-      pairingSnack: snack,
-      flavorTags: profile.recommendedProducts.flatMap((name) => {
-        const prod = this.catalogProducts.find((p) => p.name === name);
-        return prod?.flavorNotes || [];
-      }),
-    };
+    matches.sort((left, right) => right.score - left.score);
+    return matches[0].score > 0
+      ? matches[0].profile
+      : TasteProfile.SWEET_CREAMY;
   }
 
-  async chatWithBarista(userMessage: string, previousContext?: string): Promise<{ reply: string; suggestedAction?: string; recommendedProductId?: string }> {
-    const lower = userMessage.toLowerCase();
-
-    if (lower.includes('non kopi') || lower.includes('bukan kopi') || lower.includes('tidak minum kopi') || lower.includes('matcha') || lower.includes('teh') || lower.includes('mocktail')) {
-      return {
-        reply: 'Tenang, ada **Premium Matcha Latte** dari Uji Kyoto atau **Berry Mint Mocktail** dingin yang bebas kafein tinggi dan sangat menyegarkan!',
-        suggestedAction: 'ORDER_NON_COFFEE',
-        recommendedProductId: 'p4',
-      };
-    }
-
-    if (lower.includes('ngantuk') || lower.includes('begadang') || lower.includes('kafein') || lower.includes('kuat') || lower.includes('pahit')) {
-      return {
-        reply: 'Untuk booster fokus dan melek maksimal, Barista sarankan **Americano Robusta Dampit** (ekstra kafein tinggi dari lereng Semeru) atau **Double Espresso Ya\'reh**. Mau ditambahkan ke pesanan?',
-        suggestedAction: 'ORDER_BOLD',
-        recommendedProductId: 'p6',
-      };
-    }
-
-    if (lower.includes('asam') || lower.includes('asem') || lower.includes('fruity') || lower.includes('v60') || lower.includes('manual') || lower.includes('strawberry') || lower.includes('segar')) {
-      return {
-        reply: 'Pencinta acidity segar wajib coba **V60 Ijen Strawberry Natural** — aroma stroberi dan peach-nya sangat semerbak dengan aftertaste yang clean & manis.',
-        suggestedAction: 'ORDER_MANUAL_BREW',
-        recommendedProductId: 'p3',
-      };
-    }
-
-    if (lower.includes('manis') || lower.includes('creamy') || lower.includes('susu') || lower.includes('santai') || lower.includes('enak')) {
-      return {
-        reply: 'Pilihan paling pas untuk santai adalah **Kopi Susu Aren Signature** kami yang creamy dengan gula aren murni Tuban! Padukan dengan **Tahu Walik Crispy** untuk camilan gurih yang pas.',
-        suggestedAction: 'ORDER_SIGNATURE',
-        recommendedProductId: 'p1',
-      };
-    }
-
-    return {
-      reply: 'Halo! Saya Barista AI Warkop Ya\'reh. Ceritakan seleramu hari ini — apakah kamu mencari kopi manis creamy, manual brew fruity dengan V60, espresso bold berkafein tinggi, atau minuman segar non-kopi?',
-      suggestedAction: 'EXPLORE_PROFILES',
-    };
-  }
-
-  private inferProfileFromQuery(query: string): string {
-    const q = query.toLowerCase();
-    if (q.includes('asam') || q.includes('asem') || q.includes('fruity') || q.includes('v60') || q.includes('filter') || q.includes('strawberry')) return 'fruity_acidic';
-    if (q.includes('pahit') || q.includes('bold') || q.includes('begadang') || q.includes('kuat') || q.includes('kafein') || q.includes('ngantuk')) return 'bold_chocolatey';
-    if (q.includes('non kopi') || q.includes('segar') || q.includes('mocktail') || q.includes('dingin') || q.includes('teh')) return 'refreshing';
-    return 'sweet_creamy';
-  }
+  private readonly titleCase = (value: string): string =>
+    value.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

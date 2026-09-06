@@ -31,7 +31,12 @@ export default function LoginPage() {
       const { accessToken, user } = response.data.data;
       
       setAuth(user, accessToken);
-      router.push('/'); // Redirect to home or dashboard after login
+      const requestedPath = new URLSearchParams(window.location.search).get('returnTo');
+      const safePath =
+        requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+          ? requestedPath
+          : '/';
+      router.replace(safePath);
     } catch (err: unknown) {
       const errorMsg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
       setError(errorMsg || 'Invalid email or password');
@@ -71,7 +76,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Email address
               </label>
               <div className="mt-2 relative">
@@ -79,6 +84,7 @@ export default function LoginPage() {
                   <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <Input
+                  id="login-email"
                   type="email"
                   required
                   value={email}
@@ -90,7 +96,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Password
               </label>
               <div className="mt-2 relative">
@@ -98,6 +104,7 @@ export default function LoginPage() {
                   <Lock className="h-5 w-5 text-slate-400" />
                 </div>
                 <Input
+                  id="login-password"
                   type="password"
                   required
                   value={password}

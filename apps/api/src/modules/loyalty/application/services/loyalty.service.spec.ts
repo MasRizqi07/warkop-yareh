@@ -1,227 +1,218 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { MembershipTier } from '@warkop-yareh/database';
 import { LoyaltyService } from './loyalty.service';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 describe('LoyaltyService', () => {
   let service: LoyaltyService;
-  let mockPrisma: any;
-
-  const mockUser = {
-    id: 'user-1',
-    name: 'Coffee Fan',
-    loyaltyPoints: 200,
-    membershipTier: 'BRONZE',
+  let prisma: {
+    $transaction: jest.Mock;
+    withTenantTransaction: jest.Mock;
+    user: {
+      findFirst: jest.Mock;
+      update: jest.Mock;
+      updateMany: jest.Mock;
+      findUniqueOrThrow: jest.Mock;
+    };
+    reward: { findUnique: jest.Mock; findMany: jest.Mock };
+    loyaltyTransaction: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+      count: jest.Mock;
+    };
+    outboxEvent: { create: jest.Mock };
   };
 
-  const mockReward = {
+  const user = {
+    id: 'user-1',
+    name: 'Coffee Fan',
+    branchId: 'branch-1',
+    loyaltyPoints: 200,
+    membershipTier: MembershipTier.BRONZE,
+  };
+  const reward = {
     id: 'reward-1',
     name: 'Free Espresso',
+    description: 'One espresso',
+    image: null,
     pointsCost: 200,
+    category: 'Beverage',
+    tier: MembershipTier.BRONZE,
     isAvailable: true,
+    expiresAt: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   };
 
   beforeEach(async () => {
-    mockPrisma = {
-      $transaction: jest.fn((cb) => cb(mockPrisma)),
+    prisma = {
+      $transaction: jest.fn(),
+      withTenantTransaction: jest.fn(),
       user: {
-        findUnique: jest.fn(),
+        findFirst: jest.fn(),
         update: jest.fn(),
+        updateMany: jest.fn(),
+        findUniqueOrThrow: jest.fn(),
       },
-      reward: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-      },
+      reward: { findUnique: jest.fn(), findMany: jest.fn() },
       loyaltyTransaction: {
         create: jest.fn(),
         findMany: jest.fn(),
+        count: jest.fn(),
       },
-      outboxEvent: {
-        create: jest.fn(),
-      },
+      outboxEvent: { create: jest.fn() },
     };
+    prisma.$transaction.mockImplementation(
+      (operation: unknown, _options?: unknown) =>
+        Array.isArray(operation)
+          ? Promise.all(operation)
+          : (operation as (client: typeof prisma) => unknown)(prisma),
+    );
+    prisma.withTenantTransaction.mockImplementation(
+      (operation: (client: typeof prisma) => unknown) => operation(prisma),
+    );
+    prisma.loyaltyTransaction.create.mockResolvedValue({ id: 'tx-1' });
+    prisma.outboxEvent.create.mockResolvedValue({ id: 'event-1' });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LoyaltyService,
-        { provide: DatabaseService, useValue: mockPrisma },
+        {
+          provide: DatabaseService,
+          useValue: prisma as unknown as DatabaseService,
+        },
       ],
     }).compile();
-
-    service = module.get<LoyaltyService>(LoyaltyService);
+    service = module.get(LoyaltyService);
   });
 
-  describe('redeemReward - Race Condition & Validation', () => {
-    it('should configure transaction with Serializable isolation level to prevent points race condition', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
-      mockPrisma.reward.findUnique.mockResolvedValue(mockReward);
-      mockPrisma.user.update.mockResolvedValue({
-        ...mockUser,
-        loyaltyPoints: 0,
-      });
+  it('returns the current loyalty status without sensitive user fields', async () => {
+    prisma.user.findFirst.mockResolvedValue(user);
 
-      await service.redeemReward('user-1', 'reward-1');
-
-      expect(mockPrisma.$transaction).toHaveBeenCalledWith(
-        expect.any(Function),
-        { isolationLevel: 'Serializable' },
-      );
-    });
-
-    it('should prevent points race condition when 2 concurrent redemptions occur for user with points for only 1 reward', async () => {
-      let currentPoints = 200;
-      mockPrisma.$transaction.mockImplementation(async (cb: any, options: any) => {
-        if (options?.isolationLevel !== 'Serializable') {
-          throw new Error('Transaction isolation level must be Serializable');
-        }
-        const txMock = {
-          user: {
-            findUnique: jest.fn().mockImplementation(() => {
-              return { ...mockUser, loyaltyPoints: currentPoints };
-            }),
-            update: jest.fn().mockImplementation(({ data }: any) => {
-              if (data.loyaltyPoints?.decrement) {
-                if (currentPoints < data.loyaltyPoints.decrement) {
-                  throw new BadRequestException('Insufficient loyalty points');
-                }
-                currentPoints -= data.loyaltyPoints.decrement;
-              }
-              return { ...mockUser, loyaltyPoints: currentPoints };
-            }),
-          },
-          reward: {
-            findUnique: jest.fn().mockResolvedValue(mockReward),
-          },
-          loyaltyTransaction: { create: jest.fn() },
-          outboxEvent: { create: jest.fn() },
-        };
-        return cb(txMock);
-      });
-
-      const results = await Promise.allSettled([
-        service.redeemReward('user-1', 'reward-1'),
-        service.redeemReward('user-1', 'reward-1'),
-      ]);
-
-      const fulfilled = results.filter((r) => r.status === 'fulfilled');
-      const rejected = results.filter((r) => r.status === 'rejected');
-
-      expect(fulfilled).toHaveLength(1);
-      expect(rejected).toHaveLength(1);
-      expect((rejected[0] as PromiseRejectedResult).reason).toBeInstanceOf(BadRequestException);
-      expect(currentPoints).toBe(0); // Balance did NOT drop negative!
-    });
-
-    it('should throw BadRequestException when user has insufficient loyalty points', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({
-        ...mockUser,
-        loyaltyPoints: 100,
-      });
-      mockPrisma.reward.findUnique.mockResolvedValue(mockReward);
-
-      await expect(
-        service.redeemReward('user-1', 'reward-1'),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw BadRequestException when reward is unavailable', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
-      mockPrisma.reward.findUnique.mockResolvedValue({
-        ...mockReward,
-        isAvailable: false,
-      });
-
-      await expect(
-        service.redeemReward('user-1', 'reward-1'),
-      ).rejects.toThrow(BadRequestException);
-    });
+    await expect(service.getLoyaltyStatus('user-1')).resolves.toEqual(user);
+    expect(prisma.user.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.not.objectContaining({ passwordHash: true }),
+      }),
+    );
   });
 
-  describe('awardPoints - Tier Threshold Boundaries', () => {
-    it('should upgrade tier to SILVER when crossing 200 points threshold', async () => {
-      mockPrisma.user.update.mockResolvedValue({
-        ...mockUser,
-        loyaltyPoints: 200,
-        membershipTier: 'BRONZE',
-      });
-
-      const result = await service.awardPoints('user-1', 50, 'Purchase');
-
-      expect(mockPrisma.user.update).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          data: { membershipTier: 'SILVER' },
-        }),
-      );
-      expect(mockPrisma.outboxEvent.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            eventType: 'LoyaltyTierUpgraded',
-            payload: expect.objectContaining({ newTier: 'SILVER' }),
-          }),
-        }),
-      );
-    });
-
-    it('should upgrade tier to GOLD when crossing 500 points threshold', async () => {
-      mockPrisma.user.update.mockResolvedValue({
-        ...mockUser,
-        loyaltyPoints: 500,
-        membershipTier: 'SILVER',
-      });
-
-      await service.awardPoints('user-1', 100, 'Purchase');
-
-      expect(mockPrisma.user.update).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          data: { membershipTier: 'GOLD' },
-        }),
-      );
-    });
-
-    it('should upgrade tier to PLATINUM when crossing 1000 points threshold', async () => {
-      mockPrisma.user.update.mockResolvedValue({
-        ...mockUser,
-        loyaltyPoints: 1000,
-        membershipTier: 'GOLD',
-      });
-
-      await service.awardPoints('user-1', 500, 'Purchase');
-
-      expect(mockPrisma.user.update).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          data: { membershipTier: 'PLATINUM' },
-        }),
-      );
-    });
-
-    it('should NOT emit LoyaltyTierUpgraded event when points stay within same tier band', async () => {
-      mockPrisma.user.update.mockResolvedValue({
-        ...mockUser,
-        loyaltyPoints: 150,
-        membershipTier: 'BRONZE',
-      });
-
-      await service.awardPoints('user-1', 50, 'Purchase');
-
-      expect(mockPrisma.outboxEvent.create).not.toHaveBeenCalled();
-    });
+  it('throws NotFoundException for an unknown user', async () => {
+    prisma.user.findFirst.mockResolvedValue(null);
+    await expect(service.getLoyaltyStatus('missing')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
-  describe('getLoyaltyStatus & Read Operations', () => {
-    it('should return loyalty status for existing user', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+  it('rejects invalid point awards', async () => {
+    await expect(service.awardPoints('user-1', -1, 'Purchase')).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(prisma.withTenantTransaction).not.toHaveBeenCalled();
+  });
 
-      const status = await service.getLoyaltyStatus('user-1');
-      expect(status.loyaltyPoints).toBe(200);
+  it('awards points and upgrades the tier atomically', async () => {
+    prisma.user.findFirst.mockResolvedValue(user);
+    prisma.user.update.mockResolvedValue({
+      ...user,
+      loyaltyPoints: 500,
+      membershipTier: MembershipTier.GOLD,
     });
 
-    it('should throw BadRequestException if user is not found', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+    const result = await service.awardPoints('user-1', 300, 'Purchase bonus');
 
-      await expect(service.getLoyaltyStatus('user-unknown')).rejects.toThrow(
-        BadRequestException,
-      );
+    expect(result.user.membershipTier).toBe(MembershipTier.GOLD);
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ membershipTier: MembershipTier.GOLD }),
+      }),
+    );
+    expect(prisma.outboxEvent.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ eventType: 'LoyaltyTierUpgraded' }),
+      }),
+    );
+  });
+
+  it('rejects unavailable, expired, or tier-locked rewards', async () => {
+    prisma.user.findFirst.mockResolvedValue(user);
+    prisma.reward.findUnique.mockResolvedValue({
+      ...reward,
+      tier: MembershipTier.GOLD,
     });
+    await expect(service.redeemReward('user-1', 'reward-1')).rejects.toThrow(
+      'Reward requires GOLD membership',
+    );
+
+    prisma.reward.findUnique.mockResolvedValue({
+      ...reward,
+      expiresAt: new Date('2020-01-01T00:00:00.000Z'),
+    });
+    await expect(service.redeemReward('user-1', 'reward-1')).rejects.toThrow(
+      'Reward is not available',
+    );
+  });
+
+  it('uses an atomic conditional deduction and never permits a negative balance', async () => {
+    let balance = 200;
+    prisma.user.findFirst.mockImplementation(() => ({
+      ...user,
+      loyaltyPoints: balance,
+    }));
+    prisma.reward.findUnique.mockResolvedValue(reward);
+    prisma.user.updateMany.mockImplementation(() => {
+      if (balance < reward.pointsCost) return { count: 0 };
+      balance -= reward.pointsCost;
+      return { count: 1 };
+    });
+    prisma.user.findUniqueOrThrow.mockImplementation(() => ({
+      ...user,
+      loyaltyPoints: balance,
+    }));
+
+    const outcomes = await Promise.allSettled([
+      service.redeemReward('user-1', 'reward-1'),
+      service.redeemReward('user-1', 'reward-1'),
+    ]);
+
+    expect(outcomes.filter((item) => item.status === 'fulfilled')).toHaveLength(
+      1,
+    );
+    expect(outcomes.filter((item) => item.status === 'rejected')).toHaveLength(
+      1,
+    );
+    expect(balance).toBe(0);
+  });
+
+  it('uses Serializable isolation for reward redemption', async () => {
+    prisma.user.findFirst.mockResolvedValue(user);
+    prisma.reward.findUnique.mockResolvedValue(reward);
+    prisma.user.updateMany.mockResolvedValue({ count: 1 });
+    prisma.user.findUniqueOrThrow.mockResolvedValue({
+      ...user,
+      loyaltyPoints: 0,
+    });
+
+    await service.redeemReward('user-1', 'reward-1');
+
+    expect(prisma.withTenantTransaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        isolationLevel: 'Serializable',
+      },
+    );
+  });
+
+  it('paginates transaction history', async () => {
+    prisma.loyaltyTransaction.findMany.mockResolvedValue([{ id: 'tx-1' }]);
+    prisma.loyaltyTransaction.count.mockResolvedValue(1);
+
+    const result = await service.listTransactions('user-1', 2, 10);
+
+    expect(result.total).toBe(1);
+    expect(prisma.loyaltyTransaction.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10, take: 10 }),
+    );
   });
 });

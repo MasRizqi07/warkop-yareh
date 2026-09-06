@@ -1,6 +1,11 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  ValidationPipe,
+} from '@nestjs/common';
 import request from 'supertest';
 import { CommunityController } from './community.controller';
 import { CommunityService } from '../../application/services/community.service';
@@ -8,7 +13,7 @@ import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 
-let mockUser: any = { id: 'user_A', role: 'CUSTOMER' };
+let mockUser = { id: 'user_A', role: 'CUSTOMER', branchId: null };
 
 @Injectable()
 class MockAuthGuard implements CanActivate {
@@ -26,7 +31,9 @@ describe('CommunityController (E2E / Controller)', () => {
   beforeAll(async () => {
     communityService = {
       joinGroup: jest.fn().mockResolvedValue({ success: true }),
-      createPost: jest.fn().mockResolvedValue({ id: 'post_1', authorId: 'user_A' }),
+      createPost: jest
+        .fn()
+        .mockResolvedValue({ id: 'post_1', authorId: 'user_A' }),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -42,6 +49,13 @@ describe('CommunityController (E2E / Controller)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
   });
 
@@ -51,7 +65,7 @@ describe('CommunityController (E2E / Controller)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUser = { id: 'user_A', role: 'CUSTOMER' };
+    mockUser = { id: 'user_A', role: 'CUSTOMER', branchId: null };
   });
 
   it('joinGroup: should ignore client-supplied userId (User B) and use authenticated user (User A)', async () => {
@@ -69,7 +83,7 @@ describe('CommunityController (E2E / Controller)', () => {
   it('createPost: should ignore body authorId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/community/posts')
-      .send({ groupId: 'group_123', authorId: 'user_B', content: 'hello' })
+      .send({ groupId: 'group_123', content: 'hello' })
       .expect(201);
 
     expect(communityService.createPost).toHaveBeenCalledWith(
@@ -88,8 +102,10 @@ describe('CommunityController (E2E / Controller)', () => {
   });
 
   it('createGroup: should allow STAFF/MANAGER/ADMIN to create a group', async () => {
-    mockUser = { id: 'admin_1', role: 'ADMIN' };
-    communityService.createGroup = jest.fn().mockResolvedValue({ id: 'group_new', name: 'Coffee Lovers' });
+    mockUser = { id: 'admin_1', role: 'ADMIN', branchId: null };
+    communityService.createGroup = jest
+      .fn()
+      .mockResolvedValue({ id: 'group_new', name: 'Coffee Lovers' });
 
     await request(app.getHttpServer())
       .post('/api/v1/community/groups')
@@ -102,7 +118,9 @@ describe('CommunityController (E2E / Controller)', () => {
   });
 
   it('listPosts: should list posts for a group with pagination', async () => {
-    communityService.listPosts = jest.fn().mockResolvedValue({ data: [], total: 0 });
+    communityService.listPosts = jest
+      .fn()
+      .mockResolvedValue({ data: [], total: 0 });
 
     await request(app.getHttpServer())
       .get('/api/v1/community/groups/group_123/posts?page=1&limit=10')

@@ -38,16 +38,23 @@ export class JwtRefreshStrategy extends PassportStrategy(
       throw new UnauthorizedException('Refresh token malformed');
     }
 
-    const user = await this.databaseService.user.findUnique({
-      where: { id: payload.sub },
+    const user = await this.databaseService.user.findFirst({
+      where: { id: payload.sub, deletedAt: null },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        branchId: true,
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    // In a real production system, you'd verify the refresh token against the hashed token in the DB
-    // For Phase 1, basic JWT validation is sufficient as long as we can revoke sessions by deleting the cookie.
+    // The service verifies this exact token against the revocable Redis session
+    // before rotating it, after Passport has validated its signature and expiry.
 
     return user;
   }

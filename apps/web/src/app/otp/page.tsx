@@ -103,7 +103,7 @@ export default function OTPPage() {
           {step === 'email' ? (
             <form className="space-y-6" onSubmit={handleSendOtp}>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label htmlFor="otp-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Email address
                 </label>
                 <div className="mt-2 relative">
@@ -111,6 +111,7 @@ export default function OTPPage() {
                     <Mail className="h-5 w-5 text-slate-400" />
                   </div>
                   <Input
+                    id="otp-email"
                     type="email"
                     required
                     value={email}
@@ -132,7 +133,7 @@ export default function OTPPage() {
           ) : (
             <form className="space-y-6" onSubmit={handleVerifyOtp}>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label htmlFor="otp-code" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   6-Digit OTP Code
                 </label>
                 <div className="mt-2 relative">
@@ -140,6 +141,7 @@ export default function OTPPage() {
                     <KeyRound className="h-5 w-5 text-slate-400" />
                   </div>
                   <Input
+                    id="otp-code"
                     type="text"
                     required
                     maxLength={6}

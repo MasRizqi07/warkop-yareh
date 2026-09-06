@@ -1,321 +1,159 @@
-"use client";
+'use client';
 
-import React, { useState, useMemo, useEffect } from "react";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { useCartStore } from "@/stores";
-import { api } from "@/lib/api";
-import type { Product } from "@warkop-yareh/types";
-import { 
-  IconLocation, 
-  IconSearch, 
-  IconSearchOff, 
-  IconTrending, 
-  IconPlus, 
-  IconCart 
-} from "@/lib/icons";
-import { BaristaConciergeModal } from "@/components/ai/barista-concierge-modal";
-
-interface CategoryItem {
-  id: string;
-  label: string;
-}
-
-interface ApiCategory {
-  id?: string;
-  name: string;
-  slug?: string;
-}
-
-interface ApiProduct {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image?: string;
-  category?: { slug?: string; name?: string };
-  categoryId?: string;
-  tags?: string[];
-  isPopular?: boolean;
-  isNew?: boolean;
-  rating?: number;
-  reviewCount?: number;
-  preparationTime?: number;
-  calories?: number;
-}
+import { useMemo, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Clock, Coffee, Heart, Search, ShoppingBag, Sparkles, Star } from 'lucide-react';
+import type { Product } from '@warkop-yareh/types';
+import { ProductCustomizerModal } from '@/components/menu/ProductCustomizerModal';
+import { useActiveBranch, useCatalog } from '@/features/catalog/catalog.hooks';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 export default function MenuPage() {
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [branch, setBranch] = useState("coldnbrew-gubeng-001");
-  const [productsList, setProductsList] = useState<Product[]>([]);
-  const [categoriesList, setCategoriesList] = useState<CategoryItem[]>([
-    { id: "all", label: "All Menu" },
-  ]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { itemCount, addItem, toggleCart } = useCartStore();
-  
-  const count = itemCount();
+  const { activeBranch, isPending: isBranchPending, isError: branchFailed, refetch: refetchBranches } = useActiveBranch();
+  const catalog = useCatalog(activeBranch?.id);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
+  const [customizingProduct, setCustomizingProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchCatalog() {
-      try {
-        setIsLoading(true);
-        const res = await api.get(`/catalog?branchId=${branch}`);
-        if (res.data?.data && isMounted) {
-          const { categories, products: rawProducts } = res.data.data;
-          
-          if (categories && Array.isArray(categories)) {
-            const apiCats: ApiCategory[] = categories;
-            setCategoriesList([
-              { id: "all", label: "All Menu" },
-              ...apiCats.map((c) => ({
-                id: c.slug || c.id || c.name.toLowerCase(),
-                label: c.name,
-              })),
-            ]);
-          }
+  const allTags = useMemo(
+    () => [...new Set((catalog.data?.products ?? []).flatMap((product) => product.tags))].sort(),
+    [catalog.data?.products],
+  );
 
-          if (rawProducts && Array.isArray(rawProducts)) {
-            const apiProds: ApiProduct[] = rawProducts;
-            const mapped: Product[] = apiProds.map((p) => ({
-              id: p.id,
-              name: p.name,
-              description: p.description || "",
-              price: p.price,
-              image:
-                p.image && p.image.startsWith("http")
-                  ? p.image
-                  : "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA",
-              category: p.category?.slug || p.category?.name || "espresso",
-              tags: p.tags || [],
-              isPopular: p.isPopular ?? false,
-              isNew: p.isNew ?? false,
-              rating: p.rating || 4.8,
-              reviewCount: p.reviewCount || 0,
-              preparationTime: p.preparationTime || 5,
-              calories: p.calories || 120,
-              branchAvailability: [branch],
-            }));
-            setProductsList(mapped);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load catalog:", err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
-
-    fetchCatalog();
-    return () => {
-      isMounted = false;
-    };
-  }, [branch]);
-
-  // Filter products by category and search query
   const filteredProducts = useMemo(() => {
-    let result = [...productsList];
+    const search = searchQuery.trim().toLocaleLowerCase('id-ID');
+    return (catalog.data?.products ?? []).filter((product) => {
+      const matchesSearch =
+        !search ||
+        product.name.toLocaleLowerCase('id-ID').includes(search) ||
+        product.description.toLocaleLowerCase('id-ID').includes(search) ||
+        (product.ingredients ?? []).some((ingredient) =>
+          ingredient.toLocaleLowerCase('id-ID').includes(search),
+        );
+      const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+      const matchesTag = !selectedTag || product.tags.includes(selectedTag);
+      return matchesSearch && matchesCategory && matchesTag;
+    });
+  }, [catalog.data?.products, searchQuery, selectedCategory, selectedTag]);
 
-    // Filter by category
-    if (activeCategory !== "all") {
-      result = result.filter(
-        (p) =>
-          p.category?.toLowerCase() === activeCategory.toLowerCase() ||
-          p.tags?.some((t) => t.toLowerCase() === activeCategory.toLowerCase()),
-      );
-    }
+  const toggleFavorite = (productId: string) => {
+    setFavorites((current) => {
+      const next = new Set(current);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  };
 
-    // Filter by search
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.tags?.some((t: string) => t.toLowerCase().includes(q)),
-      );
-    }
-
-    return result;
-  }, [search, activeCategory, productsList]);
+  const isLoading = isBranchPending || catalog.isPending;
+  const error = branchFailed || catalog.isError;
 
   return (
-    <div className="bg-background text-on-background font-body-md min-h-screen">
-      {/* Noise Overlay */}
-      <div className="fixed inset-0 organic-noise pointer-events-none z-[-1]"></div>
-
-      {/* Main Content Area */}
-      <main className="pt-24 pb-32 px-margin-mobile max-w-container-max mx-auto">
-        
-        {/* Search & Branding */}
-        <section className="mb-8">
-          <h1 className="font-display-lg text-headline-md text-primary dark:text-primary-fixed tracking-tight mb-6">Warkop Ya&apos;reh</h1>
-          
-          <div className="flex flex-col gap-4">
-            {/* Branch Selector */}
-            <div className="flex items-center gap-3">
-              <IconLocation size={24} className="text-primary dark:text-primary-fixed" />
-              <div className="flex flex-col">
-                <span className="font-receipt-label text-receipt-label opacity-60">Pick up from</span>
-                <select
-                  title="Select Branch"
-                  aria-label="Select Branch"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  className="bg-transparent border-none p-0 font-headline-md text-headline-md text-primary dark:text-primary-fixed focus:ring-0 cursor-pointer outline-none"
-                >
-                  <option value="coldnbrew-gubeng-001" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Gubeng (Surabaya)</option>
-                  <option value="darmo" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Darmo</option>
-                  <option value="dharmahusada" className="bg-surface text-on-surface">Warkop Ya&apos;reh: Dharmahusada</option>
-                </select>
-              </div>
+    <main className="mx-auto min-h-screen max-w-7xl bg-[#0a0a0c] px-4 pb-32 pt-8 text-white sm:px-6 sm:pt-10 lg:px-8">
+      <div className="mb-8 border-b border-white/5 pb-6">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-[#f59e0b]">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <span>{activeBranch ? `Menu resmi • ${activeBranch.name}` : 'Memuat cabang aktif'}</span>
             </div>
-
-            <div className="relative mt-2">
-              <IconSearch size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-outline" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-surface-container-highest/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 font-receipt-label text-receipt-label focus:border-primary focus:ring-1 focus:ring-primary outline-none backdrop-blur-md"
-                placeholder="Search your fuel..."
-                type="text"
-              />
-            </div>
+            <h1 className="font-heading text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              Katalog Specialty &amp; Artisan
+            </h1>
+            <p className="mt-1 max-w-xl text-sm text-neutral-400">
+              Harga dan ketersediaan langsung dari sistem cabang. Total final selalu divalidasi ulang oleh server saat checkout.
+            </p>
           </div>
-        </section>
-
-        {/* Categories Bar */}
-        <nav className="flex gap-4 mb-10 overflow-x-auto pb-4 custom-scroll no-scrollbar">
-          {categoriesList.map((cat) => {
-            const isActive = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`flex-shrink-0 px-6 py-2 rounded-full font-headline-md text-[14px] transition-all ${
-                  isActive
-                    ? "bg-primary-container text-on-primary-container"
-                    : "bg-surface-container-highest/50 text-on-surface-variant hover:bg-surface-container-high"
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
-          <AnimatePresence mode="popLayout">
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
-                  key={product.id} 
-                  className="glass-card rounded-2xl overflow-hidden flex flex-col group hover:-translate-y-2 transition-all duration-300"
-                >
-                  <div className="relative h-56 w-full overflow-hidden">
-                    <Image
-                      alt={product.name}
-                      className="object-cover transition-transform duration-700 hover:scale-110"
-                      src={product.image && product.image.startsWith("http") ? product.image : "https://lh3.googleusercontent.com/aida-public/AB6AXuA12GYBUOApK8TOhl-_xJHF8c3O63XZJBaY0Cl4Qxtb169bQUm9MscI9B3ucDNRRsva-KUYw6j2JBvsRIyfvIv7QYDpRyL0uKW8lcQcQGo_Yw-KjJtvFjQD4egaXMpVR9sO06SmoR8BDAyFDY1iSGTBFxSmKIUk3c9f0W9cdeDY_yHgZPwlvVWOvSSs2oWxINGdismkZlB6cCJioCbb5c2VCYj-48eJ16SGSQU_jX72kpaiVIM6UMP7N-pTYJRIlCWz3Bjx58XNrCA"}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    {product.isPopular && (
-                      <div className="absolute top-4 right-4 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-full px-3 py-1">
-                        <span className="font-receipt-label text-receipt-label text-primary">Best Seller</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-headline-md text-headline-md text-on-surface">
-                        {product.name}
-                      </h3>
-                      <span className="font-code-sm text-code-sm text-primary-fixed">
-                        Rp {(product.price / 1000).toFixed(0)}k
-                      </span>
-                    </div>
-                    <p className="text-on-surface-variant/70 text-sm mb-6 flex-grow">
-                      {product.description}
-                    </p>
-                    <div className="flex justify-between items-center mt-auto">
-                      <div className="flex items-center gap-2 text-outline">
-                        <IconTrending size={18} />
-                        <span className="font-receipt-label text-receipt-label">{product.calories || 120} kcal</span>
-                      </div>
-                      <button
-                        title={`Add ${product.name} to cart`}
-                        aria-label={`Add ${product.name} to cart`}
-                        onClick={(e) => {
-                          addItem(product);
-                          
-                          // Splash effect
-                          const splash = document.createElement('div');
-                          splash.className = 'fixed w-2 h-2 bg-primary rounded-full z-[100] pointer-events-none transition-all duration-500';
-                          splash.style.left = e.clientX + 'px';
-                          splash.style.top = e.clientY + 'px';
-                          document.body.appendChild(splash);
-                          
-                          requestAnimationFrame(() => {
-                              const cartBtn = document.getElementById('cartBtn');
-                              if(cartBtn) {
-                                const rect = cartBtn.getBoundingClientRect();
-                                splash.style.left = (rect.left + rect.width / 2) + 'px';
-                                splash.style.top = (rect.top + rect.height / 2) + 'px';
-                                splash.style.opacity = '0';
-                                splash.style.transform = 'scale(0.1)';
-                              }
-                          });
-                          
-                          setTimeout(() => splash.remove(), 500);
-                        }}
-                        className="bg-primary-container text-on-primary-container w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-transform active:scale-90"
-                      >
-                        <IconPlus size={24} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-24 glass-card rounded-2xl border border-white/5">
-                <IconSearchOff size={48} className="text-outline mb-2 mx-auto" />
-                <h3 className="text-lg font-bold">{isLoading ? "Loading menu..." : "No items found"}</h3>
-                <p className="text-sm text-on-surface-variant/70 mt-1">
-                  {isLoading ? "Fetching fresh products from kitchen..." : "Try another search keyword or category."}
-                </p>
-              </div>
-            )}
-          </AnimatePresence>
+          <Link href="/cart" className="flex items-center gap-2 self-start rounded-2xl border border-white/10 bg-[#18181c] px-4 py-2.5 text-xs font-semibold text-neutral-300 transition-colors hover:border-white/20">
+            <ShoppingBag className="h-4 w-4 text-[#f59e0b]" />
+            Lihat Keranjang
+          </Link>
         </div>
-      </main>
-
-      <div className="fixed bottom-24 right-6 z-[60] md:bottom-28">
-        <button 
-          id="cartBtn"
-          onClick={toggleCart}
-          className="bg-primary-container text-on-primary-container flex items-center gap-3 px-6 py-4 rounded-full shadow-2xl shadow-roasted-black/50 hover:scale-105 active:scale-95 transition-all group"
-        >
-          <IconCart size={24} />
-          <span className="font-headline-md text-[16px]">View Cart</span>
-          {count > 0 && (
-            <div className="bg-primary-fixed text-on-primary-fixed w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold animate-in zoom-in duration-300">
-              {count}
-            </div>
-          )}
-        </button>
       </div>
 
-      {/* AI Barista Concierge Interactive Modal */}
-      <BaristaConciergeModal />
-    </div>
+      <div className="mb-8 space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+            <input aria-label="Cari menu" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Cari kopi, cold brew, makanan..." className="w-full rounded-2xl border border-white/10 bg-[#141418] py-3 pl-11 pr-4 text-sm text-white placeholder-neutral-500 focus:border-[#f59e0b] focus:outline-none" />
+          </div>
+          {allTags.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              {allTags.map((tag) => {
+                const active = selectedTag === tag;
+                return <button key={tag} type="button" aria-pressed={active} onClick={() => setSelectedTag(active ? null : tag)} className={`whitespace-nowrap rounded-xl px-3 py-2 text-xs font-medium transition-all ${active ? 'bg-[#f59e0b] font-bold text-black' : 'border border-white/10 bg-[#18181c] text-neutral-400 hover:text-white'}`}>#{tag}</button>;
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto border-b border-white/5 pb-2">
+          <button type="button" aria-pressed={selectedCategory === 'all'} onClick={() => setSelectedCategory('all')} className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-semibold ${selectedCategory === 'all' ? 'bg-[#9c6b3a] text-white' : 'bg-[#111114] text-neutral-400 hover:text-white'}`}>Semua Menu</button>
+          {(catalog.data?.categories ?? []).map((category) => (
+            <button key={category.id} type="button" aria-pressed={selectedCategory === category.slug} onClick={() => setSelectedCategory(category.slug)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-semibold ${selectedCategory === category.slug ? 'bg-[#9c6b3a] text-white' : 'bg-[#111114] text-neutral-400 hover:text-white'}`}>
+              {category.icon ? `${category.icon} ` : ''}{category.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div aria-label="Memuat katalog" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, index) => <div key={index} className="h-[390px] animate-pulse rounded-3xl border border-white/5 bg-[#18181c]" />)}
+        </div>
+      ) : error ? (
+        <section role="alert" className="rounded-3xl border border-rose-500/20 bg-rose-500/10 p-8 text-center">
+          <h2 className="font-heading text-lg font-bold">Katalog belum dapat dimuat</h2>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-neutral-300">{getApiErrorMessage(catalog.error, 'Layanan katalog tidak terhubung. Pastikan API dan database aktif.')}</p>
+          <button type="button" onClick={() => { void refetchBranches(); void catalog.refetch(); }} className="mt-5 rounded-xl bg-[#9c6b3a] px-5 py-2.5 text-xs font-bold text-white">Coba Lagi</button>
+        </section>
+      ) : filteredProducts.length === 0 ? (
+        <section className="rounded-3xl border border-white/5 bg-[#111114] p-8 py-20 text-center">
+          <Coffee className="mx-auto mb-3 h-12 w-12 text-neutral-600" />
+          <h2 className="font-heading text-lg font-bold">Menu tidak ditemukan</h2>
+          <p className="mt-1 text-xs text-neutral-400">Ubah kata kunci atau reset filter yang aktif.</p>
+          <button type="button" onClick={() => { setSearchQuery(''); setSelectedCategory('all'); setSelectedTag(null); }} className="mt-4 rounded-xl bg-white/10 px-4 py-2 text-xs font-medium">Reset Filter</button>
+        </section>
+      ) : (
+        <section aria-label="Daftar menu" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredProducts.map((product, index) => (
+            <motion.article key={product.id} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#18181c] transition-all duration-300 hover:-translate-y-1 hover:border-[#f59e0b]/40">
+              <div className="relative h-48 w-full overflow-hidden bg-[#111114]">
+                <Image src={product.image} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" priority={index < 4} />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#18181c] via-black/30 to-transparent" />
+                <div className="absolute left-3 top-3 flex gap-1.5">
+                  {product.isPopular && <span className="flex items-center gap-1 rounded-full bg-[#f59e0b] px-2.5 py-0.5 font-mono text-[10px] font-bold text-black"><Sparkles className="h-3 w-3" /> FAVORIT</span>}
+                  {product.isNew && <span className="rounded-full bg-emerald-700 px-2.5 py-0.5 font-mono text-[10px] font-bold text-white">BARU</span>}
+                </div>
+                <button type="button" onClick={() => toggleFavorite(product.id)} aria-label={favorites.has(product.id) ? `Hapus ${product.name} dari favorit` : `Simpan ${product.name} ke favorit`} aria-pressed={favorites.has(product.id)} className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white backdrop-blur-md hover:bg-black/80">
+                  <Heart className={`h-4 w-4 ${favorites.has(product.id) ? 'fill-rose-500 text-rose-500' : 'text-white'}`} />
+                </button>
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between font-mono text-[11px] text-neutral-300">
+                  <span className="flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5"><Star className="h-3.5 w-3.5 fill-[#f59e0b] text-[#f59e0b]" />{product.rating.toFixed(1)} <span className="text-neutral-400">({product.reviewCount})</span></span>
+                  <span className="flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5"><Clock className="h-3 w-3" />{product.preparationTime} mnt</span>
+                </div>
+              </div>
+              <div className="flex flex-1 flex-col justify-between p-5">
+                <div>
+                  <h2 className="line-clamp-1 font-heading text-base font-bold text-white group-hover:text-[#fcd34d]">{product.name}</h2>
+                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-400">{product.description}</p>
+                  {(product.ingredients ?? []).length > 0 && <div className="mt-3 flex flex-wrap gap-1">{(product.ingredients ?? []).slice(0, 2).map((ingredient) => <span key={ingredient} className="rounded-md bg-white/5 px-2 py-0.5 font-mono text-[10px] text-neutral-400">{ingredient}</span>)}</div>}
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
+                  <div><div className="font-mono text-[10px] uppercase text-neutral-500">Harga</div><div className="font-mono text-base font-bold text-[#f59e0b]">Rp {product.price.toLocaleString('id-ID')}</div></div>
+                  <button type="button" onClick={() => setCustomizingProduct(product)} className="rounded-xl bg-[#9c6b3a] px-3.5 py-2 text-xs font-semibold text-white shadow-[0_4px_12px_rgba(156,107,58,0.3)] hover:bg-[#b07b44]">Pilih Menu</button>
+                </div>
+              </div>
+            </motion.article>
+          ))}
+        </section>
+      )}
+
+      <ProductCustomizerModal product={customizingProduct} isOpen={Boolean(customizingProduct)} onClose={() => setCustomizingProduct(null)} />
+    </main>
   );
 }

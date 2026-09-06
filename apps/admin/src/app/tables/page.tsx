@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { Users, Clock, Hash } from 'lucide-react';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, '');
 
 type TableStatus = 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'CLEANING' | 'MAINTENANCE';
 
@@ -23,6 +23,26 @@ interface Table {
   status: TableStatus;
   activeOrder?: ActiveOrder;
 }
+
+const DEMO_BOOT_TIME = Date.now();
+const DEMO_TABLES: Table[] = [
+  { id: '1', number: 'T01', name: 'Table 1', capacity: 4, status: 'AVAILABLE' },
+  {
+    id: '2',
+    number: 'T02',
+    name: 'Table 2',
+    capacity: 2,
+    status: 'OCCUPIED',
+    activeOrder: {
+      id: 'o1',
+      orderNumber: '#CNB-001',
+      customerCount: 2,
+      createdAt: new Date(DEMO_BOOT_TIME - 5_000_000).toISOString(),
+    },
+  },
+  { id: '3', number: 'T03', name: 'Table 3', capacity: 6, status: 'CLEANING' },
+  { id: '4', number: 'T04', name: 'Table 4', capacity: 4, status: 'RESERVED' },
+];
 
 function useDuration(createdAt?: string) {
   const [duration, setDuration] = useState('00:00:00');
@@ -94,15 +114,12 @@ const TableCard = ({ table }: { table: Table }) => {
 };
 
 export default function TablesDashboardPage() {
-  const [tables, setTables] = useState<Table[]>([
-    { id: '1', number: 'T01', name: 'Table 1', capacity: 4, status: 'AVAILABLE' },
-    { id: '2', number: 'T02', name: 'Table 2', capacity: 2, status: 'OCCUPIED', activeOrder: { id: 'o1', orderNumber: '#CNB-001', customerCount: 2, createdAt: new Date(Date.now() - 5000000).toISOString() } },
-    { id: '3', number: 'T03', name: 'Table 3', capacity: 6, status: 'CLEANING' },
-    { id: '4', number: 'T04', name: 'Table 4', capacity: 4, status: 'RESERVED' },
-  ]);
+  const [tables, setTables] = useState<Table[]>(DEMO_TABLES);
 
   useEffect(() => {
     // Connect to WebSocket to listen for Table status updates
+    if (!SOCKET_URL) return;
+
     const socket = io(SOCKET_URL);
     
     socket.on('connect', () => {
@@ -127,20 +144,20 @@ export default function TablesDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-8">
-      <header className="mb-8 flex justify-between items-end">
+    <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 sm:p-6 lg:p-8">
+      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold font-display text-slate-900 dark:text-white">Table Monitoring</h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">Real-time occupancy and turnover metrics</p>
         </div>
-        <div className="flex gap-4">
-          <div className="px-4 py-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
+        <div className="flex gap-2 sm:gap-4">
+          <div className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:px-4">
             <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Occupancy Rate</p>
             <p className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">
               {Math.round((metrics.occupied / metrics.total) * 100) || 0}%
             </p>
           </div>
-          <div className="px-4 py-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center">
+          <div className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:px-4">
             <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Available</p>
             <p className="text-xl font-bold text-[var(--success-500)] mt-0.5">{metrics.available}</p>
           </div>

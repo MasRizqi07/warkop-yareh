@@ -137,6 +137,7 @@ export default function UsersDirectory() {
           <div className="relative">
             <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] opacity-75" />
             <input
+              aria-label="Search members"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-[var(--surface-tertiary)] border border-[var(--border-default)] rounded-xl pl-10 pr-4 py-2 w-64 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"

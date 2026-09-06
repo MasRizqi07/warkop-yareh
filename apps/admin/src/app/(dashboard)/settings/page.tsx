@@ -32,8 +32,9 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[var(--text-secondary)]">Brand Name</label>
+              <label htmlFor="brand-name" className="text-xs font-semibold text-[var(--text-secondary)]">Brand Name</label>
               <input
+                id="brand-name"
                 type="text"
                 className="w-full bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
                 value={brandName}
@@ -41,8 +42,9 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[var(--text-secondary)]">Currency Symbol</label>
+              <label htmlFor="currency-symbol" className="text-xs font-semibold text-[var(--text-secondary)]">Currency Symbol</label>
               <input
+                id="currency-symbol"
                 type="text"
                 className="w-full bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
                 value={currency}
@@ -61,8 +63,9 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[var(--text-secondary)]">PPN Tax Rate (%)</label>
+              <label htmlFor="tax-rate" className="text-xs font-semibold text-[var(--text-secondary)]">PPN Tax Rate (%)</label>
               <input
+                id="tax-rate"
                 type="number"
                 className="w-full bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
                 value={taxRate}

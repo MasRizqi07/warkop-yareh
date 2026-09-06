@@ -1,10 +1,12 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+} from '@nestjs/common';
 import request from 'supertest';
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from '../../application/services/catalog.service';
-import { DatabaseService } from '../../../../infrastructure/database/database.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 
@@ -21,7 +23,6 @@ class MockAuthGuard implements CanActivate {
 describe('CatalogController (E2E / Controller)', () => {
   let app: INestApplication;
   let catalogService: jest.Mocked<Partial<CatalogService>>;
-  let prisma: jest.Mocked<Partial<DatabaseService>>;
 
   beforeAll(async () => {
     catalogService = {
@@ -34,18 +35,9 @@ describe('CatalogController (E2E / Controller)', () => {
       toggleAvailability: jest.fn(),
     };
 
-    prisma = {
-      branchProduct: {
-        findMany: jest.fn(),
-      } as any,
-    };
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [CatalogController],
-      providers: [
-        { provide: CatalogService, useValue: catalogService },
-        { provide: DatabaseService, useValue: prisma },
-      ],
+      providers: [{ provide: CatalogService, useValue: catalogService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useClass(MockAuthGuard)

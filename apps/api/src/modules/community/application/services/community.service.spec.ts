@@ -1,12 +1,15 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 describe('CommunityService', () => {
   let service: CommunityService;
-  let mockPrisma: any;
+  let mockPrisma: Record<string, any>;
 
   const mockGroup = {
     id: 'group-1',
@@ -19,9 +22,11 @@ describe('CommunityService', () => {
   beforeEach(async () => {
     mockPrisma = {
       $transaction: jest.fn((cb) => cb(mockPrisma)),
+      withTenantTransaction: jest.fn((cb) => cb(mockPrisma)),
       communityGroup: {
         create: jest.fn(),
         findMany: jest.fn(),
+        findFirst: jest.fn().mockResolvedValue({ id: 'group-1' }),
       },
       communityMembership: {
         create: jest.fn(),
@@ -54,9 +59,17 @@ describe('CommunityService', () => {
         message: 'Unique constraint failed on (userId, groupId)',
       });
 
-      await expect(
-        service.joinGroup('user-1', 'group-1'),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.joinGroup('user-1', 'group-1')).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('rejects joining an inactive or missing group', async () => {
+      mockPrisma.communityGroup.findFirst.mockResolvedValue(null);
+
+      await expect(service.joinGroup('user-1', 'missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should allow joining group successfully', async () => {

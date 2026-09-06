@@ -1,9 +1,16 @@
-import { Controller, Get, Post, Patch, Param, Body } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { BranchService } from '../../application/services/branch.service';
 import { CreateBranchDto, UpdateBranchDto } from '../dtos/branch.dto';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { Public } from '../../../../common/decorators/public.decorator';
+import { Role } from '@warkop-yareh/database';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
+import {
+  assertBranchAccess,
+  hasGlobalBranchAccess,
+} from '../../../../common/authorization/branch-access';
 
 @Controller('api/v1/branches')
 @ApiTags('Branches')
@@ -11,7 +18,7 @@ export class BranchController {
   constructor(private readonly branchService: BranchService) {}
 
   @Post()
-  @Roles('ADMIN', 'OWNER', 'SUPERADMIN')
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   @ApiOperation({ summary: 'Create a new branch' })
   async create(
     @Body()
@@ -36,14 +43,24 @@ export class BranchController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'OWNER', 'SUPERADMIN')
+  @Roles(Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
   @ApiOperation({ summary: 'Update branch details' })
   async update(
     @Param('id') id: string,
     @Body()
     body: UpdateBranchDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    const data = await this.branchService.updateBranch(id, body);
+    assertBranchAccess(user, id);
+    const update = hasGlobalBranchAccess(user)
+      ? body
+      : this.withoutLifecycleState(body);
+    const data = await this.branchService.updateBranch(id, update);
     return { data };
+  }
+
+  private withoutLifecycleState(body: UpdateBranchDto): UpdateBranchDto {
+    const { isActive: _isActive, ...safeFields } = body;
+    return safeFields;
   }
 }

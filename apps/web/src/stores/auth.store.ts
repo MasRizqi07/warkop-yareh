@@ -6,8 +6,10 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
   setAuth: (user: User, accessToken: string) => void;
   setAccessToken: (token: string) => void;
+  setInitialized: (initialized: boolean) => void;
   logout: () => void;
 }
 
@@ -17,20 +19,26 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      isInitialized: false,
       setAuth: (user, accessToken) =>
-        set({ user, accessToken, isAuthenticated: true }),
+        set({ user, accessToken, isAuthenticated: true, isInitialized: true }),
       setAccessToken: (accessToken) => set({ accessToken }),
-      logout: () => set({ user: null, accessToken: null, isAuthenticated: false }),
+      setInitialized: (isInitialized) => set({ isInitialized }),
+      logout: () =>
+        set({
+          user: null,
+          accessToken: null,
+          isAuthenticated: false,
+          isInitialized: true,
+        }),
     }),
     {
       name: 'coldnbrew-auth',
-      storage: createJSONStorage(() => localStorage),
+      version: 2,
+      storage: createJSONStorage(() => window.localStorage),
       // We purposefully DO NOT persist the access token in localStorage for security (XSS prevention)
       // The httpOnly refresh cookie will handle getting a new access token on reload
-      partialize: (state) => ({ 
-        user: state.user,
-        isAuthenticated: state.isAuthenticated 
-      }),
+      partialize: (state) => ({ user: state.user }),
     }
   )
 );

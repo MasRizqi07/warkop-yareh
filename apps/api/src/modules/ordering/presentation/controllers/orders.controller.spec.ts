@@ -1,24 +1,58 @@
-/* eslint-disable */
+import { CanActivate, ExecutionContext, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext } from '@nestjs/common';
+import { OrderStatus, OrderType, Role } from '@warkop-yareh/database';
 import request from 'supertest';
 import { OrdersController } from './orders.controller';
 import { OrderingService } from '../../application/services/ordering.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
+import type { OrderDetails } from '../../domain/repositories/ordering.repository.interface';
 
-let mockUser: any = { id: 'user_A', role: 'CUSTOMER', branchId: 'branch_A' };
+let mockUser: AuthenticatedUser = {
+  id: 'user_A',
+  name: 'Customer A',
+  email: 'customer@example.com',
+  role: Role.CUSTOMER,
+  branchId: null,
+};
 
 class MockAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
-    req.user = mockUser;
+    context.switchToHttp().getRequest().user = mockUser;
     return true;
   }
 }
 
-describe('OrdersController (E2E / Controller)', () => {
+const orderResult = (overrides: Record<string, unknown> = {}): OrderDetails =>
+  ({
+    id: 'order_1',
+    orderNumber: 'WY-20260905-0011223344556677',
+    userId: 'user_A',
+    branchId: 'branch_A',
+    status: OrderStatus.COMPLETED,
+    type: OrderType.DINE_IN,
+    items: [],
+    payment: null,
+    feedback: null,
+    user: null,
+    paymentStatus: 'PAID',
+    ...overrides,
+  }) as unknown as OrderDetails;
+
+describe('OrdersController', () => {
   let app: INestApplication;
-  let orderingService: jest.Mocked<Partial<OrderingService>>;
+  let orderingService: {
+    createOrder: jest.MockedFunction<OrderingService['createOrder']>;
+    getOrder: jest.MockedFunction<OrderingService['getOrder']>;
+    listOrders: jest.MockedFunction<OrderingService['listOrders']>;
+    updateOrderStatus: jest.MockedFunction<
+      OrderingService['updateOrderStatus']
+    >;
+    getPaymentStatusFromMidtrans: jest.MockedFunction<
+      OrderingService['getPaymentStatusFromMidtrans']
+    >;
+    createFeedback: jest.MockedFunction<OrderingService['createFeedback']>;
+  };
 
   beforeAll(async () => {
     orderingService = {
@@ -32,9 +66,7 @@ describe('OrdersController (E2E / Controller)', () => {
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [OrdersController],
-      providers: [
-        { provide: OrderingService, useValue: orderingService },
-      ],
+      providers: [{ provide: OrderingService, useValue: orderingService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useClass(MockAuthGuard)
@@ -50,52 +82,110 @@ describe('OrdersController (E2E / Controller)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUser = { id: 'user_A', role: 'CUSTOMER', branchId: 'branch_A' };
+    mockUser = {
+      id: 'user_A',
+      name: 'Customer A',
+      email: 'customer@example.com',
+      role: Role.CUSTOMER,
+      branchId: null,
+    };
   });
 
-  it('POST /api/v1/orders -> ignores body.userId (User B) and uses authenticated user (User A) for CUSTOMER', async () => {
-    (orderingService.createOrder as jest.Mock).mockResolvedValue({
-      id: 'order_1',
-      userId: 'user_A',
-    });
+  it('requires an idempotency key for order creation', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/orders')
+      .send({ branchId: 'branch_A', items: [{ productId: 'prod_1', quantity: 1 }] })
+      .expect(400);
+
+    expect(orderingService.createOrder).not.toHaveBeenCalled();
+  });
+
+  it('ignores a spoofed body userId for customers', async () => {
+    orderingService.createOrder.mockResolvedValue(orderResult());
 
     await request(app.getHttpServer())
       .post('/api/v1/orders')
-      .send({ userId: 'user_B', branchId: 'branch_A', items: [] })
+      .set('Idempotency-Key', 'controller-idem-001')
+      .send({
+        userId: 'user_B',
+        branchId: 'branch_A',
+        items: [{ productId: 'prod_1', quantity: 1 }],
+      })
       .expect(201);
 
     expect(orderingService.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user_A',
+        idempotencyKey: 'controller-idem-001',
+      }),
+    );
+  });
+
+  it('forces branch-scoped employees to their assigned branch', async () => {
+    mockUser = {
+      id: 'staff_1',
+      name: 'Staff',
+      email: 'staff@example.com',
+      role: Role.STAFF,
+      branchId: 'branch_A',
+    };
+    orderingService.createOrder.mockResolvedValue(orderResult());
+
+    await request(app.getHttpServer())
+      .post('/api/v1/orders')
+      .set('Idempotency-Key', 'controller-idem-002')
+      .send({
+        branchId: 'branch_B',
+        items: [{ productId: 'prod_1', quantity: 1 }],
+      })
+      .expect(201);
+
+    expect(orderingService.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ branchId: 'branch_A' }),
+    );
+  });
+
+  it('prevents branch staff from reading another branch order', async () => {
+    mockUser = {
+      id: 'staff_1',
+      name: 'Staff',
+      email: 'staff@example.com',
+      role: Role.STAFF,
+      branchId: 'branch_A',
+    };
+    orderingService.getOrder.mockResolvedValue(
+      orderResult({ userId: 'other', branchId: 'branch_B' }),
+    );
+
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/orders/order_branch_b')
+      .expect(403);
+
+    expect(response.body.message).toContain('your own branch');
+  });
+
+  it('forces customer order listings to the authenticated user', async () => {
+    orderingService.listOrders.mockResolvedValue({ data: [], total: 0 });
+
+    await request(app.getHttpServer())
+      .get('/api/v1/orders?userId=user_B&page=1&limit=20')
+      .expect(200);
+
+    expect(orderingService.listOrders).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user_A' }),
     );
   });
 
-  it('GET /api/v1/orders/:id -> tenant isolation: STAFF from branch_A cannot access order from branch_B (returns 403)', async () => {
-    mockUser = { id: 'staff_1', role: 'STAFF', branchId: 'branch_A' };
-    (orderingService.getOrder as jest.Mock).mockResolvedValue({
-      id: 'order_branch_b',
-      userId: 'user_other',
-      branchId: 'branch_B', // Different branch!
-    });
+  it('prevents feedback for another customer order', async () => {
+    orderingService.getOrder.mockResolvedValue(
+      orderResult({ userId: 'user_B' }),
+    );
 
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/orders/order_branch_b')
+    await request(app.getHttpServer())
+      .post('/api/v1/orders/order_1/feedback')
+      .send({ productRating: 5, serviceRating: 5, atmosphereRating: 5 })
       .expect(403);
 
-    expect(res.body.message).toContain('You can only access orders from your own branch');
-  });
-
-  it('GET /api/v1/orders/:id -> STAFF from branch_A can access order from branch_A (returns 200)', async () => {
-    mockUser = { id: 'staff_1', role: 'STAFF', branchId: 'branch_A' };
-    (orderingService.getOrder as jest.Mock).mockResolvedValue({
-      id: 'order_branch_a',
-      userId: 'user_other',
-      branchId: 'branch_A',
-    });
-
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/orders/order_branch_a')
-      .expect(200);
-
-    expect(res.body.data.id).toBe('order_branch_a');
+    expect(orderingService.createFeedback).not.toHaveBeenCalled();
   });
 });

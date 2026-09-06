@@ -6,27 +6,18 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "@/lib/constants";
-import { useThemeStore, useCartStore, useUIStore } from "@/stores";
-import { SPRING } from "@/lib/animations";
-import {
-  IconLightMode,
-  IconDarkMode,
-  IconCart,
-  IconClose,
-  IconChevronRight,
-  IconCoffee,
-} from "@/lib/icons";
+import { useCartStore, useUIStore } from "@/stores";
+import { BrandLogo } from "@warkop-yareh/ui";
 
 export function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const { isDark, toggle: toggleTheme } = useThemeStore();
   const { itemCount, toggleCart } = useCartStore();
   const { isMobileMenuOpen, setMobileMenu } = useUIStore();
   const count = itemCount();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -41,150 +32,122 @@ export function Header() {
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isMobileMenuOpen]);
 
   return (
     <header
       className={cn(
-        "fixed top-0 w-full z-50 transition-all",
+        "fixed top-0 w-full z-50 transition-all duration-300",
         scrolled
-          ? "py-2 bg-[var(--surface-nav)] backdrop-blur-xl border-b border-[var(--surface-border)] shadow-lg"
-          : "py-4 bg-transparent border-b border-transparent"
+          ? "bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.5)] py-2.5"
+          : "bg-[#0a0a0c]/80 backdrop-blur-lg border-b border-white/[0.05] py-3.5"
       )}
-      style={{ transitionDuration: "300ms", transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" }}
     >
-      <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 w-full max-w-[var(--container-2xl)] mx-auto">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-primary-500)] to-[var(--color-primary-700)] flex items-center justify-center shadow-md group-hover:shadow-[var(--shadow-glow-soft)] transition-shadow duration-300">
-            <IconCoffee size={18} className="text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold tracking-tight text-[var(--text-primary)] leading-none">
-              WARKOP
-            </span>
-            <span className="text-[9px] font-semibold tracking-[0.2em] text-[var(--text-brand)] leading-none mt-0.5">
-              YA&apos;REH
-            </span>
-          </div>
-        </Link>
+      <div className="h-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+        {/* Left: Brand Logo & Live Branch Indicator */}
+        <div className="flex items-center gap-5">
+          <Link href="/" className="group flex items-center">
+            <BrandLogo size={36} />
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+          {/* Live Branch Indicator */}
+          <div className="hidden xl:flex items-center gap-2 bg-[#111114]/80 border border-white/[0.08] px-3 py-1.5 rounded-xl">
+            <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">
+              store
+            </span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[12px] font-medium text-[#f8fafc]">
+                  Darmo Flagship, SBY
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="font-mono text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">
+                  Open 24 Hours
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Center: Desktop Navigation */}
+        <nav className="hidden lg:flex items-center gap-1.5" aria-label="Main navigation">
           {NAV_LINKS.map((link) => {
-            const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+            const isActive =
+              (link.href as string) === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "relative px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200",
+                  "px-3.5 py-1.5 text-[14px] font-medium rounded-lg transition-all duration-200",
                   isActive
-                    ? "text-[var(--text-brand)]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    ? "text-[#f7bb82] font-semibold bg-[#18181c] border border-white/[0.08]"
+                    : "text-[#d5c3b6] hover:text-[#f8fafc] hover:bg-white/[0.04]"
                 )}
               >
                 {link.label}
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-indicator"
-                    className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[var(--text-brand)]"
-                    transition={SPRING.snappy}
-                  />
-                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-1.5">
-          {/* Theme Toggle */}
-          <button
-            onClick={() => {
-              document.documentElement.classList.add("transitioning");
-              toggleTheme();
-              setTimeout(() => document.documentElement.classList.remove("transitioning"), 350);
-            }}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200 cursor-pointer"
-            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {isDark ? (
-                <motion.span
-                  key="sun"
-                  initial={{ rotate: -90, scale: 0.5, opacity: 0 }}
-                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                  exit={{ rotate: 90, scale: 0.5, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center justify-center text-[var(--text-secondary)]"
-                >
-                  <IconLightMode size={20} />
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="moon"
-                  initial={{ rotate: 90, scale: 0.5, opacity: 0 }}
-                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                  exit={{ rotate: -90, scale: 0.5, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center justify-center text-[var(--text-secondary)]"
-                >
-                  <IconDarkMode size={20} />
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
-
-          {/* Cart */}
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2.5">
+          {/* Cart Icon with Live Badge */}
           <button
             onClick={toggleCart}
-            className="relative w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200 cursor-pointer"
+            className="relative p-2.5 rounded-xl bg-[#111114] border border-white/[0.08] text-[#d5c3b6] hover:text-[#f8fafc] hover:border-[#f59e0b]/40 transition-all flex items-center justify-center cursor-pointer"
             aria-label="Shopping Cart"
           >
-            <IconCart size={20} className="text-[var(--text-secondary)]" />
+            <span className="material-symbols-outlined text-[20px]">local_cafe</span>
             {count > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={SPRING.bouncy}
-                className="absolute top-1 right-1 w-4 h-4 bg-[var(--color-primary-500)] text-white text-[10px] font-bold rounded-full flex items-center justify-center"
-              >
+              <span className="absolute -top-1.5 -right-1.5 bg-[#f59e0b] text-[#0a0a0c] font-mono text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.6)]">
                 {count > 9 ? "9+" : count}
-              </motion.span>
+              </span>
             )}
           </button>
 
-          {/* Mobile Menu Toggle */}
+          {/* Join Tier / Sign In CTA */}
+          <Link
+            href="/loyalty"
+            className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#9c6b3a] to-[#ee9800] hover:from-[#b57d44] hover:to-[#f59e0b] text-[#f8fafc] font-semibold text-[13px] shadow-[0_4px_16px_-2px_rgba(245,158,11,0.25)] hover:shadow-[0_6px_24px_-2px_rgba(245,158,11,0.4)] transition-all"
+          >
+            <span className="material-symbols-outlined text-[16px]">verified</span>
+            <span>Join Tier</span>
+          </Link>
+
+          {/* Account Profile Avatar */}
+          <Link
+            href="/account"
+            className="w-9 h-9 rounded-xl bg-[#18181c] border border-white/[0.08] hover:border-[#f7bb82]/50 flex items-center justify-center text-[#f7bb82] transition-colors"
+            aria-label="Account Portal"
+          >
+            <span className="material-symbols-outlined text-[18px]">person</span>
+          </Link>
+
+          {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setMobileMenu(!isMobileMenuOpen)}
-            className="lg:hidden w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-[var(--interactive-secondary)] transition-colors duration-200 cursor-pointer"
+            className="lg:hidden p-2 rounded-xl bg-[#111114] border border-white/[0.08] text-[#d5c3b6] hover:text-[#f8fafc] transition-colors"
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
           >
-            <div className="relative w-5 h-4 flex flex-col justify-between">
-              <motion.span
-                animate={isMobileMenuOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className="block w-full h-0.5 bg-[var(--text-secondary)] rounded-full origin-center"
-              />
-              <motion.span
-                animate={isMobileMenuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
-                transition={{ duration: 0.15 }}
-                className="block w-full h-0.5 bg-[var(--text-secondary)] rounded-full"
-              />
-              <motion.span
-                animate={isMobileMenuOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className="block w-full h-0.5 bg-[var(--text-secondary)] rounded-full origin-center"
-              />
-            </div>
+            <span className="material-symbols-outlined text-[22px]">
+              {isMobileMenuOpen ? "close" : "menu"}
+            </span>
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -193,65 +156,89 @@ export function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 lg:hidden"
               onClick={() => setMobileMenu(false)}
             />
             <motion.nav
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={SPRING.gentle}
-              className="fixed top-0 right-0 bottom-0 w-[300px] bg-[var(--surface-raised)] z-50 shadow-2xl lg:hidden overflow-y-auto"
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 w-[310px] bg-[#0e0e10] border-l border-white/[0.08] z-50 shadow-2xl lg:hidden overflow-y-auto p-6 flex flex-col justify-between"
               aria-label="Mobile navigation"
             >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-10">
-                  <span className="text-lg font-bold text-[var(--text-primary)]">
-                    Menu
-                  </span>
+              <div>
+                <div className="flex items-center justify-between pb-6 border-b border-white/[0.08] mb-6">
+                  <BrandLogo size={32} />
                   <button
                     onClick={() => setMobileMenu(false)}
-                    className="p-2 rounded-xl hover:bg-[var(--interactive-secondary)] text-[var(--text-secondary)]"
-                    aria-label="Close menu"
+                    className="p-1.5 rounded-lg bg-[#18181c] text-[#94a3b8] hover:text-[#f8fafc]"
                   >
-                    <IconClose size={20} />
+                    <span className="material-symbols-outlined text-[20px]">close</span>
                   </button>
                 </div>
-                <div className="flex flex-col gap-1">
-                  {NAV_LINKS.map((link, i) => {
-                    const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
-                    return (
-                      <motion.div
-                        key={link.href}
-                        initial={{ opacity: 0, x: 24 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05, ...SPRING.gentle }}
-                      >
-                        <Link
-                          href={link.href}
-                          className={cn(
-                            "flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors",
-                            isActive
-                              ? "bg-[var(--color-primary-500)]/10 text-[var(--text-brand)]"
-                              : "text-[var(--text-secondary)] hover:bg-[var(--interactive-secondary)] hover:text-[var(--text-primary)]"
-                          )}
-                        >
-                          {link.label}
-                          <IconChevronRight size={16} className="opacity-30" />
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
+
+                {/* Outlet Status */}
+                <div className="flex items-center gap-2 bg-[#18181c] p-3 rounded-xl border border-white/[0.06] mb-6">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <div className="flex flex-col text-xs">
+                    <span className="text-[#f8fafc] font-semibold">Darmo Flagship (SBY)</span>
+                    <span className="text-emerald-400 font-mono text-[10px]">Open 24 Hours Active</span>
+                  </div>
                 </div>
 
-                {/* Mobile CTA */}
-                <div className="mt-8 pt-6 border-t border-[var(--border-default)]">
-                  <Link href="/menu">
-                    <button className="w-full py-3 px-6 rounded-full bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-primary-600)] text-white text-sm font-semibold shadow-lg shadow-[var(--color-primary-500)]/20 hover:shadow-[var(--shadow-glow-primary)] transition-shadow duration-300">
-                      Pesan Sekarang
-                    </button>
+                {/* Links */}
+                <div className="flex flex-col gap-1.5">
+                  {NAV_LINKS.map((link) => {
+                    const isActive =
+                      (link.href as string) === "/" ? pathname === "/" : pathname.startsWith(link.href);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                          "flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-[#18181c] text-[#f7bb82] border border-[#f7bb82]/30"
+                            : "text-[#d5c3b6] hover:bg-[#18181c]/60 hover:text-[#f8fafc]"
+                        )}
+                      >
+                        <span>{link.label}</span>
+                        <span className="material-symbols-outlined text-[16px] text-white/30">
+                          chevron_right
+                        </span>
+                      </Link>
+                    );
+                  })}
+                  <Link
+                    href="/account"
+                    className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-[#d5c3b6] hover:bg-[#18181c]/60 hover:text-[#f8fafc]"
+                  >
+                    <span>Account Sanctuary</span>
+                    <span className="material-symbols-outlined text-[16px] text-white/30">
+                      person
+                    </span>
                   </Link>
                 </div>
+              </div>
+
+              {/* Drawer Bottom Actions */}
+              <div className="pt-6 border-t border-white/[0.08] space-y-3">
+                <Link
+                  href="/menu"
+                  className="block w-full text-center py-3 rounded-xl bg-gradient-to-r from-[#9c6b3a] to-[#ee9800] text-[#f8fafc] font-bold text-sm shadow-lg shadow-[#f59e0b]/20"
+                >
+                  Order for Pickup / Table
+                </Link>
+                <Link
+                  href="/booking"
+                  className="block w-full text-center py-2.5 rounded-xl bg-[#18181c] border border-white/[0.08] text-[#d5c3b6] hover:text-[#f8fafc] text-xs font-semibold"
+                >
+                  Book Workspace / VIP
+                </Link>
               </div>
             </motion.nav>
           </>

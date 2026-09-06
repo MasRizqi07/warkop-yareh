@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { BranchService } from './branch.service';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
@@ -22,7 +21,7 @@ describe('BranchService', () => {
     mockPrisma = {
       branch: {
         create: jest.fn(),
-        findUnique: jest.fn(),
+        findFirst: jest.fn(),
         findMany: jest.fn(),
         update: jest.fn(),
       },
@@ -39,7 +38,9 @@ describe('BranchService', () => {
   });
 
   it('createBranch: should apply default values when optional fields are omitted', async () => {
-    mockPrisma.branch.create.mockImplementation(({ data }: any) => Promise.resolve({ id: 'branch-1', ...data }));
+    mockPrisma.branch.create.mockImplementation(({ data }: any) =>
+      Promise.resolve({ id: 'branch-1', ...data }),
+    );
 
     const result = await service.createBranch({
       name: 'Warkop Gubeng',
@@ -53,9 +54,12 @@ describe('BranchService', () => {
   });
 
   it('getBranch & listBranches & updateBranch', async () => {
-    mockPrisma.branch.findUnique.mockResolvedValue(mockBranch);
+    mockPrisma.branch.findFirst.mockResolvedValue(mockBranch);
     mockPrisma.branch.findMany.mockResolvedValue([mockBranch]);
-    mockPrisma.branch.update.mockResolvedValue({ ...mockBranch, name: 'Updated Name' });
+    mockPrisma.branch.update.mockResolvedValue({
+      ...mockBranch,
+      name: 'Updated Name',
+    });
 
     const getRes = await service.getBranch('branch-1');
     expect(getRes?.id).toBe('branch-1');
@@ -63,7 +67,9 @@ describe('BranchService', () => {
     const listRes = await service.listBranches();
     expect(listRes).toHaveLength(1);
 
-    const updateRes = await service.updateBranch('branch-1', { name: 'Updated Name' });
+    const updateRes = await service.updateBranch('branch-1', {
+      name: 'Updated Name',
+    });
     expect(updateRes.name).toBe('Updated Name');
   });
 });
