@@ -2,11 +2,12 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { RawDatabaseService } from '../database/raw-database.service';
+import { Role } from '@warkop-yareh/database';
 
 export interface JwtPayload {
   sub: string;
   email: string;
-  role: string;
+  role: Role;
 }
 
 @Injectable()
@@ -25,8 +26,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.databaseService.user.findUnique({
-      where: { id: payload.sub },
+    const user = await this.databaseService.user.findFirst({
+      where: { id: payload.sub, deletedAt: null },
       select: {
         id: true,
         email: true,

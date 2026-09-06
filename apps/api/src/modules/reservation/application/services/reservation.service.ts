@@ -5,11 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  Prisma,
-  ReservationStatus,
-  Role,
-} from '@warkop-yareh/database';
+import { Prisma, ReservationStatus, Role } from '@warkop-yareh/database';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
@@ -42,7 +38,7 @@ export class ReservationService {
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
-        return await this.prisma.$transaction(
+        return await this.prisma.withTenantTransaction(
           async (tx) => {
             const [branch, user] = await Promise.all([
               tx.branch.findFirst({
@@ -55,7 +51,8 @@ export class ReservationService {
               }),
             ]);
             if (!branch) throw new BadRequestException('Branch is not active');
-            if (!user) throw new BadRequestException('Reservation user not found');
+            if (!user)
+              throw new BadRequestException('Reservation user not found');
 
             if (data.tableId) {
               const lockKey = `${data.tableId}:${date.toISOString().slice(0, 10)}`;
@@ -85,7 +82,10 @@ export class ReservationService {
                   tableId: data.tableId,
                   date,
                   status: {
-                    notIn: [ReservationStatus.CANCELLED, ReservationStatus.NO_SHOW],
+                    notIn: [
+                      ReservationStatus.CANCELLED,
+                      ReservationStatus.NO_SHOW,
+                    ],
                   },
                 },
                 select: { startTime: true, endTime: true },
@@ -159,9 +159,11 @@ export class ReservationService {
       ...(params.branchId ? { branchId: params.branchId } : {}),
       ...(params.userId ? { userId: params.userId } : {}),
       ...(params.status ? { status: params.status } : {}),
-      ...(params.date ? { date: this.parseReservationDate(params.date, false) } : {}),
+      ...(params.date
+        ? { date: this.parseReservationDate(params.date, false) }
+        : {}),
     };
-    const [data, total] = await this.prisma.$transaction([
+    const [data, total] = await Promise.all([
       this.prisma.reservation.findMany({
         where,
         include: {
@@ -182,11 +184,16 @@ export class ReservationService {
     status: ReservationStatus,
     user: AuthenticatedUser,
   ) {
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.withTenantTransaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({ where: { id } });
       if (!reservation) throw new NotFoundException('Reservation not found');
 
-      this.assertCanUpdateReservation(user, reservation.branchId, reservation.userId, status);
+      this.assertCanUpdateReservation(
+        user,
+        reservation.branchId,
+        reservation.userId,
+        status,
+      );
       if (!this.canTransition(reservation.status, status)) {
         throw new BadRequestException(
           `Cannot transition reservation from ${reservation.status} to ${status}`,
@@ -222,10 +229,15 @@ export class ReservationService {
 
   private parseReservationDate(value: string, rejectPast = true): Date {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      throw new BadRequestException('Reservation date must use YYYY-MM-DD format');
+      throw new BadRequestException(
+        'Reservation date must use YYYY-MM-DD format',
+      );
     }
     const date = new Date(`${value}T00:00:00.000Z`);
-    if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    if (
+      Number.isNaN(date.getTime()) ||
+      date.toISOString().slice(0, 10) !== value
+    ) {
       throw new BadRequestException('Reservation date is invalid');
     }
 

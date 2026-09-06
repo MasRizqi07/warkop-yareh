@@ -1,12 +1,31 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
+import { EventStatus } from '@warkop-yareh/database';
 import { EventService } from './event.service';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
 describe('EventService', () => {
   let service: EventService;
-  let mockPrisma: any;
+  let mockPrisma: {
+    $transaction: jest.Mock;
+    withTenantTransaction: jest.Mock;
+    $executeRaw: jest.Mock;
+    branch: { findFirst: jest.Mock };
+    user: { findFirst: jest.Mock };
+    event: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+      count: jest.Mock;
+      findFirst: jest.Mock;
+      update: jest.Mock;
+    };
+    eventRegistration: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+      count: jest.Mock;
+    };
+    outboxEvent: { create: jest.Mock };
+  };
 
   const mockEvent = {
     id: 'event-1',
@@ -14,22 +33,34 @@ describe('EventService', () => {
     slug: 'warkop-live-music',
     capacity: 1,
     branchId: 'branch-1',
-    date: new Date('2026-08-15'),
+    date: new Date('2099-08-15'),
     startTime: '19:00',
     endTime: '22:00',
     location: 'Main Lounge',
     price: 0,
+    isFree: true,
+    status: EventStatus.UPCOMING,
     _count: { registrations: 0 },
   };
 
   beforeEach(async () => {
+    const transaction = jest.fn((input: unknown) =>
+      Array.isArray(input)
+        ? Promise.all(input)
+        : (input as (client: typeof mockPrisma) => unknown)(mockPrisma),
+    );
     mockPrisma = {
-      $transaction: jest.fn((cb) => cb(mockPrisma)),
+      $transaction: transaction,
+      withTenantTransaction: transaction,
+      $executeRaw: jest.fn(),
+      branch: { findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }) },
+      user: { findFirst: jest.fn().mockResolvedValue({ id: 'user-1' }) },
       event: {
         create: jest.fn(),
         findMany: jest.fn(),
         count: jest.fn(),
-        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        update: jest.fn(),
       },
       eventRegistration: {
         create: jest.fn(),
@@ -53,7 +84,7 @@ describe('EventService', () => {
 
   describe('registerForEvent - Capacity & Conflict Handling', () => {
     it('should throw BadRequestException when event is fully booked', async () => {
-      mockPrisma.event.findUnique.mockResolvedValue(mockEvent);
+      mockPrisma.event.findFirst.mockResolvedValue(mockEvent);
       mockPrisma.eventRegistration.count.mockResolvedValue(1); // Capacity is 1
 
       await expect(
@@ -62,7 +93,7 @@ describe('EventService', () => {
     });
 
     it('should translate Prisma P2002 error to ConflictException on double registration', async () => {
-      mockPrisma.event.findUnique.mockResolvedValue(mockEvent);
+      mockPrisma.event.findFirst.mockResolvedValue(mockEvent);
       mockPrisma.eventRegistration.count.mockResolvedValue(0);
       mockPrisma.eventRegistration.create.mockRejectedValue({
         code: 'P2002',
@@ -75,7 +106,7 @@ describe('EventService', () => {
     });
 
     it('should allow successful registration when under capacity', async () => {
-      mockPrisma.event.findUnique.mockResolvedValue(mockEvent);
+      mockPrisma.event.findFirst.mockResolvedValue(mockEvent);
       mockPrisma.eventRegistration.count.mockResolvedValue(0);
       mockPrisma.eventRegistration.create.mockResolvedValue({
         id: 'reg-1',
@@ -99,7 +130,7 @@ describe('EventService', () => {
       const result = await service.createEvent({
         title: 'Warkop Live Music',
         branchId: 'branch-1',
-        date: '2026-08-15',
+        date: '2099-08-15',
         startTime: '19:00',
         endTime: '22:00',
         capacity: 50,
@@ -108,7 +139,12 @@ describe('EventService', () => {
       expect(result.id).toBe('event-new');
       expect(mockPrisma.event.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ slug: 'warkop-live-music' }),
+          data: expect.objectContaining({
+            slug: expect.stringMatching(
+              /^warkop-live-music-20990815-[a-f0-9]{8}$/,
+            ),
+            isFree: true,
+          }),
         }),
       );
     });
@@ -117,9 +153,28 @@ describe('EventService', () => {
       mockPrisma.event.findMany.mockResolvedValue([mockEvent]);
       mockPrisma.event.count.mockResolvedValue(1);
 
-      const result = await service.listEvents('branch-1', 1, 10);
+      const result = await service.listEvents({
+        branchId: 'branch-1',
+        page: 1,
+        limit: 10,
+      });
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
+    });
+
+    it('rejects event creation for an inactive branch', async () => {
+      mockPrisma.branch.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.createEvent({
+          title: 'Invalid branch event',
+          branchId: 'inactive',
+          date: '2099-08-15',
+          startTime: '19:00',
+          endTime: '22:00',
+          capacity: 50,
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

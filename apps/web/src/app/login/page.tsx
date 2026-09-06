@@ -31,7 +31,12 @@ export default function LoginPage() {
       const { accessToken, user } = response.data.data;
       
       setAuth(user, accessToken);
-      router.push('/'); // Redirect to home or dashboard after login
+      const requestedPath = new URLSearchParams(window.location.search).get('returnTo');
+      const safePath =
+        requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+          ? requestedPath
+          : '/';
+      router.replace(safePath);
     } catch (err: unknown) {
       const errorMsg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
       setError(errorMsg || 'Invalid email or password');

@@ -1,367 +1,88 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import {
-  CheckCircle2,
-  Clock,
-  Coffee,
-  BellRing,
-  Download,
-  MapPin,
-  Sparkles,
-  ExternalLink,
-  RotateCw,
-} from "lucide-react";
-import { useAppStore, OrderStatus } from "@/store/useAppStore";
-import { soundEffects } from "@/lib/audioAlerts";
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { BellRing, CheckCircle2, Clock, Coffee, Download, MapPin, Sparkles } from 'lucide-react';
+import type { ApiOrderStatus, OrderDto } from '@/features/api/contracts';
+import { useBranches } from '@/features/catalog/catalog.hooks';
+import { useOrder } from '@/features/orders/orders.hooks';
+import { getApiErrorMessage } from '@/lib/api-error';
+import { useAuthStore } from '@/stores/auth.store';
+
+const STEPS: Array<{ status: ApiOrderStatus; label: string; description: string; icon: typeof Clock }> = [
+  { status: 'PENDING', label: 'Pesanan Diterima', description: 'Menunggu verifikasi pembayaran atau konfirmasi kasir.', icon: Clock },
+  { status: 'CONFIRMED', label: 'Dikonfirmasi', description: 'Pesanan sudah masuk antrean operasional.', icon: CheckCircle2 },
+  { status: 'PREPARING', label: 'Sedang Diracik', description: 'Barista dan kitchen sedang menyiapkan pesanan.', icon: Coffee },
+  { status: 'READY', label: 'Siap Disajikan', description: 'Pesanan siap diambil atau diantar.', icon: BellRing },
+  { status: 'SERVED', label: 'Sudah Disajikan', description: 'Pesanan telah diserahkan kepada pelanggan.', icon: Sparkles },
+  { status: 'COMPLETED', label: 'Pesanan Selesai', description: 'Transaksi dan layanan telah selesai.', icon: CheckCircle2 },
+];
+
+function fulfillmentLabel(order: OrderDto): string {
+  if (order.type === 'DINE_IN') return order.tableId ? `Dine-In · Meja ${order.tableId}` : 'Dine-In';
+  if (order.type === 'DRIVE_THRU') return 'Drive-Thru';
+  if (order.type === 'DELIVERY') return 'Delivery';
+  return 'Self Pickup';
+}
 
 export default function OrderTrackPage() {
-  const params = useParams();
-  const orderId = (params?.orderId as string) || "YRH-8492";
+  const params = useParams<{ orderId: string }>();
+  const orderId = params.orderId;
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const orderQuery = useOrder(orderId, isInitialized && isAuthenticated);
+  const branches = useBranches();
+  const order = orderQuery.data;
+  const branch = branches.data?.find((item) => item.id === order?.branchId);
 
-  const { orders, updateOrderStatus, getOrderById } = useAppStore();
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  if (!isInitialized) return <main className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0c] text-sm text-neutral-400">Memulihkan sesi aman...</main>;
+  if (!isAuthenticated) return <main className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0c] px-4 text-center text-white"><section className="max-w-md rounded-3xl border border-white/10 bg-[#18181c] p-8"><h1 className="font-heading text-xl font-bold">Order ini membutuhkan autentikasi</h1><p className="mt-2 text-sm text-neutral-400">Masuk dengan akun pemilik order untuk melihat status dan bukti transaksi.</p><Link href={`/login?returnTo=${encodeURIComponent(`/order/track/${orderId}`)}`} className="mt-5 inline-block rounded-xl bg-[#9c6b3a] px-5 py-2.5 text-sm font-bold">Masuk</Link></section></main>;
+  if (orderQuery.isPending) return <main className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0c] text-sm text-neutral-400"><span className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-[#f59e0b] border-t-transparent" />Memuat status order...</main>;
+  if (orderQuery.isError || !order) return <main className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0c] px-4 text-center text-white"><section role="alert" className="max-w-md rounded-3xl border border-rose-500/20 bg-rose-500/10 p-8"><Clock className="mx-auto h-10 w-10 text-rose-300" /><h1 className="mt-4 font-heading text-xl font-bold">Pesanan tidak dapat dibuka</h1><p className="mt-2 text-xs text-neutral-300">{getApiErrorMessage(orderQuery.error, 'ID tidak ditemukan atau akun ini tidak memiliki akses.')}</p><div className="mt-5 flex justify-center gap-2"><button type="button" onClick={() => void orderQuery.refetch()} className="rounded-xl bg-white/10 px-4 py-2 text-xs font-bold">Coba Lagi</button><Link href="/orders" className="rounded-xl bg-[#9c6b3a] px-4 py-2 text-xs font-bold">Riwayat Order</Link></div></section></main>;
 
-  // Retrieve current order
-  const order = getOrderById(orderId) || orders[0];
+  const cancelled = order.status === 'CANCELLED';
+  const currentStepIndex = Math.max(0, STEPS.findIndex((step) => step.status === order.status));
+  const activeStep = STEPS[currentStepIndex];
+  const estimatedMinutes = Math.max(1, ...order.items.map((item) => item.product?.preparationTime ?? 5));
+  const branchName = branch?.name ?? 'Cabang Warkop Ya\'reh';
 
-  const steps: { status: OrderStatus; label: string; desc: string; icon: React.ElementType }[] = [
-    {
-      status: "pending",
-      label: "Pesanan Diterima",
-      desc: "Transaksi Midtrans terverifikasi, menunggu antrean KDS",
-      icon: Clock,
-    },
-    {
-      status: "confirmed",
-      label: "Dikonfirmasi Barista",
-      desc: "Pesanan masuk stasiun bar & dapur Ya'reh",
-      icon: CheckCircle2,
-    },
-    {
-      status: "preparing",
-      label: "Sedang Dirajik",
-      desc: "Biji kopi baru digiling dan diseduh presisi",
-      icon: Coffee,
-    },
-    {
-      status: "ready",
-      label: "Siap Diambil / Diantar",
-      desc: "Sajian siap di pick-up counter atau diantar ke meja",
-      icon: BellRing,
-    },
-    {
-      status: "completed",
-      label: "Pesanan Selesai",
-      desc: "Selamat menikmati sajian spesial Warkop Ya'reh!",
-      icon: Sparkles,
-    },
-  ];
-
-  const statusOrder: OrderStatus[] = ["pending", "confirmed", "preparing", "ready", "completed"];
-  const currentStepIndex = statusOrder.indexOf(order?.orderStatus || "pending");
-
-  // Fast prototype helper to advance status
-  const handleSimulateNextStep = () => {
-    if (!order) return;
-    const nextIdx = Math.min(statusOrder.length - 1, currentStepIndex + 1);
-    const nextStatus = statusOrder[nextIdx];
-    updateOrderStatus(order.id, nextStatus);
-    soundEffects.playKdsBell();
+  const downloadReceipt = () => {
+    const receipt = [
+      "WARKOP YA'REH",
+      `Order: ${order.orderNumber}`,
+      `Tanggal: ${new Date(order.createdAt).toLocaleString('id-ID')}`,
+      `Status: ${order.status}`,
+      `Pembayaran: ${order.paymentStatus}`,
+      '',
+      ...order.items.map((item) => `${item.quantity}x ${item.snapshotName} - Rp ${item.totalPrice.toLocaleString('id-ID')}`),
+      '',
+      `Subtotal: Rp ${order.subtotal.toLocaleString('id-ID')}`,
+      `Pajak: Rp ${order.tax.toLocaleString('id-ID')}`,
+      `Total: Rp ${order.total.toLocaleString('id-ID')}`,
+    ].join('\n');
+    const url = URL.createObjectURL(new Blob([receipt], { type: 'text/plain;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${order.orderNumber}.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
-
-  const handleDownloadReceipt = () => {
-    setDownloadSuccess(true);
-    soundEffects.playSuccessChime();
-    setTimeout(() => setDownloadSuccess(false), 3000);
-  };
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0c] text-white pt-28 pb-20 flex items-center justify-center px-4">
-        <div className="text-center space-y-4 max-w-md">
-          <Clock className="w-12 h-12 text-[#f59e0b] mx-auto animate-pulse" />
-          <h2 className="font-heading text-xl font-bold">Pesanan Tidak Ditemukan</h2>
-          <p className="text-xs text-neutral-400">
-            ID pesanan <span className="font-mono text-white">{orderId}</span> tidak tercatat di memori lokal.
-          </p>
-          <Link
-            href="/menu"
-            className="inline-block px-5 py-2.5 rounded-xl bg-[#9c6b3a] text-xs font-bold text-white"
-          >
-            Kembali ke Menu
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white pt-8 sm:pt-10 pb-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-      {/* Top Header & Fast Jump */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6 mb-8">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#f59e0b] mb-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>LIVE KITCHEN DISPLAY SYSTEM SYNC</span>
-          </div>
-          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-white">
-            Pelacakan Pesanan #{order.id}
-          </h1>
-          <p className="text-xs text-neutral-400 mt-0.5">
-            Dipesan di <span className="text-white font-medium">{order.branchName}</span> • {new Date(order.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
-          </p>
-        </div>
+    <main className="mx-auto min-h-screen max-w-5xl bg-[#0a0a0c] px-4 pb-32 pt-8 text-white sm:px-6 sm:pt-10 lg:px-8">
+      <div className="mb-8 flex flex-col justify-between gap-4 border-b border-white/5 pb-6 sm:flex-row sm:items-center"><div><div className="mb-1 flex items-center gap-2 font-mono text-xs text-[#f59e0b]"><span className={`h-2 w-2 rounded-full ${cancelled || order.status === 'COMPLETED' ? 'bg-neutral-500' : 'animate-pulse bg-emerald-400'}`} />STATUS SERVER + REALTIME</div><h1 className="font-heading text-2xl font-extrabold sm:text-3xl">Pesanan {order.orderNumber}</h1><p className="mt-1 text-xs text-neutral-400">{branchName} · {new Date(order.createdAt).toLocaleString('id-ID')}</p></div><button type="button" onClick={downloadReceipt} className="flex items-center gap-2 self-start rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-medium text-neutral-300 hover:bg-white/10"><Download className="h-3.5 w-3.5" />Unduh Bukti</button></div>
 
-        <div className="flex items-center gap-2">
-          {/* Simulation button */}
-          <button
-            onClick={handleSimulateNextStep}
-            disabled={order.orderStatus === "completed"}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-neutral-300 flex items-center gap-1.5 transition-colors disabled:opacity-40"
-            title="Simulasikan Barista Memajukan Status"
-          >
-            <RotateCw className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span>Simulasi Step Barista</span>
-          </button>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <section className="space-y-6 lg:col-span-7">
+          <div className={`relative overflow-hidden rounded-3xl border p-6 shadow-2xl sm:p-8 ${cancelled ? 'border-rose-500/30 bg-rose-950/20' : 'border-white/10 bg-gradient-to-br from-[#18181c] to-[#141418]'}`}><div className="relative z-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><span className={`rounded-full border px-3 py-1 font-mono text-xs font-bold ${cancelled ? 'border-rose-500/30 bg-rose-500/20 text-rose-300' : 'border-[#f59e0b]/30 bg-[#f59e0b]/20 text-[#fcd34d]'}`}>STATUS: {order.status}</span><h2 className="mt-3 font-heading text-2xl font-extrabold">{cancelled ? 'Pesanan Dibatalkan' : activeStep.label}</h2><p className="mt-1 max-w-sm text-xs text-neutral-400">{cancelled ? 'Pesanan tidak akan diproses lebih lanjut. Hubungi cabang jika memerlukan bantuan.' : activeStep.description}</p></div>{!cancelled && !['COMPLETED', 'SERVED'].includes(order.status) && <div className="min-w-32 rounded-2xl border border-white/10 bg-[#111114] p-4 text-center"><div className="font-mono text-[10px] uppercase text-neutral-400">Estimasi produksi</div><div className="mt-0.5 font-mono text-2xl font-extrabold text-[#f59e0b]">~{estimatedMinutes} mnt</div><div className="mt-0.5 text-[10px] text-neutral-500">Estimasi, bukan SLA</div></div>}</div></div>
 
-          <Link
-            href="/ops/kds"
-            className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-xs font-medium text-amber-300 flex items-center gap-1.5 transition-colors"
-          >
-            <span>Buka KDS Dapur</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+          {!cancelled && <div className="space-y-6 rounded-3xl border border-white/10 bg-[#18181c] p-6 sm:p-8"><h2 className="font-mono text-xs font-bold uppercase tracking-wider text-neutral-400">Alur Pesanan</h2><ol className="relative space-y-8 pl-6 before:absolute before:bottom-3 before:left-3 before:top-3 before:w-0.5 before:bg-white/10">{STEPS.map((step, index) => { const passed = index <= currentStepIndex; const current = index === currentStepIndex; const Icon = step.icon; return <li key={step.status} className="relative flex items-start gap-4"><span className={`absolute -left-6 top-0 flex h-6 w-6 items-center justify-center rounded-full border ${current ? 'border-[#f59e0b] bg-[#f59e0b] text-black shadow-[0_0_12px_#f59e0b]' : passed ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-neutral-700 bg-[#111114] text-neutral-600'}`}><Icon className="h-3.5 w-3.5" /></span><span className="ml-3"><span className={`block font-heading text-sm font-bold ${passed ? 'text-white' : 'text-neutral-500'}`}>{step.label}</span><span className="mt-0.5 block text-xs text-neutral-400">{step.description}</span></span></li>; })}</ol></div>}
+
+          <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-[#141418] p-5 text-xs"><div className="flex items-center gap-3"><span className="rounded-xl bg-white/5 p-2 text-[#f59e0b]"><MapPin className="h-4 w-4" /></span><span><span className="block font-semibold">{fulfillmentLabel(order)}</span><span className="mt-0.5 block text-[11px] text-neutral-400">{branchName}</span></span></div><span className={`rounded-full border px-2.5 py-1 font-mono text-xs ${order.paymentStatus === 'PAID' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : order.paymentStatus === 'FAILED' ? 'border-rose-500/20 bg-rose-500/10 text-rose-400' : 'border-amber-500/20 bg-amber-500/10 text-amber-300'}`}>{order.paymentStatus}</span></div>
+        </section>
+
+        <aside className="space-y-4 lg:col-span-5"><div className="rounded-3xl border border-white/10 bg-[#1c1c21] p-6 shadow-2xl sm:p-7"><div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4"><div><div className="font-heading text-base font-black uppercase tracking-widest">WARKOP YA&apos;REH</div><div className="font-mono text-[10px] text-neutral-400">DIGITAL ORDER RECEIPT</div></div><div className="text-right font-mono text-[10px] text-neutral-400">{new Date(order.createdAt).toLocaleDateString('id-ID')}</div></div><div className="mb-4 space-y-1 border-b border-white/5 pb-4 font-mono text-xs text-neutral-400"><div className="flex justify-between gap-3"><span>Pelanggan</span><span className="truncate text-white">{order.user?.name ?? order.customerName ?? 'Customer'}</span></div><div className="flex justify-between"><span>Layanan</span><span className="text-white">{fulfillmentLabel(order)}</span></div></div><div className="space-y-3">{order.items.map((item) => <div key={item.id} className="flex justify-between gap-3 text-xs"><div className="min-w-0"><span className="block truncate text-white">{item.quantity}× {item.snapshotName}</span>{item.customizations && <span className="mt-0.5 block truncate text-[10px] text-neutral-500">{Object.values(item.customizations).join(' · ')}</span>}</div><span className="shrink-0 font-mono">Rp {item.totalPrice.toLocaleString('id-ID')}</span></div>)}</div><div className="mt-5 space-y-2 border-t border-dashed border-white/15 pt-4 font-mono text-xs"><div className="flex justify-between text-neutral-400"><span>Subtotal</span><span>Rp {order.subtotal.toLocaleString('id-ID')}</span></div><div className="flex justify-between text-neutral-400"><span>Pajak</span><span>Rp {order.tax.toLocaleString('id-ID')}</span></div>{order.discount > 0 && <div className="flex justify-between text-emerald-400"><span>Diskon</span><span>-Rp {order.discount.toLocaleString('id-ID')}</span></div>}<div className="flex justify-between border-t border-white/10 pt-3 text-base font-bold"><span>Total</span><span className="text-[#f59e0b]">Rp {order.total.toLocaleString('id-ID')}</span></div></div></div>{order.status === 'COMPLETED' && <Link href={`/orders/${order.id}/thankyou`} className="block w-full rounded-xl bg-[#9c6b3a] px-4 py-3 text-center text-xs font-bold">Beri Penilaian</Link>}<Link href="/orders" className="block w-full rounded-xl border border-white/10 px-4 py-3 text-center text-xs font-semibold text-neutral-300">Kembali ke Riwayat</Link></aside>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Timeline Progress Tracker */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Status Hero Card */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#18181c] to-[#141418] border border-white/10 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 pointer-events-none opacity-5">
-              <Coffee className="w-48 h-48" />
-            </div>
-
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold uppercase bg-[#f59e0b]/20 text-[#fcd34d] border border-[#f59e0b]/30">
-                  Status: {order.orderStatus.toUpperCase()}
-                </span>
-                <h2 className="font-heading font-extrabold text-2xl text-white mt-3">
-                  {steps[currentStepIndex]?.label}
-                </h2>
-                <p className="text-xs text-neutral-400 mt-1 max-w-sm">
-                  {steps[currentStepIndex]?.desc}
-                </p>
-              </div>
-
-              {order.orderStatus !== "completed" && (
-                <div className="p-4 rounded-2xl bg-[#111114] border border-white/10 text-center min-w-[130px]">
-                  <div className="text-[10px] font-mono uppercase text-neutral-400">Estimasi Selesai</div>
-                  <div className="font-mono font-extrabold text-2xl text-[#f59e0b] mt-0.5">
-                    {order.estimatedMinutes} Mnt
-                  </div>
-                  <div className="text-[10px] text-emerald-400 mt-0.5 flex items-center justify-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span>Barista Aktif</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Stepper Vertical Timeline */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#18181c] border border-white/10 space-y-6">
-            <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-400 font-bold">
-              Alur Proses Pesanan
-            </h3>
-
-            <div className="relative pl-6 space-y-8 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-white/10">
-              {steps.map((step, idx) => {
-                const isPassed = idx <= currentStepIndex;
-                const isCurrent = idx === currentStepIndex;
-                const Icon = step.icon;
-
-                return (
-                  <div key={step.status} className="relative flex items-start gap-4 group">
-                    {/* Step Icon / Dot */}
-                    <div
-                      className={`absolute -left-6 top-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all ${
-                        isCurrent
-                          ? "border-[#f59e0b] bg-[#f59e0b] text-black shadow-[0_0_12px_#f59e0b]"
-                          : isPassed
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-neutral-700 bg-[#111114] text-neutral-600"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
-
-                    <div className="ml-3">
-                      <h4
-                        className={`text-sm font-heading font-bold ${
-                          isPassed ? "text-white" : "text-neutral-500"
-                        }`}
-                      >
-                        {step.label}
-                      </h4>
-                      <p className="text-xs text-neutral-400 mt-0.5">{step.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Table / Location Info */}
-          <div className="p-5 rounded-2xl bg-[#141418] border border-white/5 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-white/5 text-[#f59e0b]">
-                <MapPin className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="font-semibold text-white">
-                  {order.fulfillmentType === "dine-in"
-                    ? `Dine-In • Meja ${order.tableNumber || "T-04"}`
-                    : order.fulfillmentType === "pickup"
-                    ? "Self Pick-up di Counter Barista"
-                    : "Antar Kilat Surabaya"}
-                </div>
-                <div className="text-[11px] text-neutral-400">{order.branchName}</div>
-              </div>
-            </div>
-            <span className="font-mono text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-              Lunas ({order.paymentMethod.toUpperCase()})
-            </span>
-          </div>
-        </div>
-
-        {/* Right Column: Perforated Digital Receipt */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="relative rounded-3xl bg-[#1c1c21] border border-white/10 shadow-2xl p-6 sm:p-7 text-neutral-200">
-            {/* Perforated Top Edge Teeth */}
-            <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
-              <div>
-                <div className="font-heading font-black text-base text-white tracking-widest uppercase">
-                  WARKOP YA&apos;REH
-                </div>
-                <div className="text-[10px] font-mono text-neutral-400">
-                  SURABAYA COFFEE & COWORKING
-                </div>
-              </div>
-              <div className="text-right font-mono text-xs">
-                <div className="text-white font-bold">{order.id}</div>
-                <div className="text-[10px] text-neutral-400">
-                  {new Date(order.createdAt).toLocaleDateString("id-ID")}
-                </div>
-              </div>
-            </div>
-
-            {/* Customer Info */}
-            <div className="text-xs space-y-1 font-mono text-neutral-400 mb-4 pb-4 border-b border-white/5">
-              <div className="flex justify-between">
-                <span>Pelanggan:</span>
-                <span className="text-white font-medium">{order.customerName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>WhatsApp:</span>
-                <span className="text-white font-medium">{order.customerPhone}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Layanan:</span>
-                <span className="text-white font-medium uppercase">{order.fulfillmentType}</span>
-              </div>
-            </div>
-
-            {/* Items Breakdown */}
-            <div className="space-y-3 mb-6">
-              {order.items.map((item, idx) => (
-                <div key={idx} className="text-xs">
-                  <div className="flex justify-between font-medium text-white">
-                    <span>
-                      {item.quantity}x {item.name}
-                    </span>
-                    <span className="font-mono">Rp {item.subtotal.toLocaleString("id-ID")}</span>
-                  </div>
-                  <div className="text-[10px] text-neutral-400 font-mono">
-                    {item.customizations.sweetness}, {item.customizations.iceLevel}
-                    {item.customizations.milkType !== "None" && `, ${item.customizations.milkType}`}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Perforation Divider Line */}
-            <div className="relative my-6">
-              <div className="absolute -left-7 -right-7 border-b-2 border-dashed border-white/20" />
-              <div className="absolute -left-9 -top-3 w-5 h-5 rounded-full bg-[#0a0a0c]" />
-              <div className="absolute -right-9 -top-3 w-5 h-5 rounded-full bg-[#0a0a0c]" />
-            </div>
-
-            {/* Financial Summary */}
-            <div className="space-y-1.5 text-xs text-neutral-400 font-mono pt-4 mb-6">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>Rp {order.subtotal.toLocaleString("id-ID")}</span>
-              </div>
-              {order.voucherDiscount > 0 && (
-                <div className="flex justify-between text-emerald-400">
-                  <span>Diskon Voucher</span>
-                  <span>-Rp {order.voucherDiscount.toLocaleString("id-ID")}</span>
-                </div>
-              )}
-              {order.pointsDiscount > 0 && (
-                <div className="flex justify-between text-[#f59e0b]">
-                  <span>Tukar Poin ({order.pointsRedeemed} pts)</span>
-                  <span>-Rp {order.pointsDiscount.toLocaleString("id-ID")}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span>Pajak Restoran PB1</span>
-                <span>Rp {order.tax.toLocaleString("id-ID")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Biaya Layanan</span>
-                <span>Rp {order.serviceFee.toLocaleString("id-ID")}</span>
-              </div>
-              <div className="pt-2 border-t border-white/10 flex justify-between font-bold text-sm text-white">
-                <span>TOTAL DIBAYAR</span>
-                <span className="text-[#f59e0b]">Rp {order.total.toLocaleString("id-ID")}</span>
-              </div>
-            </div>
-
-            {/* Mock Barcode */}
-            <div className="pt-2 pb-4 text-center">
-              <div className="h-10 w-full max-w-[240px] mx-auto bg-gradient-to-r from-white via-neutral-300 to-white flex items-center justify-center rounded overflow-hidden p-1">
-                <div className="w-full h-full flex justify-between gap-0.5">
-                  {Array.from({ length: 36 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-full ${i % 3 === 0 ? "w-1 bg-black" : "w-0.5 bg-black"}`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <p className="font-mono text-[10px] text-neutral-500 mt-1 tracking-widest">
-                *{order.id}*
-              </p>
-            </div>
-
-            {/* Download Button */}
-            <button
-              onClick={handleDownloadReceipt}
-              className="w-full py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-            >
-              <Download className="w-4 h-4 text-[#f59e0b]" />
-              <span>{downloadSuccess ? "Struk Berhasil Diunduh!" : "Unduh Struk Digital (PDF)"}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </main>
   );
 }

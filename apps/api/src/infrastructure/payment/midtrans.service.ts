@@ -106,7 +106,13 @@ export class MidtransService {
         order_id: params.orderId,
         gross_amount: params.grossAmount,
       },
-      customer_details: params.customerDetails,
+      customer_details: params.customerDetails
+        ? {
+            first_name: params.customerDetails.firstName,
+            email: params.customerDetails.email,
+            phone: params.customerDetails.phone,
+          }
+        : undefined,
       item_details: params.itemDetails,
     };
 

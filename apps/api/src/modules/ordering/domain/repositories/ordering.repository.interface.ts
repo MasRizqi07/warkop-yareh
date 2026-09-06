@@ -96,6 +96,11 @@ export interface IOrderingRepository {
     id: string,
     paymentStatus: PaymentStatus,
   ): Promise<OrderDetails>;
+  syncPaymentState(
+    id: string,
+    paymentStatus: PaymentStatus,
+    orderStatus?: OrderStatus,
+  ): Promise<OrderDetails>;
   createFeedback(
     id: string,
     data: {

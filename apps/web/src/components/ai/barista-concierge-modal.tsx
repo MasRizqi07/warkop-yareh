@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, X, Send, Coffee, Plus, Check } from "lucide-react";
-import { useCartStore } from "@/stores";
-import type { Product } from "@warkop-yareh/types";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, X, Send, Coffee, Plus, Check } from 'lucide-react';
+import { useCartStore } from '@/stores';
+import type { Product } from '@warkop-yareh/types';
 
 interface Message {
   id: string;
-  sender: "user" | "barista";
+  sender: 'user' | 'barista';
   text: string;
   recommendation?: {
     id: string;
@@ -26,20 +26,46 @@ interface Message {
   };
 }
 
+interface ApiEnvelope<T> {
+  success: boolean;
+  data: T;
+}
+
+interface ChatResponse {
+  reply: string;
+}
+
+interface RecommendationResponse {
+  highlightedProducts: NonNullable<Message['recommendation']>[];
+  pairingSnack?: Message['snackPairing'];
+}
+
 const PRESET_CHIPS = [
-  { label: "☕ Manis & Creamy", query: "Mau kopi yang manis creamy dan santai" },
-  { label: "🍓 Asam Segar Fruity (V60)", query: "Cari manual brew V60 yang fruity dan aromatik" },
-  { label: "⚡ Kafein Kuat Begadang", query: "Lagi butuh kafein tinggi dan bold untuk kerja" },
-  { label: "🍵 Non-Kopi Segar", query: "Rekomendasi minuman non-kopi yang segar" },
+  {
+    label: '☕ Manis & Creamy',
+    query: 'Mau kopi yang manis creamy dan santai',
+  },
+  {
+    label: '🍓 Asam Segar Fruity (V60)',
+    query: 'Cari manual brew V60 yang fruity dan aromatik',
+  },
+  {
+    label: '⚡ Kafein Kuat Begadang',
+    query: 'Lagi butuh kafein tinggi dan bold untuk kerja',
+  },
+  {
+    label: '🍵 Non-Kopi Segar',
+    query: 'Rekomendasi minuman non-kopi yang segar',
+  },
 ];
 
-function createMessageId(sender: "u" | "b") {
+function createMessageId(sender: 'u' | 'b') {
   return `${sender}-${crypto.randomUUID()}`;
 }
 
 export function BaristaConciergeModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputMessage, setInputMessage] = useState("");
+  const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
@@ -47,8 +73,8 @@ export function BaristaConciergeModal() {
 
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "m0",
-      sender: "barista",
+      id: 'm0',
+      sender: 'barista',
       text: "Halo! Saya **Barista AI Warkop Ya'reh**. Ceritakan seleramu atau pilih rekomendasi di bawah ini untuk menemukan racikan dan pairing camilan yang paling pas!",
     },
   ]);
@@ -57,65 +83,61 @@ export function BaristaConciergeModal() {
     const text = queryText || inputMessage;
     if (!text.trim() || loading) return;
 
-    const userMsgId = createMessageId("u");
-    setMessages((prev) => [...prev, { id: userMsgId, sender: "user", text }]);
-    if (!queryText) setInputMessage("");
+    const userMsgId = createMessageId('u');
+    setMessages((prev) => [...prev, { id: userMsgId, sender: 'user', text }]);
+    if (!queryText) setInputMessage('');
     setLoading(true);
 
     try {
       // 1. Call Barista Chat & Recommend API
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
-      
-      const [chatRes, recRes] = await Promise.all([
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
+      const [chatEnvelope, recommendationEnvelope] = await Promise.all([
         fetch(`${apiUrl}/ai/barista-chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: text }),
-        }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+          signal: AbortSignal.timeout(10_000),
+        }).then(async (response) => {
+          if (!response.ok) throw new Error('Barista chat request failed');
+          return response.json() as Promise<ApiEnvelope<ChatResponse>>;
+        }),
         fetch(`${apiUrl}/ai/recommend-pairings`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userQuery: text }),
-        }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+          signal: AbortSignal.timeout(10_000),
+        }).then(async (response) => {
+          if (!response.ok) throw new Error('Recommendation request failed');
+          return response.json() as Promise<
+            ApiEnvelope<RecommendationResponse>
+          >;
+        }),
       ]);
 
-      const replyText = chatRes?.reply || "Berikut racikan spesial yang paling cocok dengan seleramu hari ini:";
-      const primaryRec = recRes?.highlightedProducts?.[0];
-      const snackRec = recRes?.pairingSnack;
+      const replyText = chatEnvelope.data.reply;
+      const primaryRec = recommendationEnvelope.data.highlightedProducts[0];
+      const snackRec = recommendationEnvelope.data.pairingSnack;
 
-      const botMsgId = createMessageId("b");
+      const botMsgId = createMessageId('b');
       setMessages((prev) => [
         ...prev,
         {
           id: botMsgId,
-          sender: "barista",
+          sender: 'barista',
           text: replyText,
           recommendation: primaryRec,
           snackPairing: snackRec,
         },
       ]);
     } catch {
-      // Fallback
       setMessages((prev) => [
         ...prev,
         {
-          id: createMessageId("b"),
-          sender: "barista",
-          text: "Pilihan terbaik untuk seleramu adalah **Kopi Susu Aren Signature** kami yang creamy dipadu dengan **Tahu Walik Crispy**!",
-          recommendation: {
-            id: "p1",
-            name: "Kopi Susu Aren Signature",
-            price: 28000,
-            description: "Espresso blend Arabica-Robusta dengan gula aren murni Tuban.",
-            flavorNotes: ["Aren", "Creamy", "Caramel"],
-            pairingReason: "Rasa manis legit seimbang dengan body espresso mantap.",
-          },
-          snackPairing: {
-            id: "s1",
-            name: "Tahu Walik Crispy",
-            price: 18000,
-            reason: "Gurih renyah sempurna menemani kopi susu.",
-          },
+          id: createMessageId('b'),
+          sender: 'barista',
+          text: 'Maaf, layanan rekomendasi sedang tidak tersedia. Silakan coba lagi beberapa saat lagi atau pilih langsung dari menu.',
         },
       ]);
     } finally {
@@ -123,25 +145,30 @@ export function BaristaConciergeModal() {
     }
   };
 
-  const handleAddToCart = (item: { id: string; name: string; price: number }) => {
+  const handleAddToCart = (item: {
+    id: string;
+    name: string;
+    price: number;
+  }) => {
     const productItem: Product = {
       id: item.id,
       name: item.name,
       price: item.price,
       description: item.name,
-      image: "https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=400",
-      category: "coffee",
-      tags: ["Specialty", "Concierge"],
+      image:
+        'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=400',
+      category: 'coffee',
+      tags: ['Specialty', 'Concierge'],
       isPopular: true,
       isNew: false,
       rating: 4.9,
       reviewCount: 120,
       preparationTime: 5,
-      branchAvailability: ["all"],
+      branchAvailability: ['all'],
     };
     addItem(productItem, 1);
     setAddedItems((prev) => ({ ...prev, [item.id]: true }));
-    setTimeout(() => {
+    window.setTimeout(() => {
       setAddedItems((prev) => ({ ...prev, [item.id]: false }));
     }, 2000);
   };
@@ -179,7 +206,10 @@ export function BaristaConciergeModal() {
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="barista-dialog-title"
               className="relative w-full max-w-lg bg-[var(--bg-surface-raised)] border border-[var(--border-default)] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] sm:h-[680px] z-10 text-[var(--text-primary)]"
             >
               {/* Header */}
@@ -189,13 +219,18 @@ export function BaristaConciergeModal() {
                     <Sparkles className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-heading font-bold text-sm text-[var(--text-primary)] flex items-center gap-1.5">
+                    <h3
+                      id="barista-dialog-title"
+                      className="font-heading font-bold text-sm text-[var(--text-primary)] flex items-center gap-1.5"
+                    >
                       Barista AI Concierge
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[var(--gold-highlight)]/15 text-[var(--gold-highlight)] border border-[var(--gold-highlight)]/30 uppercase">
                         Active
                       </span>
                     </h3>
-                    <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">Konsultasi racikan kopi & pairing camilan</p>
+                    <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
+                      Konsultasi racikan kopi & pairing camilan
+                    </p>
                   </div>
                 </div>
                 <button
@@ -212,16 +247,18 @@ export function BaristaConciergeModal() {
                 {messages.map((m) => (
                   <div
                     key={m.id}
-                    className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
+                    className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
                   >
                     <div
                       className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${
-                        m.sender === "user"
-                          ? "bg-[var(--accent-fill)] text-[var(--text-on-brand)] font-medium rounded-br-none shadow-sm"
-                          : "bg-[var(--bg-surface-overlay)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-bl-none shadow-sm"
+                        m.sender === 'user'
+                          ? 'bg-[var(--accent-fill)] text-[var(--text-on-brand)] font-medium rounded-br-none shadow-sm'
+                          : 'bg-[var(--bg-surface-overlay)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-bl-none shadow-sm'
                       }`}
                     >
-                      <p className="whitespace-pre-line">{m.text.replace(/\*\*(.*?)\*\*/g, "$1")}</p>
+                      <p className="whitespace-pre-line">
+                        {m.text.replace(/\*\*(.*?)\*\*/g, '$1')}
+                      </p>
                     </div>
 
                     {/* Rich Recommendation Card */}
@@ -233,9 +270,12 @@ export function BaristaConciergeModal() {
                               <Coffee className="w-4 h-4" />
                             </div>
                             <div>
-                              <h4 className="font-bold text-xs text-[var(--text-primary)]">{m.recommendation.name}</h4>
+                              <h4 className="font-bold text-xs text-[var(--text-primary)]">
+                                {m.recommendation.name}
+                              </h4>
                               <span className="font-mono text-xs font-bold text-[var(--accent-fill)]">
-                                Rp {m.recommendation.price.toLocaleString("id-ID")}
+                                Rp{' '}
+                                {m.recommendation.price.toLocaleString('id-ID')}
                               </span>
                             </div>
                           </div>
@@ -258,33 +298,47 @@ export function BaristaConciergeModal() {
                         </div>
 
                         {/* Flavor Notes Chips */}
-                        {m.recommendation.flavorNotes && m.recommendation.flavorNotes.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1">
-                            {m.recommendation.flavorNotes.map((note) => (
-                              <span
-                                key={note}
-                                className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[var(--bg-surface-raised)] border border-[var(--border-default)] text-[var(--text-secondary)]"
-                              >
-                                {note}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {m.recommendation.flavorNotes &&
+                          m.recommendation.flavorNotes.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {m.recommendation.flavorNotes.map((note) => (
+                                <span
+                                  key={note}
+                                  className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[var(--bg-surface-raised)] border border-[var(--border-default)] text-[var(--text-secondary)]"
+                                >
+                                  {note}
+                                </span>
+                              ))}
+                            </div>
+                          )}
 
                         {/* Snack Pairing Suggestion */}
                         {m.snackPairing && (
                           <div className="pt-2 border-t border-[var(--border-default)]/40 flex items-center justify-between">
                             <div>
-                              <p className="text-[10px] text-[var(--text-secondary)]">Pairing Camilan:</p>
-                              <p className="text-[11px] font-bold text-[var(--text-primary)]">{m.snackPairing.name}</p>
-                              <p className="text-[9px] text-[var(--text-secondary)]/80 italic">{m.snackPairing.reason}</p>
+                              <p className="text-[10px] text-[var(--text-secondary)]">
+                                Pairing Camilan:
+                              </p>
+                              <p className="text-[11px] font-bold text-[var(--text-primary)]">
+                                {m.snackPairing.name}
+                              </p>
+                              <p className="text-[9px] text-[var(--text-secondary)]/80 italic">
+                                {m.snackPairing.reason}
+                              </p>
                             </div>
                             <button
                               onClick={() => handleAddToCart(m.snackPairing!)}
                               className="px-2.5 py-1 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface-raised)] hover:bg-[var(--bg-surface-overlay)] text-[var(--text-primary)] font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer shrink-0 ml-2"
                             >
-                              {addedItems[m.snackPairing.id] ? <Check className="w-3 h-3 text-[var(--green-500)]" /> : <Plus className="w-3 h-3" />}
-                              <span>+Rp {m.snackPairing.price.toLocaleString("id-ID")}</span>
+                              {addedItems[m.snackPairing.id] ? (
+                                <Check className="w-3 h-3 text-[var(--green-500)]" />
+                              ) : (
+                                <Plus className="w-3 h-3" />
+                              )}
+                              <span>
+                                +Rp{' '}
+                                {m.snackPairing.price.toLocaleString('id-ID')}
+                              </span>
                             </button>
                           </div>
                         )}
@@ -320,7 +374,7 @@ export function BaristaConciergeModal() {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Ketik selera kopimu (cth: manis creamy, asam fruity)..."
                   className="flex-1 bg-[var(--bg-surface-overlay)] border border-[var(--border-default)] rounded-xl px-4 py-3 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-fill)] transition-all"
                 />

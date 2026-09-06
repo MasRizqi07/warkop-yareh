@@ -133,14 +133,14 @@ export default function RegisterPage() {
                     id="register-password"
                     type="password"
                     required
-                    minLength={8}
+                    minLength={12}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
                     placeholder="••••••••"
                   />
                 </div>
-                <p className="mt-1 text-xs text-slate-500">Must be at least 8 characters</p>
+                <p className="mt-1 text-xs text-slate-500">Must be at least 12 characters</p>
               </div>
 
               <Button 

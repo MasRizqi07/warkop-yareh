@@ -1,64 +1,49 @@
-import { WsJwtGuard } from './ws-jwt.guard';
-import { JwtService } from '@nestjs/jwt';
-import { WsException } from '@nestjs/websockets';
 import { ExecutionContext } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
+import { Role } from '@warkop-yareh/database';
+import { WsJwtGuard } from './ws-jwt.guard';
 
 describe('WsJwtGuard', () => {
   let guard: WsJwtGuard;
-  let jwtService: jest.Mocked<JwtService>;
 
   beforeEach(() => {
-    process.env.JWT_SECRET = 'test-jwt-secret-key-minimum-32-chars';
-    jwtService = { verify: jest.fn() } as any;
-    guard = new WsJwtGuard(jwtService);
+    guard = new WsJwtGuard();
   });
 
-  it('should throw WsException if no token is provided', async () => {
-    const context = {
+  function contextFor(data: Record<string, unknown>): ExecutionContext {
+    return {
       switchToWs: () => ({
         getClient: () => ({
-          handshake: { headers: {} },
+          data,
+          disconnect: jest.fn(),
         }),
       }),
     } as unknown as ExecutionContext;
+  }
 
-    await expect(guard.canActivate(context)).rejects.toThrow(WsException);
+  it('rejects a message without an authenticated socket session', () => {
+    expect(() => guard.canActivate(contextFor({}))).toThrow(WsException);
   });
 
-  it('should throw WsException if token is invalid', async () => {
-    const context = {
-      switchToWs: () => ({
-        getClient: () => ({
-          handshake: { headers: { authorization: 'Bearer invalid_token' } },
+  it('rejects an expired socket session', () => {
+    expect(() =>
+      guard.canActivate(
+        contextFor({
+          user: { id: 'user-1', role: Role.CUSTOMER },
+          authExpiresAt: Math.floor(Date.now() / 1000) - 1,
         }),
-      }),
-    } as unknown as ExecutionContext;
-
-    jwtService.verify.mockImplementation(() => {
-      throw new Error('Invalid token');
-    });
-
-    await expect(guard.canActivate(context)).rejects.toThrow(WsException);
+      ),
+    ).toThrow(WsException);
   });
 
-  it('should return true and assign user to client if token is valid', async () => {
-    const mockClient = {
-      handshake: { headers: { authorization: 'Bearer valid_token' } },
-      data: {} as any,
-    };
-
-    const context = {
-      switchToWs: () => ({
-        getClient: () => mockClient,
-      }),
-    } as unknown as ExecutionContext;
-
-    const payload = { userId: '123', role: 'CUSTOMER' };
-    jwtService.verify.mockReturnValue(payload);
-
-    const result = await guard.canActivate(context);
-
-    expect(result).toBe(true);
-    expect(mockClient.data.user).toEqual(payload);
+  it('accepts a non-expired authenticated socket session', () => {
+    expect(
+      guard.canActivate(
+        contextFor({
+          user: { id: 'user-1', role: Role.CUSTOMER },
+          authExpiresAt: Math.floor(Date.now() / 1000) + 60,
+        }),
+      ),
+    ).toBe(true);
   });
 });

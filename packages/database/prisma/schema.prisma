@@ -299,6 +299,7 @@ model Payment {
   amount          Int
   midtransToken   String?       // Snap token for online payment
   midtransOrderId String?       @unique
+  redirectUrl     String?
   reference       String?
   paidAt          DateTime?
   createdAt       DateTime      @default(now())

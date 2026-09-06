@@ -1,9 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import {
-  OrderStatus,
-  PaymentStatus,
-  Prisma,
-} from '@warkop-yareh/database';
+import { OrderStatus, PaymentStatus, Prisma } from '@warkop-yareh/database';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 import {
   CreateOrderData,
@@ -83,7 +79,7 @@ export class PrismaOrderingRepository implements IOrderingRepository {
     outboxPayload: Prisma.InputJsonObject,
   ) {
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      return await this.prisma.withTenantTransaction(async (tx) => {
         const order = await tx.order.create({
           data: {
             ...data,
@@ -149,7 +145,7 @@ export class PrismaOrderingRepository implements IOrderingRepository {
       ...(status ? { status } : {}),
     };
 
-    const [data, total] = await this.prisma.$transaction([
+    const [data, total] = await Promise.all([
       this.prisma.order.findMany({
         where,
         include: orderListInclude,
@@ -163,7 +159,7 @@ export class PrismaOrderingRepository implements IOrderingRepository {
   }
 
   async updateOrderStatus(id: string, status: OrderStatus) {
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.withTenantTransaction(async (tx) => {
       const existing = await tx.order.findFirst({
         where: { deletedAt: null, OR: [{ id }, { orderNumber: id }] },
         select: { id: true },
@@ -192,31 +188,65 @@ export class PrismaOrderingRepository implements IOrderingRepository {
   }
 
   async updatePaymentStatus(id: string, paymentStatus: PaymentStatus) {
-    return this.prisma.$transaction(async (tx) => {
+    return this.syncPaymentState(id, paymentStatus);
+  }
+
+  async syncPaymentState(
+    id: string,
+    paymentStatus: PaymentStatus,
+    orderStatus?: OrderStatus,
+  ) {
+    return this.prisma.withTenantTransaction(async (tx) => {
       const existing = await tx.order.findFirst({
         where: { deletedAt: null, OR: [{ id }, { orderNumber: id }] },
-        select: { id: true },
+        select: { id: true, status: true, paymentStatus: true },
       });
       if (!existing) {
         throw new NotFoundException(`Order not found: ${id}`);
       }
 
-      const order = await tx.order.update({
-        where: { id: existing.id },
-        data: { paymentStatus },
-        include: orderDetailsInclude,
-      });
-
-      await tx.outboxEvent.create({
+      await tx.payment.updateMany({
+        where: { orderId: existing.id },
         data: {
-          aggregateType: 'Order',
-          aggregateId: existing.id,
-          eventType: 'PaymentStatusChanged',
-          payload: { orderId: existing.id, newPaymentStatus: paymentStatus },
+          status: paymentStatus,
+          ...(paymentStatus === PaymentStatus.PAID
+            ? { paidAt: new Date() }
+            : {}),
         },
       });
 
-      return order;
+      const hasPaymentChange = existing.paymentStatus !== paymentStatus;
+      const hasOrderChange =
+        orderStatus !== undefined && existing.status !== orderStatus;
+      if (hasPaymentChange || hasOrderChange) {
+        await tx.order.update({
+          where: { id: existing.id },
+          data: {
+            ...(hasPaymentChange ? { paymentStatus } : {}),
+            ...(hasOrderChange ? { status: orderStatus } : {}),
+          },
+        });
+
+        await tx.outboxEvent.create({
+          data: {
+            aggregateType: 'Order',
+            aggregateId: existing.id,
+            eventType: 'PaymentStateChanged',
+            payload: {
+              orderId: existing.id,
+              oldPaymentStatus: existing.paymentStatus,
+              newPaymentStatus: paymentStatus,
+              oldOrderStatus: existing.status,
+              newOrderStatus: orderStatus ?? existing.status,
+            },
+          },
+        });
+      }
+
+      return tx.order.findUniqueOrThrow({
+        where: { id: existing.id },
+        include: orderDetailsInclude,
+      });
     });
   }
 

@@ -14,26 +14,29 @@ import {
   ApiQuery,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Role } from '@warkop-yareh/database';
 import { CatalogService } from '../../application/services/catalog.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import {
   CreateProductDto,
   UpdateProductDto,
   ToggleAvailabilityDto,
+  ListProductsQueryDto,
 } from '../dtos/catalog.dto';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { Public } from '../../../../common/decorators/public.decorator';
-
-import { DatabaseService } from '../../../../infrastructure/database/database.service';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
+import {
+  assertBranchAccess,
+  resolveManagedBranch,
+} from '../../../../common/authorization/branch-access';
 
 @ApiTags('catalog')
 @Controller('api/v1')
 export class CatalogController {
-  constructor(
-    private readonly catalogService: CatalogService,
-    private readonly prisma: DatabaseService,
-  ) {}
+  constructor(private readonly catalogService: CatalogService) {}
 
   @Get('catalog')
   @Public()
@@ -51,11 +54,22 @@ export class CatalogController {
   }
 
   @Get('catalog/branch_products')
+  @Roles(
+    Role.STAFF,
+    Role.CASHIER,
+    Role.KITCHEN,
+    Role.MANAGER,
+    Role.ADMIN,
+    Role.OWNER,
+    Role.SUPERADMIN,
+  )
   @ApiOperation({ summary: 'List all branch products directly' })
-  async listBranchProducts(@Query('branchId') branchId?: string) {
-    const data = await this.prisma.branchProduct.findMany({
-      where: branchId ? { branchId } : undefined,
-    });
+  async listBranchProducts(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('branchId') requestedBranchId?: string,
+  ) {
+    const branchId = resolveManagedBranch(user, requestedBranchId);
+    const data = await this.catalogService.listBranchProducts(branchId);
     return { data };
   }
 
@@ -70,21 +84,9 @@ export class CatalogController {
   @Get('products')
   @Public()
   @ApiOperation({ summary: 'List products with pagination and filters' })
-  async listProducts(
-    @Query('categoryId') categoryId?: string,
-    @Query('branchId') branchId?: string,
-    @Query('search') search?: string,
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
-  ) {
-    const result = await this.catalogService.listProducts({
-      categoryId,
-      branchId,
-      search,
-      page: parseInt(page),
-      limit: parseInt(limit),
-    });
-    return paginate(result.data, result.total, parseInt(page), parseInt(limit));
+  async listProducts(@Query() query: ListProductsQueryDto) {
+    const result = await this.catalogService.listProducts(query);
+    return paginate(result.data, result.total, query.page, query.limit);
   }
 
   @Get('products/:id')
@@ -97,7 +99,7 @@ export class CatalogController {
 
   @Post('products')
   @UseGuards(JwtAuthGuard)
-  @Roles('MANAGER', 'ADMIN')
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Create new product' })
   async createProduct(@Body() body: CreateProductDto) {
@@ -107,7 +109,7 @@ export class CatalogController {
 
   @Patch('products/:id')
   @UseGuards(JwtAuthGuard)
-  @Roles('MANAGER', 'ADMIN')
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update product details' })
   async updateProduct(@Param('id') id: string, @Body() body: UpdateProductDto) {
@@ -117,14 +119,24 @@ export class CatalogController {
 
   @Patch('branches/:branchId/products/:productId/availability')
   @UseGuards(JwtAuthGuard)
-  @Roles('STAFF', 'MANAGER', 'ADMIN')
+  @Roles(
+    Role.STAFF,
+    Role.CASHIER,
+    Role.KITCHEN,
+    Role.MANAGER,
+    Role.ADMIN,
+    Role.OWNER,
+    Role.SUPERADMIN,
+  )
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Toggle product availability at a branch' })
   async toggleAvailability(
     @Param('branchId') branchId: string,
     @Param('productId') productId: string,
     @Body() body: ToggleAvailabilityDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
+    assertBranchAccess(user, branchId);
     const result = await this.catalogService.toggleAvailability(
       branchId,
       productId,

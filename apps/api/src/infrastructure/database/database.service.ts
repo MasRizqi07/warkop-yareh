@@ -1,12 +1,28 @@
-/* eslint-disable */
 import {
   Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
   Logger,
+  OnModuleDestroy,
+  OnModuleInit,
 } from '@nestjs/common';
-import { PrismaClient } from '@warkop-yareh/database';
+import { Prisma, PrismaClient } from '@warkop-yareh/database';
 import { tenantContext } from './tenant-context';
+
+type TransactionOptions = {
+  maxWait?: number;
+  timeout?: number;
+  isolationLevel?: Prisma.TransactionIsolationLevel;
+};
+
+export interface DatabaseService {
+  /**
+   * Runs every operation, including raw locks, on one RLS-configured connection.
+   * Use this instead of `$transaction(callback)` for application transactions.
+   */
+  withTenantTransaction<T>(
+    operation: (transaction: Prisma.TransactionClient) => Promise<T>,
+    options?: TransactionOptions,
+  ): Promise<T>;
+}
 
 @Injectable()
 export class DatabaseService
@@ -19,84 +35,97 @@ export class DatabaseService
     super();
     const baseClient = this;
 
+    const configureTransaction = async (
+      transaction: Prisma.TransactionClient,
+    ): Promise<void> => {
+      const tenant = tenantContext.getStore();
+      await transaction.$executeRawUnsafe('SET LOCAL ROLE api_user');
+      await transaction.$executeRaw`SELECT set_config('app.current_branch_id', ${tenant?.branchId ?? ''}, true)`;
+      await transaction.$executeRaw`SELECT set_config('app.current_user_id', ${tenant?.userId ?? ''}, true)`;
+      await transaction.$executeRaw`SELECT set_config('app.current_user_role', ${tenant?.role ?? ''}, true)`;
+    };
+
+    const runModelOperation = (
+      transaction: Prisma.TransactionClient,
+      model: string,
+      operation: string,
+      args: unknown,
+    ): unknown => {
+      const delegate = Reflect.get(transaction, model);
+      const handler = Reflect.get(delegate, operation);
+      return Reflect.apply(handler, delegate, [args]);
+    };
+
     const extended = this.$extends({
       query: {
         $allModels: {
           async $allOperations({ model, operation, args, query }) {
             const tenant = tenantContext.getStore();
-            if (!tenant || (!tenant.branchId && !tenant.userId)) {
+            if (
+              !tenant ||
+              (!tenant.branchId && !tenant.userId && !tenant.role)
+            ) {
               return query(args);
             }
 
-            // Prisma client extension transaction context typing
-            return baseClient.$transaction(async (tx: any) => {
-              await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
-              if (tenant.branchId) {
-                await tx.$executeRawUnsafe(
-                  `SELECT set_config('app.current_branch_id', $1, true)`,
-                  tenant.branchId,
-                );
-              }
-              if (tenant.userId) {
-                await tx.$executeRawUnsafe(
-                  `SELECT set_config('app.current_user_id', $1, true)`,
-                  tenant.userId,
-                );
-              }
-              if (tenant.role) {
-                await tx.$executeRawUnsafe(
-                  `SELECT set_config('app.current_user_role', $1, true)`,
-                  tenant.role,
-                );
-              }
-              return tx[model][operation](args);
+            return baseClient.$transaction(async (transaction) => {
+              await configureTransaction(transaction);
+              return runModelOperation(
+                transaction,
+                model,
+                operation,
+                args,
+              ) as ReturnType<typeof query>;
             });
           },
         },
       },
+      client: {
+        withTenantTransaction<T>(
+          operation: (transaction: Prisma.TransactionClient) => Promise<T>,
+          options?: TransactionOptions,
+        ): Promise<T> {
+          return baseClient.$transaction(async (transaction) => {
+            await configureTransaction(transaction);
+            return operation(transaction);
+          }, options);
+        },
+      },
     });
 
-    (extended as any).onModuleInit = async () => {
-      await this.$connect();
-    };
-
-    (extended as any).onModuleDestroy = async () => {
-      await this.$disconnect();
-    };
-
-    const extendedProxy = extended as unknown as this;
-
-    // Bind lifecycle hooks to the proxy so NestJS can call them
-    (extendedProxy as any).onModuleInit = async () => {
-      await this.$connect();
-
+    const proxy = extended as unknown as DatabaseService;
+    proxy.onModuleInit = async () => {
+      await baseClient.$connect();
       try {
-        await (extendedProxy as any).$transaction(async (tx: any) => {
-          await tx.$executeRawUnsafe(`SET LOCAL ROLE api_user`);
+        await baseClient.$transaction(async (transaction) => {
+          await configureTransaction(transaction);
         });
         this.logger.log('Database role api_user check passed successfully.');
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const detail = error instanceof Error ? error.message : String(error);
         if (
-          error?.message?.includes('permission denied to set role') ||
-          error?.code === 'P2010' ||
-          String(error).includes('permission denied')
+          detail.includes('permission denied to set role') ||
+          (typeof error === 'object' &&
+            error !== null &&
+            Reflect.get(error, 'code') === 'P2010')
         ) {
-          const msg = `FATAL: The database role does not have membership in 'api_user'. Run: GRANT api_user TO <role>; See docs/deployment.md for details.`;
-          this.logger.error(msg);
-          console.error(msg);
-          process.exit(1);
+          const message =
+            "FATAL: The database role does not have membership in 'api_user'. " +
+            'Run: GRANT api_user TO <role>; See docs/deployment.md for details.';
+          this.logger.error(message);
+          throw new Error(message, { cause: error });
         }
         throw error;
       }
     };
-
-    (extendedProxy as any).onModuleDestroy = async () => {
-      await this.$disconnect();
+    proxy.onModuleDestroy = async () => {
+      await baseClient.$disconnect();
     };
 
-    return extendedProxy;
+    return proxy;
   }
 
-  async onModuleInit() {}
-  async onModuleDestroy() {}
+  async onModuleInit(): Promise<void> {}
+
+  async onModuleDestroy(): Promise<void> {}
 }

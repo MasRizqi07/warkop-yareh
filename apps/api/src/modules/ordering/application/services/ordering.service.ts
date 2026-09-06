@@ -228,6 +228,42 @@ export class OrderingService {
     return order;
   }
 
+  async applyPaymentNotification(id: string, paymentStatus: PaymentStatus) {
+    const existing = await this.orderingRepo.getOrder(id);
+    if (!existing) throw new NotFoundException('Order not found');
+
+    let nextOrderStatus: OrderStatus | undefined;
+    if (
+      paymentStatus === PaymentStatus.PAID &&
+      existing.status === OrderStatus.PENDING
+    ) {
+      nextOrderStatus = OrderStatus.CONFIRMED;
+    } else if (paymentStatus === PaymentStatus.FAILED) {
+      const entity = new Order(existing.status, existing.items);
+      if (entity.canTransitionTo(OrderStatus.CANCELLED)) {
+        nextOrderStatus = OrderStatus.CANCELLED;
+      }
+    }
+
+    if (
+      existing.paymentStatus === paymentStatus &&
+      nextOrderStatus === undefined
+    ) {
+      return existing;
+    }
+
+    const order = await this.orderingRepo.syncPaymentState(
+      id,
+      paymentStatus,
+      nextOrderStatus,
+    );
+    this.eventsGateway.broadcastPaymentUpdated(order);
+    if (nextOrderStatus !== undefined) {
+      this.eventsGateway.broadcastOrderUpdated(order);
+    }
+    return order;
+  }
+
   async getPaymentStatusFromMidtrans(orderNumber: string) {
     try {
       const status = await this.midtransService.getTransactionStatus(orderNumber);

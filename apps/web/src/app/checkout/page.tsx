@@ -1,435 +1,140 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  ShieldCheck,
-  CreditCard,
-  QrCode,
-  Building2,
-  CheckCircle2,
-  ArrowRight,
-  ShoppingBag,
-  Award,
-  Tag,
-  Lock,
-} from "lucide-react";
-import { useAppStore, FulfillmentType, PaymentMethod } from "@/store/useAppStore";
-import { MOCK_PRODUCTS } from "@/lib/mockData";
+import { useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Building2, CheckCircle2, CreditCard, Lock, QrCode, ShieldCheck, ShoppingBag } from 'lucide-react';
+import type { ApiOrderType, ApiPaymentMethod } from '@/features/api/contracts';
+import { useActiveBranch } from '@/features/catalog/catalog.hooks';
+import { createOrder, initializePayment } from '@/features/orders/orders.api';
+import { getApiErrorMessage } from '@/lib/api-error';
+import { useAuthStore } from '@/stores/auth.store';
+import { useCartStore, useCheckoutStore } from '@/stores';
+
+const PAYMENT_OPTIONS: Array<{ id: ApiPaymentMethod; title: string; description: string; icon: typeof QrCode }> = [
+  { id: 'QRIS', title: 'QRIS', description: 'GoPay, OVO, ShopeePay, dan mobile banking.', icon: QrCode },
+  { id: 'E_WALLET', title: 'E-Wallet', description: 'Pilih dompet digital yang tersedia di Midtrans.', icon: Building2 },
+  { id: 'DEBIT', title: 'Virtual Account / Debit', description: 'Pilih bank dan instruksi transfer di halaman pembayaran.', icon: Building2 },
+  { id: 'CREDIT_CARD', title: 'Kartu Kredit / Debit Online', description: 'Diproses melalui halaman aman Midtrans.', icon: CreditCard },
+];
+
+function toApiOrderType(type: ReturnType<typeof useCheckoutStore.getState>['fulfillmentType']): ApiOrderType {
+  if (type === 'dine-in') return 'DINE_IN';
+  if (type === 'drive-thru') return 'DRIVE_THRU';
+  if (type === 'delivery') return 'DELIVERY';
+  return 'TAKE_AWAY';
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const {
-    cartItems,
-    fulfillmentType,
-    setFulfillmentType,
-    tableNumber,
-    setTableNumber,
-    deliveryAddress,
-    setDeliveryAddress,
-    appliedVoucher,
-    redeemedPoints,
-    getCartSubtotal,
-    getCartTotal,
-    createOrder,
-    addToCart,
-    getActiveBranch,
-    user,
-  } = useAppStore();
-
-  const activeBranch = getActiveBranch();
-  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>("qris");
-  const [customerName, setCustomerName] = useState(user.name);
-  const [customerPhone, setCustomerPhone] = useState(user.phone);
-  const [notes, setNotes] = useState("");
+  const items = useCartStore((state) => state.items);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const estimatedSubtotal = useCartStore((state) => state.total());
+  const fulfillmentType = useCheckoutStore((state) => state.fulfillmentType);
+  const setFulfillmentType = useCheckoutStore((state) => state.setFulfillmentType);
+  const tableId = useCheckoutStore((state) => state.tableId);
+  const tableLabel = useCheckoutStore((state) => state.tableLabel);
+  const deliveryAddress = useCheckoutStore((state) => state.deliveryAddress);
+  const setDeliveryAddress = useCheckoutStore((state) => state.setDeliveryAddress);
+  const { activeBranch, isPending: branchPending } = useActiveBranch();
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const [paymentMethod, setPaymentMethod] = useState<ApiPaymentMethod>('QRIS');
+  const [notes, setNotes] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const idempotency = useRef<{ fingerprint: string; key: string } | null>(null);
 
-  const subtotal = getCartSubtotal();
-  const total = getCartTotal();
+  const estimatedTotal = estimatedSubtotal + Math.round(estimatedSubtotal * 0.11);
+  const requestFingerprint = useMemo(
+    () => JSON.stringify({ branchId: activeBranch?.id, items: items.map((item) => ({ id: item.product.id, quantity: item.quantity, customizations: item.customizations, notes: item.notes })), fulfillmentType, tableId, deliveryAddress, notes }),
+    [activeBranch?.id, deliveryAddress, fulfillmentType, items, notes, tableId],
+  );
 
-  // If cart is completely empty, give quick option to seed signature items
-  const handleAddSampleItem = () => {
-    addToCart(MOCK_PRODUCTS[0], 1, {
-      sweetness: "Less Sweet (50%)",
-      iceLevel: "Normal Ice",
-      milkType: "Fresh Milk",
-      beanRoast: "Signature House Blend",
-      notes: "Foam brulee tebal",
-    });
-  };
-
-  const handleProcessOrder = () => {
+  const handleProcessOrder = async () => {
+    if (!activeBranch || !isAuthenticated || !user || items.length === 0) return;
+    if (fulfillmentType === 'delivery' && deliveryAddress.trim().length < 10) {
+      setError('Alamat pengantaran harus diisi lengkap, minimal 10 karakter.');
+      return;
+    }
+    setError('');
     setIsProcessing(true);
 
-    setTimeout(() => {
-      const newOrder = createOrder({
-        customerName: customerName || user.name,
-        customerPhone: customerPhone || user.phone,
-        fulfillmentType,
-        tableNumber: fulfillmentType === "dine-in" ? tableNumber : undefined,
-        deliveryAddress: fulfillmentType === "delivery" ? deliveryAddress : undefined,
-        paymentMethod: selectedPayment,
-      });
+    try {
+      if (!idempotency.current || idempotency.current.fingerprint !== requestFingerprint) {
+        idempotency.current = { fingerprint: requestFingerprint, key: crypto.randomUUID() };
+      }
+      const combinedNotes = [
+        notes.trim(),
+        fulfillmentType === 'delivery' ? `Alamat pengantaran: ${deliveryAddress.trim()}` : '',
+        fulfillmentType === 'dine-in' && tableLabel ? `Label meja: ${tableLabel}` : '',
+      ].filter(Boolean).join('\n');
+      const order = await createOrder(
+        {
+          branchId: activeBranch.id,
+          type: toApiOrderType(fulfillmentType),
+          ...(fulfillmentType === 'dine-in' && tableId ? { tableId } : {}),
+          ...(combinedNotes ? { notes: combinedNotes } : {}),
+          items: items.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            ...(item.customizations ? { customizations: item.customizations } : {}),
+            ...(item.notes ? { notes: item.notes } : {}),
+          })),
+        },
+        idempotency.current.key,
+      );
+      setCreatedOrderId(order.id);
+      const payment = await initializePayment(order.id, paymentMethod);
+      clearCart();
 
+      if (payment.redirectUrl && !payment.token.startsWith('mock-snap-token-')) {
+        window.location.assign(payment.redirectUrl);
+        return;
+      }
+      router.push(`/order/track/${encodeURIComponent(order.id)}?payment=pending`);
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, 'Pesanan belum berhasil diproses. Silakan coba lagi.'));
+    } finally {
       setIsProcessing(false);
-      router.push(`/order/track/${newOrder.id}`);
-    }, 1200);
+    }
   };
 
+  if (!isInitialized || branchPending) {
+    return <main className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0c] text-sm text-neutral-400"><span className="h-5 w-5 animate-spin rounded-full border-2 border-[#f59e0b] border-t-transparent" /><span className="ml-3">Menyiapkan checkout aman...</span></main>;
+  }
+
+  if (!isAuthenticated || !user) {
+    return <main className="mx-auto flex min-h-[75vh] max-w-lg items-center px-4 text-center text-white"><section className="w-full rounded-3xl border border-white/10 bg-[#18181c] p-8"><ShieldCheck className="mx-auto h-12 w-12 text-[#f59e0b]" /><h1 className="mt-4 font-heading text-2xl font-bold">Masuk untuk checkout</h1><p className="mt-2 text-sm text-neutral-400">Akun diperlukan agar order, pembayaran, dan status realtime hanya dapat dilihat oleh pemiliknya.</p><Link href="/login?returnTo=%2Fcheckout" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#9c6b3a] px-6 py-3 text-sm font-bold">Masuk ke Akun <ArrowRight className="h-4 w-4" /></Link></section></main>;
+  }
+
+  if (!activeBranch) {
+    return <main className="mx-auto flex min-h-[70vh] max-w-lg items-center px-4 text-center text-white"><section role="alert" className="w-full rounded-3xl border border-rose-500/20 bg-rose-500/10 p-8"><h1 className="font-heading text-xl font-bold">Cabang aktif tidak tersedia</h1><p className="mt-2 text-sm text-neutral-300">Pilih cabang yang tersedia sebelum melanjutkan checkout.</p><Link href="/menu" className="mt-5 inline-block rounded-xl bg-[#9c6b3a] px-5 py-2.5 text-sm font-bold">Kembali ke Menu</Link></section></main>;
+  }
+
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white pt-8 sm:pt-10 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8 border-b border-white/5 pb-6">
-        <div className="flex items-center gap-2 text-xs font-mono text-[#f59e0b] uppercase tracking-wider mb-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Midtrans Secure Payment Gateway • 256-Bit SSL</span>
-        </div>
-        <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-white">
-          Kasir Pembayaran Digital
-        </h1>
-        <p className="text-xs sm:text-sm text-neutral-400 mt-1">
-          Cabang Operasional: <span className="text-white font-semibold">{activeBranch.name}</span> ({activeBranch.address})
-        </p>
-      </div>
+    <main className="mx-auto min-h-screen max-w-7xl bg-[#0a0a0c] px-4 pb-32 pt-8 text-white sm:px-6 sm:pt-10 lg:px-8">
+      <div className="mb-8 border-b border-white/5 pb-6"><div className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-[#f59e0b]"><ShieldCheck className="h-4 w-4 text-emerald-400" />Checkout terautentikasi • harga divalidasi server</div><h1 className="font-heading text-3xl font-extrabold sm:text-4xl">Pembayaran Digital</h1><p className="mt-1 text-sm text-neutral-400">Cabang: <span className="font-semibold text-white">{activeBranch.name}</span> · Pemesan: <span className="font-semibold text-white">{user.name}</span></p></div>
 
-      {cartItems.length === 0 ? (
-        <div className="py-20 text-center rounded-3xl bg-[#141418] border border-white/5 max-w-md mx-auto p-8">
-          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-            <ShoppingBag className="w-8 h-8 text-neutral-500" />
-          </div>
-          <h2 className="font-heading text-lg font-bold text-white mb-2">
-            Keranjang Kamu Masih Kosong
-          </h2>
-          <p className="text-xs text-neutral-400 mb-6">
-            Pilih menu favoritmu terlebih dahulu atau tambahkan menu signature instan di bawah ini.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={handleAddSampleItem}
-              className="px-5 py-2.5 rounded-xl bg-[#9c6b3a] hover:bg-[#b07b44] text-white font-bold text-xs transition-colors"
-            >
-              + Tambah Kopi Susu Aren Brulee
-            </button>
-            <Link
-              href="/menu"
-              className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium text-xs transition-colors"
-            >
-              Buka Katalog Menu
-            </Link>
-          </div>
-        </div>
+      {items.length === 0 ? (
+        <section className="mx-auto max-w-md rounded-3xl border border-white/5 bg-[#141418] p-8 py-20 text-center"><ShoppingBag className="mx-auto h-12 w-12 text-neutral-500" /><h2 className="mt-4 font-heading text-lg font-bold">Keranjang masih kosong</h2><p className="mt-2 text-xs text-neutral-400">Pilih menu dari katalog aktif sebelum checkout.</p><Link href="/menu" className="mt-6 inline-block rounded-xl bg-[#9c6b3a] px-5 py-2.5 text-xs font-bold">Buka Katalog</Link></section>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Fulfillment & Customer Data & Payment Selection */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* 1. Fulfillment Mode */}
-            <div className="p-6 rounded-3xl bg-[#18181c] border border-white/10 space-y-4">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#f59e0b] flex items-center gap-2">
-                <span>01. Saluran Pesanan & Lokasi</span>
-              </h2>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-7">
+            <section className="space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#f59e0b]">01. Tipe Pemesanan</h2><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{(['dine-in', 'pickup', 'drive-thru', 'delivery'] as const).map((type) => <button type="button" key={type} aria-pressed={fulfillmentType === type} onClick={() => setFulfillmentType(type)} className={`rounded-2xl border p-3 text-left text-xs font-bold capitalize ${fulfillmentType === type ? 'border-[#9c6b3a] bg-[#9c6b3a]/20' : 'border-white/5 bg-[#111114] text-neutral-400'}`}>{type.replace('-', ' ')}</button>)}</div>{fulfillmentType === 'dine-in' && <p className="rounded-xl bg-white/5 p-3 text-xs text-neutral-400">{tableLabel ? `Meja dari QR: ${tableLabel}` : 'Meja akan ditentukan staf. Scan QR meja untuk menautkan pesanan secara otomatis.'}</p>}{fulfillmentType === 'delivery' && <div><label htmlFor="delivery-address" className="mb-1.5 block text-xs font-medium text-neutral-300">Alamat pengantaran</label><textarea id="delivery-address" required minLength={10} maxLength={500} value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} rows={3} className="w-full rounded-xl border border-white/10 bg-[#111114] p-3 text-xs text-white focus:border-[#f59e0b] focus:outline-none" placeholder="Nama jalan, nomor, gedung, dan patokan..." /></div>}</section>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { id: "dine-in" as FulfillmentType, label: "Dine-In", desc: "Makan di Meja" },
-                  { id: "pickup" as FulfillmentType, label: "Self Pickup", desc: "Ambil di Barista" },
-                  { id: "drive-thru" as FulfillmentType, label: "Drive-Thru", desc: "Ambil di Kendaraan" },
-                  { id: "delivery" as FulfillmentType, label: "Delivery", desc: "Antar Surabaya Area" },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setFulfillmentType(item.id)}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
-                      fulfillmentType === item.id
-                        ? "bg-[#9c6b3a]/20 border-[#9c6b3a] text-white shadow-sm"
-                        : "bg-[#111114] border-white/5 text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    <div className="font-heading font-bold text-xs text-white">{item.label}</div>
-                    <div className="text-[10px] text-neutral-400">{item.desc}</div>
-                  </button>
-                ))}
-              </div>
+            <section className="space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#f59e0b]">02. Catatan Pesanan</h2><div className="grid grid-cols-1 gap-4 sm:grid-cols-2"><div><span className="mb-1.5 block text-xs font-medium text-neutral-300">Nama</span><div className="rounded-xl border border-white/5 bg-[#111114] px-4 py-2.5 text-xs text-neutral-300">{user.name}</div></div><div><span className="mb-1.5 block text-xs font-medium text-neutral-300">Kontak</span><div className="rounded-xl border border-white/5 bg-[#111114] px-4 py-2.5 text-xs text-neutral-300">{user.phone || user.email}</div></div></div><div><label htmlFor="order-notes" className="mb-1.5 block text-xs font-medium text-neutral-300">Catatan umum (opsional)</label><input id="order-notes" type="text" maxLength={500} value={notes} onChange={(event) => setNotes(event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#111114] px-4 py-2.5 text-xs text-white focus:border-[#f59e0b] focus:outline-none" placeholder="Contoh: pesanan dibungkus terpisah" /></div></section>
 
-              {fulfillmentType === "dine-in" && (
-                <div className="pt-2 flex items-center gap-3">
-                  <span className="text-xs text-neutral-300 font-medium">Nomor Meja:</span>
-                  <input
-                    type="text"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value.toUpperCase())}
-                    placeholder="Contoh: T-04"
-                    className="w-28 px-3 py-2 rounded-xl bg-[#111114] border border-white/10 text-white font-mono text-xs focus:outline-none focus:border-[#f59e0b]"
-                  />
-                  <span className="text-[11px] text-neutral-500">
-                    Staff akan langsung mengantarkan pesanan ke meja ini.
-                  </span>
-                </div>
-              )}
-
-              {fulfillmentType === "delivery" && (
-                <div className="pt-2 space-y-2">
-                  <label className="text-xs text-neutral-300 font-medium block">
-                    Alamat Pengantaran Surabaya:
-                  </label>
-                  <textarea
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    rows={2}
-                    placeholder="Nama jalan, nomor rumah, gedung, patokan..."
-                    className="w-full p-3 rounded-xl bg-[#111114] border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#f59e0b]"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* 2. Customer Contact Info */}
-            <div className="p-6 rounded-3xl bg-[#18181c] border border-white/10 space-y-4">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#f59e0b]">
-                02. Data Pemesan
-              </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-                    Nama Pemesan
-                  </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#111114] border border-white/10 text-white text-xs focus:outline-none focus:border-[#f59e0b]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-                    Nomor WhatsApp (Untuk Notifikasi KDS)
-                  </label>
-                  <input
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#111114] border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#f59e0b]"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-                    Catatan Khusus Barista / Kitchen (Opsional)
-                  </label>
-                  <input
-                    type="text"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Contoh: jangan terlalu manis, sedotan kertas, dll."
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#111114] border border-white/10 text-white text-xs focus:outline-none focus:border-[#f59e0b]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Midtrans Payment Gateway Selector */}
-            <div className="p-6 rounded-3xl bg-[#18181c] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#f59e0b]">
-                  03. Metode Pembayaran Midtrans Snap
-                </h2>
-                <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                  <Lock className="w-3 h-3" />
-                  <span>Auto-Verified</span>
-                </div>
-              </div>
-
-              <div className="space-y-2.5">
-                {[
-                  {
-                    id: "qris" as PaymentMethod,
-                    title: "QRIS Instant (GoPay, OVO, ShopeePay, BCA)",
-                    desc: "Scan langsung dari aplikasi e-wallet apa saja. Verifikasi dalam 2 detik.",
-                    icon: QrCode,
-                    badge: "Paling Populer",
-                  },
-                  {
-                    id: "bca-va" as PaymentMethod,
-                    title: "BCA Virtual Account",
-                    desc: "Transfer otomatis 24 jam tanpa perlu upload bukti transfer.",
-                    icon: Building2,
-                  },
-                  {
-                    id: "mandiri-va" as PaymentMethod,
-                    title: "Mandiri / BNI Virtual Account",
-                    desc: "Bayar instan melalui Livin' by Mandiri atau ATM.",
-                    icon: Building2,
-                  },
-                  {
-                    id: "credit-card" as PaymentMethod,
-                    title: "Kartu Kredit / Debit Visa & Mastercard",
-                    desc: "3D-Secure proteksi standar PCI-DSS.",
-                    icon: CreditCard,
-                  },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const isSelected = selectedPayment === item.id;
-
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSelectedPayment(item.id)}
-                      className={`w-full p-4 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all ${
-                        isSelected
-                          ? "bg-[#9c6b3a]/15 border-[#f59e0b] text-white shadow-md"
-                          : "bg-[#111114] border-white/5 text-neutral-400 hover:border-white/20"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`p-2.5 rounded-xl ${
-                            isSelected
-                              ? "bg-[#f59e0b] text-black"
-                              : "bg-white/5 text-neutral-400"
-                          }`}
-                        >
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-heading font-bold text-xs sm:text-sm text-white">
-                              {item.title}
-                            </span>
-                            {item.badge && (
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#f59e0b]/20 text-[#fcd34d] border border-[#f59e0b]/30">
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-neutral-400 mt-0.5">{item.desc}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-1">
-                        <div
-                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                            isSelected
-                              ? "border-[#f59e0b] bg-[#f59e0b]"
-                              : "border-neutral-600"
-                          }`}
-                        >
-                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-black" />}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <section className="space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#f59e0b]">03. Metode Pembayaran</h2><div className="space-y-2.5">{PAYMENT_OPTIONS.map((option) => { const Icon = option.icon; const selected = paymentMethod === option.id; return <button key={option.id} type="button" aria-pressed={selected} onClick={() => setPaymentMethod(option.id)} className={`flex w-full items-start justify-between gap-3 rounded-2xl border p-4 text-left ${selected ? 'border-[#f59e0b] bg-[#9c6b3a]/15' : 'border-white/5 bg-[#111114]'}`}><div className="flex items-start gap-3"><span className={`rounded-xl p-2.5 ${selected ? 'bg-[#f59e0b] text-black' : 'bg-white/5 text-neutral-400'}`}><Icon className="h-5 w-5" /></span><span><span className="block text-sm font-bold text-white">{option.title}</span><span className="mt-0.5 block text-[11px] text-neutral-400">{option.description}</span></span></div>{selected && <CheckCircle2 className="mt-1 h-5 w-5 text-[#f59e0b]" />}</button>; })}</div></section>
           </div>
 
-          {/* Right Column: Order Summary & Checkout Trigger */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="p-6 rounded-3xl bg-[#18181c] border border-white/10 space-y-4 sticky top-28">
-              <h3 className="font-heading font-bold text-base text-white flex items-center justify-between">
-                <span>Ringkasan Pesanan</span>
-                <span className="text-xs font-mono text-neutral-400">
-                  {cartItems.length} menu
-                </span>
-              </h3>
-
-              {/* Items List */}
-              <div className="max-h-60 overflow-y-auto space-y-3 pr-1">
-                {cartItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 text-xs border-b border-white/5 pb-2.5"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium text-white truncate">
-                        {item.quantity}x {item.name}
-                      </div>
-                      <div className="text-[10px] text-neutral-400">
-                        {item.customizations.sweetness} • {item.customizations.iceLevel}
-                      </div>
-                    </div>
-                    <span className="font-mono font-semibold text-white whitespace-nowrap">
-                      Rp {item.subtotal.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Promo & Loyalty chips */}
-              {appliedVoucher && (
-                <div className="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                  <span className="flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5" /> Voucher {appliedVoucher.code}
-                  </span>
-                  <span>Aktif</span>
-                </div>
-              )}
-
-              {redeemedPoints > 0 && (
-                <div className="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[#f59e0b]">
-                  <span className="flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5" /> Diskon Poin ({redeemedPoints} pts)
-                  </span>
-                  <span>-Rp {(redeemedPoints * 10).toLocaleString("id-ID")}</span>
-                </div>
-              )}
-
-              {/* Price Breakdown */}
-              <div className="space-y-2 text-xs text-neutral-400 pt-2 border-t border-white/5">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-mono text-white">
-                    Rp {subtotal.toLocaleString("id-ID")}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Pajak Restoran (PB1 10%)</span>
-                  <span className="font-mono text-white">
-                    Rp {Math.round(subtotal * 0.1).toLocaleString("id-ID")}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Biaya Layanan & Fasilitas</span>
-                  <span className="font-mono text-white">Rp 2.000</span>
-                </div>
-                <div className="pt-3 border-t border-white/10 flex justify-between items-baseline">
-                  <span className="font-heading font-bold text-base text-white">Total Tagihan</span>
-                  <span className="font-mono font-extrabold text-2xl text-[#f59e0b]">
-                    Rp {total.toLocaleString("id-ID")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="button"
-                onClick={handleProcessOrder}
-                disabled={isProcessing}
-                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#9c6b3a] to-[#d4b488] hover:opacity-95 text-white font-heading font-bold text-sm flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(156,107,58,0.4)] transition-all active:scale-[0.98] disabled:opacity-50"
-              >
-                {isProcessing ? (
-                  <>
-                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>Memproses Transaksi Midtrans...</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>Bayar Sekarang (Rp {total.toLocaleString("id-ID")})</span>
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </>
-                )}
-              </button>
-
-              <p className="text-[11px] text-center text-neutral-500 leading-tight">
-                Pesanan otomatis terhubung ke sistem Kitchen Display (KDS) & poin loyalty langsung bertambah.
-              </p>
-            </div>
-          </div>
+          <aside className="lg:col-span-5"><div className="sticky top-24 space-y-4 rounded-3xl border border-white/10 bg-[#18181c] p-6"><h2 className="flex items-center justify-between font-heading text-base font-bold"><span>Ringkasan Pesanan</span><span className="font-mono text-xs text-neutral-400">{items.reduce((count, item) => count + item.quantity, 0)} item</span></h2><div className="max-h-64 space-y-3 overflow-y-auto pr-1">{items.map((item) => <div key={`${item.product.id}-${JSON.stringify(item.customizations)}-${item.notes ?? ''}`} className="flex items-center justify-between gap-3 border-b border-white/5 pb-2.5 text-xs"><div className="min-w-0"><span className="block truncate font-medium text-white">{item.quantity}× {item.product.name}</span>{item.customizations && <span className="mt-0.5 block truncate text-[10px] text-neutral-400">{Object.values(item.customizations).join(' • ')}</span>}</div><span className="whitespace-nowrap font-mono font-semibold">Rp {(item.unitPrice * item.quantity).toLocaleString('id-ID')}</span></div>)}</div><div className="space-y-2 border-t border-white/5 pt-3 text-xs text-neutral-400"><div className="flex justify-between"><span>Estimasi subtotal</span><span className="font-mono text-white">Rp {estimatedSubtotal.toLocaleString('id-ID')}</span></div><div className="flex justify-between"><span>Estimasi pajak 11%</span><span className="font-mono text-white">Rp {Math.round(estimatedSubtotal * 0.11).toLocaleString('id-ID')}</span></div><div className="flex items-baseline justify-between border-t border-white/10 pt-3"><span className="font-heading text-base font-bold text-white">Estimasi total</span><span className="font-mono text-2xl font-extrabold text-[#f59e0b]">Rp {estimatedTotal.toLocaleString('id-ID')}</span></div></div>
+            {error && <div role="alert" className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-300">{error}{createdOrderId && <Link href={`/order/track/${createdOrderId}`} className="mt-2 block font-bold underline">Buka order yang sudah dibuat</Link>}</div>}
+            <button type="button" onClick={() => void handleProcessOrder()} disabled={isProcessing} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#9c6b3a] to-[#d4b488] px-6 py-4 font-heading text-sm font-bold text-white disabled:cursor-wait disabled:opacity-50">{isProcessing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />Memproses...</> : <><Lock className="h-4 w-4" />Buat Pesanan &amp; Bayar</>}</button><p className="text-center text-[11px] leading-relaxed text-neutral-500">Harga final berasal dari database cabang. Jika konfigurasi gateway lokal belum tersedia, order tetap tercatat sebagai belum dibayar dan dapat dilacak.</p></div></aside>
         </div>
       )}
-    </div>
+    </main>
   );
 }

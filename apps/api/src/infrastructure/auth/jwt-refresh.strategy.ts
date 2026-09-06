@@ -38,8 +38,15 @@ export class JwtRefreshStrategy extends PassportStrategy(
       throw new UnauthorizedException('Refresh token malformed');
     }
 
-    const user = await this.databaseService.user.findUnique({
-      where: { id: payload.sub },
+    const user = await this.databaseService.user.findFirst({
+      where: { id: payload.sub, deletedAt: null },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        branchId: true,
+      },
     });
 
     if (!user) {

@@ -1,6 +1,11 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  ValidationPipe,
+} from '@nestjs/common';
 import request from 'supertest';
 import { EventController } from './event.controller';
 import { EventService } from '../../application/services/event.service';
@@ -8,7 +13,11 @@ import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 
-let mockUser: any = { id: 'user_A', role: 'CUSTOMER' };
+let mockUser: { id: string; role: string; branchId: string | null } = {
+  id: 'user_A',
+  role: 'CUSTOMER',
+  branchId: null,
+};
 
 @Injectable()
 class MockAuthGuard implements CanActivate {
@@ -41,6 +50,9 @@ describe('EventController (E2E / Controller)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 
@@ -50,7 +62,7 @@ describe('EventController (E2E / Controller)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUser = { id: 'user_A', role: 'CUSTOMER' };
+    mockUser = { id: 'user_A', role: 'CUSTOMER', branchId: null };
   });
 
   it('registerForEvent: should ignore client-supplied userId (User B) and use authenticated user (User A)', async () => {
@@ -66,25 +78,33 @@ describe('EventController (E2E / Controller)', () => {
   });
 
   it('listEvents: should list events with pagination and optional branchId', async () => {
-    eventService.listEvents = jest.fn().mockResolvedValue({ data: [], total: 0 });
+    eventService.listEvents = jest
+      .fn()
+      .mockResolvedValue({ data: [], total: 0 });
 
     await request(app.getHttpServer())
       .get('/api/v1/events?page=1&limit=10&branchId=branch_1')
       .expect(200);
 
-    expect(eventService.listEvents).toHaveBeenCalledWith('branch_1', 1, 10);
+    expect(eventService.listEvents).toHaveBeenCalledWith({
+      branchId: 'branch_1',
+      page: 1,
+      limit: 10,
+    });
   });
 
   it('createEvent: should allow STAFF/MANAGER/ADMIN to create an event', async () => {
-    mockUser = { id: 'admin_1', role: 'ADMIN' };
-    eventService.createEvent = jest.fn().mockResolvedValue({ id: 'event_new', title: 'Live Music' });
+    mockUser = { id: 'admin_1', role: 'ADMIN', branchId: null };
+    eventService.createEvent = jest
+      .fn()
+      .mockResolvedValue({ id: 'event_new', title: 'Live Music' });
 
     await request(app.getHttpServer())
       .post('/api/v1/events')
       .send({
         title: 'Live Music',
         branchId: 'branch_1',
-        date: '2026-08-15',
+        date: '2099-08-15',
         startTime: '19:00',
         endTime: '22:00',
         capacity: 50,
@@ -97,6 +117,8 @@ describe('EventController (E2E / Controller)', () => {
   });
 
   it('listRegistrations: should list registrations for an event', async () => {
+    mockUser = { id: 'manager_1', role: 'MANAGER', branchId: 'branch_1' };
+    eventService.getEventBranchId = jest.fn().mockResolvedValue('branch_1');
     eventService.listRegistrations = jest.fn().mockResolvedValue([]);
 
     await request(app.getHttpServer())

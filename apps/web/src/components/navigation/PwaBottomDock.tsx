@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   MonitorCheck,
 } from "lucide-react";
-import { useAppStore } from "@/store/useAppStore";
+import { useCartStore } from "@/stores";
+import { useAuthStore } from "@/stores/auth.store";
 
 function subscribeToNetworkStatus(onStoreChange: () => void) {
   window.addEventListener("online", onStoreChange);
@@ -33,7 +34,10 @@ const getServerNetworkStatus = () => true;
 
 export function PwaBottomDock() {
   const pathname = usePathname();
-  const { cartItems, setCartDrawerOpen } = useAppStore();
+  const cartItems = useCartStore((state) => state.items);
+  const setCartOpen = useCartStore((state) => state.setCartOpen);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isOnline = useSyncExternalStore(
     subscribeToNetworkStatus,
     getNetworkStatus,
@@ -42,6 +46,9 @@ export function PwaBottomDock() {
   const [isOpsMenuOpen, setIsOpsMenuOpen] = useState(false);
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const canAccessOperations = Boolean(
+    user && ['STAFF', 'CASHIER', 'KITCHEN', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role),
+  );
 
   // Hide dock inside POS full-screen cashier terminal or KDS kitchen screen if desired, but keep accessible via mini toggles
   const isDedicatedStaffScreen = pathname.startsWith("/ops/pos") || pathname.startsWith("/ops/kds");
@@ -51,7 +58,7 @@ export function PwaBottomDock() {
     { href: "/menu", label: "Menu", icon: LayoutGrid },
     { href: "/reservations", label: "Reservasi", icon: CalendarCheck },
     { href: "/community", label: "Komunitas", icon: Users },
-    { href: "/profile", label: "Profil", icon: User },
+    { href: isAuthenticated ? "/profile" : "/login", label: isAuthenticated ? "Profil" : "Masuk", icon: User },
   ];
 
   return (
@@ -66,7 +73,7 @@ export function PwaBottomDock() {
             className="fixed top-0 left-0 right-0 z-[120] bg-rose-900/90 backdrop-blur-md text-white py-2 px-4 text-xs font-mono text-center flex items-center justify-center gap-2 border-b border-rose-500/30 shadow-lg"
           >
             <WifiOff className="w-4 h-4 text-rose-300 animate-pulse" />
-            <span>Koneksi offline terdeteksi — Mode PWA aktif dengan cache lokal Ya&apos;reh.</span>
+            <span>Koneksi offline terdeteksi — katalog, checkout, dan status live memerlukan internet.</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -106,7 +113,7 @@ export function PwaBottomDock() {
 
             {/* Cart Button */}
             <button
-              onClick={() => setCartDrawerOpen(true)}
+              onClick={() => setCartOpen(true)}
               className="relative flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#9c6b3a] hover:bg-[#b07b44] text-white shadow-[0_4px_16px_rgba(156,107,58,0.4)] transition-transform active:scale-95"
               aria-label="Keranjang"
             >
@@ -119,7 +126,7 @@ export function PwaBottomDock() {
             </button>
 
             {/* Ecosystem / Staff Portal Switcher Dropdown Trigger */}
-            <div className="relative">
+            {canAccessOperations && <div className="relative">
               <button
                 onClick={() => setIsOpsMenuOpen(!isOpsMenuOpen)}
                 className="flex flex-col items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
@@ -188,7 +195,7 @@ export function PwaBottomDock() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </div>}
           </div>
         </div>
       )}

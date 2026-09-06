@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   Controller,
   Get,
@@ -10,10 +9,19 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Role } from '@warkop-yareh/database';
 import { CommunityService } from '../../application/services/community.service';
-import { CreateGroupDto, CreatePostDto } from '../dtos/community.dto';
+import {
+  CreateGroupDto,
+  CreatePostDto,
+  ListGroupsQueryDto,
+  ListPostsQueryDto,
+} from '../dtos/community.dto';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
+import { Public } from '../../../../common/decorators/public.decorator';
+import { Roles } from '../../../../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
 @ApiTags('community')
 @Controller('api/v1/community')
@@ -21,6 +29,7 @@ export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 
   @Post('groups')
+  @Roles(Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
   @ApiOperation({ summary: 'Create a new community group' })
   async createGroup(@Body() body: CreateGroupDto) {
     const data = await this.communityService.createGroup(body);
@@ -28,8 +37,9 @@ export class CommunityController {
   }
 
   @Get('groups')
-  async listGroups(@Query('category') category?: string) {
-    const data = await this.communityService.listGroups(category);
+  @Public()
+  async listGroups(@Query() query: ListGroupsQueryDto) {
+    const data = await this.communityService.listGroups(query.category);
     return { data };
   }
 
@@ -45,36 +55,28 @@ export class CommunityController {
 
   @Post('posts')
   @ApiOperation({ summary: 'Create a post in a group' })
-  async createPost(@CurrentUser() user: any, @Body() body: CreatePostDto) {
-    const isEmployee = [
-      'STAFF',
-      'CASHIER',
-      'MANAGER',
-      'ADMIN',
-      'OWNER',
-      'SUPERADMIN',
-    ].includes(user.role);
-    const resolvedAuthorId = isEmployee ? body.authorId : user.id;
+  async createPost(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: CreatePostDto,
+  ) {
     const data = await this.communityService.createPost({
       ...body,
-      authorId: resolvedAuthorId,
+      authorId: user.id,
     });
     return { data };
   }
 
   @Get('groups/:groupId/posts')
+  @Public()
   async listPosts(
     @Param('groupId') groupId: string,
-    @Query('page') pageStr?: string,
-    @Query('limit') limitStr?: string,
+    @Query() query: ListPostsQueryDto,
   ) {
-    const page = pageStr ? parseInt(pageStr, 10) : 1;
-    const limit = limitStr ? parseInt(limitStr, 10) : 10;
     const { data, total } = await this.communityService.listPosts(
       groupId,
-      page,
-      limit,
+      query.page,
+      query.limit,
     );
-    return paginate(data, total, page, limit);
+    return paginate(data, total, query.page, query.limit);
   }
 }

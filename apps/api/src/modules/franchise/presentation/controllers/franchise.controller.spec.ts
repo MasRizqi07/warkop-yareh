@@ -1,6 +1,11 @@
 /* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
 import request from 'supertest';
 import { FranchiseController } from './franchise.controller';
 import { FranchiseService } from '../../application/services/franchise.service';

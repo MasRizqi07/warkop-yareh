@@ -141,6 +141,68 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  async setIfAbsent(
+    key: string,
+    value: string,
+    ttlSeconds: number,
+  ): Promise<boolean> {
+    if (!this.isConnected) {
+      this.assertFallbackAllowed('set-if-absent');
+      if (this.getFallbackValue(key) !== null) return false;
+      this.fallbackMap.set(key, {
+        value,
+        expiry: Date.now() + ttlSeconds * 1000,
+      });
+      return true;
+    }
+    try {
+      const result = await this.client.set(key, value, 'EX', ttlSeconds, 'NX');
+      return result === 'OK';
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('set-if-absent', error);
+      if (this.getFallbackValue(key) !== null) return false;
+      this.fallbackMap.set(key, {
+        value,
+        expiry: Date.now() + ttlSeconds * 1000,
+      });
+      return true;
+    }
+  }
+
+  async incrementWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    if (!this.isConnected) {
+      this.assertFallbackAllowed('increment');
+      const current = Number.parseInt(this.getFallbackValue(key) ?? '0', 10);
+      const next = Number.isFinite(current) ? current + 1 : 1;
+      this.fallbackMap.set(key, {
+        value: String(next),
+        expiry: Date.now() + ttlSeconds * 1000,
+      });
+      return next;
+    }
+    try {
+      const result = await this.client
+        .multi()
+        .incr(key)
+        .expire(key, ttlSeconds, 'NX')
+        .exec();
+      const value = result?.[0]?.[1];
+      if (typeof value !== 'number') {
+        throw new Error('Redis increment returned an invalid response');
+      }
+      return value;
+    } catch (error: unknown) {
+      this.assertFallbackAllowed('increment', error);
+      const current = Number.parseInt(this.getFallbackValue(key) ?? '0', 10);
+      const next = Number.isFinite(current) ? current + 1 : 1;
+      this.fallbackMap.set(key, {
+        value: String(next),
+        expiry: Date.now() + ttlSeconds * 1000,
+      });
+      return next;
+    }
+  }
+
   async del(key: string): Promise<void> {
     this.fallbackMap.delete(key);
     if (!this.isConnected) {

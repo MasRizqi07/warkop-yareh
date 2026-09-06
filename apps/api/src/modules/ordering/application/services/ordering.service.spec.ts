@@ -67,6 +67,7 @@ describe('OrderingService', () => {
       listOrders: jest.fn(),
       updateOrderStatus: jest.fn(),
       updatePaymentStatus: jest.fn(),
+      syncPaymentState: jest.fn(),
       createFeedback: jest.fn(),
     };
 

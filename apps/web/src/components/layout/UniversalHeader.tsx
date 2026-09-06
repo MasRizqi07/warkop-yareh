@@ -2,33 +2,34 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   MapPin,
-  Wifi,
   ChevronDown,
   ShoppingBag,
   Award,
   CheckCircle2,
 } from "lucide-react";
-import { useAppStore } from "@/store/useAppStore";
+import { useActiveBranch } from "@/features/catalog/catalog.hooks";
+import { useAuthStore } from "@/stores/auth.store";
+import { useBranchStore, useCartStore } from "@/stores";
 
 export function UniversalHeader() {
   const pathname = usePathname();
-  const {
-    branches,
-    activeBranchId,
-    setActiveBranch,
-    getActiveBranch,
-    cartItems,
-    setCartDrawerOpen,
-    user,
-  } = useAppStore();
+  const { data: branches = [], activeBranch } = useActiveBranch();
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
+  const cartItems = useCartStore((state) => state.items);
+  const setCartOpen = useCartStore((state) => state.setCartOpen);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
-  const activeBranch = getActiveBranch();
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const canAccessOperations = Boolean(
+    user && ['STAFF', 'CASHIER', 'KITCHEN', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role),
+  );
 
   // Hide on dedicated full-screen staff terminals
   if (pathname.startsWith("/ops/pos") || pathname.startsWith("/ops/kds")) {
@@ -70,7 +71,7 @@ export function UniversalHeader() {
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <MapPin className="w-3.5 h-3.5 text-[#f59e0b]" />
-              <span className="font-medium text-white">{activeBranch.name}</span>
+               <span className="max-w-40 truncate font-medium text-white">{activeBranch?.name ?? "Pilih cabang"}</span>
               <ChevronDown className="w-3 h-3 text-neutral-400" />
             </button>
 
@@ -83,7 +84,8 @@ export function UniversalHeader() {
                   <button
                     key={b.id}
                     onClick={() => {
-                      setActiveBranch(b.id);
+                       if (b.id !== activeBranchId) clearCart();
+                       setActiveBranchId(b.id);
                       setIsBranchDropdownOpen(false);
                     }}
                     className={`w-full text-left p-2.5 rounded-xl flex items-start gap-3 transition-colors ${
@@ -103,11 +105,9 @@ export function UniversalHeader() {
                       <div className="text-xs font-semibold text-white">{b.name}</div>
                       <div className="text-[10px] text-neutral-400 line-clamp-1">{b.address}</div>
                       <div className="flex items-center gap-2 mt-1 text-[10px] font-mono text-neutral-400">
-                        <span className="text-emerald-400">{b.hours}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Wifi className="w-3 h-3 text-[#f59e0b]" /> {b.wifiName}
-                        </span>
+                         <span className="text-emerald-400">{b.weekdayHours}</span>
+                         <span>•</span>
+                         <span>{b.city}</span>
                       </div>
                     </div>
                   </button>
@@ -138,7 +138,7 @@ export function UniversalHeader() {
         </nav>
 
         {/* Center: Quick Portal Switcher Pills */}
-        <div className="hidden xl:flex items-center gap-1 p-1 rounded-full bg-[#111114] border border-white/5 text-xs font-medium">
+        {canAccessOperations && <div className="hidden xl:flex items-center gap-1 p-1 rounded-full bg-[#111114] border border-white/5 text-xs font-medium">
           <Link
             href="/"
             className={`px-3 py-1 rounded-full transition-colors ${
@@ -179,23 +179,23 @@ export function UniversalHeader() {
           >
             Enterprise
           </Link>
-        </div>
+        </div>}
 
         {/* Right: Loyalty Status + Cart Button + Profile */}
         <div className="flex items-center gap-3">
           {/* Loyalty Tier Pill */}
-          <Link
+          {isAuthenticated && user && <Link
             href="/loyalty"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-amber-700/10 border border-amber-500/20 text-xs text-amber-200 hover:border-amber-500/40 transition-colors"
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-amber-700/10 border border-amber-500/20 text-xs text-amber-200 hover:border-amber-500/40 transition-colors"
           >
             <Award className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span className="font-semibold text-white">{user.tier}</span>
-            <span className="font-mono text-[11px] text-[#f59e0b]">{user.points} pts</span>
-          </Link>
+            <span className="font-semibold text-white">{user.membershipTier}</span>
+            <span className="font-mono text-[11px] text-[#f59e0b]">{user.loyaltyPoints} pts</span>
+          </Link>}
 
           {/* Cart Trigger */}
           <button
-            onClick={() => setCartDrawerOpen(true)}
+            onClick={() => setCartOpen(true)}
             className="relative p-2 rounded-xl bg-[#18181c] border border-white/10 hover:border-white/20 text-neutral-200 transition-colors"
             aria-label="Keranjang Belanja"
           >
@@ -208,17 +208,15 @@ export function UniversalHeader() {
           </button>
 
           {/* Profile Avatar */}
-          <Link href="/profile" aria-label="Open profile" className="flex items-center gap-2 pl-1 group">
-            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 group-hover:border-[#f59e0b] transition-colors">
-              <Image
-                src={user.avatar}
-                alt={user.name}
-                fill
-                className="object-cover"
-                sizes="32px"
-              />
-            </div>
-          </Link>
+          {isAuthenticated && user ? (
+            <Link href="/profile" aria-label="Buka profil" className="group flex items-center gap-2 pl-1">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[#9c6b3a]/20 text-xs font-bold text-[#f59e0b] transition-colors group-hover:border-[#f59e0b]">
+                {user.name.slice(0, 1).toUpperCase()}
+              </span>
+            </Link>
+          ) : (
+            <Link href="/login" className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-neutral-200 hover:border-[#f59e0b]/40">Masuk</Link>
+          )}
         </div>
       </div>
     </header>

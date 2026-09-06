@@ -29,8 +29,11 @@ describe('ReservationService', () => {
   beforeEach(async () => {
     mockPrisma = {
       $transaction: jest.fn((operation) =>
-        Array.isArray(operation) ? Promise.all(operation) : operation(mockPrisma),
+        Array.isArray(operation)
+          ? Promise.all(operation)
+          : operation(mockPrisma),
       ),
+      withTenantTransaction: jest.fn((operation) => operation(mockPrisma)),
       $executeRaw: jest.fn(),
       branch: {
         findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }),
@@ -129,7 +132,6 @@ describe('ReservationService', () => {
   });
 
   describe('updateStatus - Authorization Matrix', () => {
-
     it('should throw NotFoundException if reservation does not exist', async () => {
       mockPrisma.reservation.findUnique.mockResolvedValue(null);
       await expect(

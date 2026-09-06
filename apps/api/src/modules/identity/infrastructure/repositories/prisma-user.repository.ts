@@ -73,7 +73,7 @@ export class PrismaUserRepository implements IUserRepository {
       ...(role ? { role } : {}),
       ...(branchId ? { branchId } : {}),
     };
-    const [data, total] = await this.prisma.$transaction([
+    const [data, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         select: safeUserSelect,

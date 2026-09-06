@@ -1,6 +1,11 @@
 /* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
 import request from 'supertest';
 import { BranchController } from './branch.controller';
 import { BranchService } from '../../application/services/branch.service';
@@ -8,7 +13,11 @@ import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 
-let mockUser: any = { id: 'user_A', role: 'CUSTOMER' };
+let mockUser: {
+  id: string;
+  role: string;
+  branchId: string | null;
+} = { id: 'user_A', role: 'CUSTOMER', branchId: null };
 
 @Injectable()
 class MockAuthGuard implements CanActivate {
@@ -27,8 +36,12 @@ describe('BranchController (E2E / Controller)', () => {
     branchService = {
       listBranches: jest.fn().mockResolvedValue([]),
       getBranch: jest.fn().mockResolvedValue({ id: 'branch_1' }),
-      createBranch: jest.fn().mockResolvedValue({ id: 'branch_1', name: 'Branch 1' }),
-      updateBranch: jest.fn().mockResolvedValue({ id: 'branch_1', name: 'Updated Branch' }),
+      createBranch: jest
+        .fn()
+        .mockResolvedValue({ id: 'branch_1', name: 'Branch 1' }),
+      updateBranch: jest
+        .fn()
+        .mockResolvedValue({ id: 'branch_1', name: 'Updated Branch' }),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -53,18 +66,16 @@ describe('BranchController (E2E / Controller)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUser = { id: 'user_A', role: 'CUSTOMER' };
+    mockUser = { id: 'user_A', role: 'CUSTOMER', branchId: null };
   });
 
   it('GET /api/v1/branches should be public', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/branches')
-      .expect(200);
+    await request(app.getHttpServer()).get('/api/v1/branches').expect(200);
 
     expect(branchService.listBranches).toHaveBeenCalled();
   });
 
-  it('POST /api/v1/branches should return 403 Forbidden for non-ADMIN/OWNER role', async () => {
+  it('POST /api/v1/branches should return 403 for a customer', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/branches')
       .send({ name: 'New Branch', address: 'Main St' })
@@ -72,7 +83,7 @@ describe('BranchController (E2E / Controller)', () => {
   });
 
   it('POST /api/v1/branches should allow ADMIN to create branch', async () => {
-    mockUser = { id: 'admin_1', role: 'ADMIN' };
+    mockUser = { id: 'admin_1', role: 'ADMIN', branchId: null };
 
     await request(app.getHttpServer())
       .post('/api/v1/branches')

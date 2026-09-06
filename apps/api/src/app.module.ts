@@ -8,6 +8,7 @@ import { PaymentModule } from './infrastructure/payment/payment.module';
 import { AuthModule } from './infrastructure/auth/auth.module';
 import { RolesGuard } from './common/guards/roles.guard';
 import { TenantIsolationInterceptor } from './common/interceptors/tenant-isolation.interceptor';
+import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 
 import { JwtAuthGuard } from './infrastructure/auth/jwt-auth.guard';
 
@@ -25,6 +26,7 @@ import { FranchiseModule } from './modules/franchise/franchise.module';
 import { WebsocketsModule } from './modules/websockets/websockets.module';
 import { TablesModule } from './modules/tables/tables.module';
 import { AiModule } from './modules/ai/ai.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -57,12 +59,17 @@ import { AiModule } from './modules/ai/ai.module';
     WebsocketsModule,
     TablesModule,
     AiModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: TenantIsolationInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditLogInterceptor,
     },
     {
       provide: APP_GUARD,

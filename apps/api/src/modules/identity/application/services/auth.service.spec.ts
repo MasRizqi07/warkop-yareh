@@ -2,9 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { createHash, createHmac } from 'node:crypto';
 import { AuthService } from './auth.service';
 import { IdentityService } from './identity.service';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
+import { Role } from '@warkop-yareh/database';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -16,7 +18,7 @@ describe('AuthService', () => {
     id: 'user-123',
     email: 'test@warkopyareh.com',
     name: 'Test User',
-    role: 'CUSTOMER',
+    role: Role.CUSTOMER,
     passwordHash: '',
   };
 
@@ -42,6 +44,8 @@ describe('AuthService', () => {
       take: jest.fn(),
       del: jest.fn().mockResolvedValue(1),
       delPattern: jest.fn().mockResolvedValue(undefined),
+      setIfAbsent: jest.fn().mockResolvedValue(true),
+      incrementWithTtl: jest.fn().mockResolvedValue(1),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -66,8 +70,9 @@ describe('AuthService', () => {
       );
 
       expect(result).toBeDefined();
+      if (!result) throw new Error('Expected a valid user');
       expect(result.id).toBe('user-123');
-      expect(result.passwordHash).toBeUndefined();
+      expect('passwordHash' in result).toBe(false);
     });
 
     it('should return null on wrong password', async () => {
@@ -213,18 +218,26 @@ describe('AuthService', () => {
   });
 
   describe('sendOtp and verifyOtp', () => {
-    it('should store 6-digit OTP in Redis', async () => {
+    it('stores only an HMAC of the OTP under an email fingerprint', async () => {
       await service.sendOtp('test@warkopyareh.com');
 
-      expect(mockRedisService.set).toHaveBeenCalledWith(
-        'otp:test@warkopyareh.com',
-        expect.stringMatching(/^\d{6}$/),
-        300,
+      const otpWrite = mockRedisService.set.mock.calls.find(([key]: [string]) =>
+        key.startsWith('otp:'),
       );
+      expect(otpWrite?.[0]).toMatch(/^otp:[a-f0-9]{64}$/);
+      expect(otpWrite?.[0]).not.toContain('test@warkopyareh.com');
+      expect(otpWrite?.[1]).toMatch(/^[a-f0-9]{64}$/);
+      expect(otpWrite?.[2]).toBe(300);
     });
 
     it('should verify OTP and issue tokens', async () => {
-      mockRedisService.get.mockResolvedValue('123456');
+      const email = 'test@warkopyareh.com';
+      const otpHash = createHmac('sha256', process.env.JWT_SECRET!)
+        .update(`${email}:123456`)
+        .digest('hex');
+      const subjectHash = createHash('sha256').update(email).digest('hex');
+      mockRedisService.get.mockResolvedValue(otpHash);
+      mockRedisService.take.mockResolvedValue(otpHash);
       mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
       mockJwtService.sign
         .mockReturnValueOnce('otp-access-token')
@@ -232,9 +245,7 @@ describe('AuthService', () => {
 
       const result = await service.verifyOtp('test@warkopyareh.com', '123456');
 
-      expect(mockRedisService.del).toHaveBeenCalledWith(
-        'otp:test@warkopyareh.com',
-      );
+      expect(mockRedisService.take).toHaveBeenCalledWith(`otp:${subjectHash}`);
       expect(result).toEqual({
         accessToken: 'otp-access-token',
         refreshToken: 'otp-refresh-token',
@@ -242,11 +253,26 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException on wrong OTP code', async () => {
-      mockRedisService.get.mockResolvedValue('123456');
+      const otpHash = createHmac('sha256', process.env.JWT_SECRET!)
+        .update('test@warkopyareh.com:123456')
+        .digest('hex');
+      mockRedisService.get.mockResolvedValue(otpHash);
 
       await expect(
         service.verifyOtp('test@warkopyareh.com', '654321'),
       ).rejects.toThrow(UnauthorizedException);
+      expect(mockRedisService.incrementWithTtl).toHaveBeenCalled();
+    });
+
+    it('enforces a resend cooldown before generating another OTP', async () => {
+      mockRedisService.setIfAbsent.mockResolvedValue(false);
+
+      await expect(
+        service.sendOtp('test@warkopyareh.com'),
+      ).rejects.toMatchObject({
+        status: 429,
+      });
+      expect(mockRedisService.set).not.toHaveBeenCalled();
     });
   });
 });

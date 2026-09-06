@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   Controller,
   Post,
@@ -11,6 +10,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiTags,
   ApiOperation,
@@ -19,10 +19,21 @@ import {
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthService } from '../../application/services/auth.service';
-import { RegisterDto, LoginDto } from '../dtos/auth.dto';
+import {
+  LoginDto,
+  RegisterDto,
+  SendOtpDto,
+  VerifyOtpDto,
+} from '../dtos/auth.dto';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { JwtRefreshAuthGuard } from '../../../../infrastructure/auth/jwt-refresh-auth.guard';
 import { Public } from '../../../../common/decorators/public.decorator';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
+
+type AuthenticatedRequest = Request & {
+  user: AuthenticatedUser;
+  cookies: Record<string, string | undefined>;
+};
 
 @ApiTags('auth')
 @Controller('api/v1/auth')
@@ -81,7 +92,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshAuthGuard)
   @ApiOperation({ summary: 'Refresh access token using httpOnly cookie' })
-  async refresh(@Req() req: any, @Res({ passthrough: true }) res: Response) {
+  async refresh(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const userId = req.user.id;
     const oldRefreshToken = req.cookies?.refreshToken;
 
@@ -99,19 +113,24 @@ export class AuthController {
 
   @Public()
   @Post('otp/send')
+  @Throttle({ default: { limit: 3, ttl: 15 * 60_000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send an OTP to the user email' })
-  async sendOtp(@Body() body: import('../dtos/auth.dto').SendOtpDto) {
+  async sendOtp(@Body() body: SendOtpDto) {
     await this.authService.sendOtp(body.email);
-    return { message: 'OTP sent successfully', data: null };
+    return {
+      message: 'If the address is valid, a verification code will be sent',
+      data: null,
+    };
   }
 
   @Public()
   @Post('otp/verify')
+  @Throttle({ default: { limit: 5, ttl: 5 * 60_000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Verify OTP and login/register' })
   async verifyOtp(
-    @Body() body: import('../dtos/auth.dto').VerifyOtpDto,
+    @Body() body: VerifyOtpDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { accessToken, refreshToken } = await this.authService.verifyOtp(
@@ -131,7 +150,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Logout and revoke refresh token' })
-  async logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
+  async logout(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const userId = req.user.id;
     const refreshToken = req.cookies?.refreshToken;
 
@@ -141,7 +163,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       domain: process.env.COOKIE_DOMAIN || undefined,
-      path: '/',
+      path: '/api/v1/auth',
     });
 
     return { message: 'Logged out successfully', data: null };
@@ -151,17 +173,17 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@Req() req: any) {
+  getProfile(@Req() req: AuthenticatedRequest) {
     return { data: req.user };
   }
 
-  private setRefreshTokenCookie(res: Response, token: string) {
+  private setRefreshTokenCookie(res: Response, token: string): void {
     res.cookie('refreshToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       domain: process.env.COOKIE_DOMAIN || undefined,
-      path: '/',
+      path: '/api/v1/auth',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }
