@@ -11,12 +11,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthService } from '../../application/services/auth.service';
 import {
@@ -30,7 +25,7 @@ import { JwtRefreshAuthGuard } from '../../../../infrastructure/auth/jwt-refresh
 import { Public } from '../../../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
-type AuthenticatedRequest = Request & {
+type AuthenticatedRequest = Omit<Request, 'user' | 'cookies'> & {
   user: AuthenticatedUser;
   cookies: Record<string, string | undefined>;
 };
@@ -98,6 +93,8 @@ export class AuthController {
   ) {
     const userId = req.user.id;
     const oldRefreshToken = req.cookies?.refreshToken;
+    if (typeof oldRefreshToken !== 'string' || !oldRefreshToken)
+      throw new UnauthorizedException('Refresh token is required');
 
     const { accessToken, refreshToken } = await this.authService.refreshTokens(
       userId,

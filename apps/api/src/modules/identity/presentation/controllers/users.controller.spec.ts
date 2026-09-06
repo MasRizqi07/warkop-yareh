@@ -1,3 +1,4 @@
+import type { Server } from 'node:http';
 /* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ExecutionContext, CanActivate } from '@nestjs/common';
@@ -20,7 +21,7 @@ class MockJwtGuard implements CanActivate {
 }
 
 describe('UsersController (E2E / Controller)', () => {
-  let app: INestApplication;
+  let app: INestApplication<Server>;
   let identityService: jest.Mocked<Partial<IdentityService>>;
 
   beforeAll(async () => {
@@ -59,19 +60,16 @@ describe('UsersController (E2E / Controller)', () => {
       .expect(403); // CanActivate returns false
   });
 
-  it('GET /api/v1/users/:id -> CUSTOMER role cannot read other user profile; resolves ID to self (req.user.id)', async () => {
+  it('rejects another customer profile before querying private data', async () => {
     mockCurrentUser = { id: 'user-customer-self', role: 'CUSTOMER' };
-    (identityService.getUserProfile as jest.Mock).mockResolvedValue({
-      id: 'user-customer-self',
-      name: 'Customer Self',
-      email: 'customer@warkop.com',
-    });
+    await request(app.getHttpServer()).get('/api/v1/users/other-user-target-id').expect(403);
+    expect(identityService.getUserProfile).not.toHaveBeenCalled();
+  });
 
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/users/other-user-target-id')
-      .expect(200);
-
-    expect(identityService.getUserProfile).toHaveBeenCalledWith('user-customer-self');
+  it('allows a customer to read their own profile', async () => {
+    mockCurrentUser = { id: 'user-customer-self', role: 'CUSTOMER' };
+    (identityService.getUserProfile as jest.Mock).mockResolvedValue({ id: 'user-customer-self', branchId: null });
+    const res = await request(app.getHttpServer()).get('/api/v1/users/user-customer-self').expect(200);
     expect(res.body.data.id).toBe('user-customer-self');
   });
 

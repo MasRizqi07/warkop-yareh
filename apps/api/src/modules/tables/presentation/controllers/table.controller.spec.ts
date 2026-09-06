@@ -1,3 +1,4 @@
+import type { Server } from 'node:http';
 /* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
@@ -20,7 +21,7 @@ class MockAuthGuard implements CanActivate {
 }
 
 describe('TableController (E2E / Controller)', () => {
-  let app: INestApplication;
+  let app: INestApplication<Server>;
   let tableService: jest.Mocked<Partial<TableService>>;
 
   beforeAll(async () => {

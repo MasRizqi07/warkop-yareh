@@ -142,6 +142,7 @@ export interface OrderDto {
   status: ApiOrderStatus;
   subtotal: number;
   tax: number;
+  serviceFee: number;
   discount: number;
   total: number;
   paymentStatus: ApiPaymentStatus;
@@ -175,4 +176,3 @@ export interface SnapPaymentDto {
   orderNumber: string;
   grossAmount: number;
 }
-

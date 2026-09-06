@@ -38,7 +38,7 @@ export const useCheckoutStore = create<CheckoutState>()(
       setTable: (tableId, tableLabel = '') => set({ tableId, tableLabel }),
       setDeliveryAddress: (deliveryAddress) => set({ deliveryAddress }),
       setSplitBillCount: (count) =>
-        set({ splitBillCount: Math.min(10, Math.max(1, Math.trunc(count))) }),
+        set({ splitBillCount: Math.min(10, Math.max(1, (Number.isFinite(count) ? Math.trunc(count) : 1))) }),
       resetCheckout: () => set(initialState),
     }),
     {

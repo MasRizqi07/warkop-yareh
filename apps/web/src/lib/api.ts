@@ -21,19 +21,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-let isRefreshing = false;
-let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason?: Error) => void }> = [];
-
-const processQueue = (error: Error | null, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
+let pendingRefresh: Promise<string> | null = null;
 
 const AUTH_ROUTES_WITHOUT_REFRESH = [
   '/auth/login',
@@ -41,6 +29,7 @@ const AUTH_ROUTES_WITHOUT_REFRESH = [
   '/auth/otp/send',
   '/auth/otp/verify',
   '/auth/refresh',
+  '/auth/logout',
 ];
 
 function canAttemptRefresh(url?: string): boolean {
@@ -48,70 +37,38 @@ function canAttemptRefresh(url?: string): boolean {
   return !AUTH_ROUTES_WITHOUT_REFRESH.some((route) => url.includes(route));
 }
 
-export async function refreshAccessToken(): Promise<string> {
-  const response = await axios.post<{ data: { accessToken: string } }>(
-    `${API_URL}/auth/refresh`,
-    {},
-    { withCredentials: true, timeout: 15_000 },
-  );
-  const accessToken = response.data.data.accessToken;
-  useAuthStore.getState().setAccessToken(accessToken);
-  return accessToken;
+export function refreshAccessToken(): Promise<string> {
+  if (pendingRefresh) return pendingRefresh;
+  const session = useAuthStore.getState();
+  pendingRefresh = axios.post<{ data: { accessToken: string } }>(
+    `${API_URL}/auth/refresh`, {}, { withCredentials: true, timeout: 15_000 },
+  ).then((response) => {
+    const current = useAuthStore.getState();
+    if (current.user !== session.user || current.accessToken !== session.accessToken || current.isAuthenticated !== session.isAuthenticated) {
+      throw new Error('Session changed while refreshing credentials');
+    }
+    const token = response.data.data.accessToken;
+    if (typeof token !== 'string' || !token) throw new Error('Invalid session response');
+    current.setAccessToken(token);
+    return token;
+  }).finally(() => { pendingRefresh = null; });
+  return pendingRefresh;
 }
 
-// Response Interceptor: Handle 401 & Transparent Token Refresh
-api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
-    // If 401 Unauthorized and not already retrying
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry &&
-      canAttemptRefresh(originalRequest.url)
-    ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        // Attempt to refresh the token. 
-        // The httpOnly cookie 'refreshToken' is automatically sent by browser because of withCredentials: true.
-        const accessToken = await refreshAccessToken();
-        
-        processQueue(null, accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError as Error, null);
-        // Refresh failed (cookie expired, invalid, etc), force logout
-        useAuthStore.getState().logout();
-        if (typeof window !== 'undefined') {
-          const publicAuthPaths = ['/login', '/register', '/otp'];
-          if (!publicAuthPaths.includes(window.location.pathname)) {
-            window.location.replace(
-              new URL('/login?session_expired=true', window.location.origin),
-            );
-          }
-        }
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+api.interceptors.response.use((response) => response, async (error: AxiosError) => {
+  const request = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+  if (error.response?.status !== 401 || !request || request._retry || !canAttemptRefresh(request.url)) throw error;
+  request._retry = true;
+  const currentToken = useAuthStore.getState().accessToken;
+  try {
+    const token = currentToken && request.headers.Authorization !== `Bearer ${currentToken}`
+      ? currentToken : await refreshAccessToken();
+    request.headers.Authorization = `Bearer ${token}`;
+    return await api(request);
+  } catch (refreshError) {
+    if (axios.isAxiosError(refreshError) && [401, 403].includes(refreshError.response?.status ?? 0)) {
+      useAuthStore.getState().logout();
     }
-
-    return Promise.reject(error);
+    throw refreshError;
   }
-);
+});

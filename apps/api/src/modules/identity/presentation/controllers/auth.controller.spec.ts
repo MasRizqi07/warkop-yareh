@@ -1,7 +1,9 @@
+import type { Server } from 'node:http';
 /* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, UnauthorizedException, BadRequestException, CanActivate, ExecutionContext } from '@nestjs/common';
 import request from 'supertest';
+import cookieParser from 'cookie-parser';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../../application/services/auth.service';
 import { JwtRefreshAuthGuard } from '../../../../infrastructure/auth/jwt-refresh-auth.guard';
@@ -24,7 +26,7 @@ class MockJwtGuard implements CanActivate {
 }
 
 describe('AuthController (E2E / Controller)', () => {
-  let app: INestApplication;
+  let app: INestApplication<Server>;
   let authService: jest.Mocked<Partial<AuthService>>;
 
   beforeAll(async () => {
@@ -51,6 +53,7 @@ describe('AuthController (E2E / Controller)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     await app.init();
   });
 

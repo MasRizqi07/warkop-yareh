@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import { ToastProvider } from '@warkop-yareh/ui';
 import './globals.css';
+import { AdminSessionBoundary } from '@/components/auth/admin-session-boundary';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -59,7 +60,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-[#0a0a0c] text-[#e5e1e4] antialiased selection:bg-[#9c6b3a] selection:text-[#f8fafc]">
         <ToastProvider>
-          {children}
+          <AdminSessionBoundary>{children}</AdminSessionBoundary>
         </ToastProvider>
       </body>
     </html>

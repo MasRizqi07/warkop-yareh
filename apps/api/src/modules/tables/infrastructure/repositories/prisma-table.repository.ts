@@ -64,10 +64,7 @@ export class PrismaTableRepository implements ITableRepository {
     });
   }
 
-  async createWaiterCall(
-    tableId: string,
-    type: WaiterCallType,
-  ) {
+  async createWaiterCall(tableId: string, type: WaiterCallType) {
     return this.prisma.waiterCall.create({
       data: {
         tableId,

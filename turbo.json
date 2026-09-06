@@ -8,6 +8,9 @@
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "@warkop-yareh/ui#build": {
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^typecheck"]
     },
@@ -20,7 +23,7 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
+      "outputs": [],
       "passThroughEnv": [
         "DATABASE_URL",
         "JWT_SECRET",

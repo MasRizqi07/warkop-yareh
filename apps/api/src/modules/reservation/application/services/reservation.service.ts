@@ -108,6 +108,8 @@ export class ReservationService {
                 branchId: data.branchId,
                 ...(data.tableId ? { tableId: data.tableId } : {}),
                 date,
+                startAt: new Date(`${data.date}T${data.startTime}:00+07:00`),
+                endAt: new Date(`${data.date}T${data.endTime}:00+07:00`),
                 startTime: data.startTime,
                 endTime: data.endTime,
                 guestCount: data.guestCount,
@@ -134,6 +136,7 @@ export class ReservationService {
           { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
         );
       } catch (error) {
+        if (error instanceof Error && /reservations_table_no_overlap|23P01/.test(error.message)) throw new ConflictException('Table is already reserved for this time slot');
         if (this.isSerializationConflict(error) && attempt < 2) continue;
         if (this.isSerializationConflict(error)) {
           throw new ConflictException(
@@ -185,8 +188,16 @@ export class ReservationService {
     user: AuthenticatedUser,
   ) {
     return this.prisma.withTenantTransaction(async (tx) => {
-      const reservation = await tx.reservation.findUnique({ where: { id } });
+      const initial = await tx.reservation.findUnique({ where: { id }, select: { orderId: true } });
+      if (initial?.orderId) await tx.$queryRaw`SELECT id FROM orders WHERE id = ${initial.orderId} FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM reservations WHERE id = ${id} FOR UPDATE`;
+      const reservation = await tx.reservation.findUnique({ where: { id }, include: { order: { include: { payment: true } } } });
       if (!reservation) throw new NotFoundException('Reservation not found');
+      if (reservation.order && status === ReservationStatus.CONFIRMED && reservation.order.paymentStatus !== 'PAID') throw new ConflictException('Payment must be completed before confirming the booking');
+      if (reservation.order && status === ReservationStatus.CANCELLED) {
+        if (reservation.order.paymentStatus === 'PAID' || (reservation.order.paymentStatus === 'UNPAID' && reservation.order.payment)) throw new ConflictException('Resolve the payment with the provider before cancelling this booking');
+        await tx.order.update({ where: { id: reservation.order.id }, data: { status: 'CANCELLED' } });
+      }
 
       this.assertCanUpdateReservation(
         user,

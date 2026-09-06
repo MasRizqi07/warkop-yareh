@@ -31,6 +31,7 @@ export class UsersController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ) {
+    this.assertCanRequestProfile(user, id);
     const profile = await this.identityService.getUserProfile(id);
     if (!profile) throw new NotFoundException('User not found');
     this.assertCanManageProfile(user, profile.id, profile.branchId);
@@ -61,6 +62,7 @@ export class UsersController {
     @Param('id') id: string,
     @Body() body: UpdateUserDto,
   ) {
+    this.assertCanRequestProfile(user, id);
     const profile = await this.identityService.getUserProfile(id);
     if (!profile) throw new NotFoundException('User not found');
     this.assertCanManageProfile(user, profile.id, profile.branchId);
@@ -82,6 +84,19 @@ export class UsersController {
       return;
     }
     throw new ForbiddenException('You cannot access this user profile');
+  }
+
+  private assertCanRequestProfile(
+    actor: AuthenticatedUser,
+    targetId: string,
+  ): void {
+    if (
+      actor.id !== targetId &&
+      !this.hasRole(actor, GLOBAL_USER_ROLES) &&
+      !this.hasRole(actor, BRANCH_MANAGER_ROLES)
+    ) {
+      throw new ForbiddenException('You cannot access this user profile');
+    }
   }
 
   private hasRole(

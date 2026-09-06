@@ -43,6 +43,7 @@ model User {
   communityPosts     CommunityPost[]
   sessions           Session[]
   userDevices        UserDevice[]
+  voucherRedemptions VoucherRedemption[]
 
   @@index([email])
   @@index([phone])
@@ -212,6 +213,7 @@ model Order {
   status              OrderStatus @default(PENDING)
   subtotal            Int
   tax                 Int         @default(0)
+  serviceFee          Int         @default(0)
   discount            Int         @default(0)
   total               Int
   paymentStatus       PaymentStatus @default(UNPAID)
@@ -221,6 +223,7 @@ model Order {
   customerPhone       String?
   loyaltyPointsEarned Int         @default(0)
   loyaltyPointsUsed   Int         @default(0)
+  loyaltyPointsRestored Boolean   @default(false)
   idempotencyKeyHash  String?     @unique
   requestFingerprint String?
   createdAt           DateTime    @default(now())
@@ -230,6 +233,8 @@ model Order {
   items    OrderItem[]
   payment  Payment?
   feedback OrderFeedback?
+  voucherRedemption VoucherRedemption?
+  reservation Reservation?
 
   @@index([userId])
   @@index([branchId])
@@ -240,6 +245,35 @@ model Order {
   @@index([branchId, createdAt])
   @@index([userId, createdAt])
   @@map("orders")
+}
+
+model Voucher {
+  code          String   @id
+  amount        Int
+  minSubtotal   Int      @default(0)
+  isActive      Boolean  @default(true)
+  startsAt      DateTime @default(now())
+  expiresAt     DateTime?
+  usageLimit    Int?
+  usedCount     Int      @default(0)
+  createdAt     DateTime @default(now())
+  redemptions   VoucherRedemption[]
+
+  @@map("vouchers")
+}
+
+model VoucherRedemption {
+  id          String @id @default(cuid())
+  voucherCode String
+  voucher     Voucher @relation(fields: [voucherCode], references: [code])
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
+  orderId     String @unique
+  order       Order @relation(fields: [orderId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([voucherCode, userId])
+  @@map("voucher_redemptions")
 }
 
 model OrderItem {
@@ -345,6 +379,10 @@ enum TableType {
 }
 
 model Reservation {
+  orderId         String?           @unique
+  order           Order?            @relation(fields: [orderId], references: [id])
+  startAt         DateTime
+  endAt           DateTime
   id              String            @id @default(cuid())
   userId          String
   user            User              @relation(fields: [userId], references: [id])

@@ -23,7 +23,9 @@ export class IdentityService {
   }
 
   async getUserByEmail(email: string) {
-    return this.userRepository.findByEmail(email.trim().toLocaleLowerCase('en-US'));
+    return this.userRepository.findByEmail(
+      email.trim().toLocaleLowerCase('en-US'),
+    );
   }
 
   async createUser(data: CreateUserInput) {

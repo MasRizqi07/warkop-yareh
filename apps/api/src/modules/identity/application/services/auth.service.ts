@@ -13,6 +13,7 @@ import {
   createHash,
   createHmac,
   randomInt,
+  randomUUID,
   timingSafeEqual,
 } from 'node:crypto';
 import { IdentityService } from './identity.service';
@@ -62,6 +63,7 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id, role: user.role };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
+      jwtid: randomUUID(),
       secret: this.requireRefreshSecret(),
       expiresIn: '7d',
     });
@@ -294,7 +296,8 @@ export class AuthService {
   }
 
   private toSafeUser(user: InternalUser): SafeUser {
-    const { passwordHash: _passwordHash, ...safeUser } = user;
+    const { passwordHash, ...safeUser } = user;
+    void passwordHash;
     return safeUser;
   }
 }

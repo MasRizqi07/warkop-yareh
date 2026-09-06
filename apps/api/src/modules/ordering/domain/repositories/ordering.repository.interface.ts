@@ -5,6 +5,7 @@ import type {
   PaymentStatus,
   Prisma,
 } from '@warkop-yareh/database';
+import type { OrderQuote } from '../checkout-pricing';
 
 export interface ProductCustomizationDefinition {
   name: string;
@@ -31,6 +32,7 @@ export interface OrderItemInput {
 }
 
 export interface CreateOrderData {
+  expectedTotal?: number;
   orderNumber: string;
   userId: string;
   branchId: string;
@@ -38,7 +40,10 @@ export interface CreateOrderData {
   type: OrderType;
   subtotal: number;
   tax: number;
+  serviceFee: number;
   total: number;
+  voucherCode?: string;
+  loyaltyPointsUsed?: number;
   notes?: string;
   idempotencyKeyHash?: string;
   requestFingerprint?: string;
@@ -69,6 +74,7 @@ export class DuplicateIdempotencyKeyError extends Error {
 }
 
 export interface IOrderingRepository {
+  quoteOrder(data: CreateOrderData): Promise<OrderQuote>;
   getAvailableProductsByIds(
     branchId: string,
     ids: string[],

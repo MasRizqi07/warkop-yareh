@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CatalogService } from './catalog.service';
-import { ICatalogRepository } from '../../domain/repositories/catalog.repository.interface';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
 describe('CatalogService', () => {

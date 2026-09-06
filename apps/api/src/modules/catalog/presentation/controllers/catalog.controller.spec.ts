@@ -1,3 +1,4 @@
+import type { Server } from 'node:http';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   INestApplication,
@@ -8,7 +9,6 @@ import request from 'supertest';
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from '../../application/services/catalog.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
-import { APP_GUARD } from '@nestjs/core';
 
 let mockUser: any = null;
 
@@ -21,7 +21,7 @@ class MockAuthGuard implements CanActivate {
 }
 
 describe('CatalogController (E2E / Controller)', () => {
-  let app: INestApplication;
+  let app: INestApplication<Server>;
   let catalogService: jest.Mocked<Partial<CatalogService>>;
 
   beforeAll(async () => {

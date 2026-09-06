@@ -18,7 +18,8 @@ export class CreateSnapPaymentDto {
   orderId!: string;
 
   @ApiPropertyOptional({
-    description: 'Optional assertion; the database total remains authoritative.',
+    description:
+      'Optional assertion; the database total remains authoritative.',
   })
   @Type(() => Number)
   @IsOptional()

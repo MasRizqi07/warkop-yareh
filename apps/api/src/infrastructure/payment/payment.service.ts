@@ -19,6 +19,7 @@ import { DatabaseService } from '../database/database.service';
 import { OrderingService } from '../../modules/ordering/application/services/ordering.service';
 import type { OrderDetails } from '../../modules/ordering/domain/repositories/ordering.repository.interface';
 import { MidtransService } from './midtrans.service';
+import { tenantContext } from '../database/tenant-context';
 
 interface MidtransWebhookPayload {
   orderId: string;
@@ -48,6 +49,11 @@ export class PaymentService {
       throw new BadRequestException('Order has already been paid');
     }
     if (
+      order.paymentStatus === PaymentStatus.REFUNDED ||
+      order.paymentStatus === PaymentStatus.FAILED
+    )
+      throw new BadRequestException('This payment is no longer payable');
+    if (
       order.status === OrderStatus.CANCELLED ||
       order.status === OrderStatus.COMPLETED
     ) {
@@ -59,32 +65,28 @@ export class PaymentService {
       assertedGrossAmount !== undefined &&
       assertedGrossAmount !== order.total
     ) {
-      throw new BadRequestException('Payment amount does not match order total');
+      throw new BadRequestException(
+        'Payment amount does not match order total',
+      );
     }
 
-    const existing = await this.prisma.payment.findUnique({
-      where: { orderId: order.id },
-    });
-    if (existing?.midtransToken) {
-      return {
-        token: existing.midtransToken,
-        redirectUrl: existing.redirectUrl,
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        grossAmount: order.total,
-      };
-    }
-
-    const payment = await this.claimPaymentInitialization(
-      order,
-      paymentMethod,
-      existing,
-    );
-    try {
-      const itemDetails = this.buildItemDetails(order);
+    const itemDetails = this.buildItemDetails(order);
+    const payment = await this.claimPaymentInitialization(order, paymentMethod);
+    if (payment.midtransToken) return {
+      token: payment.midtransToken, redirectUrl: payment.redirectUrl,
+      orderId: order.id, orderNumber: order.orderNumber, grossAmount: order.total,
+    };
       const transaction = await this.midtrans.createSnapTransaction({
         orderId: order.orderNumber,
         grossAmount: order.total,
+        enabledPayments:
+          paymentMethod === PaymentMethod.QRIS
+            ? ['gopay', 'shopeepay']
+            : paymentMethod === PaymentMethod.CREDIT_CARD
+              ? ['credit_card']
+              : paymentMethod === PaymentMethod.DEBIT
+                ? ['bank_transfer']
+                : undefined,
         customerDetails: {
           firstName: order.customerName ?? order.user?.name ?? 'Customer',
           email: order.user?.email ?? 'customer@warkopyareh.com',
@@ -106,12 +108,6 @@ export class PaymentService {
         orderNumber: order.orderNumber,
         grossAmount: order.total,
       };
-    } catch (error) {
-      await this.prisma.payment.deleteMany({
-        where: { id: payment.id, midtransToken: null },
-      });
-      throw error;
-    }
   }
 
   async handleWebhook(body: unknown) {
@@ -122,7 +118,9 @@ export class PaymentService {
     if (!order) throw new NotFoundException('Order not found');
     const grossAmount = Number(payload.grossAmount);
     if (!Number.isFinite(grossAmount) || grossAmount !== order.total) {
-      throw new BadRequestException('Webhook amount does not match order total');
+      throw new BadRequestException(
+        'Webhook amount does not match order total',
+      );
     }
 
     const paymentStatus = this.mapPaymentStatus(
@@ -130,10 +128,27 @@ export class PaymentService {
       payload.fraudStatus,
     );
     if (paymentStatus !== null) {
-      await this.ordering.applyPaymentNotification(
+      const verified = await this.midtrans.getTransactionStatus(
         order.orderNumber,
-        paymentStatus,
       );
+      if (
+        verified.orderId !== order.orderNumber ||
+        Number(verified.grossAmount) !== order.total
+      )
+        throw new BadRequestException(
+          'Provider transaction does not match this order',
+        );
+      const verifiedStatus = this.mapPaymentStatus(
+        verified.transactionStatus,
+        verified.fraudStatus,
+      );
+      if (verifiedStatus !== null)
+        await tenantContext.run({ role: 'SUPERADMIN' }, () =>
+          this.ordering.applyPaymentNotification(
+            order.orderNumber,
+            verifiedStatus,
+          ),
+        );
     }
     return { message: 'OK' };
   }
@@ -141,11 +156,16 @@ export class PaymentService {
   private async claimPaymentInitialization(
     order: OrderDetails,
     paymentMethod: PaymentMethod,
-    existing: OrderDetails['payment'],
   ) {
+    return this.prisma.withTenantTransaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM orders WHERE id = ${order.id} FOR UPDATE`;
+      const current = await tx.order.findUnique({ where: { id: order.id }, select: { status: true, paymentStatus: true, total: true } });
+      if (!current || current.paymentStatus !== PaymentStatus.UNPAID || current.status === OrderStatus.CANCELLED || current.status === OrderStatus.COMPLETED || current.total !== order.total) throw new ConflictException('Order changed and is no longer payable');
+      const existing = await tx.payment.findUnique({ where: { orderId: order.id } });
+      if (existing?.midtransToken) return existing;
     if (existing) {
       const staleBefore = new Date(Date.now() - 5 * 60 * 1000);
-      const removed = await this.prisma.payment.deleteMany({
+      const removed = await tx.payment.deleteMany({
         where: {
           id: existing.id,
           midtransToken: null,
@@ -153,12 +173,14 @@ export class PaymentService {
         },
       });
       if (removed.count !== 1) {
-        throw new ConflictException('Payment initialization is already in progress');
+        throw new ConflictException(
+          'Payment initialization is already in progress',
+        );
       }
     }
 
     try {
-      return await this.prisma.payment.create({
+      return await tx.payment.create({
         data: {
           orderId: order.id,
           method: paymentMethod,
@@ -172,10 +194,13 @@ export class PaymentService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Payment initialization is already in progress');
+        throw new ConflictException(
+          'Payment initialization is already in progress',
+        );
       }
       throw error;
     }
+    });
   }
 
   private buildItemDetails(order: OrderDetails) {
@@ -195,8 +220,20 @@ export class PaymentService {
       );
     }
     if (order.tax > 0) {
-      items.push({ id: 'TAX-PPN', price: order.tax, quantity: 1, name: 'PPN 11%' });
+      items.push({
+        id: 'TAX-PPN',
+        price: order.tax,
+        quantity: 1,
+        name: 'PPN 11%',
+      });
     }
+    if (order.serviceFee > 0)
+      items.push({
+        id: 'SERVICE-FEE',
+        price: order.serviceFee,
+        quantity: 1,
+        name: 'Service fee 5%',
+      });
     if (order.discount > 0) {
       items.push({
         id: 'DISCOUNT',
@@ -254,7 +291,9 @@ export class PaymentService {
   private verifySignature(payload: MidtransWebhookPayload): void {
     const serverKey = this.config.get<string>('MIDTRANS_SERVER_KEY');
     if (!serverKey) {
-      throw new InternalServerErrorException('Payment webhook is not configured');
+      throw new InternalServerErrorException(
+        'Payment webhook is not configured',
+      );
     }
     const expected = createHash('sha512')
       .update(
@@ -282,7 +321,7 @@ export class PaymentService {
     if (['cancel', 'deny', 'expire', 'failure'].includes(transactionStatus)) {
       return PaymentStatus.FAILED;
     }
-    if (['refund', 'partial_refund'].includes(transactionStatus)) {
+    if (transactionStatus === 'refund') {
       return PaymentStatus.REFUNDED;
     }
     return null;

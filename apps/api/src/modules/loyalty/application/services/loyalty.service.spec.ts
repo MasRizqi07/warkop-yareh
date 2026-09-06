@@ -63,11 +63,10 @@ describe('LoyaltyService', () => {
       },
       outboxEvent: { create: jest.fn() },
     };
-    prisma.$transaction.mockImplementation(
-      (operation: unknown, _options?: unknown) =>
-        Array.isArray(operation)
-          ? Promise.all(operation)
-          : (operation as (client: typeof prisma) => unknown)(prisma),
+    prisma.$transaction.mockImplementation((operation: unknown) =>
+      Array.isArray(operation)
+        ? Promise.all(operation)
+        : (operation as (client: typeof prisma) => unknown)(prisma),
     );
     prisma.withTenantTransaction.mockImplementation(
       (operation: (client: typeof prisma) => unknown) => operation(prisma),
@@ -80,7 +79,7 @@ describe('LoyaltyService', () => {
         LoyaltyService,
         {
           provide: DatabaseService,
-          useValue: prisma as unknown as DatabaseService,
+          useValue: prisma,
         },
       ],
     }).compile();

@@ -47,19 +47,8 @@ export function getCartItemId(
   customizations?: Record<string, string>,
   notes?: string,
 ): string {
-  if (!customizations && !notes) return productId;
-  const parts: string[] = [productId];
-  if (customizations) {
-    const sortedKeys = Object.keys(customizations).sort();
-    const custStr = sortedKeys
-      .map((k) => `${k}:${customizations[k]}`)
-      .join(",");
-    parts.push(`customizations:${custStr}`);
-  }
-  if (notes) {
-    parts.push(`notes:${notes}`);
-  }
-  return parts.join("?");
+  const entries = Object.entries(customizations ?? {}).sort(([a], [b]) => a.localeCompare(b));
+  return JSON.stringify([productId, entries, notes?.trim() || '']);
 }
 
 // ---- Cart Store ----
@@ -104,6 +93,7 @@ export const useCartStore = create<CartStore>()(
         unitPrice = product.price,
       ) =>
         set((state) => {
+          if (!Number.isFinite(quantity) || !Number.isSafeInteger(unitPrice) || unitPrice < 0) return state;
           const safeQuantity = Math.min(100, Math.max(1, Math.trunc(quantity)));
           const itemKey = getCartItemId(product.id, customizations, notes);
           const existingIndex = state.items.findIndex(
@@ -155,6 +145,7 @@ export const useCartStore = create<CartStore>()(
         }),
       updateQuantity: (productId, quantity, customizations, notes) =>
         set((state) => {
+          if (!Number.isFinite(quantity)) return state;
           const itemKey = getCartItemId(productId, customizations, notes);
           return {
             items:

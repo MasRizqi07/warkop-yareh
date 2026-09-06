@@ -60,17 +60,17 @@ async function main() {
             loyaltyPoints: 1450,
           };
           window.localStorage.setItem('coldnbrew-auth', JSON.stringify({ state: { user: mockUser }, version: 2 }));
-          window.localStorage.setItem('cart-storage', JSON.stringify({
+          window.localStorage.setItem('warkop-cart', JSON.stringify({
             state: {
               items: [
                 {
                   product: {
                     id: 'prod-coldbrew-aren',
                     name: 'Cold Brew Aren Brulee',
-                    description: '18-hour cold drip with palm sugar',
+                    description: '18-hour cold drip infused with organic East Java palm sugar and torched brulee foam crust.',
                     price: 38000,
                     image: '/images/cold-brew-aren-brulee.png',
-                    category: 'Coffee Specialty',
+                    category: 'Specialty Coffee',
                     tags: ['Signature', 'Cold Brew'],
                     isPopular: true,
                     isNew: false,
@@ -80,12 +80,35 @@ async function main() {
                     branchAvailability: ['branch-darmo', 'branch-gubeng'],
                   },
                   quantity: 2,
-                  customizations: { Size: 'Large 16oz', Sweetness: 'Normal' },
-                  notes: 'Extra torched foam',
+                  unitPrice: 38000,
+                  customizations: { Size: 'Large 16oz', Sweetness: 'Less Sweet (70%)' },
+                  notes: 'Torch wild aren foam extra caramelized',
                 },
+                {
+                  product: {
+                    id: 'prod-toast-pastrami',
+                    name: 'Smoked Pastrami Brioche Toast',
+                    description: 'Artisan sourdough brioche, house-smoked beef pastrami, and melted raclette.',
+                    price: 48000,
+                    image: '/images/artisan-toasted-sourdough.png',
+                    category: 'Artisan Eats',
+                    tags: ['Food', 'Signature'],
+                    isPopular: true,
+                    isNew: false,
+                    rating: 4.8,
+                    reviewCount: 95,
+                    preparationTime: 6,
+                    branchAvailability: ['branch-darmo'],
+                  },
+                  quantity: 1,
+                  unitPrice: 48000,
+                  customizations: { Option: 'Raclette Melt' },
+                  notes: 'Extra mustard sauce',
+                }
               ],
+              isOpen: false,
             },
-            version: 0,
+            version: 2,
           }));
         });
       }

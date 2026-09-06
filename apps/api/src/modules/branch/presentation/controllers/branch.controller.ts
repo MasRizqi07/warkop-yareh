@@ -60,7 +60,8 @@ export class BranchController {
   }
 
   private withoutLifecycleState(body: UpdateBranchDto): UpdateBranchDto {
-    const { isActive: _isActive, ...safeFields } = body;
+    const safeFields = { ...body };
+    delete safeFields.isActive;
     return safeFields;
   }
 }

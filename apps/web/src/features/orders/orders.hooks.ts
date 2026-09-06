@@ -13,8 +13,9 @@ export const orderKeys = {
 };
 
 export function useMyOrders(enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id);
   return useQuery({
-    queryKey: orderKeys.all,
+    queryKey: [...orderKeys.all, userId],
     queryFn: getMyOrders,
     enabled,
     staleTime: 10_000,
@@ -24,8 +25,9 @@ export function useMyOrders(enabled = true) {
 export function useOrder(orderId: string, enabled = true) {
   const queryClient = useQueryClient();
   const accessToken = useAuthStore((state) => state.accessToken);
+  const userId = useAuthStore((state) => state.user?.id);
   const query = useQuery({
-    queryKey: orderKeys.detail(orderId),
+    queryKey: [...orderKeys.detail(orderId), userId],
     queryFn: () => getOrder(orderId),
     enabled: enabled && Boolean(orderId),
     refetchInterval: (state) => {
@@ -36,7 +38,7 @@ export function useOrder(orderId: string, enabled = true) {
 
   useEffect(() => {
     const currentOrderId = query.data?.id;
-    if (!accessToken || !currentOrderId) return;
+    if (!enabled || !accessToken || !currentOrderId) return;
 
     const socketUrl =
       process.env.NEXT_PUBLIC_WS_URL ||
@@ -50,7 +52,7 @@ export function useOrder(orderId: string, enabled = true) {
     });
     const updateCache = (order: OrderDto) => {
       if (order.id === currentOrderId) {
-        queryClient.setQueryData(orderKeys.detail(orderId), order);
+        queryClient.setQueryData([...orderKeys.detail(orderId), userId], order);
         void queryClient.invalidateQueries({ queryKey: orderKeys.all });
       }
     };
@@ -64,8 +66,7 @@ export function useOrder(orderId: string, enabled = true) {
       socket.emit('leaveRoom', { room: `order:${currentOrderId}` });
       socket.disconnect();
     };
-  }, [accessToken, orderId, query.data?.id, queryClient]);
+  }, [enabled, accessToken, orderId, query.data?.id, queryClient, userId]);
 
   return query;
 }
-

@@ -10,6 +10,9 @@ import type {
 } from '@/features/api/contracts';
 
 export interface CreateOrderRequest {
+  expectedTotal?: number;
+  voucherCode?: string;
+  loyaltyPointsUsed?: number;
   branchId: string;
   items: Array<{
     productId: string;
@@ -20,6 +23,16 @@ export interface CreateOrderRequest {
   type: ApiOrderType;
   tableId?: string;
   notes?: string;
+}
+
+export interface OrderQuote {
+  subtotal: number; tax: number; serviceFee: number; voucherDiscount: number;
+  pointsDiscount: number; discount: number; loyaltyPointsUsed: number;
+  maxRedeemablePoints: number; total: number;
+}
+
+export async function quoteOrder(request: CreateOrderRequest): Promise<OrderQuote> {
+  return (await api.post<ApiEnvelope<OrderQuote>>('/orders/quote', request)).data.data;
 }
 
 export async function createOrder(
@@ -65,4 +78,3 @@ export async function updateOrderStatus(
   );
   return response.data.data;
 }
-
