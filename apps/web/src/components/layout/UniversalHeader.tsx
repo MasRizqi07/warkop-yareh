@@ -38,7 +38,7 @@ export function UniversalHeader() {
 
   const navLinks = [
     { href: "/menu", label: "Menu" },
-    { href: "/reservations", label: "Reservasi" },
+    { href: "/booking", label: "Reservasi" },
     { href: "/community", label: "Komunitas" },
     { href: "/loyalty", label: "Rewards" },
     { href: "/#locations", label: "Cabang" },

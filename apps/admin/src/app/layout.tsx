@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-page-custom-font -- Material Symbols is an icon font that next/font does not provide. */
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
+import { ToastProvider } from '@warkop-yareh/ui';
 import './globals.css';
 
 export const viewport: Viewport = {
@@ -14,17 +15,17 @@ export const viewport: Viewport = {
 };
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: '--font-heading',
+  variable: '--font-heading-google',
   subsets: ['latin'],
 });
 
 const inter = Inter({
-  variable: '--font-body',
+  variable: '--font-body-google',
   subsets: ['latin'],
 });
 
 const jetBrainsMono = JetBrains_Mono({
-  variable: '--font-mono',
+  variable: '--font-mono-google',
   subsets: ['latin'],
 });
 
@@ -57,7 +58,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#0a0a0c] text-[#e5e1e4] antialiased selection:bg-[#9c6b3a] selection:text-[#f8fafc]">
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

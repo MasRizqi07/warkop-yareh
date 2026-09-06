@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
 import {
-  Inter,
-  Playfair_Display,
   Plus_Jakarta_Sans,
+  Inter,
   JetBrains_Mono,
 } from 'next/font/google';
 import './globals.css';
@@ -24,29 +21,19 @@ export const viewport: Viewport = {
   ],
 };
 
-const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-});
-
 const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: '--font-plus-jakarta-sans',
+  variable: '--font-heading-google',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: '--font-jetbrains-mono',
+const inter = Inter({
+  variable: '--font-body-google',
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
 });
 
-const playfairDisplay = Playfair_Display({
-  variable: '--font-playfair',
+const jetBrainsMono = JetBrains_Mono({
+  variable: '--font-mono-google',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
@@ -182,7 +169,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable} ${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} min-h-screen bg-[#0a0a0c] text-[#e5e1e4] antialiased selection:bg-[#9c6b3a] selection:text-[#f8fafc]`}
+        className={`${plusJakartaSans.variable} ${inter.variable} ${jetBrainsMono.variable} min-h-screen bg-[#0a0a0c] text-[#e5e1e4] antialiased selection:bg-[#9c6b3a] selection:text-[#f8fafc]`}
       >
         <Providers>
           <UniversalHeader />
