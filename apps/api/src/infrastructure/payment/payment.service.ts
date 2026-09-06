@@ -72,42 +72,46 @@ export class PaymentService {
 
     const itemDetails = this.buildItemDetails(order);
     const payment = await this.claimPaymentInitialization(order, paymentMethod);
-    if (payment.midtransToken) return {
-      token: payment.midtransToken, redirectUrl: payment.redirectUrl,
-      orderId: order.id, orderNumber: order.orderNumber, grossAmount: order.total,
-    };
-      const transaction = await this.midtrans.createSnapTransaction({
-        orderId: order.orderNumber,
-        grossAmount: order.total,
-        enabledPayments:
-          paymentMethod === PaymentMethod.QRIS
-            ? ['gopay', 'shopeepay']
-            : paymentMethod === PaymentMethod.CREDIT_CARD
-              ? ['credit_card']
-              : paymentMethod === PaymentMethod.DEBIT
-                ? ['bank_transfer']
-                : undefined,
-        customerDetails: {
-          firstName: order.customerName ?? order.user?.name ?? 'Customer',
-          email: order.user?.email ?? 'customer@warkopyareh.com',
-          phone: order.customerPhone ?? order.user?.phone ?? undefined,
-        },
-        itemDetails,
-      });
-      const updated = await this.prisma.payment.update({
-        where: { id: payment.id },
-        data: {
-          midtransToken: transaction.token,
-          redirectUrl: transaction.redirect_url,
-        },
-      });
+    if (payment.midtransToken)
       return {
-        token: updated.midtransToken,
-        redirectUrl: updated.redirectUrl,
+        token: payment.midtransToken,
+        redirectUrl: payment.redirectUrl,
         orderId: order.id,
         orderNumber: order.orderNumber,
         grossAmount: order.total,
       };
+    const transaction = await this.midtrans.createSnapTransaction({
+      orderId: order.orderNumber,
+      grossAmount: order.total,
+      enabledPayments:
+        paymentMethod === PaymentMethod.QRIS
+          ? ['gopay', 'shopeepay']
+          : paymentMethod === PaymentMethod.CREDIT_CARD
+            ? ['credit_card']
+            : paymentMethod === PaymentMethod.DEBIT
+              ? ['bank_transfer']
+              : undefined,
+      customerDetails: {
+        firstName: order.customerName ?? order.user?.name ?? 'Customer',
+        email: order.user?.email ?? 'customer@warkopyareh.com',
+        phone: order.customerPhone ?? order.user?.phone ?? undefined,
+      },
+      itemDetails,
+    });
+    const updated = await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        midtransToken: transaction.token,
+        redirectUrl: transaction.redirect_url,
+      },
+    });
+    return {
+      token: updated.midtransToken,
+      redirectUrl: updated.redirectUrl,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      grossAmount: order.total,
+    };
   }
 
   async handleWebhook(body: unknown) {
@@ -159,47 +163,59 @@ export class PaymentService {
   ) {
     return this.prisma.withTenantTransaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM orders WHERE id = ${order.id} FOR UPDATE`;
-      const current = await tx.order.findUnique({ where: { id: order.id }, select: { status: true, paymentStatus: true, total: true } });
-      if (!current || current.paymentStatus !== PaymentStatus.UNPAID || current.status === OrderStatus.CANCELLED || current.status === OrderStatus.COMPLETED || current.total !== order.total) throw new ConflictException('Order changed and is no longer payable');
-      const existing = await tx.payment.findUnique({ where: { orderId: order.id } });
-      if (existing?.midtransToken) return existing;
-    if (existing) {
-      const staleBefore = new Date(Date.now() - 5 * 60 * 1000);
-      const removed = await tx.payment.deleteMany({
-        where: {
-          id: existing.id,
-          midtransToken: null,
-          updatedAt: { lt: staleBefore },
-        },
+      const current = await tx.order.findUnique({
+        where: { id: order.id },
+        select: { status: true, paymentStatus: true, total: true },
       });
-      if (removed.count !== 1) {
-        throw new ConflictException(
-          'Payment initialization is already in progress',
-        );
-      }
-    }
-
-    try {
-      return await tx.payment.create({
-        data: {
-          orderId: order.id,
-          method: paymentMethod,
-          status: PaymentStatus.UNPAID,
-          amount: order.total,
-          midtransOrderId: order.orderNumber,
-        },
-      });
-    } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException(
-          'Payment initialization is already in progress',
-        );
+        !current ||
+        current.paymentStatus !== PaymentStatus.UNPAID ||
+        current.status === OrderStatus.CANCELLED ||
+        current.status === OrderStatus.COMPLETED ||
+        current.total !== order.total
+      )
+        throw new ConflictException('Order changed and is no longer payable');
+      const existing = await tx.payment.findUnique({
+        where: { orderId: order.id },
+      });
+      if (existing?.midtransToken) return existing;
+      if (existing) {
+        const staleBefore = new Date(Date.now() - 5 * 60 * 1000);
+        const removed = await tx.payment.deleteMany({
+          where: {
+            id: existing.id,
+            midtransToken: null,
+            updatedAt: { lt: staleBefore },
+          },
+        });
+        if (removed.count !== 1) {
+          throw new ConflictException(
+            'Payment initialization is already in progress',
+          );
+        }
       }
-      throw error;
-    }
+
+      try {
+        return await tx.payment.create({
+          data: {
+            orderId: order.id,
+            method: paymentMethod,
+            status: PaymentStatus.UNPAID,
+            amount: order.total,
+            midtransOrderId: order.orderNumber,
+          },
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          throw new ConflictException(
+            'Payment initialization is already in progress',
+          );
+        }
+        throw error;
+      }
     });
   }
 

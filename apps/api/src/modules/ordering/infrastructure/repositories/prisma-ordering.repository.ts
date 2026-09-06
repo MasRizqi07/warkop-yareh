@@ -491,9 +491,21 @@ export class PrismaOrderingRepository implements IOrderingRepository {
       });
 
       if (paymentStatus === PaymentStatus.PAID) {
-        await tx.reservation.updateMany({ where: { orderId: existing.id, status: 'PENDING' }, data: { status: 'CONFIRMED' } });
-      } else if (paymentStatus === PaymentStatus.FAILED || paymentStatus === PaymentStatus.REFUNDED) {
-        await tx.reservation.updateMany({ where: { orderId: existing.id, status: { in: ['PENDING', 'CONFIRMED'] } }, data: { status: 'CANCELLED' } });
+        await tx.reservation.updateMany({
+          where: { orderId: existing.id, status: 'PENDING' },
+          data: { status: 'CONFIRMED' },
+        });
+      } else if (
+        paymentStatus === PaymentStatus.FAILED ||
+        paymentStatus === PaymentStatus.REFUNDED
+      ) {
+        await tx.reservation.updateMany({
+          where: {
+            orderId: existing.id,
+            status: { in: ['PENDING', 'CONFIRMED'] },
+          },
+          data: { status: 'CANCELLED' },
+        });
       }
 
       const hasPaymentChange = existing.paymentStatus !== paymentStatus;

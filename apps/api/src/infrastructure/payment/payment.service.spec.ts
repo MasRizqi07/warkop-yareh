@@ -79,7 +79,9 @@ describe('PaymentService', () => {
 
   beforeEach(() => {
     prisma = {
-      withTenantTransaction: jest.fn((operation: (tx: typeof prisma) => unknown) => operation(prisma)),
+      withTenantTransaction: jest.fn(
+        (operation: (tx: typeof prisma) => unknown) => operation(prisma),
+      ),
       $queryRaw: jest.fn(),
       order: { findUnique: jest.fn().mockResolvedValue(makeOrder()) },
       payment: {

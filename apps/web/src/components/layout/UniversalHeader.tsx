@@ -142,7 +142,7 @@ export function UniversalHeader() {
           <Link
             href="/"
             className={`px-3 py-1 rounded-full transition-colors ${
-              !pathname.startsWith("/ops") && !pathname.startsWith("/admin")
+              !pathname.startsWith("/ops")
                 ? "bg-[#9c6b3a] text-white"
                 : "text-neutral-400 hover:text-white"
             }`}
@@ -168,16 +168,6 @@ export function UniversalHeader() {
             }`}
           >
             Kitchen KDS
-          </Link>
-          <Link
-            href="/admin"
-            className={`px-3 py-1 rounded-full transition-colors ${
-              pathname.startsWith("/admin")
-                ? "bg-purple-600 text-white"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            Enterprise
           </Link>
         </div>}
 

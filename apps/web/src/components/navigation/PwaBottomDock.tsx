@@ -13,7 +13,6 @@ import {
   WifiOff,
   Sparkles,
   LayoutGrid,
-  ShieldCheck,
   MonitorCheck,
 } from "lucide-react";
 import { useCartStore } from "@/stores";
@@ -179,18 +178,6 @@ export function PwaBottomDock() {
                         <div>
                           <div className="font-medium">Rekonsiliasi Shift</div>
                           <div className="text-[10px] text-text-muted">Cash Drawer & X/Z-Report</div>
-                        </div>
-                      </Link>
-                      <div className="my-1 border-t border-border-subtle" />
-                      <Link
-                        href="/admin"
-                        onClick={() => setIsOpsMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-text-primary hover:text-accent-amber hover:bg-surface-secondary transition-colors"
-                      >
-                        <ShieldCheck className="w-4 h-4 text-purple-400" />
-                        <div>
-                          <div className="font-medium">Admin Enterprise</div>
-                          <div className="text-[10px] text-text-muted">KPI, Inventory & CRM</div>
                         </div>
                       </Link>
                     </motion.div>

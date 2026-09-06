@@ -47,7 +47,9 @@ export default function CartPage() {
   const setSplitBillCount = useCheckoutStore((state) => state.setSplitBillCount);
   const tableLabel = useCheckoutStore((state) => state.tableLabel);
   const { activeBranch } = useActiveBranch();
-  const estimatedTotal = subtotal + Math.round(subtotal * 0.11);
+  const estimatedTax = Math.round((subtotal * 11) / 100);
+  const estimatedServiceFee = Math.round((subtotal * 5) / 100);
+  const estimatedTotal = subtotal + estimatedTax + estimatedServiceFee;
   const perPersonShare = Math.ceil(estimatedTotal / splitBillCount);
 
   return (
@@ -310,7 +312,13 @@ export default function CartPage() {
                 <div className="flex justify-between">
                   <span>Pajak Restoran (11%)</span>
                   <span className="font-mono font-bold text-text-primary">
-                    Rp {Math.round(subtotal * 0.11).toLocaleString('id-ID')}
+                    Rp {estimatedTax.toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Service Fee (5%)</span>
+                  <span className="font-mono font-bold text-text-primary">
+                    Rp {estimatedServiceFee.toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div className="flex items-baseline justify-between border-t border-border-subtle pt-3.5">

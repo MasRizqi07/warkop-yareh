@@ -55,8 +55,22 @@ describe('Checkout persistence, concurrency and RLS', () => {
         loyaltyPoints: 100,
       },
     });
-    await admin.user.create({ data: { id: secondUserId, name: 'Other customer', email: `other-${suffix}@example.test` } });
-    await admin.table.create({ data: { id: tableId, branchId, name: 'Workspace test', number: 'T-01', capacity: 4 } });
+    await admin.user.create({
+      data: {
+        id: secondUserId,
+        name: 'Other customer',
+        email: `other-${suffix}@example.test`,
+      },
+    });
+    await admin.table.create({
+      data: {
+        id: tableId,
+        branchId,
+        name: 'Workspace test',
+        number: 'T-01',
+        capacity: 4,
+      },
+    });
     await admin.category.create({
       data: { id: categoryId, slug: categoryId, name: 'Test' },
     });
@@ -75,14 +89,32 @@ describe('Checkout persistence, concurrency and RLS', () => {
   afterAll(async () => {
     if (admin) {
       const owners = [userId, secondUserId];
-      const orders = await admin.order.findMany({ where: { userId: { in: owners } }, select: { id: true } });
-      const reservations = await admin.reservation.findMany({ where: { userId: { in: owners } }, select: { id: true } });
-      await admin.outboxEvent.deleteMany({ where: { aggregateId: { in: [...orders, ...reservations].map((item) => item.id) } } });
+      const orders = await admin.order.findMany({
+        where: { userId: { in: owners } },
+        select: { id: true },
+      });
+      const reservations = await admin.reservation.findMany({
+        where: { userId: { in: owners } },
+        select: { id: true },
+      });
+      await admin.outboxEvent.deleteMany({
+        where: {
+          aggregateId: {
+            in: [...orders, ...reservations].map((item) => item.id),
+          },
+        },
+      });
       await admin.reservation.deleteMany({ where: { userId: { in: owners } } });
-      await admin.voucherRedemption.deleteMany({ where: { userId: { in: owners } } });
-      await admin.orderItem.deleteMany({ where: { orderId: { in: orders.map((order) => order.id) } } });
+      await admin.voucherRedemption.deleteMany({
+        where: { userId: { in: owners } },
+      });
+      await admin.orderItem.deleteMany({
+        where: { orderId: { in: orders.map((order) => order.id) } },
+      });
       await admin.order.deleteMany({ where: { userId: { in: owners } } });
-      await admin.loyaltyTransaction.deleteMany({ where: { userId: { in: owners } } });
+      await admin.loyaltyTransaction.deleteMany({
+        where: { userId: { in: owners } },
+      });
       await admin.user.deleteMany({ where: { id: { in: owners } } });
       await admin.product.deleteMany({ where: { id: productId } });
       await admin.category.deleteMany({ where: { id: categoryId } });
@@ -227,31 +259,75 @@ describe('Checkout persistence, concurrency and RLS', () => {
   it('prices the approved workspace packages and add-ons from persisted products', async () => {
     const booking = new BookingService(database);
     const prices = await asCustomer(() => booking.catalog());
-    expect(prices.packages.map((item) => item.price)).toEqual([35000, 45000, 55000, 85000]);
-    const quote = await asCustomer(() => booking.quote('booking-night-owl', ['booking-monitor']));
+    expect(prices.packages.map((item) => item.price)).toEqual([
+      35000, 45000, 55000, 85000,
+    ]);
+    const quote = await asCustomer(() =>
+      booking.quote('booking-night-owl', ['booking-monitor']),
+    );
     expect(quote.total).toBe(110200);
-    await expect(asCustomer(() => booking.quote('booking-morning', ['booking-monitor', 'booking-monitor']))).rejects.toThrow();
+    await expect(
+      asCustomer(() =>
+        booking.quote('booking-morning', [
+          'booking-monitor',
+          'booking-monitor',
+        ]),
+      ),
+    ).rejects.toThrow();
   });
 
   it('replays a booking, blocks cross-customer overlap across midnight, and releases a failed payment', async () => {
     const booking = new BookingService(database);
     const date = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
     const quote = await asCustomer(() => booking.quote('booking-night-owl'));
-    const input = { branchId, tableId, packageId: 'booking-night-owl', date, guestCount: 2, expectedTotal: quote.total };
+    const input = {
+      branchId,
+      tableId,
+      packageId: 'booking-night-owl',
+      date,
+      guestCount: 2,
+      expectedTotal: quote.total,
+    };
     const key = randomUUID();
     const first = await asCustomer(() => booking.create(userId, input, key));
     const replay = await asCustomer(() => booking.create(userId, input, key));
     expect(replay.orderId).toBe(first.orderId);
-    expect(first.reservation!.endAt.getTime() - first.reservation!.startAt.getTime()).toBe(7 * 3600000);
-    const asOther = <T>(operation: () => Promise<T>) => tenantContext.run({ userId: secondUserId, role: 'CUSTOMER' }, operation);
-    await expect(asOther(() => booking.create(secondUserId, input, randomUUID()))).rejects.toThrow(ConflictException);
-    const otherView = await asOther(() => booking.availability(branchId, input.packageId, date));
-    expect(otherView.find((table) => table.id === tableId)?.available).toBe(false);
-    await asSystem(() => repository.syncPaymentState(first.orderId, PaymentStatus.FAILED));
-    expect((await admin.reservation.findUniqueOrThrow({ where: { id: first.reservation!.id } })).status).toBe('CANCELLED');
-    const next = await asOther(() => booking.create(secondUserId, input, randomUUID()));
-    await asSystem(() => repository.syncPaymentState(next.orderId, PaymentStatus.PAID));
-    expect((await admin.reservation.findUniqueOrThrow({ where: { id: next.reservation!.id } })).status).toBe('CONFIRMED');
+    expect(
+      first.reservation!.endAt.getTime() - first.reservation!.startAt.getTime(),
+    ).toBe(7 * 3600000);
+    const asOther = <T>(operation: () => Promise<T>) =>
+      tenantContext.run({ userId: secondUserId, role: 'CUSTOMER' }, operation);
+    await expect(
+      asOther(() => booking.create(secondUserId, input, randomUUID())),
+    ).rejects.toThrow(ConflictException);
+    const otherView = await asOther(() =>
+      booking.availability(branchId, input.packageId, date),
+    );
+    expect(otherView.find((table) => table.id === tableId)?.available).toBe(
+      false,
+    );
+    await asSystem(() =>
+      repository.syncPaymentState(first.orderId, PaymentStatus.FAILED),
+    );
+    expect(
+      (
+        await admin.reservation.findUniqueOrThrow({
+          where: { id: first.reservation!.id },
+        })
+      ).status,
+    ).toBe('CANCELLED');
+    const next = await asOther(() =>
+      booking.create(secondUserId, input, randomUUID()),
+    );
+    await asSystem(() =>
+      repository.syncPaymentState(next.orderId, PaymentStatus.PAID),
+    );
+    expect(
+      (
+        await admin.reservation.findUniqueOrThrow({
+          where: { id: next.reservation!.id },
+        })
+      ).status,
+    ).toBe('CONFIRMED');
   });
-
 });
