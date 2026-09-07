@@ -11,7 +11,7 @@ const ADMIN_ROLES = new Set([
   'SUPERADMIN',
 ]);
 
-interface AdminUser {
+export interface AdminUser {
   id: string;
   email: string;
   name: string;

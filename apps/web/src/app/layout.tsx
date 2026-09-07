@@ -1,12 +1,6 @@
+/* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata, Viewport } from 'next';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import {
-  Inter,
-  Playfair_Display,
-  Plus_Jakarta_Sans,
-  JetBrains_Mono,
-} from 'next/font/google';
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { SITE } from '@/lib/constants';
@@ -24,29 +18,19 @@ export const viewport: Viewport = {
   ],
 };
 
-const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-});
-
 const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: '--font-plus-jakarta-sans',
+  variable: '--font-heading-google',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: '--font-jetbrains-mono',
+const inter = Inter({
+  variable: '--font-body-google',
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
 });
 
-const playfairDisplay = Playfair_Display({
-  variable: '--font-playfair',
+const jetBrainsMono = JetBrains_Mono({
+  variable: '--font-mono-google',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
@@ -148,12 +132,6 @@ const jsonLd = {
   servesCuisine: ['Coffee', 'Indonesian Food', 'Pastry'],
   hasMenu: `${SITE.url}/menu`,
   acceptsReservations: true,
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    reviewCount: '3000',
-    bestRating: '5',
-  },
   sameAs: [
     SITE.social.instagram,
     SITE.social.tiktok,
@@ -171,10 +149,21 @@ export default function RootLayout({
     <html
       lang="id"
       className="dark"
+      data-theme="dark"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -182,7 +171,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable} ${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} min-h-screen bg-[#0a0a0c] text-[#e5e1e4] antialiased selection:bg-[#9c6b3a] selection:text-[#f8fafc]`}
+        className={`${plusJakartaSans.variable} ${inter.variable} ${jetBrainsMono.variable} min-h-screen bg-canvas-obsidian text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container`}
       >
         <Providers>
           <UniversalHeader />

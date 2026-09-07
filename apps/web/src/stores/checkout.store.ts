@@ -38,13 +38,24 @@ export const useCheckoutStore = create<CheckoutState>()(
       setTable: (tableId, tableLabel = '') => set({ tableId, tableLabel }),
       setDeliveryAddress: (deliveryAddress) => set({ deliveryAddress }),
       setSplitBillCount: (count) =>
-        set({ splitBillCount: Math.min(10, Math.max(1, Math.trunc(count))) }),
+        set({ splitBillCount: Math.min(10, Math.max(1, (Number.isFinite(count) ? Math.trunc(count) : 1))) }),
       resetCheckout: () => set(initialState),
     }),
     {
       name: 'warkop-checkout',
       version: 1,
-      storage: createJSONStorage(() => window.localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined'
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {},
+            }
+      ),
+      migrate: (persistedState: any) => {
+        return { ...initialState, ...(persistedState || {}) };
+      },
     },
   ),
 );

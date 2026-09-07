@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  ConflictException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { OrderStatus, OrderType } from '@warkop-yareh/database';
 import { OrderingService } from './ordering.service';
 import { EventsGateway } from '../../../websockets/events.gateway';
@@ -13,9 +10,7 @@ import {
 } from '../../domain/repositories/ordering.repository.interface';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
 
-const makeOrder = (
-  overrides: Partial<OrderDetails> = {},
-): OrderDetails =>
+const makeOrder = (overrides: Partial<OrderDetails> = {}): OrderDetails =>
   ({
     id: 'order-1',
     orderNumber: 'WY-20260905-0011223344556677',
@@ -54,11 +49,21 @@ const makeOrder = (
 
 describe('OrderingService', () => {
   let service: OrderingService;
-  let repository: jest.Mocked<IOrderingRepository>;
-  let eventsGateway: jest.Mocked<EventsGateway>;
+  let repository: {
+    [K in keyof IOrderingRepository]: jest.Mock<
+      ReturnType<IOrderingRepository[K]>,
+      Parameters<IOrderingRepository[K]>
+    >;
+  };
+  let eventsGateway: {
+    broadcastOrderCreated: jest.Mock;
+    broadcastOrderUpdated: jest.Mock;
+    broadcastPaymentUpdated: jest.Mock;
+  };
 
   beforeEach(async () => {
     repository = {
+      quoteOrder: jest.fn(),
       getAvailableProductsByIds: jest.fn(),
       getActiveTableForBranch: jest.fn(),
       findByIdempotencyKeyHash: jest.fn().mockResolvedValue(null),
@@ -75,7 +80,7 @@ describe('OrderingService', () => {
       broadcastOrderCreated: jest.fn(),
       broadcastOrderUpdated: jest.fn(),
       broadcastPaymentUpdated: jest.fn(),
-    } as unknown as jest.Mocked<EventsGateway>;
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -128,7 +133,8 @@ describe('OrderingService', () => {
         type: OrderType.DINE_IN,
         subtotal: 52_000,
         tax: 5_720,
-        total: 57_720,
+        serviceFee: 2_600,
+        total: 60_320,
         idempotencyKeyHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         requestFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
       }),
@@ -207,7 +213,9 @@ describe('OrderingService', () => {
     ]);
 
     let persisted: OrderDetails | null = null;
-    repository.findByIdempotencyKeyHash.mockImplementation(async () => persisted);
+    repository.findByIdempotencyKeyHash.mockImplementation(
+      async () => persisted,
+    );
     repository.createOrder.mockImplementation(async (data) => {
       persisted = makeOrder({
         idempotencyKeyHash: data.idempotencyKeyHash,

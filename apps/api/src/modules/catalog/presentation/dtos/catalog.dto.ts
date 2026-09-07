@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsBoolean,
   IsInt,
+  IsNumber,
   Max,
   MaxLength,
   Min,
@@ -72,6 +73,73 @@ export class ToggleAvailabilityDto {
   @ApiProperty({ example: true })
   @IsBoolean()
   isAvailable!: boolean;
+}
+
+export class UpdateBranchProductDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isAvailable?: boolean;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(1_000_000_000)
+  priceOverride?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  @Max(1_000_000_000)
+  stockQuantity?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0.001)
+  @Max(1_000_000_000)
+  stockCapacity?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  @Max(1_000_000_000)
+  stockThreshold?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(24)
+  stockUnit?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  supplier?: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(8_760)
+  leadTimeHours?: number | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  @Max(1_000_000_000)
+  burnRatePerDay?: number | null;
 }
 
 export class ListProductsQueryDto {

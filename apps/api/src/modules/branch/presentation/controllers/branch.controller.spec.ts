@@ -1,4 +1,5 @@
-/* eslint-disable */
+import type { Server } from 'node:http';
+
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   INestApplication,
@@ -29,7 +30,7 @@ class MockAuthGuard implements CanActivate {
 }
 
 describe('BranchController (E2E / Controller)', () => {
-  let app: INestApplication;
+  let app: INestApplication<Server>;
   let branchService: jest.Mocked<Partial<BranchService>>;
 
   beforeAll(async () => {

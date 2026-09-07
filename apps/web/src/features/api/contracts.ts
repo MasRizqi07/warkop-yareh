@@ -25,6 +25,7 @@ export interface SessionUser {
   role: Role;
   branchId: string | null;
   phone?: string | null;
+  whatsAppMarketingOptInAt?: string | null;
   avatar?: string | null;
   membershipTier?: MembershipTier;
   loyaltyPoints?: number;
@@ -98,11 +99,7 @@ export interface FullCatalogDto {
   products: CatalogProductDto[];
 }
 
-export type ApiOrderType =
-  | 'DINE_IN'
-  | 'TAKE_AWAY'
-  | 'DRIVE_THRU'
-  | 'DELIVERY';
+export type ApiOrderType = 'DINE_IN' | 'TAKE_AWAY' | 'DRIVE_THRU' | 'DELIVERY';
 export type ApiOrderStatus =
   | 'PENDING'
   | 'CONFIRMED'
@@ -113,11 +110,7 @@ export type ApiOrderStatus =
   | 'CANCELLED';
 export type ApiPaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED' | 'FAILED';
 export type ApiPaymentMethod =
-  | 'CASH'
-  | 'QRIS'
-  | 'DEBIT'
-  | 'CREDIT_CARD'
-  | 'E_WALLET';
+  'CASH' | 'QRIS' | 'DEBIT' | 'CREDIT_CARD' | 'E_WALLET';
 
 export interface OrderItemDto {
   id: string;
@@ -142,6 +135,7 @@ export interface OrderDto {
   status: ApiOrderStatus;
   subtotal: number;
   tax: number;
+  serviceFee: number;
   discount: number;
   total: number;
   paymentStatus: ApiPaymentStatus;
@@ -175,4 +169,3 @@ export interface SnapPaymentDto {
   orderNumber: string;
   grossAmount: number;
 }
-

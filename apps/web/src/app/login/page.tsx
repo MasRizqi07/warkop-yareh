@@ -31,7 +31,8 @@ export default function LoginPage() {
       const { accessToken, user } = response.data.data;
       
       setAuth(user, accessToken);
-      const requestedPath = new URLSearchParams(window.location.search).get('returnTo');
+      const params = new URLSearchParams(window.location.search);
+      const requestedPath = params.get('returnTo') ?? params.get('redirect_url');
       const safePath =
         requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
           ? requestedPath

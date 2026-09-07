@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsOptional,
@@ -33,6 +34,13 @@ export class UpdateUserDto {
   @IsUrl({ protocols: ['https'], require_protocol: true })
   @MaxLength(2048)
   avatar?: string;
+
+  @ApiPropertyOptional({
+    description: 'Explicit opt-in state for promotional WhatsApp messages',
+  })
+  @IsOptional()
+  @IsBoolean()
+  whatsAppMarketingOptIn?: boolean;
 }
 
 export class ListUsersQueryDto {

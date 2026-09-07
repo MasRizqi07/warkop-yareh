@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface SectionHeaderProps {
   badge?: string;
   title: string;
   description?: string;
-  align?: "left" | "center";
+  align?: 'left' | 'center';
   className?: string;
 }
 
@@ -16,7 +16,7 @@ export function SectionHeader({
   badge,
   title,
   description,
-  align = "center",
+  align = 'center',
   className,
 }: SectionHeaderProps) {
   return (
@@ -26,9 +26,9 @@ export function SectionHeader({
       viewport={{ once: true, amount: 0.5 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "mb-12",
-        align === "center" && "text-center mx-auto max-w-2xl",
-        className,
+        'mb-12',
+        align === 'center' && 'text-center mx-auto max-w-2xl',
+        className
       )}
     >
       {badge && (
@@ -37,11 +37,11 @@ export function SectionHeader({
           {badge}
         </span>
       )}
-      <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-3 tracking-tight">
+      <h2 className="mb-3 text-3xl font-bold tracking-tight text-text-primary md:text-4xl">
         {title}
       </h2>
       {description && (
-        <p className="text-base text-[var(--text-secondary)] leading-relaxed">
+        <p className="text-base leading-relaxed text-on-surface-variant">
           {description}
         </p>
       )}

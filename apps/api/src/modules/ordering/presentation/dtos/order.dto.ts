@@ -48,6 +48,26 @@ export class OrderItemDto {
 }
 
 export class CreateOrderDto {
+  @ApiPropertyOptional({
+    description: 'Last quoted total; a changed price returns HTTP 409.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(1_160_000_000)
+  expectedTotal?: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(3, 40)
+  voucherCode?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1_000_000)
+  loyaltyPointsUsed?: number;
+
   @ApiPropertyOptional({ example: 'usr_123' })
   @IsString()
   @IsOptional()

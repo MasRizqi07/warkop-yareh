@@ -72,10 +72,12 @@ describe('AiService', () => {
   });
 
   it('getFlavorProfiles: should return list of flavor profiles', async () => {
-    const profiles = await service.getFlavorProfiles();
+    const profiles = service.getFlavorProfiles();
     expect(profiles.length).toBeGreaterThan(0);
-    expect(profiles.some((p) => p.id === 'sweet_creamy')).toBe(true);
-    expect(profiles.some((p) => p.id === 'fruity_acidic')).toBe(true);
+    expect(profiles.some((p) => p.id === TasteProfile.SWEET_CREAMY)).toBe(true);
+    expect(profiles.some((p) => p.id === TasteProfile.FRUITY_ACIDIC)).toBe(
+      true,
+    );
   });
 
   it('recommend: should return recommendations for sweet_creamy profile', async () => {

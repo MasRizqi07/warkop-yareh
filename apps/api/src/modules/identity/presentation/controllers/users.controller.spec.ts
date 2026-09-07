@@ -1,6 +1,10 @@
-/* eslint-disable */
+import type { Server } from 'node:http';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ExecutionContext, CanActivate } from '@nestjs/common';
+import {
+  INestApplication,
+  ExecutionContext,
+  CanActivate,
+} from '@nestjs/common';
 import request from 'supertest';
 import { UsersController } from './users.controller';
 import { IdentityService } from '../../application/services/identity.service';
@@ -20,7 +24,7 @@ class MockJwtGuard implements CanActivate {
 }
 
 describe('UsersController (E2E / Controller)', () => {
-  let app: INestApplication;
+  let app: INestApplication<Server>;
   let identityService: jest.Mocked<Partial<IdentityService>>;
 
   beforeAll(async () => {
@@ -59,19 +63,23 @@ describe('UsersController (E2E / Controller)', () => {
       .expect(403); // CanActivate returns false
   });
 
-  it('GET /api/v1/users/:id -> CUSTOMER role cannot read other user profile; resolves ID to self (req.user.id)', async () => {
+  it('rejects another customer profile before querying private data', async () => {
+    mockCurrentUser = { id: 'user-customer-self', role: 'CUSTOMER' };
+    await request(app.getHttpServer())
+      .get('/api/v1/users/other-user-target-id')
+      .expect(403);
+    expect(identityService.getUserProfile).not.toHaveBeenCalled();
+  });
+
+  it('allows a customer to read their own profile', async () => {
     mockCurrentUser = { id: 'user-customer-self', role: 'CUSTOMER' };
     (identityService.getUserProfile as jest.Mock).mockResolvedValue({
       id: 'user-customer-self',
-      name: 'Customer Self',
-      email: 'customer@warkop.com',
+      branchId: null,
     });
-
     const res = await request(app.getHttpServer())
-      .get('/api/v1/users/other-user-target-id')
+      .get('/api/v1/users/user-customer-self')
       .expect(200);
-
-    expect(identityService.getUserProfile).toHaveBeenCalledWith('user-customer-self');
     expect(res.body.data.id).toBe('user-customer-self');
   });
 
@@ -87,7 +95,46 @@ describe('UsersController (E2E / Controller)', () => {
       .get('/api/v1/users/target-user-id')
       .expect(200);
 
-    expect(identityService.getUserProfile).toHaveBeenCalledWith('target-user-id');
+    expect(identityService.getUserProfile).toHaveBeenCalledWith(
+      'target-user-id',
+    );
     expect(res.body.data.id).toBe('target-user-id');
+  });
+
+  it('allows an account owner to withdraw their own WhatsApp marketing consent', async () => {
+    mockCurrentUser = { id: 'user-self', role: 'CUSTOMER' };
+    (identityService.getUserProfile as jest.Mock).mockResolvedValue({
+      id: 'user-self',
+      branchId: null,
+    });
+    (identityService.updateUser as jest.Mock).mockResolvedValue({
+      id: 'user-self',
+      whatsAppMarketingOptInAt: null,
+    });
+
+    await request(app.getHttpServer())
+      .patch('/api/v1/users/user-self')
+      .send({ whatsAppMarketingOptIn: false })
+      .expect(200);
+
+    expect(identityService.updateUser).toHaveBeenCalledWith('user-self', {
+      whatsAppMarketingOptIn: false,
+    });
+  });
+
+  it('prevents managers from granting marketing consent for another account', async () => {
+    mockCurrentUser = {
+      id: 'manager-1',
+      role: 'MANAGER',
+      branchId: 'branch-1',
+    };
+
+    await request(app.getHttpServer())
+      .patch('/api/v1/users/customer-1')
+      .send({ whatsAppMarketingOptIn: true })
+      .expect(403);
+
+    expect(identityService.getUserProfile).not.toHaveBeenCalled();
+    expect(identityService.updateUser).not.toHaveBeenCalled();
   });
 });

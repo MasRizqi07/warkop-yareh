@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import type { CartItem, Product } from "@warkop-yareh/types";
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import type { CartItem, Product } from '@warkop-yareh/types';
 
 export interface CommerceCartItem extends CartItem {
   unitPrice: number;
@@ -22,44 +22,53 @@ export const useThemeStore = create<ThemeStore>()(
       toggle: () =>
         set((state) => {
           const newDark = !state.isDark;
-          if (typeof document !== "undefined") {
-            document.documentElement.classList.toggle("dark", newDark);
+          if (typeof document !== 'undefined') {
+            document.documentElement.dataset.theme = newDark ? 'dark' : 'light';
+            document.documentElement.classList.toggle('dark', newDark);
+            document.documentElement.classList.toggle('light', !newDark);
           }
           return { isDark: newDark };
         }),
       setDark: (dark: boolean) => {
-        if (typeof document !== "undefined") {
-          document.documentElement.classList.toggle("dark", dark);
+        if (typeof document !== 'undefined') {
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.classList.toggle('light', !dark);
         }
         set({ isDark: dark });
       },
     }),
     {
-      name: "warkop-theme",
+      name: 'warkop-theme',
       version: 1,
-      storage: createJSONStorage(() => window.localStorage),
-    },
-  ),
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined'
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {},
+            }
+      ),
+      migrate: (persistedState: any) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return { isDark: true };
+        }
+        return persistedState;
+      },
+    }
+  )
 );
 
 export function getCartItemId(
   productId: string,
   customizations?: Record<string, string>,
-  notes?: string,
+  notes?: string
 ): string {
-  if (!customizations && !notes) return productId;
-  const parts: string[] = [productId];
-  if (customizations) {
-    const sortedKeys = Object.keys(customizations).sort();
-    const custStr = sortedKeys
-      .map((k) => `${k}:${customizations[k]}`)
-      .join(",");
-    parts.push(`customizations:${custStr}`);
-  }
-  if (notes) {
-    parts.push(`notes:${notes}`);
-  }
-  return parts.join("?");
+  const entries = Object.entries(customizations ?? {}).sort(([a], [b]) =>
+    a.localeCompare(b)
+  );
+  return JSON.stringify([productId, entries, notes?.trim() || '']);
 }
 
 // ---- Cart Store ----
@@ -71,18 +80,18 @@ interface CartStore {
     quantity?: number,
     customizations?: Record<string, string>,
     notes?: string,
-    unitPrice?: number,
+    unitPrice?: number
   ) => void;
   removeItem: (
     productId: string,
     customizations?: Record<string, string>,
-    notes?: string,
+    notes?: string
   ) => void;
   updateQuantity: (
     productId: string,
     quantity: number,
     customizations?: Record<string, string>,
-    notes?: string,
+    notes?: string
   ) => void;
   clearCart: () => void;
   toggleCart: () => void;
@@ -101,9 +110,15 @@ export const useCartStore = create<CartStore>()(
         quantity = 1,
         customizations,
         notes,
-        unitPrice = product.price,
+        unitPrice = product.price
       ) =>
         set((state) => {
+          if (
+            !Number.isFinite(quantity) ||
+            !Number.isSafeInteger(unitPrice) ||
+            unitPrice < 0
+          )
+            return state;
           const safeQuantity = Math.min(100, Math.max(1, Math.trunc(quantity)));
           const itemKey = getCartItemId(product.id, customizations, notes);
           const existingIndex = state.items.findIndex(
@@ -111,8 +126,8 @@ export const useCartStore = create<CartStore>()(
               getCartItemId(
                 item.product.id,
                 item.customizations,
-                item.notes,
-              ) === itemKey,
+                item.notes
+              ) === itemKey
           );
           if (existingIndex > -1) {
             const updatedItems = [...state.items];
@@ -120,7 +135,7 @@ export const useCartStore = create<CartStore>()(
               ...updatedItems[existingIndex],
               quantity: Math.min(
                 100,
-                updatedItems[existingIndex].quantity + safeQuantity,
+                updatedItems[existingIndex].quantity + safeQuantity
               ),
               unitPrice,
             };
@@ -148,13 +163,14 @@ export const useCartStore = create<CartStore>()(
                 getCartItemId(
                   item.product.id,
                   item.customizations,
-                  item.notes,
-                ) !== itemKey,
+                  item.notes
+                ) !== itemKey
             ),
           };
         }),
       updateQuantity: (productId, quantity, customizations, notes) =>
         set((state) => {
+          if (!Number.isFinite(quantity)) return state;
           const itemKey = getCartItemId(productId, customizations, notes);
           return {
             items:
@@ -164,17 +180,20 @@ export const useCartStore = create<CartStore>()(
                       getCartItemId(
                         item.product.id,
                         item.customizations,
-                        item.notes,
-                      ) !== itemKey,
+                        item.notes
+                      ) !== itemKey
                   )
                 : state.items.map((item) =>
                     getCartItemId(
                       item.product.id,
                       item.customizations,
-                      item.notes,
+                      item.notes
                     ) === itemKey
-                      ? { ...item, quantity: Math.min(100, Math.trunc(quantity)) }
-                      : item,
+                      ? {
+                          ...item,
+                          quantity: Math.min(100, Math.trunc(quantity)),
+                        }
+                      : item
                   ),
           };
         }),
@@ -184,23 +203,37 @@ export const useCartStore = create<CartStore>()(
       total: () =>
         get().items.reduce(
           (sum, item) => sum + item.unitPrice * item.quantity,
-          0,
+          0
         ),
       itemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
     {
-      name: "warkop-cart",
+      name: 'warkop-cart',
       version: 2,
-      storage: createJSONStorage(() => window.localStorage),
-    },
-  ),
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined'
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {},
+            }
+      ),
+      migrate: (persistedState: any) => {
+        if (persistedState && Array.isArray(persistedState.items)) {
+          return persistedState;
+        }
+        return { items: [] };
+      },
+    }
+  )
 );
 
-export * from "./useUserStore";
-export * from "./useReservationStore";
-export * from "./branch.store";
-export * from "./checkout.store";
+export * from './useUserStore';
+export * from './useReservationStore';
+export * from './branch.store';
+export * from './checkout.store';
 
 // ---- UI Store ----
 interface UIStore {

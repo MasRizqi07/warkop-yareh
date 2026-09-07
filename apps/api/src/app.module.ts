@@ -27,12 +27,15 @@ import { WebsocketsModule } from './modules/websockets/websockets.module';
 import { TablesModule } from './modules/tables/tables.module';
 import { AiModule } from './modules/ai/ai.module';
 import { HealthModule } from './modules/health/health.module';
+import { MarketingModule } from './modules/marketing/marketing.module';
+import { validateEnvironment } from './config/environment.validation';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
+      validate: validateEnvironment,
     }),
     ThrottlerModule.forRoot([
       {
@@ -60,6 +63,7 @@ import { HealthModule } from './modules/health/health.module';
     TablesModule,
     AiModule,
     HealthModule,
+    MarketingModule,
   ],
   controllers: [],
   providers: [

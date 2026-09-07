@@ -9,12 +9,14 @@ export interface CreateUserInput {
   phone?: string;
   passwordHash?: string;
   referredBy?: string;
+  whatsAppMarketingOptInAt?: Date;
 }
 
 export interface UpdateUserInput {
   name?: string;
   phone?: string;
   avatar?: string;
+  whatsAppMarketingOptInAt?: Date | null;
 }
 
 export interface IUserRepository {

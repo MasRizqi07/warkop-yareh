@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
@@ -35,6 +34,7 @@ describe('ReservationService', () => {
       ),
       withTenantTransaction: jest.fn((operation) => operation(mockPrisma)),
       $executeRaw: jest.fn(),
+      $queryRaw: jest.fn(),
       branch: {
         findFirst: jest.fn().mockResolvedValue({ id: 'branch-1' }),
       },

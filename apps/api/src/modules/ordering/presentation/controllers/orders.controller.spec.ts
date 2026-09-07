@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, INestApplication } from '@nestjs/common';
+import type { Server } from 'node:http';
+import {
+  CanActivate,
+  ExecutionContext,
+  INestApplication,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderStatus, OrderType, Role } from '@warkop-yareh/database';
 import request from 'supertest';
@@ -40,7 +45,7 @@ const orderResult = (overrides: Record<string, unknown> = {}): OrderDetails =>
   }) as unknown as OrderDetails;
 
 describe('OrdersController', () => {
-  let app: INestApplication;
+  let app: INestApplication<Server>;
   let orderingService: {
     createOrder: jest.MockedFunction<OrderingService['createOrder']>;
     getOrder: jest.MockedFunction<OrderingService['getOrder']>;
@@ -94,7 +99,10 @@ describe('OrdersController', () => {
   it('requires an idempotency key for order creation', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/orders')
-      .send({ branchId: 'branch_A', items: [{ productId: 'prod_1', quantity: 1 }] })
+      .send({
+        branchId: 'branch_A',
+        items: [{ productId: 'prod_1', quantity: 1 }],
+      })
       .expect(400);
 
     expect(orderingService.createOrder).not.toHaveBeenCalled();

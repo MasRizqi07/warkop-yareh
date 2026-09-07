@@ -1,16 +1,18 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { BrandLogo } from "@warkop-yareh/ui";
-import { SITE, NAV_LINKS } from "@/lib/constants";
+import Link from 'next/link';
+import { BrandLogo } from '@warkop-yareh/ui';
+import { SITE, NAV_LINKS } from '@/lib/constants';
+import { useBranches } from '@/features/catalog/catalog.hooks';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const branches = useBranches();
 
   return (
-    <footer className="relative bg-[#0a0a0c] text-[#e5e1e4] border-t border-white/[0.08] overflow-hidden">
+    <footer className="relative overflow-hidden border-t border-border-subtle bg-canvas-obsidian text-on-surface">
       {/* Top subtle glow line */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-[#f59e0b]/30 to-transparent" />
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-accent-amber/30 to-transparent" />
 
       {/* Footer Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-32 md:pb-16">
@@ -20,54 +22,51 @@ export function Footer() {
             <Link href="/" className="inline-block group">
               <BrandLogo size={40} />
             </Link>
-            <p className="text-sm text-[#94a3b8] max-w-sm leading-relaxed">
-              Surabaya&apos;s 24/7 nexus for artisanal single-origin coffees, gigabit mesh networking, and inspiring coworking spaces engineered for creators, engineers, and night owls.
+            <p className="max-w-sm text-sm leading-relaxed text-text-muted">
+              Kopi, workspace, pemesanan, reservasi, komunitas, dan loyalty
+              Warkop Ya&apos;reh dalam satu platform.
             </p>
-            {/* Sanctuary Status Badge */}
-            <div className="inline-flex items-center gap-2 bg-[#18181c] px-3.5 py-1.5 rounded-full border border-white/[0.08]">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="font-mono text-[11px] text-emerald-400 font-semibold tracking-wider uppercase">
-                Dual-WAN Gigabit Fiber Nominal • 940 Mbps
+            <div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3.5 py-1.5">
+              <span className="h-2 w-2 rounded-full bg-accent-amber" />
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-cream-beige">
+                Jam dan fasilitas mengikuti cabang pilihan
               </span>
             </div>
           </div>
 
           {/* Outlets Sanctuary (3 cols) */}
           <div id="locations" className="lg:col-span-3 space-y-3 scroll-mt-24">
-            <h4 className="font-mono text-xs font-semibold text-[#f8fafc] uppercase tracking-widest text-[#f59e0b]">
-              Sanctuary Outlets
+            <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
+              Cabang aktif
             </h4>
-            <div className="space-y-2.5 text-sm text-[#94a3b8]">
-              <div className="bg-[#111114] p-2.5 rounded-xl border border-white/[0.06]">
-                <p className="text-[#f8fafc] font-semibold text-xs">Darmo Flagship (SBY Pusat)</p>
-                <p className="text-[11px] text-[#94a3b8] mt-0.5">Jl. Raya Darmo No. 88, Surabaya</p>
-                <span className="inline-block mt-1 text-[10px] font-mono text-[#e8c47a] bg-[#9c6b3a]/20 px-1.5 py-0.5 rounded">
-                  24/7 Nonstop Ops
-                </span>
-              </div>
-              <div className="bg-[#111114] p-2.5 rounded-xl border border-white/[0.06]">
-                <p className="text-[#f8fafc] font-semibold text-xs">Gubeng 24H Hub (SBY Timur)</p>
-                <p className="text-[11px] text-[#94a3b8] mt-0.5">Jl. Raya Gubeng No. 42, Surabaya</p>
-                <span className="inline-block mt-1 text-[10px] font-mono text-[#e8c47a] bg-[#9c6b3a]/20 px-1.5 py-0.5 rounded">
-                  24/7 Nonstop Ops
-                </span>
-              </div>
-              <div className="bg-[#111114] p-2.5 rounded-xl border border-white/[0.06]">
-                <p className="text-[#f8fafc] font-semibold text-xs">Dharmahusada Campus (Unair)</p>
-                <p className="text-[11px] text-[#94a3b8] mt-0.5">Jl. Dharmahusada No. 115, Surabaya</p>
-                <span className="inline-block mt-1 text-[10px] font-mono text-[#e8c47a] bg-[#9c6b3a]/20 px-1.5 py-0.5 rounded">
-                  07:00 - 02:00 WIB
-                </span>
-              </div>
+            <div className="space-y-2.5 text-sm text-text-muted">
+              {(branches.data ?? []).slice(0, 3).map((branch) => (
+                <div
+                  key={branch.id}
+                  className="rounded-xl border border-border-subtle bg-surface-secondary p-2.5"
+                >
+                  <p className="text-xs font-semibold text-text-primary">
+                    {branch.name}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-text-muted">
+                    {branch.address}, {branch.city}
+                  </p>
+                  <span className="mt-1 inline-block rounded bg-primary-container/20 px-1.5 py-0.5 font-mono text-[10px] text-cream-beige">
+                    Hari kerja {branch.weekdayHours}
+                  </span>
+                </div>
+              ))}
+              {!branches.isPending && !branches.data?.length && (
+                <p className="text-xs text-text-muted">
+                  Informasi cabang belum tersedia.
+                </p>
+              )}
             </div>
           </div>
 
           {/* Quick Links (2 cols) */}
           <div className="lg:col-span-2 space-y-3">
-            <h4 className="font-mono text-xs font-semibold text-[#f8fafc] uppercase tracking-widest text-[#f59e0b]">
+            <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
               Navigation
             </h4>
             <ul className="space-y-2.5">
@@ -75,7 +74,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-[#94a3b8] hover:text-[#f7bb82] transition-colors"
+                    className="text-sm text-text-muted transition-colors hover:text-primary"
                   >
                     {link.label}
                   </Link>
@@ -84,7 +83,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/account"
-                  className="text-sm text-[#94a3b8] hover:text-[#f7bb82] transition-colors"
+                  className="text-sm text-text-muted transition-colors hover:text-primary"
                 >
                   Account Portal
                 </Link>
@@ -92,7 +91,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/checkout"
-                  className="text-sm text-[#94a3b8] hover:text-[#f7bb82] transition-colors"
+                  className="text-sm text-text-muted transition-colors hover:text-primary"
                 >
                   Cart & Orders
                 </Link>
@@ -102,15 +101,15 @@ export function Footer() {
 
           {/* Social & Contact (2 cols) */}
           <div className="lg:col-span-2 space-y-3">
-            <h4 className="font-mono text-xs font-semibold text-[#f8fafc] uppercase tracking-widest text-[#f59e0b]">
+            <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
               Connect
             </h4>
-            <div className="flex flex-col gap-2 text-sm text-[#94a3b8]">
+            <div className="flex flex-col gap-2 text-sm text-text-muted">
               <a
                 href={SITE.social.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+                className="flex items-center gap-1.5 transition-colors hover:text-primary"
               >
                 <span>Instagram</span>
               </a>
@@ -118,7 +117,7 @@ export function Footer() {
                 href={`https://wa.me/${SITE.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+                className="flex items-center gap-1.5 transition-colors hover:text-primary"
               >
                 <span>WhatsApp Official</span>
               </a>
@@ -126,13 +125,13 @@ export function Footer() {
                 href={SITE.social.tiktok}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+                className="flex items-center gap-1.5 transition-colors hover:text-primary"
               >
                 <span>TikTok</span>
               </a>
               <a
                 href={`mailto:${SITE.email}`}
-                className="hover:text-[#f7bb82] transition-colors flex items-center gap-1.5"
+                className="flex items-center gap-1.5 transition-colors hover:text-primary"
               >
                 <span>{SITE.email}</span>
               </a>
@@ -141,12 +140,16 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94a3b8]">
-          <p>© {currentYear} Warkop Ya&apos;reh Indonesia. All Rights Reserved.</p>
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-border-subtle pt-8 text-xs text-text-muted sm:flex-row">
+          <p>
+            © {currentYear} Warkop Ya&apos;reh Indonesia. All Rights Reserved.
+          </p>
           <div className="flex items-center gap-6 font-mono text-[11px]">
-            <span className="text-[#e8c47a]">Surabaya, East Java</span>
+            <span className="text-cream-beige">Surabaya, East Java</span>
             <span>•</span>
-            <span className="text-[#94a3b8]">Crafted with Precision & Single Origin</span>
+            <span className="text-text-muted">
+              Crafted with Precision & Single Origin
+            </span>
           </div>
         </div>
       </div>

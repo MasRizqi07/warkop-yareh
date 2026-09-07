@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CatalogService } from './catalog.service';
-import { ICatalogRepository } from '../../domain/repositories/catalog.repository.interface';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
 describe('CatalogService', () => {
@@ -22,6 +21,8 @@ describe('CatalogService', () => {
       categoryExists: jest.fn().mockResolvedValue(true),
       productExists: jest.fn().mockResolvedValue(true),
       listBranchProducts: jest.fn(),
+      getBranchProduct: jest.fn().mockResolvedValue(null),
+      updateBranchProduct: jest.fn(),
     };
 
     mockRedisService = {
@@ -120,6 +121,79 @@ describe('CatalogService', () => {
       );
       expect(mockRedisService.del).toHaveBeenCalledWith(
         'catalog:full:branch-1',
+      );
+    });
+  });
+
+  describe('updateBranchProduct', () => {
+    it('persists normalized inventory telemetry and invalidates branch cache', async () => {
+      mockCatalogRepo.updateBranchProduct.mockResolvedValue({
+        branchId: 'branch-1',
+        productId: 'prod-1',
+        stockQuantity: 12,
+      });
+
+      await service.updateBranchProduct('branch-1', 'prod-1', {
+        stockQuantity: 12,
+        stockUnit: ' kg ',
+        supplier: ' Gayo Cooperative ',
+      });
+
+      expect(mockCatalogRepo.updateBranchProduct).toHaveBeenCalledWith(
+        'branch-1',
+        'prod-1',
+        expect.objectContaining({
+          stockQuantity: 12,
+          stockUnit: 'kg',
+          supplier: 'Gayo Cooperative',
+          inventoryUpdatedAt: expect.any(Date),
+        }),
+      );
+      expect(mockRedisService.del).toHaveBeenCalledWith(
+        'catalog:full:branch-1',
+      );
+    });
+
+    it('rejects a stock threshold above the persisted capacity', async () => {
+      mockCatalogRepo.getBranchProduct.mockResolvedValue({
+        stockCapacity: { toNumber: () => 100 },
+        stockThreshold: { toNumber: () => 10 },
+      });
+
+      await expect(
+        service.updateBranchProduct('branch-1', 'prod-1', {
+          stockThreshold: 101,
+        }),
+      ).rejects.toThrow('Stock threshold cannot exceed capacity');
+      expect(mockCatalogRepo.updateBranchProduct).not.toHaveBeenCalled();
+    });
+
+    it('allows an explicit null threshold to clear persisted inventory limits', async () => {
+      mockCatalogRepo.getBranchProduct.mockResolvedValue({
+        stockCapacity: { toNumber: () => 5 },
+        stockThreshold: { toNumber: () => 10 },
+      });
+      mockCatalogRepo.updateBranchProduct.mockResolvedValue({
+        branchId: 'branch-1',
+        productId: 'prod-1',
+        stockCapacity: 5,
+        stockThreshold: null,
+      });
+
+      await expect(
+        service.updateBranchProduct('branch-1', 'prod-1', {
+          stockCapacity: 5,
+          stockThreshold: null,
+        }),
+      ).resolves.toEqual(expect.objectContaining({ stockThreshold: null }));
+
+      expect(mockCatalogRepo.updateBranchProduct).toHaveBeenCalledWith(
+        'branch-1',
+        'prod-1',
+        expect.objectContaining({
+          stockCapacity: 5,
+          stockThreshold: null,
+        }),
       );
     });
   });

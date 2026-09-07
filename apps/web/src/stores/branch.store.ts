@@ -19,7 +19,18 @@ export const useBranchStore = create<BranchState>()(
     {
       name: 'warkop-active-branch',
       version: 1,
-      storage: createJSONStorage(() => window.localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined'
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {},
+            }
+      ),
+      migrate: (persistedState: any) => {
+        return persistedState || { activeBranchId: null };
+      },
     },
   ),
 );

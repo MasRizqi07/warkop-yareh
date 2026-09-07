@@ -13,27 +13,24 @@ type TransactionOptions = {
   isolationLevel?: Prisma.TransactionIsolationLevel;
 };
 
-export interface DatabaseService {
-  /**
-   * Runs every operation, including raw locks, on one RLS-configured connection.
-   * Use this instead of `$transaction(callback)` for application transactions.
-   */
-  withTenantTransaction<T>(
-    operation: (transaction: Prisma.TransactionClient) => Promise<T>,
-    options?: TransactionOptions,
-  ): Promise<T>;
-}
-
 @Injectable()
 export class DatabaseService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
+  declare withTenantTransaction: <T>(
+    operation: (transaction: Prisma.TransactionClient) => Promise<T>,
+    options?: TransactionOptions,
+  ) => Promise<T>;
+
   private readonly logger = new Logger(DatabaseService.name);
 
   constructor() {
     super();
-    const baseClient = this;
+    const runBaseTransaction = <T>(
+      operation: (transaction: Prisma.TransactionClient) => Promise<T>,
+      options?: TransactionOptions,
+    ): Promise<T> => this.$transaction(operation, options);
 
     const configureTransaction = async (
       transaction: Prisma.TransactionClient,
@@ -52,7 +49,9 @@ export class DatabaseService
       args: unknown,
     ): unknown => {
       const delegate = Reflect.get(transaction, model);
-      const handler = Reflect.get(delegate, operation);
+      const handler: unknown = Reflect.get(delegate, operation);
+      if (typeof handler !== 'function')
+        throw new Error(`Unknown database operation: ${model}.${operation}`);
       return Reflect.apply(handler, delegate, [args]);
     };
 
@@ -68,7 +67,7 @@ export class DatabaseService
               return query(args);
             }
 
-            return baseClient.$transaction(async (transaction) => {
+            return runBaseTransaction(async (transaction) => {
               await configureTransaction(transaction);
               return runModelOperation(
                 transaction,
@@ -85,7 +84,7 @@ export class DatabaseService
           operation: (transaction: Prisma.TransactionClient) => Promise<T>,
           options?: TransactionOptions,
         ): Promise<T> {
-          return baseClient.$transaction(async (transaction) => {
+          return runBaseTransaction(async (transaction) => {
             await configureTransaction(transaction);
             return operation(transaction);
           }, options);
@@ -95,9 +94,9 @@ export class DatabaseService
 
     const proxy = extended as unknown as DatabaseService;
     proxy.onModuleInit = async () => {
-      await baseClient.$connect();
+      await this.$connect();
       try {
-        await baseClient.$transaction(async (transaction) => {
+        await runBaseTransaction(async (transaction) => {
           await configureTransaction(transaction);
         });
         this.logger.log('Database role api_user check passed successfully.');
@@ -119,7 +118,7 @@ export class DatabaseService
       }
     };
     proxy.onModuleDestroy = async () => {
-      await baseClient.$disconnect();
+      await this.$disconnect();
     };
 
     return proxy;

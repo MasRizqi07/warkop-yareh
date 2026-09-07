@@ -4,6 +4,32 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import {
+  Users,
+  Terminal,
+  Coffee,
+  CheckCircle2,
+  UserPlus,
+  DoorOpen,
+  Search,
+  Pin,
+  Calendar,
+  Check,
+  Armchair,
+  Send,
+  MapPin,
+  BookmarkCheck,
+  Bookmark,
+  ArrowUp,
+  MessageSquare,
+  Award,
+  Percent,
+  Clock,
+  Wifi,
+  CalendarCheck,
+  MessageCircle,
+  ExternalLink,
+} from "lucide-react";
 
 interface Thread {
   id: string;
@@ -48,7 +74,7 @@ const INITIAL_THREADS: Thread[] = [
       initials: "RA",
       tier: "Platinum Guild Lead",
       role: "Founder @ Tech Guild SBY",
-      avatarBg: "bg-[#9c6b3a]",
+      avatarBg: "bg-brand-coffee",
       location: "Darmo Central Pod #14",
     },
     timeAgo: "Today 21:15 WIB",
@@ -85,7 +111,7 @@ const INITIAL_THREADS: Thread[] = [
       initials: "NK",
       tier: "Gold Tier",
       role: "Senior Product Designer",
-      avatarBg: "bg-[#8e7130]",
+      avatarBg: "bg-brand-coffee/80",
       location: "Gubeng 24H Sanctuary",
     },
     timeAgo: "Yesterday 19:40 WIB",
@@ -113,7 +139,7 @@ const INITIAL_THREADS: Thread[] = [
       initials: "DK",
       tier: "Gold Tier",
       role: "Fullstack Engineer",
-      avatarBg: "bg-[#201f21]",
+      avatarBg: "bg-surface-container",
       location: "Dharmahusada Hub (Quiet Zone)",
     },
     timeAgo: "2 days ago",
@@ -178,7 +204,7 @@ export default function CommunityGroupDetailPage() {
         initials: "ME",
         tier: "Gold Tier",
         role: "Software Craftsman",
-        avatarBg: "bg-[#f59e0b]",
+        avatarBg: "bg-accent-amber",
         location: "Gubeng 24H Co-Lab",
       },
       timeAgo: "Just now",
@@ -206,32 +232,32 @@ export default function CommunityGroupDetailPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-[#f8fafc]">
+    <div className="min-h-screen bg-canvas-obsidian text-text-primary">
       {/* ══════════════════════════════════════════════════════════════
           ATMOSPHERIC GUILD HERO & BANNER
           ══════════════════════════════════════════════════════════════ */}
-      <section className="relative w-full overflow-hidden bg-[#0e0e10] border-b border-white/[0.08]">
+      <section className="relative w-full overflow-hidden bg-canvas-obsidian border-b border-border-subtle">
         {/* Ambient background with dark scrim */}
-        <div className="absolute inset-0 z-0 opacity-25 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#9c6b3a]/40 via-[#0a0a0c] to-[#0a0a0c]" />
-        <div className="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-[#f59e0b]/10 blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 z-0 opacity-25 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-coffee/40 via-canvas-obsidian to-canvas-obsidian" />
+        <div className="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-accent-amber/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10 flex flex-col gap-6">
           {/* Breadcrumb & Metadata Badges */}
-          <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-[#94a3b8]">
+          <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-text-muted">
             <div className="flex items-center gap-2">
-              <Link href="/community" className="flex items-center gap-1 hover:text-[#f7bb82] transition-colors">
-                <span className="material-symbols-outlined text-[16px]">groups</span>
+              <Link href="/community" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Users className="w-4 h-4" />
                 Circles &amp; Guilds
               </Link>
-              <span className="text-[#f7bb82] font-medium capitalize">
+              <span className="text-primary font-medium capitalize">
                 {groupId.replace(/-/g, " ")}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-[#201f21] text-[#f59e0b] font-mono text-[11px] shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+              <span className="px-2 py-0.5 rounded bg-surface-container text-accent-amber font-mono text-[11px] shadow-[0_0_12px_rgba(245,158,11,0.2)]">
                 Official Ya&apos;reh Guild (Verified)
               </span>
-              <span className="px-2 py-0.5 rounded bg-[#18181c] text-[#e8c47a] font-mono text-[11px]">
+              <span className="px-2 py-0.5 rounded bg-surface-card text-tertiary font-mono text-[11px]">
                 Weekly Fri &amp; Sat Nights
               </span>
             </div>
@@ -241,31 +267,31 @@ export default function CommunityGroupDetailPage() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="flex items-start gap-4">
               {/* Guild Logo Emblem */}
-              <div className="relative flex-shrink-0 w-20 h-20 rounded-2xl bg-[#18181c] border border-white/[0.08] flex items-center justify-center shadow-2xl shadow-black/60 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#9c6b3a]/40 via-transparent to-[#f59e0b]/20" />
-                <span className="material-symbols-outlined text-[40px] text-[#f7bb82] relative z-10">terminal</span>
-                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-[#f59e0b] ring-2 ring-[#18181c]" />
+              <div className="relative flex-shrink-0 w-20 h-20 rounded-2xl bg-surface-card border border-border-subtle flex items-center justify-center shadow-2xl shadow-black/60 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-coffee/40 via-transparent to-accent-amber/20" />
+                <Terminal className="w-10 h-10 text-primary relative z-10" />
+                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-accent-amber ring-2 ring-surface-card" />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#f8fafc] tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
                   Surabaya Tech &amp; Startup Coffee Circle
                 </h1>
-                <div className="flex flex-wrap items-center gap-2 text-[#94a3b8] text-xs">
-                  <span className="flex items-center gap-1 text-[#f8fafc]">
-                    <span className="material-symbols-outlined text-[15px] text-[#f59e0b]">group</span>
-                    <strong className="text-white">340</strong> Active Builders
+                <div className="flex flex-wrap items-center gap-2 text-text-muted text-xs">
+                  <span className="flex items-center gap-1 text-text-primary">
+                    <Users className="w-3.5 h-3.5 text-accent-amber" />
+                    <strong className="text-text-primary">340</strong> Active Builders
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px] text-[#f7bb82]">local_cafe</span>
-                    Sanctuary Hub: <strong className="text-[#f7bb82]">Gubeng 24H Co-Lab</strong>
+                    <Coffee className="w-3.5 h-3.5 text-primary" />
+                    Sanctuary Hub: <strong className="text-primary">Gubeng 24H Co-Lab</strong>
                   </span>
                   <span>•</span>
                   <span className="font-mono text-[11px]">Est. Oct 2023</span>
                   <span>•</span>
-                  <span className="text-[#f59e0b] font-mono text-[11px] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[13px]">verified</span>
+                  <span className="text-accent-amber font-mono text-[11px] flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-accent-amber" />
                     Lead: Rayhan Al-Farisi (Platinum)
                   </span>
                 </div>
@@ -278,78 +304,52 @@ export default function CommunityGroupDetailPage() {
                 onClick={() => setIsJoined(!isJoined)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                   isJoined
-                    ? "bg-[#18181c] border border-[#f59e0b]/30 text-[#f7bb82] hover:bg-[#201f21]"
-                    : "bg-[#f59e0b] text-[#0a0a0c] hover:bg-[#ffb95f]"
+                    ? "bg-surface-card border border-accent-amber/30 text-primary hover:bg-surface-container"
+                    : "bg-accent-amber text-canvas-obsidian hover:bg-secondary"
                 }`}
               >
                 <span className="material-symbols-outlined text-[16px]">
                   {isJoined ? "check_circle" : "person_add"}
                 </span>
+                {isJoined ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <UserPlus className="w-4 h-4 text-canvas-obsidian" />
+                )}
                 {isJoined ? "Joined (Active Member)" : "Join Circle"}
               </button>
 
               <Link
                 href="/booking"
-                className="px-4 py-2 rounded-xl bg-[#9c6b3a] hover:bg-[#825426] text-white text-xs font-bold flex items-center gap-1.5 shadow-[0_4px_16px_rgba(156,107,58,0.35)] transition-all"
+                className="px-4 py-2 rounded-xl bg-brand-coffee hover:bg-primary-container text-text-primary text-xs font-bold flex items-center gap-1.5 shadow-[0_4px_16px_rgba(156,107,58,0.35)] transition-all"
               >
-                <span className="material-symbols-outlined text-[16px]">meeting_room</span>
+                <DoorOpen className="w-4 h-4" />
                 Host a Meetup Here
               </Link>
             </div>
           </div>
 
-          {/* Navigation Tabs & Search Row */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2 border-t border-white/[0.06]">
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0">
-              <button
-                onClick={() => setActiveTab("discussions")}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  activeTab === "discussions"
-                    ? "bg-[#201f21] text-[#f7bb82] shadow-sm border border-white/[0.08]"
-                    : "text-[#94a3b8] hover:text-white hover:bg-[#18181c]"
-                }`}
-              >
-                Discussions (Active)
-              </button>
-              <button
-                onClick={() => setActiveTab("meetups")}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  activeTab === "meetups"
-                    ? "bg-[#201f21] text-[#f7bb82] shadow-sm border border-white/[0.08]"
-                    : "text-[#94a3b8] hover:text-white hover:bg-[#18181c]"
-                }`}
-              >
-                Upcoming Meetups{" "}
-                <span className="px-1.5 py-0.2 rounded-full bg-[#18181c] text-[#f59e0b] font-mono text-[10px]">
-                  3
-                </span>
-              </button>
-              <button
-                onClick={() => setActiveTab("perks")}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  activeTab === "perks"
-                    ? "bg-[#201f21] text-[#f7bb82] shadow-sm border border-white/[0.08]"
-                    : "text-[#94a3b8] hover:text-white hover:bg-[#18181c]"
-                }`}
-              >
-                Shared Perks{" "}
-                <span className="px-1.5 py-0.2 rounded-full bg-[#18181c] text-[#ffb95f] font-mono text-[10px]">
-                  3
-                </span>
-              </button>
-              <button
-                onClick={() => setActiveTab("directory")}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  activeTab === "directory"
-                    ? "bg-[#201f21] text-[#f7bb82] shadow-sm border border-white/[0.08]"
-                    : "text-[#94a3b8] hover:text-white hover:bg-[#18181c]"
-                }`}
-              >
-                Builder Directory{" "}
-                <span className="px-1.5 py-0.2 rounded-full bg-[#18181c] text-[#94a3b8] font-mono text-[10px]">
-                  340
-                </span>
-              </button>
+          {/* Sub-Navigation Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border-subtle">
+            <div className="flex items-center gap-1 overflow-x-auto">
+              {[
+                { id: "discussions", label: "Discussions & Code" },
+                { id: "meetups", label: "Scheduled Meetups" },
+                { id: "perks", label: "Exclusive Circle Perks" },
+                { id: "directory", label: "Patron Directory" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? "bg-surface-card text-accent-amber border border-border-subtle shadow-sm"
+                      : "text-text-muted hover:text-text-primary hover:bg-surface-secondary"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
             {/* Live Search */}
@@ -357,13 +357,14 @@ export default function CommunityGroupDetailPage() {
               <span className="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-[#94a3b8] pointer-events-none">
                 search
               </span>
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-text-muted pointer-events-none" />
               <input
                 aria-label="Search group threads"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search threads or tags..."
-                className="w-full pl-9 pr-3 py-1.5 bg-[#111114] border border-white/[0.08] text-white placeholder:text-[#94a3b8] text-xs rounded-xl outline-none focus:border-[#f59e0b] transition-all"
+                className="w-full pl-9 pr-3 py-1.5 bg-surface-secondary border border-border-subtle text-text-primary placeholder:text-text-muted text-xs rounded-xl outline-none focus:border-accent-amber transition-all"
               />
             </div>
           </div>
@@ -378,48 +379,48 @@ export default function CommunityGroupDetailPage() {
           {/* LEFT COLUMN: THREADS & COMPOSER (8 cols) */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             {/* PINNED ANNOUNCEMENT BANNER */}
-            <div className="rounded-2xl bg-[#18181c] border border-white/[0.08] p-6 relative overflow-hidden shadow-xl shadow-black/40">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#f59e0b]" />
+            <div className="rounded-2xl bg-surface-card border border-border-subtle p-6 relative overflow-hidden shadow-xl shadow-black/40">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-accent-amber" />
               <div className="flex flex-col gap-3 pl-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-mono text-xs text-[#f59e0b] flex items-center gap-1 font-semibold">
-                    <span className="material-symbols-outlined text-[16px]">push_pin</span>
+                  <span className="font-mono text-xs text-accent-amber flex items-center gap-1 font-semibold">
+                    <Pin className="w-4 h-4 text-accent-amber" />
                     PINNED BY ORGANIZER • 2 HOURS AGO
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-[#201f21] font-mono text-[11px] text-[#ffb95f]">
+                  <span className="px-2 py-0.5 rounded bg-surface-container font-mono text-[11px] text-primary">
                     VIP-TABLE 1 • GUBENG 24H
                   </span>
                 </div>
 
-                <h2 className="text-xl font-bold text-[#f8fafc] tracking-tight">
+                <h2 className="text-xl font-bold text-text-primary tracking-tight">
                   Weekly Saturday Night Coding Session &amp; Mini Pitch — Table VIP-1
                 </h2>
 
-                <p className="text-sm text-[#94a3b8] leading-relaxed">
+                <p className="text-sm text-text-muted leading-relaxed">
                   Surabaya founders &amp; senior devs: bring your current repo or sprint board. 1 Gbps dedicated Wi-Fi
-                  bridge active on SSID <span className="font-mono text-[#f59e0b] font-semibold">#YAREH-DEV-PRIORITY</span>{" "}
+                  bridge active on SSID <span className="font-mono text-accent-amber font-semibold">#YAREH-DEV-PRIORITY</span>{" "}
                   with complimentary French Press Arabica refills for all confirmed seats.
                 </p>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-white/[0.06]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-border-subtle">
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 font-mono text-xs text-[#94a3b8]">
-                      <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">calendar_clock</span>
+                    <div className="flex items-center gap-1.5 font-mono text-xs text-text-muted">
+                      <Calendar className="w-4 h-4 text-accent-amber" />
                       <span>Sat, 20:00 - 02:00 WIB</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex -space-x-2">
-                        <div className="w-7 h-7 rounded-full bg-[#9c6b3a] flex items-center justify-center font-mono text-[10px] text-white font-bold ring-2 ring-[#18181c]">
+                        <div className="w-7 h-7 rounded-full bg-brand-coffee flex items-center justify-center font-mono text-[10px] text-text-primary font-bold ring-2 ring-surface-card">
                           RA
                         </div>
-                        <div className="w-7 h-7 rounded-full bg-[#8e7130] flex items-center justify-center font-mono text-[10px] text-white font-bold ring-2 ring-[#18181c]">
+                        <div className="w-7 h-7 rounded-full bg-brand-coffee/80 flex items-center justify-center font-mono text-[10px] text-text-primary font-bold ring-2 ring-surface-card">
                           NK
                         </div>
-                        <div className="w-7 h-7 rounded-full bg-[#201f21] flex items-center justify-center font-mono text-[10px] text-white font-bold ring-2 ring-[#18181c]">
+                        <div className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center font-mono text-[10px] text-text-primary font-bold ring-2 ring-surface-card">
                           DK
                         </div>
                       </div>
-                      <span className="font-mono text-xs text-[#f59e0b] font-semibold">
+                      <span className="font-mono text-xs text-accent-amber font-semibold">
                         {pinnedSeats} / 30 Seats Claimed
                       </span>
                     </div>
@@ -438,12 +439,14 @@ export default function CommunityGroupDetailPage() {
                     className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md ${
                       pinnedRsvpd
                         ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-[#f59e0b] hover:bg-[#ffb95f] text-[#0a0a0c]"
+                        : "bg-accent-amber hover:bg-secondary text-canvas-obsidian"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      {pinnedRsvpd ? "check" : "airline_seat_recline_normal"}
-                    </span>
+                    {pinnedRsvpd ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Armchair className="w-4 h-4" />
+                    )}
                     {pinnedRsvpd ? "RSVP Confirmed ✓" : "RSVP My Seat [Free]"}
                   </button>
                 </div>
@@ -452,7 +455,7 @@ export default function CommunityGroupDetailPage() {
 
             {/* TAG QUICK FILTER STRIP */}
             <div className="flex items-center gap-2 overflow-x-auto py-1">
-              <span className="font-mono text-xs text-[#94a3b8] uppercase tracking-wider pl-1">Tags:</span>
+              <span className="font-mono text-xs text-text-muted uppercase tracking-wider pl-1">Tags:</span>
               {[
                 "#All Threads",
                 "#TechStack",
@@ -466,8 +469,8 @@ export default function CommunityGroupDetailPage() {
                   onClick={() => setSelectedTag(tag)}
                   className={`px-3 py-1 rounded-full font-mono text-[11px] transition-all whitespace-nowrap ${
                     selectedTag === tag
-                      ? "bg-[#f59e0b] text-[#0a0a0c] font-bold shadow-[0_0_10px_rgba(245,158,11,0.25)]"
-                      : "bg-[#18181c] border border-white/[0.08] text-[#94a3b8] hover:text-white hover:border-[#f59e0b]/40"
+                      ? "bg-accent-amber text-canvas-obsidian font-bold shadow-[0_0_10px_rgba(245,158,11,0.25)]"
+                      : "bg-surface-card border border-border-subtle text-text-muted hover:text-text-primary hover:border-accent-amber/40"
                   }`}
                 >
                   {tag}
@@ -478,10 +481,10 @@ export default function CommunityGroupDetailPage() {
             {/* INLINE THREAD COMPOSER */}
             <form
               onSubmit={handleCreatePost}
-              className="rounded-2xl bg-[#18181c] border border-white/[0.08] p-5 shadow-lg flex flex-col gap-4"
+              className="rounded-2xl bg-surface-card border border-border-subtle p-5 shadow-lg flex flex-col gap-4"
             >
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#9c6b3a] flex-shrink-0 flex items-center justify-center font-bold text-white text-xs">
+                <div className="w-10 h-10 rounded-full bg-brand-coffee flex-shrink-0 flex items-center justify-center font-bold text-text-primary text-xs">
                   ME
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
@@ -491,7 +494,7 @@ export default function CommunityGroupDetailPage() {
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="Topic headline (e.g., Scaling Postgres on Ya'reh late-night Wi-Fi...)"
-                    className="w-full bg-transparent font-bold text-base text-white placeholder:text-[#94a3b8] outline-none"
+                    className="w-full bg-transparent font-bold text-base text-text-primary placeholder:text-text-muted outline-none"
                   />
                   <textarea
                     aria-label="Thread content"
@@ -499,26 +502,26 @@ export default function CommunityGroupDetailPage() {
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
                     placeholder="Start a conversation with fellow builders in Surabaya... Share architecture hurdles, hiring needs, or brewing observations."
-                    className="w-full bg-transparent text-sm text-[#94a3b8] placeholder:text-[#94a3b8]/60 resize-none outline-none"
+                    className="w-full bg-transparent text-sm text-text-muted placeholder:text-text-muted/60 resize-none outline-none"
                   />
                 </div>
               </div>
 
               {showComposerSuccess && (
                 <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  <CheckCircle2 className="w-4 h-4" />
                   <span>Thread broadcasted to Surabaya Tech Circle!</span>
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/[0.06]">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border-subtle">
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="font-mono text-[11px] text-[#94a3b8]">Tag:</span>
+                  <span className="font-mono text-[11px] text-text-muted">Tag:</span>
                   <select
                     aria-label="Thread tag"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    className="bg-[#111114] border border-white/[0.08] text-[#f7bb82] text-xs rounded-lg px-2 py-1 outline-none"
+                    className="bg-surface-secondary border border-border-subtle text-primary text-xs rounded-lg px-2 py-1 outline-none"
                   >
                     <option value="#TechStack">#TechStack</option>
                     <option value="#CareerHiring">#CareerHiring</option>
@@ -530,10 +533,10 @@ export default function CommunityGroupDetailPage() {
 
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#ffb95f] text-[#0a0a0c] text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-accent-amber hover:bg-secondary text-canvas-obsidian text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
                 >
                   <span>Post to Circle</span>
-                  <span className="material-symbols-outlined text-[16px]">send</span>
+                  <Send className="w-4 h-4" />
                 </button>
               </div>
             </form>
@@ -543,30 +546,30 @@ export default function CommunityGroupDetailPage() {
               {filteredThreads.map((thread) => (
                 <article
                   key={thread.id}
-                  className="rounded-2xl bg-[#18181c] border border-white/[0.08] p-6 shadow-xl flex flex-col gap-4 hover:border-white/[0.14] transition-all"
+                  className="rounded-2xl bg-surface-card border border-border-subtle p-6 shadow-xl flex flex-col gap-4 hover:border-white/[0.14] transition-all"
                 >
                   {/* Author Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-full ${thread.author.avatarBg} flex items-center justify-center font-bold text-white text-xs shadow-sm`}
+                        className={`w-10 h-10 rounded-full ${thread.author.avatarBg} flex items-center justify-center font-bold text-text-primary text-xs shadow-sm`}
                       >
                         {thread.author.initials}
                       </div>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-white">{thread.author.name}</span>
-                          <span className="px-2 py-0.2 rounded bg-[#201f21] text-[#f59e0b] font-mono text-[10px]">
+                          <span className="text-sm font-bold text-text-primary">{thread.author.name}</span>
+                          <span className="px-2 py-0.5 rounded bg-surface-container text-accent-amber font-mono text-[10px]">
                             {thread.author.tier}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 font-mono text-[11px] text-[#94a3b8]">
+                        <div className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
                           <span>{thread.author.role}</span>
                           <span>•</span>
                           <span>{thread.timeAgo}</span>
                           <span>•</span>
-                          <span className="text-[#f7bb82] flex items-center gap-0.5">
-                            <span className="material-symbols-outlined text-[13px]">location_on</span>
+                          <span className="text-primary flex items-center gap-0.5">
+                            <MapPin className="w-3.5 h-3.5" />
                             {thread.author.location}
                           </span>
                         </div>
@@ -577,35 +580,37 @@ export default function CommunityGroupDetailPage() {
                       onClick={() => handleBookmark(thread.id)}
                       className={`p-1.5 rounded-lg border border-transparent transition-colors ${
                         thread.isBookmarked
-                          ? "text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/20"
-                          : "text-[#94a3b8] hover:text-white hover:bg-[#201f21]"
+                          ? "text-accent-amber bg-accent-amber/10 border-accent-amber/20"
+                          : "text-text-muted hover:text-text-primary hover:bg-surface-container"
                       }`}
                       title="Bookmark thread"
                     >
-                      <span className="material-symbols-outlined text-[18px]">
-                        {thread.isBookmarked ? "bookmark_added" : "bookmark"}
-                      </span>
+                      {thread.isBookmarked ? (
+                        <BookmarkCheck className="w-4 h-4 text-accent-amber" />
+                      ) : (
+                        <Bookmark className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
 
                   {/* Thread Body */}
                   <div className="flex flex-col gap-3">
-                    <h3 className="text-lg font-bold text-[#f8fafc] leading-snug">{thread.title}</h3>
-                    <p className="text-sm text-[#94a3b8] leading-relaxed">{thread.content}</p>
+                    <h3 className="text-lg font-bold text-text-primary leading-snug">{thread.title}</h3>
+                    <p className="text-sm text-text-muted leading-relaxed">{thread.content}</p>
 
                     {/* Code Block if any */}
                     {thread.codeSnippet && (
-                      <div className="rounded-xl bg-[#0a0a0c] border border-white/[0.08] p-4 font-mono text-xs overflow-x-auto shadow-inner text-[#94a3b8]">
-                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.06] text-[#94a3b8]">
+                      <div className="rounded-xl bg-canvas-obsidian border border-border-subtle p-4 font-mono text-xs overflow-x-auto shadow-inner text-text-muted">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-border-subtle text-text-muted">
                           <div className="flex items-center gap-2">
                             <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500/80" />
                             <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500/80" />
                             <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                            <span className="ml-1 text-white font-medium">{thread.codeSnippet.filename}</span>
+                            <span className="ml-1 text-text-primary font-medium">{thread.codeSnippet.filename}</span>
                           </div>
-                          <span className="text-[#f59e0b]">{thread.codeSnippet.runtime}</span>
+                          <span className="text-accent-amber">{thread.codeSnippet.runtime}</span>
                         </div>
-                        <pre className="font-mono text-xs leading-relaxed text-[#f8fafc] overflow-x-auto">
+                        <pre className="font-mono text-xs leading-relaxed text-text-primary overflow-x-auto">
                           {thread.codeSnippet.code}
                         </pre>
                       </div>
@@ -613,17 +618,17 @@ export default function CommunityGroupDetailPage() {
 
                     {/* Metrics Grid if any */}
                     {thread.metrics && (
-                      <div className="grid grid-cols-3 gap-2 bg-[#111114] p-2 rounded-xl border border-white/[0.06]">
-                        <div className="flex flex-col items-center justify-center p-2.5 bg-[#18181c] rounded-lg text-center">
-                          <span className="font-mono text-[10px] text-[#94a3b8]">Server Action p95</span>
-                          <span className="font-bold text-sm text-[#f7bb82]">{thread.metrics.serverActionP95}</span>
+                      <div className="grid grid-cols-3 gap-2 bg-surface-secondary p-2 rounded-xl border border-border-subtle">
+                        <div className="flex flex-col items-center justify-center p-2.5 bg-surface-card rounded-lg text-center">
+                          <span className="font-mono text-[10px] text-text-muted">Server Action p95</span>
+                          <span className="font-bold text-sm text-primary">{thread.metrics.serverActionP95}</span>
                         </div>
-                        <div className="flex flex-col items-center justify-center p-2.5 bg-[#18181c] rounded-lg text-center">
-                          <span className="font-mono text-[10px] text-[#94a3b8]">NestJS REST p95</span>
-                          <span className="font-bold text-sm text-[#f59e0b]">{thread.metrics.nestJsP95}</span>
+                        <div className="flex flex-col items-center justify-center p-2.5 bg-surface-card rounded-lg text-center">
+                          <span className="font-mono text-[10px] text-text-muted">NestJS REST p95</span>
+                          <span className="font-bold text-sm text-accent-amber">{thread.metrics.nestJsP95}</span>
                         </div>
-                        <div className="flex flex-col items-center justify-center p-2.5 bg-[#18181c] rounded-lg text-center">
-                          <span className="font-mono text-[10px] text-[#94a3b8]">Local Mesh Ping</span>
+                        <div className="flex flex-col items-center justify-center p-2.5 bg-surface-card rounded-lg text-center">
+                          <span className="font-mono text-[10px] text-text-muted">Local Mesh Ping</span>
                           <span className="font-bold text-sm text-emerald-400">{thread.metrics.localMeshPing}</span>
                         </div>
                       </div>
@@ -635,7 +640,7 @@ export default function CommunityGroupDetailPage() {
                         {thread.mockupImages.map((img, idx) => (
                           <div
                             key={idx}
-                            className="relative rounded-xl overflow-hidden h-44 bg-[#111114] border border-white/[0.08] shadow group"
+                            className="relative rounded-xl overflow-hidden h-44 bg-surface-secondary border border-border-subtle shadow group"
                           >
                             <Image
                               src={img.src}
@@ -645,7 +650,7 @@ export default function CommunityGroupDetailPage() {
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                            <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-[#18181c]/90 backdrop-blur font-mono text-[11px] text-[#f7bb82]">
+                            <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-surface-card/90 backdrop-blur font-mono text-[11px] text-primary">
                               {img.caption}
                             </div>
                           </div>
@@ -655,23 +660,23 @@ export default function CommunityGroupDetailPage() {
 
                     {/* Barista pairing recommendation */}
                     {thread.baristaTip && (
-                      <div className="p-3 rounded-xl bg-[#201f21]/70 border border-[#f59e0b]/20 text-xs text-[#94a3b8] flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[18px] text-[#f59e0b]">coffee</span>
+                      <div className="p-3 rounded-xl bg-surface-container/70 border border-accent-amber/20 text-xs text-text-muted flex items-center gap-2">
+                        <Coffee className="w-4 h-4 text-accent-amber" />
                         <span>
-                          <strong className="text-white">Barista Pairing:</strong> {thread.baristaTip}
+                          <strong className="text-text-primary">Barista Pairing:</strong> {thread.baristaTip}
                         </span>
                       </div>
                     )}
                   </div>
 
                   {/* Tags & Social Metrics */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/[0.06]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border-subtle">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {thread.tags.map((tg) => (
                         <span
                           key={tg}
                           onClick={() => setSelectedTag(tg)}
-                          className="px-2 py-0.5 rounded bg-[#111114] text-[#94a3b8] font-mono text-[10px] hover:text-[#f59e0b] cursor-pointer"
+                          className="px-2 py-0.5 rounded bg-surface-secondary text-text-muted font-mono text-[10px] hover:text-accent-amber cursor-pointer"
                         >
                           {tg}
                         </span>
@@ -683,16 +688,16 @@ export default function CommunityGroupDetailPage() {
                         onClick={() => handleUpvote(thread.id)}
                         className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-xs font-semibold transition-colors ${
                           thread.isUpvoted
-                            ? "bg-[#f59e0b] text-[#0a0a0c]"
-                            : "bg-[#201f21] hover:bg-[#2a2a2c] text-[#f7bb82]"
+                            ? "bg-accent-amber text-canvas-obsidian"
+                            : "bg-surface-container hover:bg-surface-container-high text-primary"
                         }`}
                       >
-                        <span className="material-symbols-outlined text-[15px]">arrow_upward</span>
+                        <ArrowUp className="w-3.5 h-3.5" />
                         <span>{thread.upvotes} Upvotes</span>
                       </button>
 
-                      <div className="flex items-center gap-1 text-[#94a3b8] font-mono text-xs">
-                        <span className="material-symbols-outlined text-[15px]">chat_bubble</span>
+                      <div className="flex items-center gap-1 text-text-muted font-mono text-xs">
+                        <MessageSquare className="w-3.5 h-3.5" />
                         <span>{thread.replies} Replies</span>
                       </div>
                     </div>
@@ -705,53 +710,47 @@ export default function CommunityGroupDetailPage() {
           {/* RIGHT COLUMN: GUILD META & PERKS (4 cols) */}
           <aside className="lg:col-span-4 flex flex-col gap-6">
             {/* MODULE 1: ACTIVE CIRCLE PERKS */}
-            <div className="rounded-2xl bg-[#18181c] border border-white/[0.08] p-6 shadow-xl flex flex-col gap-3 relative overflow-hidden">
-              <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-[#9c6b3a]/20 blur-xl pointer-events-none" />
+            <div className="rounded-2xl bg-surface-card border border-border-subtle p-6 shadow-xl flex flex-col gap-3 relative overflow-hidden">
+              <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-brand-coffee/20 blur-xl pointer-events-none" />
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-white flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[20px] text-[#f59e0b]">workspace_premium</span>
+                <h3 className="text-base font-bold text-text-primary flex items-center gap-1.5">
+                  <Award className="w-5 h-5 text-accent-amber" />
                   Active Circle Perks
                 </h3>
-                <span className="px-2 py-0.5 rounded bg-[#201f21] text-[#f59e0b] font-mono text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-surface-container text-accent-amber font-mono text-[10px]">
                   TIER 2
                 </span>
               </div>
-              <p className="text-xs text-[#94a3b8]">
+              <p className="text-xs text-text-muted">
                 Automatically applied to your Warkop Ya&apos;reh POS order barcode when checked-in to this circle.
               </p>
 
               <div className="flex flex-col gap-2 pt-1">
-                <div className="p-3 rounded-xl bg-[#111114] border border-white/[0.04] flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[20px] text-[#f59e0b] flex-shrink-0 mt-0.5">
-                    percent
-                  </span>
+                <div className="p-3 rounded-xl bg-surface-secondary border border-border-subtle flex items-start gap-3">
+                  <Percent className="w-5 h-5 text-accent-amber flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-xs font-bold text-white">15% Off All Pour-Over Brews</h4>
-                    <p className="font-mono text-[10px] text-[#94a3b8] mt-0.5">
+                    <h4 className="text-xs font-bold text-text-primary">15% Off All Pour-Over Brews</h4>
+                    <p className="font-mono text-[10px] text-text-muted mt-0.5">
                       Valid during any registered meetup hours
                     </p>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#111114] border border-white/[0.04] flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[20px] text-[#f7bb82] flex-shrink-0 mt-0.5">
-                    lock_clock
-                  </span>
+                <div className="p-3 rounded-xl bg-surface-secondary border border-border-subtle flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-xs font-bold text-white">VIP Meeting Room Priority</h4>
-                    <p className="font-mono text-[10px] text-[#94a3b8] mt-0.5">
+                    <h4 className="text-xs font-bold text-text-primary">VIP Meeting Room Priority</h4>
+                    <p className="font-mono text-[10px] text-text-muted mt-0.5">
                       Zero deposit for 4+ person dev squads
                     </p>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#111114] border border-white/[0.04] flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[20px] text-emerald-400 flex-shrink-0 mt-0.5">
-                    wifi
-                  </span>
+                <div className="p-3 rounded-xl bg-surface-secondary border border-border-subtle flex items-start gap-3">
+                  <Wifi className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-xs font-bold text-white">Low-Latency SSID Bypass</h4>
-                    <p className="font-mono text-[10px] text-[#94a3b8] mt-0.5">
+                    <h4 className="text-xs font-bold text-text-primary">Low-Latency SSID Bypass</h4>
+                    <p className="font-mono text-[10px] text-text-muted mt-0.5">
                       Direct fiber routing to SG/ID AWS clusters
                     </p>
                   </div>
@@ -760,58 +759,58 @@ export default function CommunityGroupDetailPage() {
             </div>
 
             {/* MODULE 2: UPCOMING MEETUPS */}
-            <div className="rounded-2xl bg-[#18181c] border border-white/[0.08] p-6 shadow-xl flex flex-col gap-4">
+            <div className="rounded-2xl bg-surface-card border border-border-subtle p-6 shadow-xl flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-white flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[20px] text-[#f59e0b]">event_available</span>
+                <h3 className="text-base font-bold text-text-primary flex items-center gap-1.5">
+                  <CalendarCheck className="w-5 h-5 text-accent-amber" />
                   Upcoming Gatherings
                 </h3>
-                <Link href="/community" className="font-mono text-[11px] text-[#f7bb82] hover:underline">
+                <Link href="/community" className="font-mono text-[11px] text-primary hover:underline">
                   All Events →
                 </Link>
               </div>
 
               <div className="flex flex-col gap-3">
-                <div className="p-3.5 rounded-xl bg-[#111114] border border-white/[0.04] flex flex-col gap-1.5">
+                <div className="p-3.5 rounded-xl bg-surface-secondary border border-border-subtle flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.2 rounded bg-[#9c6b3a]/30 text-[#f7bb82] font-mono text-[10px]">
+                    <span className="px-2 py-0.5 rounded bg-brand-coffee/30 text-primary font-mono text-[10px]">
                       TOMORROW
                     </span>
-                    <span className="font-mono text-[11px] text-[#94a3b8]">20:00 WIB</span>
+                    <span className="font-mono text-[11px] text-text-muted">20:00 WIB</span>
                   </div>
-                  <h4 className="text-xs font-bold text-white">Late Night Code Sprint &amp; Show</h4>
-                  <p className="text-[11px] text-[#94a3b8]">Gubeng 24H Sanctuary • Table VIP-1</p>
+                  <h4 className="text-xs font-bold text-text-primary">Late Night Code Sprint &amp; Show</h4>
+                  <p className="text-[11px] text-text-muted">Gubeng 24H Sanctuary • Table VIP-1</p>
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-mono text-[10px] text-[#f59e0b]">28 / 30 RSVP&apos;d</span>
-                    <span className="text-[#f7bb82] text-xs font-semibold">Seat Open</span>
+                    <span className="font-mono text-[10px] text-accent-amber">28 / 30 RSVP&apos;d</span>
+                    <span className="text-primary text-xs font-semibold">Seat Open</span>
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#111114] border border-white/[0.04] flex flex-col gap-1.5">
+                <div className="p-3.5 rounded-xl bg-surface-secondary border border-border-subtle flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.2 rounded bg-[#201f21] text-[#94a3b8] font-mono text-[10px]">
+                    <span className="px-2 py-0.5 rounded bg-surface-container text-text-muted font-mono text-[10px]">
                       WED, 12 NOV
                     </span>
-                    <span className="font-mono text-[11px] text-[#94a3b8]">19:30 WIB</span>
+                    <span className="font-mono text-[11px] text-text-muted">19:30 WIB</span>
                   </div>
-                  <h4 className="text-xs font-bold text-white">AI Agents &amp; Single-Origin Cupping</h4>
-                  <p className="text-[11px] text-[#94a3b8]">Darmo Flagship • Tasting Lab #2</p>
+                  <h4 className="text-xs font-bold text-text-primary">AI Agents &amp; Single-Origin Cupping</h4>
+                  <p className="text-[11px] text-text-muted">Darmo Flagship • Tasting Lab #2</p>
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-mono text-[10px] text-[#f59e0b]">14 / 20 RSVP&apos;d</span>
-                    <span className="text-[#f7bb82] text-xs font-semibold">Waitlist</span>
+                    <span className="font-mono text-[10px] text-accent-amber">14 / 20 RSVP&apos;d</span>
+                    <span className="text-primary text-xs font-semibold">Waitlist</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* MODULE 3: CIRCLE MENTORS & LEADS */}
-            <div className="rounded-2xl bg-[#18181c] border border-white/[0.08] p-6 shadow-xl flex flex-col gap-4">
+            <div className="rounded-2xl bg-surface-card border border-border-subtle p-6 shadow-xl flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-white flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[20px] text-[#e8c47a]">supervisor_account</span>
+                <h3 className="text-base font-bold text-text-primary flex items-center gap-1.5">
+                  <Users className="w-5 h-5 text-tertiary" />
                   Circle Mentors &amp; Leads
                 </h3>
-                <span className="font-mono text-[11px] text-[#94a3b8]">3 Active</span>
+                <span className="font-mono text-[11px] text-text-muted">3 Active</span>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -820,41 +819,41 @@ export default function CommunityGroupDetailPage() {
                     name: "Rayhan Al-Farisi",
                     role: "Founder • Systems Architect",
                     initials: "RA",
-                    bg: "bg-[#9c6b3a]",
+                    bg: "bg-brand-coffee",
                   },
                   {
                     name: "Nadia Kusuma",
                     role: "Product & UX Director",
                     initials: "NK",
-                    bg: "bg-[#8e7130]",
+                    bg: "bg-brand-coffee/80",
                   },
                   {
                     name: "Budi Santoso",
                     role: "Head Barista & Tech Host",
                     initials: "BS",
-                    bg: "bg-[#201f21]",
+                    bg: "bg-surface-container",
                   },
                 ].map((m, idx) => (
                   <div key={idx} className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`w-9 h-9 rounded-full ${m.bg} flex items-center justify-center font-mono text-[11px] text-white font-bold`}
+                        className={`w-9 h-9 rounded-full ${m.bg} flex items-center justify-center font-mono text-[11px] text-text-primary font-bold`}
                       >
                         {m.initials}
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-white">{m.name}</h4>
-                        <p className="font-mono text-[10px] text-[#94a3b8]">{m.role}</p>
+                        <h4 className="text-xs font-bold text-text-primary">{m.name}</h4>
+                        <p className="font-mono text-[10px] text-text-muted">{m.role}</p>
                       </div>
                     </div>
                     <a
                       href="https://wa.me/6281234567890"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg bg-[#111114] hover:bg-[#201f21] text-[#94a3b8] hover:text-[#f59e0b] transition-colors"
+                      className="p-1.5 rounded-lg bg-surface-secondary hover:bg-surface-container text-text-muted hover:text-accent-amber transition-colors"
                       title="Contact on WhatsApp"
                     >
-                      <span className="material-symbols-outlined text-[16px]">chat</span>
+                      <MessageCircle className="w-4 h-4" />
                     </a>
                   </div>
                 ))}
@@ -862,16 +861,16 @@ export default function CommunityGroupDetailPage() {
             </div>
 
             {/* MODULE 4: HUB LOCATION WIDGET */}
-            <div className="rounded-2xl bg-[#18181c] border border-white/[0.08] p-6 shadow-xl flex flex-col gap-3">
+            <div className="rounded-2xl bg-surface-card border border-border-subtle p-6 shadow-xl flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] text-[#94a3b8] uppercase">Home Base</span>
+                <span className="font-mono text-[11px] text-text-muted uppercase">Home Base</span>
                 <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   Open 24 Hours
                 </span>
               </div>
 
-              <div className="relative w-full h-32 rounded-xl overflow-hidden bg-[#111114] border border-white/[0.08]">
+              <div className="relative w-full h-32 rounded-xl overflow-hidden bg-surface-secondary border border-border-subtle">
                 <Image
                   src="/images/darmo-interior.png"
                   alt="Warkop Ya'reh Gubeng Sanctuary"
@@ -879,21 +878,21 @@ export default function CommunityGroupDetailPage() {
                   sizes="(min-width: 1024px) 28vw, 100vw"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-canvas-obsidian via-transparent to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">Warkop Ya&apos;reh Gubeng</span>
+                  <span className="text-xs font-bold text-text-primary">Warkop Ya&apos;reh Gubeng</span>
                   <a
                     href="https://maps.google.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-2 py-0.5 rounded bg-[#9c6b3a] text-white font-mono text-[10px] flex items-center gap-0.5 hover:bg-[#825426]"
+                    className="px-2 py-0.5 rounded bg-brand-coffee text-text-primary font-mono text-[10px] flex items-center gap-0.5 hover:bg-primary-container"
                   >
-                    Maps <span className="material-symbols-outlined text-[11px]">open_in_new</span>
+                    Maps <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               </div>
 
-              <p className="font-mono text-[11px] text-[#94a3b8] leading-relaxed">
+              <p className="font-mono text-[11px] text-text-muted leading-relaxed">
                 Jl. Raya Gubeng No. 44, Surabaya • Power sockets available at 100% of tables with dedicated low-latency
                 uplink.
               </p>

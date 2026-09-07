@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   MapPin,
   ChevronDown,
   ShoppingBag,
   Award,
   CheckCircle2,
-} from "lucide-react";
-import { useActiveBranch } from "@/features/catalog/catalog.hooks";
-import { useAuthStore } from "@/stores/auth.store";
-import { useBranchStore, useCartStore } from "@/stores";
+} from 'lucide-react';
+import { useActiveBranch } from '@/features/catalog/catalog.hooks';
+import { useAuthStore } from '@/stores/auth.store';
+import { useBranchStore, useCartStore } from '@/stores';
 
 export function UniversalHeader() {
   const pathname = usePathname();
@@ -26,38 +26,52 @@ export function UniversalHeader() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
-  const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCartCount = cartItems.reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  );
   const canAccessOperations = Boolean(
-    user && ['STAFF', 'CASHIER', 'KITCHEN', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role),
+    user &&
+    [
+      'STAFF',
+      'CASHIER',
+      'KITCHEN',
+      'MANAGER',
+      'ADMIN',
+      'OWNER',
+      'SUPERADMIN',
+    ].includes(user.role)
   );
 
   // Hide on dedicated full-screen staff terminals
-  if (pathname.startsWith("/ops/pos") || pathname.startsWith("/ops/kds")) {
+  if (pathname.startsWith('/ops/pos') || pathname.startsWith('/ops/kds')) {
     return null;
   }
 
   const navLinks = [
-    { href: "/menu", label: "Menu" },
-    { href: "/reservations", label: "Reservasi" },
-    { href: "/community", label: "Komunitas" },
-    { href: "/loyalty", label: "Rewards" },
-    { href: "/#locations", label: "Cabang" },
+    { href: '/menu', label: 'Menu' },
+    { href: '/booking', label: 'Reservasi' },
+    { href: '/community', label: 'Komunitas' },
+    { href: '/loyalty', label: 'Rewards' },
+    { href: '/#locations', label: 'Cabang' },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0a0a0c]/85 backdrop-blur-xl border-b border-white/5 transition-all">
+    <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-canvas-obsidian/85 backdrop-blur-xl transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand + Branch Selector */}
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f59e0b] to-[#9c6b3a] flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-transform group-hover:scale-105">
-              <span className="font-heading font-black text-white text-xl tracking-tighter">Y</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-amber to-brand-coffee shadow-[var(--shadow-glow-gold)] transition-transform group-hover:scale-105">
+              <span className="font-heading text-xl font-black tracking-tighter text-on-primary-container">
+                Y
+              </span>
             </div>
             <div>
-              <div className="font-heading font-bold text-base text-white tracking-wider uppercase leading-none">
+              <div className="font-heading text-base font-bold uppercase leading-none tracking-wider text-text-primary">
                 Warkop Ya&apos;reh
               </div>
-              <div className="text-[10px] font-mono text-[#f59e0b] tracking-widest uppercase">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-accent-amber">
                 Surabaya Roastery
               </div>
             </div>
@@ -67,47 +81,55 @@ export function UniversalHeader() {
           <div className="relative hidden lg:block">
             <button
               onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#18181c] border border-white/10 hover:border-[#f59e0b]/40 text-xs text-neutral-300 transition-colors"
+              className="flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3 py-1.5 text-xs text-on-surface-variant transition-colors hover:border-primary/40"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <MapPin className="w-3.5 h-3.5 text-[#f59e0b]" />
-               <span className="max-w-40 truncate font-medium text-white">{activeBranch?.name ?? "Pilih cabang"}</span>
-              <ChevronDown className="w-3 h-3 text-neutral-400" />
+              <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--green-500)]" />
+              <MapPin className="h-3.5 w-3.5 text-accent-amber" />
+              <span className="max-w-40 truncate font-medium text-text-primary">
+                {activeBranch?.name ?? 'Pilih cabang'}
+              </span>
+              <ChevronDown className="h-3 w-3 text-text-muted" />
             </button>
 
             {isBranchDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-72 p-2 rounded-2xl bg-[#18181c] border border-white/10 shadow-2xl backdrop-blur-2xl z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="px-3 py-1.5 text-[11px] font-mono text-neutral-400 uppercase tracking-wider">
+              <div className="animate-in fade-in slide-in-from-top-2 absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-border-subtle bg-surface-card p-2 shadow-2xl backdrop-blur-2xl">
+                <div className="px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-muted">
                   Pilih Cabang Surabaya
                 </div>
                 {branches.map((b) => (
                   <button
                     key={b.id}
                     onClick={() => {
-                       if (b.id !== activeBranchId) clearCart();
-                       setActiveBranchId(b.id);
+                      if (b.id !== activeBranchId) clearCart();
+                      setActiveBranchId(b.id);
                       setIsBranchDropdownOpen(false);
                     }}
                     className={`w-full text-left p-2.5 rounded-xl flex items-start gap-3 transition-colors ${
                       b.id === activeBranchId
-                        ? "bg-[#f59e0b]/10 border border-[#f59e0b]/30"
-                        : "hover:bg-white/5"
+                        ? 'border border-accent-amber/30 bg-accent-amber/10'
+                        : 'hover:bg-surface-container-high/50'
                     }`}
                   >
                     <div className="mt-0.5">
                       {b.id === activeBranchId ? (
-                        <CheckCircle2 className="w-4 h-4 text-[#f59e0b]" />
+                        <CheckCircle2 className="h-4 w-4 text-accent-amber" />
                       ) : (
-                        <MapPin className="w-4 h-4 text-neutral-500" />
+                        <MapPin className="h-4 w-4 text-text-muted" />
                       )}
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-white">{b.name}</div>
-                      <div className="text-[10px] text-neutral-400 line-clamp-1">{b.address}</div>
-                      <div className="flex items-center gap-2 mt-1 text-[10px] font-mono text-neutral-400">
-                         <span className="text-emerald-400">{b.weekdayHours}</span>
-                         <span>•</span>
-                         <span>{b.city}</span>
+                      <div className="text-xs font-semibold text-text-primary">
+                        {b.name}
+                      </div>
+                      <div className="line-clamp-1 text-[10px] text-text-muted">
+                        {b.address}
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 font-mono text-[10px] text-text-muted">
+                        <span className="text-[var(--green-500)]">
+                          {b.weekdayHours}
+                        </span>
+                        <span>•</span>
+                        <span>{b.city}</span>
                       </div>
                     </div>
                   </button>
@@ -127,8 +149,8 @@ export function UniversalHeader() {
                 href={item.href}
                 className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
                   isActive
-                    ? "text-[#f59e0b] bg-[#f59e0b]/10 font-semibold"
-                    : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    ? 'bg-accent-amber/10 font-semibold text-accent-amber'
+                    : 'text-text-muted hover:bg-surface-container-high/50 hover:text-text-primary'
                 }`}
               >
                 {item.label}
@@ -138,70 +160,68 @@ export function UniversalHeader() {
         </nav>
 
         {/* Center: Quick Portal Switcher Pills */}
-        {canAccessOperations && <div className="hidden xl:flex items-center gap-1 p-1 rounded-full bg-[#111114] border border-white/5 text-xs font-medium">
-          <Link
-            href="/"
-            className={`px-3 py-1 rounded-full transition-colors ${
-              !pathname.startsWith("/ops") && !pathname.startsWith("/admin")
-                ? "bg-[#9c6b3a] text-white"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            Customer
-          </Link>
-          <Link
-            href="/ops/pos"
-            className={`px-3 py-1 rounded-full transition-colors ${
-              pathname.startsWith("/ops/pos")
-                ? "bg-emerald-600 text-white"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            POS Kasir
-          </Link>
-          <Link
-            href="/ops/kds"
-            className={`px-3 py-1 rounded-full transition-colors ${
-              pathname.startsWith("/ops/kds")
-                ? "bg-amber-600 text-white"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            Kitchen KDS
-          </Link>
-          <Link
-            href="/admin"
-            className={`px-3 py-1 rounded-full transition-colors ${
-              pathname.startsWith("/admin")
-                ? "bg-purple-600 text-white"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            Enterprise
-          </Link>
-        </div>}
+        {canAccessOperations && (
+          <div className="hidden items-center gap-1 rounded-full border border-border-subtle bg-surface-secondary p-1 text-xs font-medium xl:flex">
+            <Link
+              href="/"
+              className={`px-3 py-1 rounded-full transition-colors ${
+                !pathname.startsWith('/ops')
+                  ? 'bg-primary-container text-on-primary-container'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              Customer
+            </Link>
+            <Link
+              href="/ops/pos"
+              className={`px-3 py-1 rounded-full transition-colors ${
+                pathname.startsWith('/ops/pos')
+                  ? 'bg-[var(--green-500)] text-on-primary'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              POS Kasir
+            </Link>
+            <Link
+              href="/ops/kds"
+              className={`px-3 py-1 rounded-full transition-colors ${
+                pathname.startsWith('/ops/kds')
+                  ? 'bg-accent-amber text-on-secondary'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              Kitchen KDS
+            </Link>
+          </div>
+        )}
 
         {/* Right: Loyalty Status + Cart Button + Profile */}
         <div className="flex items-center gap-3">
           {/* Loyalty Tier Pill */}
-          {isAuthenticated && user && <Link
-            href="/loyalty"
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-amber-700/10 border border-amber-500/20 text-xs text-amber-200 hover:border-amber-500/40 transition-colors"
-          >
-            <Award className="w-3.5 h-3.5 text-[#f59e0b]" />
-            <span className="font-semibold text-white">{user.membershipTier}</span>
-            <span className="font-mono text-[11px] text-[#f59e0b]">{user.loyaltyPoints} pts</span>
-          </Link>}
+          {isAuthenticated && user && (
+            <Link
+              href="/loyalty"
+              className="hidden items-center gap-2 rounded-full border border-tertiary/20 bg-tertiary/10 px-3 py-1.5 text-xs text-tertiary transition-colors hover:border-tertiary/40 sm:flex"
+            >
+              <Award className="h-3.5 w-3.5 text-accent-amber" />
+              <span className="font-semibold text-text-primary">
+                {user.membershipTier}
+              </span>
+              <span className="font-mono text-[11px] text-accent-amber">
+                {user.loyaltyPoints} pts
+              </span>
+            </Link>
+          )}
 
           {/* Cart Trigger */}
           <button
             onClick={() => setCartOpen(true)}
-            className="relative p-2 rounded-xl bg-[#18181c] border border-white/10 hover:border-white/20 text-neutral-200 transition-colors"
+            className="relative rounded-xl border border-border-subtle bg-surface-card p-2 text-on-surface transition-colors hover:border-outline-variant"
             aria-label="Keranjang Belanja"
           >
-            <ShoppingBag className="w-5 h-5 text-neutral-300" />
+            <ShoppingBag className="h-5 w-5 text-on-surface-variant" />
             {totalCartCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold font-mono text-white bg-[#f59e0b] rounded-full shadow-md">
+              <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-amber px-1 font-mono text-[10px] font-bold text-on-secondary shadow-md">
                 {totalCartCount}
               </span>
             )}
@@ -209,13 +229,22 @@ export function UniversalHeader() {
 
           {/* Profile Avatar */}
           {isAuthenticated && user ? (
-            <Link href="/profile" aria-label="Buka profil" className="group flex items-center gap-2 pl-1">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[#9c6b3a]/20 text-xs font-bold text-[#f59e0b] transition-colors group-hover:border-[#f59e0b]">
+            <Link
+              href="/profile"
+              aria-label="Buka profil"
+              className="group flex items-center gap-2 pl-1"
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border-subtle bg-primary-container/20 text-xs font-bold text-accent-amber transition-colors group-hover:border-accent-amber">
                 {user.name.slice(0, 1).toUpperCase()}
               </span>
             </Link>
           ) : (
-            <Link href="/login" className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-neutral-200 hover:border-[#f59e0b]/40">Masuk</Link>
+            <Link
+              href="/login"
+              className="rounded-xl border border-border-subtle px-3 py-2 text-xs font-semibold text-on-surface hover:border-accent-amber/40"
+            >
+              Masuk
+            </Link>
           )}
         </div>
       </div>

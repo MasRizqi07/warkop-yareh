@@ -5,7 +5,6 @@ import {
   Logger,
   NestInterceptor,
 } from '@nestjs/common';
-import { Prisma } from '@warkop-yareh/database';
 import type { Request } from 'express';
 import { Observable, mergeMap } from 'rxjs';
 import { DatabaseService } from '../../infrastructure/database/database.service';
@@ -60,7 +59,7 @@ export class AuditLogInterceptor implements NestInterceptor {
                 method: request.method,
                 path: request.originalUrl,
                 body: this.sanitizeValue(request.body),
-              } as Prisma.InputJsonObject,
+              },
               ipAddress: request.ip,
               userAgent: request.get('user-agent')?.slice(0, 500),
             },
@@ -116,7 +115,9 @@ export class AuditLogInterceptor implements NestInterceptor {
       }
       return sanitized;
     }
-    return String(value).slice(0, 500);
+    return typeof value === 'bigint' || typeof value === 'symbol'
+      ? value.toString().slice(0, 500)
+      : '[UNSUPPORTED]';
   }
 
   private readProperty(value: unknown, key: string): unknown {

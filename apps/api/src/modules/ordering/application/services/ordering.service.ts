@@ -24,8 +24,10 @@ import type {
 import { EventsGateway } from '../../../websockets/events.gateway';
 import { Order } from '../../domain/entities/order.entity';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
+import { calculateCheckout } from '../../domain/checkout-pricing';
 
 export interface CreateOrderInput {
+  expectedTotal?: number;
   userId: string;
   branchId: string;
   items: Array<{
@@ -38,6 +40,8 @@ export interface CreateOrderInput {
   tableId?: string;
   notes?: string;
   idempotencyKey: string;
+  voucherCode?: string;
+  loyaltyPointsUsed?: number;
 }
 
 @Injectable()
@@ -53,6 +57,25 @@ export class OrderingService {
   ) {}
 
   async createOrder(data: CreateOrderInput) {
+    return this.prepareOrder(data, false);
+  }
+
+  async quoteOrder(data: Omit<CreateOrderInput, 'idempotencyKey'>) {
+    return this.prepareOrder(
+      { ...data, idempotencyKey: 'quote-request' },
+      true,
+    );
+  }
+
+  private async prepareOrder(
+    data: CreateOrderInput,
+    quoteOnly: false,
+  ): Promise<OrderDetails>;
+  private async prepareOrder(
+    data: CreateOrderInput,
+    quoteOnly: true,
+  ): Promise<import('../../domain/checkout-pricing').OrderQuote>;
+  private async prepareOrder(data: CreateOrderInput, quoteOnly: boolean) {
     const idempotencyKey = data.idempotencyKey.trim();
     if (idempotencyKey.length < 8 || idempotencyKey.length > 128) {
       throw new BadRequestException(
@@ -92,24 +115,32 @@ export class OrderingService {
         tableId: data.tableId,
         notes: data.notes?.trim() || undefined,
         items: normalizedItems,
+        voucherCode: data.voucherCode?.trim().toUpperCase() || undefined,
+        loyaltyPointsUsed: data.loyaltyPointsUsed || undefined,
+        expectedTotal: data.expectedTotal,
       }),
     );
     const idempotencyKeyHash = this.sha256(
       `${data.userId}\u0000${idempotencyKey}`,
     );
 
-    const existing =
-      await this.orderingRepo.findByIdempotencyKeyHash(idempotencyKeyHash);
+    const existing = quoteOnly
+      ? null
+      : await this.orderingRepo.findByIdempotencyKeyHash(idempotencyKeyHash);
     if (existing) {
       return this.replayIdempotentOrder(existing, requestFingerprint);
     }
 
-    const productIds = [...new Set(normalizedItems.map((item) => item.productId))];
+    const productIds = [
+      ...new Set(normalizedItems.map((item) => item.productId)),
+    ];
     const products = await this.orderingRepo.getAvailableProductsByIds(
       data.branchId,
       productIds,
     );
-    const productMap = new Map(products.map((product) => [product.id, product]));
+    const productMap = new Map(
+      products.map((product) => [product.id, product]),
+    );
     const missingProductIds = productIds.filter((id) => !productMap.has(id));
     if (missingProductIds.length > 0) {
       throw new BadRequestException({
@@ -143,11 +174,14 @@ export class OrderingService {
       };
     });
 
-    const subtotal = new Order(OrderStatus.PENDING, orderItems).calculateTotal();
-    const tax = Math.round(subtotal * 0.11);
-    const total = subtotal + tax;
+    const subtotal = new Order(
+      OrderStatus.PENDING,
+      orderItems,
+    ).calculateTotal();
+    const { tax, serviceFee, total } = calculateCheckout(subtotal);
     const orderNumber = this.createOrderNumber();
     const orderData = {
+      expectedTotal: data.expectedTotal,
       orderNumber,
       userId: data.userId,
       branchId: data.branchId,
@@ -155,24 +189,29 @@ export class OrderingService {
       type,
       subtotal,
       tax,
+      serviceFee,
       total,
+      ...(data.voucherCode?.trim()
+        ? { voucherCode: data.voucherCode.trim().toUpperCase() }
+        : {}),
+      ...(data.loyaltyPointsUsed
+        ? { loyaltyPointsUsed: data.loyaltyPointsUsed }
+        : {}),
       ...(data.notes?.trim() ? { notes: data.notes.trim() } : {}),
       idempotencyKeyHash,
       requestFingerprint,
     };
 
+    if (quoteOnly) return this.orderingRepo.quoteOrder(orderData);
+
     try {
-      const order = await this.orderingRepo.createOrder(
-        orderData,
-        orderItems,
-        {
-          userId: data.userId,
-          branchId: data.branchId,
-          total,
-          itemCount: normalizedItems.length,
-          type,
-        },
-      );
+      const order = await this.orderingRepo.createOrder(orderData, orderItems, {
+        userId: data.userId,
+        branchId: data.branchId,
+        total,
+        itemCount: normalizedItems.length,
+        type,
+      });
       this.eventsGateway.broadcastOrderCreated(order);
       return order;
     } catch (error) {
@@ -266,7 +305,8 @@ export class OrderingService {
 
   async getPaymentStatusFromMidtrans(orderNumber: string) {
     try {
-      const status = await this.midtransService.getTransactionStatus(orderNumber);
+      const status =
+        await this.midtransService.getTransactionStatus(orderNumber);
       return status.transactionStatus;
     } catch (error) {
       this.logger.warn(
@@ -341,7 +381,6 @@ export class OrderingService {
     definitions: ProductCustomizationDefinition[],
   ): number {
     if (!selections) return 0;
-    if (definitions.length === 0) return 0;
 
     const definitionMap = new Map(
       definitions.map((definition) => [

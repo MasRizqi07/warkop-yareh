@@ -13,6 +13,7 @@ import {
   createHash,
   createHmac,
   randomInt,
+  randomUUID,
   timingSafeEqual,
 } from 'node:crypto';
 import { IdentityService } from './identity.service';
@@ -62,6 +63,7 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id, role: user.role };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
+      jwtid: randomUUID(),
       secret: this.requireRefreshSecret(),
       expiresIn: '7d',
     });
@@ -79,11 +81,17 @@ export class AuthService {
     name: string;
     phone?: string;
     password: string;
+    whatsAppMarketingOptIn?: boolean;
   }) {
     const email = this.normalizeEmail(data.email);
     const existing = await this.identityService.getUserByEmail(email);
     if (existing) {
       throw new BadRequestException('User with this email already exists');
+    }
+    if (data.whatsAppMarketingOptIn && !data.phone) {
+      throw new BadRequestException(
+        'A phone number is required to opt in to WhatsApp marketing',
+      );
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
@@ -92,6 +100,9 @@ export class AuthService {
       name: data.name,
       phone: data.phone,
       passwordHash,
+      ...(data.whatsAppMarketingOptIn
+        ? { whatsAppMarketingOptInAt: new Date() }
+        : {}),
     });
   }
 
@@ -294,7 +305,8 @@ export class AuthService {
   }
 
   private toSafeUser(user: InternalUser): SafeUser {
-    const { passwordHash: _passwordHash, ...safeUser } = user;
+    const { passwordHash, ...safeUser } = user;
+    void passwordHash;
     return safeUser;
   }
 }

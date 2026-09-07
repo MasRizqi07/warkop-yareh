@@ -16,9 +16,7 @@ import type { OrderDetails } from '../../modules/ordering/domain/repositories/or
 import { MidtransService } from './midtrans.service';
 import { PaymentService } from './payment.service';
 
-const makeOrder = (
-  overrides: Record<string, unknown> = {},
-): OrderDetails =>
+const makeOrder = (overrides: Record<string, unknown> = {}): OrderDetails =>
   ({
     id: 'order-1',
     orderNumber: 'WY-20260906-0011223344556677',
@@ -59,6 +57,9 @@ const makeOrder = (
 describe('PaymentService', () => {
   let service: PaymentService;
   let prisma: {
+    withTenantTransaction: jest.Mock;
+    $queryRaw: jest.Mock;
+    order: { findUnique: jest.Mock };
     payment: {
       findUnique: jest.Mock;
       create: jest.Mock;
@@ -66,7 +67,10 @@ describe('PaymentService', () => {
       deleteMany: jest.Mock;
     };
   };
-  let midtrans: { createSnapTransaction: jest.Mock };
+  let midtrans: {
+    createSnapTransaction: jest.Mock;
+    getTransactionStatus: jest.Mock;
+  };
   let ordering: {
     getOrder: jest.Mock;
     applyPaymentNotification: jest.Mock;
@@ -75,6 +79,11 @@ describe('PaymentService', () => {
 
   beforeEach(() => {
     prisma = {
+      withTenantTransaction: jest.fn(
+        (operation: (tx: typeof prisma) => unknown) => operation(prisma),
+      ),
+      $queryRaw: jest.fn(),
+      order: { findUnique: jest.fn().mockResolvedValue(makeOrder()) },
       payment: {
         findUnique: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue({ id: 'payment-1' }),
@@ -87,6 +96,11 @@ describe('PaymentService', () => {
       },
     };
     midtrans = {
+      getTransactionStatus: jest.fn().mockResolvedValue({
+        orderId: 'WY-20260906-0011223344556677',
+        grossAmount: '55500',
+        transactionStatus: 'settlement',
+      }),
       createSnapTransaction: jest.fn().mockResolvedValue({
         token: 'snap-token',
         redirect_url: 'https://sandbox.example/pay',
@@ -129,7 +143,10 @@ describe('PaymentService', () => {
   });
 
   it('creates a payment claim and derives all charge details from order snapshots', async () => {
-    const result = await service.initializeSnap(makeOrder(), PaymentMethod.QRIS);
+    const result = await service.initializeSnap(
+      makeOrder(),
+      PaymentMethod.QRIS,
+    );
 
     expect(result.grossAmount).toBe(55_500);
     expect(prisma.payment.create).toHaveBeenCalledWith({
@@ -168,7 +185,7 @@ describe('PaymentService', () => {
         PaymentMethod.E_WALLET,
       ),
     ).rejects.toThrow(InternalServerErrorException);
-    expect(prisma.payment.deleteMany).toHaveBeenCalled();
+    expect(prisma.payment.create).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid webhook signature before reading an order', async () => {
@@ -199,6 +216,11 @@ describe('PaymentService', () => {
   });
 
   it('maps provider cancellation to a failed payment notification', async () => {
+    midtrans.getTransactionStatus.mockResolvedValue({
+      orderId: 'WY-20260906-0011223344556677',
+      grossAmount: '55500',
+      transactionStatus: 'expire',
+    });
     ordering.getOrder.mockResolvedValue(makeOrder());
     await service.handleWebhook(signedPayload('expire'));
     expect(ordering.applyPaymentNotification).toHaveBeenCalledWith(

@@ -23,7 +23,9 @@ export class IdentityService {
   }
 
   async getUserByEmail(email: string) {
-    return this.userRepository.findByEmail(email.trim().toLocaleLowerCase('en-US'));
+    return this.userRepository.findByEmail(
+      email.trim().toLocaleLowerCase('en-US'),
+    );
   }
 
   async createUser(data: CreateUserInput) {
@@ -35,7 +37,12 @@ export class IdentityService {
     });
   }
 
-  async updateUser(userId: string, data: UpdateUserInput) {
+  async updateUser(
+    userId: string,
+    data: Omit<UpdateUserInput, 'whatsAppMarketingOptInAt'> & {
+      whatsAppMarketingOptIn?: boolean;
+    },
+  ) {
     const existing = await this.userRepository.findById(userId);
     if (!existing) throw new NotFoundException('User not found');
 
@@ -44,6 +51,13 @@ export class IdentityService {
         ...(data.name !== undefined ? { name: data.name.trim() } : {}),
         ...(data.phone !== undefined ? { phone: data.phone.trim() } : {}),
         ...(data.avatar !== undefined ? { avatar: data.avatar.trim() } : {}),
+        ...(data.whatsAppMarketingOptIn !== undefined
+          ? {
+              whatsAppMarketingOptInAt: data.whatsAppMarketingOptIn
+                ? (existing.whatsAppMarketingOptInAt ?? new Date())
+                : null,
+            }
+          : {}),
       });
     } catch (error) {
       if (

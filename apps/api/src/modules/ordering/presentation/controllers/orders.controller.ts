@@ -82,9 +82,38 @@ export class OrdersController {
       type: body.type,
       tableId: body.tableId,
       notes: body.notes,
+      voucherCode: body.voucherCode,
+      loyaltyPointsUsed: body.loyaltyPointsUsed,
+      expectedTotal: body.expectedTotal,
       idempotencyKey,
     });
     return { data: order };
+  }
+
+  @Post('quote')
+  @ApiOperation({
+    summary:
+      'Calculate current prices, fees and eligible discounts without creating an order',
+  })
+  async quoteOrder(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: CreateOrderDto,
+  ) {
+    const branchId = this.hasRole(user, BRANCH_ORDER_ROLES)
+      ? this.requireAssignedBranch(user)
+      : body.branchId;
+    return {
+      data: await this.orderingService.quoteOrder({
+        userId: user.id,
+        branchId,
+        items: body.items,
+        type: body.type,
+        tableId: body.tableId,
+        notes: body.notes,
+        voucherCode: body.voucherCode,
+        loyaltyPointsUsed: body.loyaltyPointsUsed,
+      }),
+    };
   }
 
   @Get(':id/payment-status')

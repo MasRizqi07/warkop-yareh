@@ -22,6 +22,7 @@ import {
   UpdateProductDto,
   ToggleAvailabilityDto,
   ListProductsQueryDto,
+  UpdateBranchProductDto,
 } from '../dtos/catalog.dto';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { Roles } from '../../../../common/decorators/roles.decorator';
@@ -141,6 +142,28 @@ export class CatalogController {
       branchId,
       productId,
       body.isAvailable,
+    );
+    return { data: result };
+  }
+
+  @Patch('branches/:branchId/products/:productId')
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({
+    summary: 'Update branch pricing, availability, or inventory telemetry',
+  })
+  async updateBranchProduct(
+    @Param('branchId') branchId: string,
+    @Param('productId') productId: string,
+    @Body() body: UpdateBranchProductDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    assertBranchAccess(user, branchId);
+    const result = await this.catalogService.updateBranchProduct(
+      branchId,
+      productId,
+      body,
     );
     return { data: result };
   }

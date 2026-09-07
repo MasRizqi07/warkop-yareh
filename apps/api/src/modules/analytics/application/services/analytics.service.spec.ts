@@ -10,12 +10,17 @@ describe('AnalyticsService', () => {
     mockPrisma = {
       order: {
         aggregate: jest.fn(),
+        groupBy: jest.fn(),
       },
       orderItem: {
         groupBy: jest.fn(),
       },
       product: {
         findMany: jest.fn(),
+      },
+      user: {
+        findMany: jest.fn(),
+        count: jest.fn(),
       },
     };
 
@@ -122,6 +127,61 @@ describe('AnalyticsService', () => {
         },
         _sum: { quantity: true, totalPrice: true },
       });
+    });
+  });
+
+  describe('getCustomerInsights', () => {
+    it('derives CRM spend, last visit, and VIP cohort from persisted records', async () => {
+      const createdAt = new Date('2026-01-01T00:00:00.000Z');
+      const lastVisit = new Date('2026-09-01T12:00:00.000Z');
+      mockPrisma.user.findMany.mockResolvedValue([
+        {
+          id: 'customer-1',
+          name: 'Ayu',
+          email: 'ayu@example.com',
+          phone: '081234567890',
+          whatsAppMarketingOptInAt: new Date('2026-08-01T00:00:00.000Z'),
+          membershipTier: 'GOLD',
+          loyaltyPoints: 1_500,
+          createdAt,
+          targetedMarketingCampaigns: [
+            {
+              id: 'campaign-1',
+              status: 'DRAFT',
+              createdAt: new Date('2026-09-02T00:00:00.000Z'),
+            },
+          ],
+        },
+      ]);
+      mockPrisma.user.count.mockResolvedValue(1);
+      mockPrisma.order.groupBy.mockResolvedValue([
+        {
+          userId: 'customer-1',
+          _sum: { total: 250_000 },
+          _count: { _all: 4 },
+          _max: { createdAt: lastVisit },
+        },
+      ]);
+
+      const result = await service.getCustomerInsights({
+        branchId: 'branch-1',
+        page: 1,
+        limit: 20,
+      });
+
+      expect(result.total).toBe(1);
+      expect(result.data[0]).toEqual(
+        expect.objectContaining({
+          id: 'customer-1',
+          totalSpend: 250_000,
+          orderCount: 4,
+          lastVisit,
+          cohort: 'vip',
+          whatsAppMarketingOptInAt: expect.any(Date),
+          lastCampaign: expect.objectContaining({ id: 'campaign-1' }),
+        }),
+      );
+      expect(result.data[0].targetedMarketingCampaigns).toBeUndefined();
     });
   });
 });
