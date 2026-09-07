@@ -1,76 +1,81 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Users, Heart, Target, Lightbulb, Globe, Award } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { SectionHeader } from '@/components/shared/section-header';
-import { staggerContainer, staggerItem } from '@/lib/animations';
+import {
+  Award,
+  Coffee,
+  Globe,
+  Heart,
+  Laptop,
+  Lightbulb,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Wifi,
+  Zap,
+} from 'lucide-react';
 
 export default function AboutPage() {
   return (
-    <div className="relative min-h-screen bg-canvas-obsidian pb-16 font-body text-on-surface">
-      {/* Noise Overlay */}
-      <div className="pointer-events-none fixed inset-0 z-0 bg-grid opacity-20" />
+    <div className="relative min-h-screen bg-canvas-obsidian pb-24 text-on-surface">
+      {/* Background Ambience */}
+      <div className="pointer-events-none fixed inset-0 z-0 bg-mesh opacity-40" />
 
-      {/* Hero with flowing Radial Background Mesh */}
-      <section className="relative overflow-hidden border-b border-border-subtle bg-surface-secondary py-24">
-        <div className="absolute inset-0 bg-mesh z-0" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+      {/* Hero Header */}
+      <section className="relative overflow-hidden border-b border-border-subtle bg-surface-secondary/60 py-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="space-y-4"
           >
-            <Badge
-              variant="gold"
-              className="px-3 py-1 text-[10px] uppercase tracking-widest shadow-sm"
-            >
-              About Us
-            </Badge>
-            <h1 className="font-heading text-3xl font-extrabold leading-tight tracking-tight text-text-primary sm:text-4xl md:text-5xl lg:text-6xl">
-              Membangun Masa Depan
-              <br />
-              <span className="bg-gradient-to-r from-primary via-cream-beige to-accent-amber bg-clip-text text-transparent">
-                Warkop Ya&apos;reh
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-widest bg-accent-amber/15 text-accent-amber border border-accent-amber/30">
+              Sanctuary Heritage • Surabaya 1998
+            </span>
+            <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-text-primary">
+              The Coffee Sanctuary{' '}
+              <span className="bg-gradient-to-r from-cream-beige via-primary to-accent-amber bg-clip-text text-transparent">
+                Ecosystem.
               </span>
             </h1>
-            <p className="mx-auto max-w-2xl text-xs leading-relaxed text-on-surface-variant sm:text-sm md:text-base">
-              WARKOP YA&apos;REH bukan sekadar tempat minum kopi. Kami adalah
-              ekosistem digital yang menghubungkan ide, kreativitas, dan
-              komunitas di Surabaya.
+            <p className="mx-auto max-w-2xl text-sm sm:text-base text-text-muted leading-relaxed">
+              Dari warung kopi legendaris di sudut Wonokromo hingga menjadi episentrum digital coworking dan specialty roastery beroperasi 24 jam nonstop untuk para kreator Surabaya.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Our Story with Cozy Workspace Seating Mockup */}
-      <section className="py-16 sm:py-20 relative z-10">
+      {/* Main Philosophy Split */}
+      <section className="py-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="group relative aspect-video w-full overflow-hidden rounded-2xl border border-border-subtle bg-surface-card lg:aspect-square"
+              className="group relative aspect-video w-full overflow-hidden rounded-3xl border border-border-subtle bg-surface-card lg:aspect-square shadow-2xl"
             >
               <Image
-                alt="Warkop seating environment"
+                alt="Warkop Ya'reh Interior Sanctuary"
                 fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover opacity-80 transition-transform group-hover:scale-[1.02]"
+                sizes="(max-width: 768px) 100vw, 600px"
+                className="object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
                 src="/images/darmo-interior.png"
                 priority
               />
-              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-canvas-obsidian via-canvas-obsidian/20 to-transparent p-6">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
-                  Cozy Environment
+              <div className="absolute inset-0 bg-gradient-to-t from-canvas-obsidian via-canvas-obsidian/30 to-transparent p-8 flex flex-col justify-end">
+                <span className="font-mono text-xs font-bold uppercase tracking-widest text-accent-amber">
+                  Darmo Flagship • Surabaya
                 </span>
-                <h4 className="mt-1 font-heading text-lg font-bold text-text-primary">
-                  Our Darmo Seating Area
-                </h4>
+                <h3 className="mt-1 font-heading text-xl font-bold text-text-primary">
+                  The Third Space for Surabaya&apos;s Next Generation
+                </h3>
               </div>
             </motion.div>
 
@@ -82,111 +87,129 @@ export default function AboutPage() {
               className="space-y-6"
             >
               <div className="space-y-2">
-                <Badge
-                  variant="outline"
-                  className="text-[10px] tracking-wider uppercase border-primary/30 text-primary"
-                >
-                  Our Story
-                </Badge>
-                <h2 className="font-heading text-3xl font-extrabold leading-tight text-text-primary">
-                  Dari Warkop Kecil ke Digital Ecosystem
+                <span className="font-mono text-xs text-accent-amber uppercase tracking-widest">
+                  Our Philosophy
+                </span>
+                <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-text-primary">
+                  Harmoni Kopi Tradisi dan Presisi Digital
                 </h2>
               </div>
-              <div className="space-y-4 font-body text-xs leading-relaxed text-on-surface-variant md:text-sm">
+              <div className="space-y-4 text-sm text-text-muted leading-relaxed">
                 <p>
-                  Berawal dari sebuah warkop kecil di sudut Jalan Darmo,
-                  Surabaya, Ya&apos;reh lahir dari mimpi sederhana: menciptakan
-                  tempat di mana orang-orang bisa berkumpul, berkreasi, dan
-                  bertumbuh bersama.
+                  Warkop Ya&apos;reh lahir dari keyakinan bahwa warung kopi di Jawa Timur bukan sekadar tempat mengonsumsi kafein, melainkan ruang ketiga sakral di mana ide-ide besar lahir, diskusi malam mengalir bebas, dan kesetaraan terjalin di meja kayu.
                 </p>
                 <p>
-                  Hari ini, Ya&apos;reh telah berkembang menjadi lebih dari
-                  sekadar kedai kopi. Kami adalah platform yang menghubungkan
-                  developer, desainer, entrepreneur, mahasiswa, dan siapa pun
-                  yang percaya bahwa ide-ide terbaik lahir dari percakapan yang
-                  baik — dan secangkir kopi yang sempurna.
+                  Kami mentransformasi ritual warkop tradisional dengan teknologi mutakhir: koneksi mesh fiber optik berlatensi rendah, sistem pemesanan QRIS nirsentuh di meja, integrasi Kitchen Display System (KDS), serta biji kopi specialty single-origin Nusantara yang disangrai dengan profil artisan.
                 </p>
-                <p>
-                  Dengan misi untuk terus bertumbuh, Ya&apos;reh membangun
-                  layanan yang mempertemukan pengalaman kedai dan kebutuhan
-                  komunitas lokal melalui platform digital.
-                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border-subtle">
+                <div className="p-4 rounded-xl bg-surface-card border border-border-subtle">
+                  <Coffee className="w-5 h-5 text-accent-amber mb-2" />
+                  <h4 className="font-heading text-sm font-bold text-text-primary">100% Single Origin</h4>
+                  <p className="text-xs text-text-muted mt-1">Biji kopi Ijen, Gayo, dan Flores langsung dari petani.</p>
+                </div>
+                <div className="p-4 rounded-xl bg-surface-card border border-border-subtle">
+                  <Wifi className="w-5 h-5 text-emerald-400 mb-2" />
+                  <h4 className="font-heading text-sm font-bold text-text-primary">Gigabit Redundant WiFi</h4>
+                  <p className="text-xs text-text-muted mt-1">Multi-ISP failover 350 Mbps untuk kelancaran kerja 24/7.</p>
+                </div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Values Section using glass cards */}
-      <section className="relative z-10 border-y border-border-subtle bg-surface-secondary py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            badge="Our Values"
-            title="Yang Kami Perjuangkan"
-            description="Prinsip-prinsip yang membentuk setiap keputusan dan langkah strategis kami."
-          />
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
-          >
-            {[
-              {
-                icon: <Heart className="w-5 h-5" />,
-                title: 'Community First',
-                description:
-                  'Setiap keputusan dimulai dari pertanyaan: apakah ini memberikan nilai nyata bagi komunitas kita?',
-              },
-              {
-                icon: <Award className="w-5 h-5" />,
-                title: 'Quality Always',
-                description:
-                  'Dari biji kopi single origin hingga keindahan UX platform digital, kami tidak pernah kompromi soal kualitas.',
-              },
-              {
-                icon: <Lightbulb className="w-5 h-5" />,
-                title: 'Innovation Driven',
-                description:
-                  'Kami terus bereksplorasi — mulai dari AI Concierge hingga sistem loyalty member yang gamified.',
-              },
-              {
-                icon: <Globe className="w-5 h-5" />,
-                title: 'Local Global',
-                description:
-                  'Mengangkat identitas dan kehangatan lokal Indonesia dengan standardisasi teknologi global.',
-              },
-              {
-                icon: <Target className="w-5 h-5" />,
-                title: 'Impact Focused',
-                description:
-                  'Fokus menciptakan dampak nyata bagi kemajuan UMKM lokal, creator, serta ekosistem developer.',
-              },
-              {
-                icon: <Users className="w-5 h-5" />,
-                title: 'Inclusive Space',
-                description:
-                  'Semua orang dipersilakan bergabung. Developer, seniman, mahasiswa, pebisnis — semua punya tempat di sini.',
-              },
-            ].map((value) => (
-              <motion.div
-                key={value.title}
-                variants={staggerItem}
-                className="delight-card group rounded-2xl border border-border-subtle bg-surface-card p-6 hover:border-primary/20"
-              >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
-                  {value.icon}
-                </div>
-                <h3 className="mb-2 font-heading text-base font-bold text-text-primary transition-colors group-hover:text-primary">
-                  {value.title}
-                </h3>
-                <p className="text-xs leading-relaxed text-on-surface-variant">
-                  {value.description}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
+      {/* Multi-Zone Architecture Showcase */}
+      <section className="py-20 bg-surface-secondary/50 border-y border-border-subtle relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="font-mono text-xs text-accent-amber uppercase tracking-widest">
+              Spatial Architecture
+            </span>
+            <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-text-primary">
+              Tiga Zona Dirancang untuk Produktivitas
+            </h2>
+            <p className="text-sm text-text-muted leading-relaxed">
+              Setiap lantai dan sudut Warkop Ya&apos;reh dioptimalkan untuk kebutuhan aktivitas yang berbeda.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Zone 1 */}
+            <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 space-y-4 hover:border-primary/40 transition-all shadow-xl">
+              <div className="w-12 h-12 rounded-xl bg-accent-amber/15 flex items-center justify-center text-accent-amber">
+                <Laptop className="w-6 h-6" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-text-primary">
+                Indoor Deep Work Zone
+              </h3>
+              <p className="text-xs text-text-muted leading-relaxed">
+                Area hening bebas bising dengan indeks kesunyian 98%. Kursi ergonomis standar Herman Miller, stopkontak terdedikasi di setiap meja, dan pencahayaan hangat yang mereduksi ketegangan mata.
+              </p>
+              <span className="inline-block font-mono text-[11px] text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                Lantai 1 • 24 Jam Buka
+              </span>
+            </div>
+
+            {/* Zone 2 */}
+            <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 space-y-4 hover:border-primary/40 transition-all shadow-xl">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-text-primary">
+                Outdoor Communal Garden
+              </h3>
+              <p className="text-xs text-text-muted leading-relaxed">
+                Taman terbuka tropis dengan kanopi peneduh alami untuk cangkruk, brainstorming santai, dan sesi diskusi komunitas yang hangat dengan sirkulasi udara segar Surabaya.
+              </p>
+              <span className="inline-block font-mono text-[11px] text-accent-amber bg-accent-amber/15 px-2.5 py-1 rounded-md border border-accent-amber/30">
+                Ground Floor • Smoking Friendly
+              </span>
+            </div>
+
+            {/* Zone 3 */}
+            <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 space-y-4 hover:border-primary/40 transition-all shadow-xl">
+              <div className="w-12 h-12 rounded-xl bg-secondary-container/20 flex items-center justify-center text-secondary">
+                <Zap className="w-6 h-6" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-text-primary">
+                VIP Meeting &amp; Podcast Suite
+              </h3>
+              <p className="text-xs text-text-muted leading-relaxed">
+                Studio kedap suara ber-AC untuk rapat direksi, pitching venture capital, dan rekaman audio berkualitas studio lengkap dengan layanan barista pribadi.
+              </p>
+              <span className="inline-block font-mono text-[11px] text-cream-beige bg-surface-secondary px-2.5 py-1 rounded-md border border-border-subtle">
+                Lantai 2 • Reservasi Slot
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-20 text-center relative z-10">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
+          <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-text-primary">
+            Siap Merasakan Pengalaman Sanctuary?
+          </h2>
+          <p className="text-sm text-text-muted leading-relaxed">
+            Kunjungi cabang Darmo Flagship atau Gubeng Roastery kami hari ini. Buka 24 jam nonstop untuk menyambut ritual kreatif Anda.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 pt-2">
+            <Link
+              href="/menu"
+              className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-coffee via-secondary-container to-accent-amber text-canvas-obsidian font-heading font-bold text-sm shadow-lg hover:scale-105 transition-all"
+            >
+              Lihat Menu Kopi
+            </Link>
+            <Link
+              href="/booking"
+              className="px-7 py-3.5 rounded-xl bg-surface-card hover:bg-surface-secondary border border-border-subtle text-text-primary font-heading font-semibold text-sm transition-all"
+            >
+              Reservasi Workspace
+            </Link>
+          </div>
         </div>
       </section>
     </div>
