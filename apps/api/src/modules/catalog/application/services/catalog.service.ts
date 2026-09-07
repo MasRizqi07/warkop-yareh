@@ -10,6 +10,7 @@ import type {
   FullCatalog,
   ICatalogRepository,
   UpdateCatalogProductInput,
+  UpdateBranchProductInput,
 } from '../../domain/repositories/catalog.repository.interface';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
@@ -147,5 +148,71 @@ export class CatalogService {
     );
     await this.redis.del(`catalog:full:${branchId}`);
     return result;
+  }
+
+  async updateBranchProduct(
+    branchId: string,
+    productId: string,
+    data: Omit<UpdateBranchProductInput, 'inventoryUpdatedAt'>,
+  ) {
+    const [branchExists, productExists, current] = await Promise.all([
+      this.catalogRepo.branchExists(branchId),
+      this.catalogRepo.productExists(productId),
+      this.catalogRepo.getBranchProduct(branchId, productId),
+    ]);
+    if (!branchExists) throw new NotFoundException('Branch not found');
+    if (!productExists) throw new NotFoundException('Product not found');
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException(
+        'At least one branch product field is required',
+      );
+    }
+
+    const capacity = data.stockCapacity ?? current?.stockCapacity?.toNumber();
+    const threshold =
+      data.stockThreshold ?? current?.stockThreshold?.toNumber();
+    if (
+      capacity !== null &&
+      capacity !== undefined &&
+      threshold !== null &&
+      threshold !== undefined &&
+      threshold > capacity
+    ) {
+      throw new BadRequestException('Stock threshold cannot exceed capacity');
+    }
+
+    const normalized: UpdateBranchProductInput = {
+      ...data,
+      ...(data.stockUnit !== undefined
+        ? { stockUnit: data.stockUnit?.trim() || null }
+        : {}),
+      ...(data.supplier !== undefined
+        ? { supplier: data.supplier?.trim() || null }
+        : {}),
+      ...(this.hasInventoryField(data)
+        ? { inventoryUpdatedAt: new Date() }
+        : {}),
+    };
+    const result = await this.catalogRepo.updateBranchProduct(
+      branchId,
+      productId,
+      normalized,
+    );
+    await this.redis.del(`catalog:full:${branchId}`);
+    return result;
+  }
+
+  private hasInventoryField(
+    data: Omit<UpdateBranchProductInput, 'inventoryUpdatedAt'>,
+  ) {
+    return [
+      'stockQuantity',
+      'stockCapacity',
+      'stockThreshold',
+      'stockUnit',
+      'supplier',
+      'leadTimeHours',
+      'burnRatePerDay',
+    ].some((field) => Object.prototype.hasOwnProperty.call(data, field));
   }
 }

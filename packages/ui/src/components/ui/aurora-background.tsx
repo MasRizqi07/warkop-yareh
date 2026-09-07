@@ -1,26 +1,21 @@
-"use client";
+'use client';
 
 export function AuroraBackground() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {/* Base dark gradient */}
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-[#0C0D0E] to-[#1A0D06]"
-      />
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      data-aurora="homepage"
+      aria-hidden="true"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-canvas-obsidian to-surface-secondary" />
 
       {/* Aurora blobs */}
-      <div
-        className="absolute w-[600px] h-[400px] rounded-full blur-[120px] opacity-[0.15] animate-aurora-1 top-[10%] left-[5%] bg-[radial-gradient(circle,rgba(196,98,45,0.6),transparent_70%)]"
-      />
-      <div
-        className="absolute w-[500px] h-[600px] rounded-full blur-[150px] opacity-[0.1] animate-aurora-2 top-[40%] right-[5%] bg-[radial-gradient(circle,rgba(255,186,0,0.5),transparent_70%)]"
-      />
-      <div
-        className="absolute w-[400px] h-[300px] rounded-full blur-[100px] opacity-[0.08] animate-aurora-3 bottom-[10%] left-[40%] bg-[radial-gradient(circle,rgba(196,98,45,0.4),transparent_70%)]"
-      />
+      <div className="animate-aurora-1 absolute left-[5%] top-[10%] h-[400px] w-[600px] rounded-full bg-brand-coffee/60 opacity-[0.15] blur-[120px]" />
+      <div className="animate-aurora-2 absolute right-[5%] top-[40%] h-[600px] w-[500px] rounded-full bg-accent-amber/50 opacity-[0.1] blur-[150px]" />
+      <div className="animate-aurora-3 absolute bottom-[10%] left-[40%] h-[300px] w-[400px] rounded-full bg-brand-coffee/40 opacity-[0.08] blur-[100px]" />
 
       {/* Noise texture */}
-      <div className="absolute inset-0 bg-noise" />
+      <div className="absolute inset-0 bg-grid opacity-20" />
     </div>
   );
 }

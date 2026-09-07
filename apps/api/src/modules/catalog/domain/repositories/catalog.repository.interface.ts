@@ -42,6 +42,19 @@ export interface UpdateCatalogProductInput {
   categoryId?: string;
 }
 
+export interface UpdateBranchProductInput {
+  isAvailable?: boolean;
+  priceOverride?: number | null;
+  stockQuantity?: number | null;
+  stockCapacity?: number | null;
+  stockThreshold?: number | null;
+  stockUnit?: string | null;
+  supplier?: string | null;
+  leadTimeHours?: number | null;
+  burnRatePerDay?: number | null;
+  inventoryUpdatedAt?: Date;
+}
+
 export interface ICatalogRepository {
   getDefaultBranchId(): Promise<string | null>;
   branchExists(branchId: string): Promise<boolean>;
@@ -49,6 +62,10 @@ export interface ICatalogRepository {
   productExists(productId: string): Promise<boolean>;
   getFullCatalog(branchId: string): Promise<FullCatalog>;
   listBranchProducts(branchId?: string): Promise<BranchProductDetails[]>;
+  getBranchProduct(
+    branchId: string,
+    productId: string,
+  ): Promise<BranchProductDetails | null>;
   listCategories(): Promise<Category[]>;
   listProducts(params: {
     categoryId?: string;
@@ -67,5 +84,10 @@ export interface ICatalogRepository {
     branchId: string,
     productId: string,
     isAvailable: boolean,
+  ): Promise<BranchProductDetails>;
+  updateBranchProduct(
+    branchId: string,
+    productId: string,
+    data: UpdateBranchProductInput,
   ): Promise<BranchProductDetails>;
 }

@@ -1,9 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import {
-  Plus_Jakarta_Sans,
-  Inter,
-  JetBrains_Mono,
-} from 'next/font/google';
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { SITE } from '@/lib/constants';
@@ -158,6 +154,7 @@ export default function RootLayout({
     <html
       lang="id"
       className="dark"
+      data-theme="dark"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
@@ -169,7 +166,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${plusJakartaSans.variable} ${inter.variable} ${jetBrainsMono.variable} min-h-screen bg-[#0a0a0c] text-[#e5e1e4] antialiased selection:bg-[#9c6b3a] selection:text-[#f8fafc]`}
+        className={`${plusJakartaSans.variable} ${inter.variable} ${jetBrainsMono.variable} min-h-screen bg-canvas-obsidian text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container`}
       >
         <Providers>
           <UniversalHeader />

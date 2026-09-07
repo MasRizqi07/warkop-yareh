@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import Image from "next/image";
-import { motion } from "framer-motion";
+import React from 'react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 import {
   Coffee,
   Users,
@@ -12,11 +12,11 @@ import {
   Globe,
   Award,
   Calendar,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { SectionHeader } from "@/components/shared/section-header";
-import { STATS } from "@/lib/constants";
-import { staggerContainer, staggerItem } from "@/lib/animations";
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { SectionHeader } from '@/components/shared/section-header';
+import { STATS } from '@/lib/constants';
+import { staggerContainer, staggerItem } from '@/lib/animations';
 
 const iconMap: Record<string, React.ReactNode> = {
   Users: <Users className="w-5 h-5 text-primary" />,
@@ -27,12 +27,12 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export default function AboutPage() {
   return (
-    <div className="relative min-h-screen bg-background pb-16">
+    <div className="relative min-h-screen bg-canvas-obsidian pb-16 font-body text-on-surface">
       {/* Noise Overlay */}
-      <div className="fixed inset-0 organic-noise pointer-events-none z-0"></div>
+      <div className="pointer-events-none fixed inset-0 z-0 bg-grid opacity-20" />
 
       {/* Hero with flowing Radial Background Mesh */}
-      <section className="relative py-24 overflow-hidden border-b border-white/5 bg-surface-container/10">
+      <section className="relative overflow-hidden border-b border-border-subtle bg-surface-secondary py-24">
         <div className="absolute inset-0 bg-mesh z-0" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <motion.div
@@ -41,15 +41,20 @@ export default function AboutPage() {
             transition={{ duration: 0.6 }}
             className="space-y-4"
           >
-            <Badge variant="gold" className="uppercase tracking-widest px-3 py-1 text-[10px] shadow-sm shadow-amber-500/10">
+            <Badge
+              variant="gold"
+              className="px-3 py-1 text-[10px] uppercase tracking-widest shadow-sm"
+            >
               About Us
             </Badge>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[var(--text-primary)] leading-tight tracking-tight">
+            <h1 className="font-heading text-3xl font-extrabold leading-tight tracking-tight text-text-primary sm:text-4xl md:text-5xl lg:text-6xl">
               Membangun Masa Depan
               <br />
-              <span className="text-gradient">Warkop Ya&apos;reh</span>
+              <span className="bg-gradient-to-r from-primary via-cream-beige to-accent-amber bg-clip-text text-transparent">
+                Warkop Ya&apos;reh
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm md:text-base text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
+            <p className="mx-auto max-w-2xl text-xs leading-relaxed text-on-surface-variant sm:text-sm md:text-base">
               WARKOP YA&apos;REH bukan sekadar tempat minum kopi. Kami adalah
               ekosistem digital yang menghubungkan ide, kreativitas, dan
               komunitas di Surabaya.
@@ -67,19 +72,23 @@ export default function AboutPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="glass-card p-4 sm:p-5 rounded-2xl border border-white/5 bg-surface-container/20 flex flex-col justify-between"
+              className="delight-card flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-4 sm:p-5"
             >
               <div className="flex justify-between items-center mb-3 sm:mb-4">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                  {iconMap[stat.icon] || <Coffee className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  {iconMap[stat.icon] || (
+                    <Coffee className="w-4 h-4 sm:w-5 sm:h-5" />
+                  )}
                 </div>
-                <span className="text-[9px] sm:text-[10px] font-receipt-label text-primary font-bold uppercase tracking-wider">Metric</span>
+                <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-primary sm:text-[10px]">
+                  Metric
+                </span>
               </div>
               <div>
-                <h3 className="font-display-lg text-xl sm:text-2xl font-extrabold text-[var(--text-primary)] leading-none mb-1">
+                <h3 className="mb-1 font-heading text-xl font-extrabold leading-none text-text-primary sm:text-2xl">
                   {stat.value}
                 </h3>
-                <p className="text-[9px] sm:text-[10px] font-receipt-label text-[var(--text-secondary)] uppercase tracking-tight">
+                <p className="font-mono text-[9px] uppercase tracking-tight text-on-surface-variant sm:text-[10px]">
                   {stat.label}
                 </p>
               </div>
@@ -97,19 +106,23 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="relative aspect-video lg:aspect-square w-full rounded-2xl overflow-hidden glass-card border border-white/5 group"
+              className="group relative aspect-video w-full overflow-hidden rounded-2xl border border-border-subtle bg-surface-card lg:aspect-square"
             >
               <Image
                 alt="Warkop seating environment"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover opacity-70 group-hover:scale-102 transition-transform duration-1000"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhLJIk6lrVYtMEIRb3biYCadHukC3TaaK36VSik-cCNy7V8N1KdACPbMsr1swFmFXFwAGAgHdlD9Gcn3PCNflumIc0MDo4gHazdPgI_hP-YpUo0QesLZ993nPSHjWAFUucj0n4P_EmwydnD3gv6uT2VvcGLeKFXW3dfVMxd5lH5R5iJsIBEAHAoAiFVYH6o88MZPPPxhHRjCuzh856-CJ-Ej0UNtyDXlxPHvgYlUSWpiAqNn2bJl247f3-lLjd4IoT8PAwo_Z6gKQ"
+                className="object-cover opacity-80 transition-transform group-hover:scale-[1.02]"
+                src="/images/darmo-interior.png"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent flex flex-col justify-end p-6">
-                <span className="font-receipt-label text-[10px] text-primary uppercase font-bold tracking-widest">Cozy Environment</span>
-                <h4 className="font-headline-md text-lg font-bold text-[var(--text-primary)] mt-1">Our Darmo Seating Area</h4>
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-canvas-obsidian via-canvas-obsidian/20 to-transparent p-6">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
+                  Cozy Environment
+                </span>
+                <h4 className="mt-1 font-heading text-lg font-bold text-text-primary">
+                  Our Darmo Seating Area
+                </h4>
               </div>
             </motion.div>
 
@@ -121,12 +134,17 @@ export default function AboutPage() {
               className="space-y-6"
             >
               <div className="space-y-2">
-                <Badge variant="outline" className="text-[10px] tracking-wider uppercase border-primary/30 text-primary">Our Story</Badge>
-                <h2 className="text-3xl font-extrabold text-[var(--text-primary)] leading-tight">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] tracking-wider uppercase border-primary/30 text-primary"
+                >
+                  Our Story
+                </Badge>
+                <h2 className="font-heading text-3xl font-extrabold leading-tight text-text-primary">
                   Dari Warkop Kecil ke Digital Ecosystem
                 </h2>
               </div>
-              <div className="space-y-4 text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed font-body">
+              <div className="space-y-4 font-body text-xs leading-relaxed text-on-surface-variant md:text-sm">
                 <p>
                   Berawal dari sebuah warkop kecil di sudut Jalan Darmo,
                   Surabaya, Ya&apos;reh lahir dari mimpi sederhana: menciptakan
@@ -153,7 +171,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values Section using glass cards */}
-      <section className="py-20 bg-surface-container-low/20 relative z-10 border-y border-white/5">
+      <section className="relative z-10 border-y border-border-subtle bg-surface-secondary py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             badge="Our Values"
@@ -170,53 +188,53 @@ export default function AboutPage() {
             {[
               {
                 icon: <Heart className="w-5 h-5" />,
-                title: "Community First",
+                title: 'Community First',
                 description:
-                  "Setiap keputusan dimulai dari pertanyaan: apakah ini memberikan nilai nyata bagi komunitas kita?",
+                  'Setiap keputusan dimulai dari pertanyaan: apakah ini memberikan nilai nyata bagi komunitas kita?',
               },
               {
                 icon: <Award className="w-5 h-5" />,
-                title: "Quality Always",
+                title: 'Quality Always',
                 description:
-                  "Dari biji kopi single origin hingga keindahan UX platform digital, kami tidak pernah kompromi soal kualitas.",
+                  'Dari biji kopi single origin hingga keindahan UX platform digital, kami tidak pernah kompromi soal kualitas.',
               },
               {
                 icon: <Lightbulb className="w-5 h-5" />,
-                title: "Innovation Driven",
+                title: 'Innovation Driven',
                 description:
-                  "Kami terus bereksplorasi — mulai dari AI Concierge hingga sistem loyalty member yang gamified.",
+                  'Kami terus bereksplorasi — mulai dari AI Concierge hingga sistem loyalty member yang gamified.',
               },
               {
                 icon: <Globe className="w-5 h-5" />,
-                title: "Local Global",
+                title: 'Local Global',
                 description:
-                  "Mengangkat identitas dan kehangatan lokal Indonesia dengan standardisasi teknologi global.",
+                  'Mengangkat identitas dan kehangatan lokal Indonesia dengan standardisasi teknologi global.',
               },
               {
                 icon: <Target className="w-5 h-5" />,
-                title: "Impact Focused",
+                title: 'Impact Focused',
                 description:
-                  "Fokus menciptakan dampak nyata bagi kemajuan UMKM lokal, creator, serta ekosistem developer.",
+                  'Fokus menciptakan dampak nyata bagi kemajuan UMKM lokal, creator, serta ekosistem developer.',
               },
               {
                 icon: <Users className="w-5 h-5" />,
-                title: "Inclusive Space",
+                title: 'Inclusive Space',
                 description:
-                  "Semua orang dipersilakan bergabung. Developer, seniman, mahasiswa, pebisnis — semua punya tempat di sini.",
+                  'Semua orang dipersilakan bergabung. Developer, seniman, mahasiswa, pebisnis — semua punya tempat di sini.',
               },
             ].map((value) => (
               <motion.div
                 key={value.title}
                 variants={staggerItem}
-                className="glass-card p-6 rounded-2xl border border-white/5 bg-surface-container/20 group hover:border-primary/20 transition-all duration-300"
+                className="delight-card group rounded-2xl border border-border-subtle bg-surface-card p-6 hover:border-primary/20"
               >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 mb-4 group-hover:bg-primary group-hover:text-coffee-bean transition-all duration-300">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
                   {value.icon}
                 </div>
-                <h3 className="text-base font-bold text-[var(--text-primary)] mb-2 group-hover:text-primary transition-colors">
+                <h3 className="mb-2 font-heading text-base font-bold text-text-primary transition-colors group-hover:text-primary">
                   {value.title}
                 </h3>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                <p className="text-xs leading-relaxed text-on-surface-variant">
                   {value.description}
                 </p>
               </motion.div>

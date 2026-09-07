@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { CountUp } from '@warkop-yareh/ui';
 import {
   Activity,
   RefreshCw,
@@ -18,13 +19,14 @@ import {
   Briefcase,
   Moon,
   Trophy,
-} from "lucide-react";
+} from 'lucide-react';
 
-type BranchScope = "consolidated" | "darmo" | "gubeng";
+type BranchScope = 'consolidated' | 'darmo' | 'gubeng';
 
 export default function ExecutiveOperationsAnalyticsPage() {
-  const [period, setPeriod] = useState<"today" | "7d" | "mtd" | "custom">("7d");
-  const [selectedBranch, setSelectedBranch] = useState<BranchScope>("consolidated");
+  const [period, setPeriod] = useState<'today' | '7d' | 'mtd' | 'custom'>('7d');
+  const [selectedBranch, setSelectedBranch] =
+    useState<BranchScope>('consolidated');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
@@ -51,11 +53,15 @@ export default function ExecutiveOperationsAnalyticsPage() {
           </div>
           <div className="flex items-center gap-4 text-text-muted text-[11px]">
             <span>
-              Dual-WAN Gigabit Fiber: <strong className="text-primary">940 Mbps (Nominal)</strong>
+              Dual-WAN Gigabit Fiber:{' '}
+              <strong className="text-primary">940 Mbps (Nominal)</strong>
             </span>
             <span className="hidden md:inline">•</span>
             <span className="hidden md:inline">
-              Shift Manager: <strong className="text-text-primary">Agung W. (Darmo 24H)</strong>
+              Shift Manager:{' '}
+              <strong className="text-text-primary">
+                Agung W. (Darmo 24H)
+              </strong>
             </span>
           </div>
         </div>
@@ -76,8 +82,9 @@ export default function ExecutiveOperationsAnalyticsPage() {
                 Enterprise Operations &amp; Revenue Analytics
               </h1>
               <p className="text-sm text-text-muted max-w-3xl">
-                Consolidated operational telemetry, bean extraction yield, and patron footfall across Darmo Flagship
-                &amp; Gubeng 24H sanctuaries.
+                Consolidated operational telemetry, bean extraction yield, and
+                patron footfall across Darmo Flagship &amp; Gubeng 24H
+                sanctuaries.
               </p>
             </div>
 
@@ -89,7 +96,7 @@ export default function ExecutiveOperationsAnalyticsPage() {
               >
                 <RefreshCw
                   className={`w-4 h-4 text-accent-amber ${
-                    isRefreshing ? "animate-spin" : ""
+                    isRefreshing ? 'animate-spin' : ''
                   }`}
                 />
                 <span>Refresh Feed</span>
@@ -111,7 +118,7 @@ export default function ExecutiveOperationsAnalyticsPage() {
                     <button
                       onClick={() => {
                         setExportMenuOpen(false);
-                        alert("Exporting CSV Financial Raw...");
+                        alert('Exporting CSV Financial Raw...');
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left text-text-primary hover:bg-surface-container"
                     >
@@ -121,17 +128,17 @@ export default function ExecutiveOperationsAnalyticsPage() {
                     <button
                       onClick={() => {
                         setExportMenuOpen(false);
-                        alert("Exporting Executive PDF Summary...");
+                        alert('Exporting Executive PDF Summary...');
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left text-text-primary hover:bg-surface-container"
                     >
-                      <FileText className="w-4 h-4 text-primary" />{" "}
-                      Executive PDF Summary
+                      <FileText className="w-4 h-4 text-primary" /> Executive
+                      PDF Summary
                     </button>
                     <button
                       onClick={() => {
                         setExportMenuOpen(false);
-                        alert("Exporting JSON Telemetry Stream...");
+                        alert('Exporting JSON Telemetry Stream...');
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left text-text-primary hover:bg-surface-container"
                     >
@@ -148,17 +155,23 @@ export default function ExecutiveOperationsAnalyticsPage() {
           <div className="p-2 rounded-xl bg-surface-card border border-border-subtle shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             {/* Date Segmented Pills */}
             <div className="flex items-center p-1 rounded-lg bg-canvas-obsidian gap-1 overflow-x-auto">
-              {(["today", "7d", "mtd", "custom"] as const).map((p) => (
+              {(['today', '7d', 'mtd', 'custom'] as const).map((p) => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
                   className={`px-4 py-1.5 rounded-md text-xs font-semibold capitalize transition-all whitespace-nowrap ${
                     period === p
-                      ? "bg-surface-container text-accent-amber shadow-sm border border-border-subtle"
-                      : "text-text-muted hover:text-text-primary"
+                      ? 'bg-surface-container text-accent-amber shadow-sm border border-border-subtle'
+                      : 'text-text-muted hover:text-text-primary'
                   }`}
                 >
-                  {p === "today" ? "Today" : p === "7d" ? "Last 7 Days" : p === "mtd" ? "Month to Date" : "Custom Range"}
+                  {p === 'today'
+                    ? 'Today'
+                    : p === '7d'
+                      ? 'Last 7 Days'
+                      : p === 'mtd'
+                        ? 'Month to Date'
+                        : 'Custom Range'}
                 </button>
               ))}
             </div>
@@ -170,16 +183,27 @@ export default function ExecutiveOperationsAnalyticsPage() {
                 <select
                   aria-label="Analytics branch scope"
                   value={selectedBranch}
-                  onChange={(e) => setSelectedBranch(e.target.value as BranchScope)}
+                  onChange={(e) =>
+                    setSelectedBranch(e.target.value as BranchScope)
+                  }
                   className="bg-transparent text-xs font-semibold text-text-primary focus:outline-none cursor-pointer"
                 >
-                  <option className="bg-surface-card text-text-primary" value="consolidated">
+                  <option
+                    className="bg-surface-card text-text-primary"
+                    value="consolidated"
+                  >
                     All Sanctuaries (Consolidated)
                   </option>
-                  <option className="bg-surface-card text-text-primary" value="darmo">
+                  <option
+                    className="bg-surface-card text-text-primary"
+                    value="darmo"
+                  >
                     Darmo Flagship (Central 24H)
                   </option>
-                  <option className="bg-surface-card text-text-primary" value="gubeng">
+                  <option
+                    className="bg-surface-card text-text-primary"
+                    value="gubeng"
+                  >
                     Gubeng Annex (Creative Hub)
                   </option>
                 </select>
@@ -201,144 +225,236 @@ export default function ExecutiveOperationsAnalyticsPage() {
             ══════════════════════════════════════════════════════════════ */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* KPI 1: Gross Revenue */}
-          <div className="bg-surface-card border border-border-subtle rounded-2xl p-5 shadow-lg space-y-3 hover:border-white/[0.14] transition-all">
+          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
             <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Gross Revenue</span>
+              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+                Gross Revenue
+              </span>
               <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-primary">
                 <TrendingUp className="w-3.5 h-3.5 text-primary" /> +14.2%
               </span>
             </div>
             <div>
-              <div className="text-2xl font-bold text-text-primary tracking-tight">Rp 48.250.000</div>
+              <div className="text-2xl font-bold tracking-tight text-text-primary">
+                <CountUp
+                  value={48_250_000}
+                  prefix="Rp "
+                  formatter={(value) =>
+                    Math.round(value).toLocaleString('id-ID')
+                  }
+                />
+              </div>
               <div className="font-mono text-xs text-text-muted mt-1">
-                Daily target: <span className="text-text-primary font-semibold">Rp 45.000.000</span>{" "}
+                Daily target:{' '}
+                <span className="text-text-primary font-semibold">
+                  Rp 45.000.000
+                </span>{' '}
                 <span className="text-accent-amber">(107.2%)</span>
               </div>
             </div>
             {/* Sparkline SVG */}
             <div className="pt-2">
-              <svg className="w-full h-10 overflow-visible" preserveAspectRatio="none" viewBox="0 0 160 40">
+              <svg
+                className="w-full h-10 overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 160 40"
+              >
                 <defs>
                   <linearGradient id="gradRev" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="var(--accent-amber, #f59e0b)" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="var(--accent-amber, #f59e0b)" stopOpacity="0.0" />
+                    <stop
+                      offset="0%"
+                      stopColor="var(--accent-amber)"
+                      stopOpacity="0.35"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--accent-amber)"
+                      stopOpacity="0.0"
+                    />
                   </linearGradient>
                 </defs>
-                <path d="M0,32 Q25,28 45,22 T90,26 T130,12 L160,6 L160,40 L0,40 Z" fill="url(#gradRev)" />
+                <path
+                  d="M0,32 Q25,28 45,22 T90,26 T130,12 L160,6 L160,40 L0,40 Z"
+                  fill="url(#gradRev)"
+                />
                 <path
                   d="M0,32 Q25,28 45,22 T90,26 T130,12 L160,6"
                   fill="none"
-                  stroke="var(--accent-amber, #f59e0b)"
+                  stroke="var(--accent-amber)"
                   strokeLinecap="round"
                   strokeWidth="2.5"
                 />
-                <circle cx="160" cy="6" fill="var(--accent-amber, #f59e0b)" r="3.5" />
+                <circle cx="160" cy="6" fill="var(--accent-amber)" r="3.5" />
               </svg>
             </div>
           </div>
 
           {/* KPI 2: Total Orders */}
-          <div className="bg-surface-card border border-border-subtle rounded-2xl p-5 shadow-lg space-y-3 hover:border-white/[0.14] transition-all">
+          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
             <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Orders Processed</span>
+              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+                Orders Processed
+              </span>
               <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-primary">
                 <QrCode className="w-3.5 h-3.5 text-primary" /> +8.4%
               </span>
             </div>
             <div>
-              <div className="text-2xl font-bold text-text-primary tracking-tight">1.280 Orders</div>
+              <div className="text-2xl font-bold tracking-tight text-text-primary">
+                <CountUp value={1_280} suffix=" Orders" />
+              </div>
               <div className="font-mono text-xs text-text-muted mt-1">
-                Avg Ticket: <span className="text-text-primary font-semibold">Rp 37.695</span> / patron
+                Avg Ticket:{' '}
+                <span className="text-text-primary font-semibold">
+                  Rp 37.695
+                </span>{' '}
+                / patron
               </div>
             </div>
             <div className="pt-2">
-              <svg className="w-full h-10 overflow-visible" preserveAspectRatio="none" viewBox="0 0 160 40">
+              <svg
+                className="w-full h-10 overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 160 40"
+              >
                 <defs>
                   <linearGradient id="gradOrders" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary, #f7bb82)" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="var(--primary, #f7bb82)" stopOpacity="0.0" />
+                    <stop
+                      offset="0%"
+                      stopColor="var(--primary)"
+                      stopOpacity="0.35"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--primary)"
+                      stopOpacity="0.0"
+                    />
                   </linearGradient>
                 </defs>
-                <path d="M0,30 Q30,34 60,20 T110,18 T140,8 L160,10 L160,40 L0,40 Z" fill="url(#gradOrders)" />
+                <path
+                  d="M0,30 Q30,34 60,20 T110,18 T140,8 L160,10 L160,40 L0,40 Z"
+                  fill="url(#gradOrders)"
+                />
                 <path
                   d="M0,30 Q30,34 60,20 T110,18 T140,8 L160,10"
                   fill="none"
-                  stroke="var(--primary, #f7bb82)"
+                  stroke="var(--primary)"
                   strokeLinecap="round"
                   strokeWidth="2.5"
                 />
-                <circle cx="160" cy="10" fill="var(--primary, #f7bb82)" r="3.5" />
+                <circle cx="160" cy="10" fill="var(--primary)" r="3.5" />
               </svg>
             </div>
           </div>
 
           {/* KPI 3: Loyalty Retention */}
-          <div className="bg-surface-card border border-border-subtle rounded-2xl p-5 shadow-lg space-y-3 hover:border-white/[0.14] transition-all">
+          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
             <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Patron Retention</span>
+              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+                Patron Retention
+              </span>
               <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-accent-amber">
                 <Award className="w-3.5 h-3.5 text-accent-amber" /> Gold +120
               </span>
             </div>
             <div>
-              <div className="text-2xl font-bold text-text-primary tracking-tight">68.4% Repeat</div>
+              <div className="text-2xl font-bold tracking-tight text-text-primary">
+                <CountUp value={68.4} decimals={1} suffix="% Repeat" />
+              </div>
               <div className="font-mono text-xs text-text-muted mt-1">
-                Active Patrons: <span className="text-text-primary font-semibold">2,420</span> • 34.2k burn
+                Active Patrons:{' '}
+                <span className="text-text-primary font-semibold">2,420</span> •
+                34.2k burn
               </div>
             </div>
             <div className="pt-2">
-              <svg className="w-full h-10 overflow-visible" preserveAspectRatio="none" viewBox="0 0 160 40">
+              <svg
+                className="w-full h-10 overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 160 40"
+              >
                 <defs>
                   <linearGradient id="gradLoyalty" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="var(--tertiary, #e6c278)" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="var(--tertiary, #e6c278)" stopOpacity="0.0" />
+                    <stop
+                      offset="0%"
+                      stopColor="var(--tertiary)"
+                      stopOpacity="0.35"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--tertiary)"
+                      stopOpacity="0.0"
+                    />
                   </linearGradient>
                 </defs>
-                <path d="M0,25 Q35,28 70,16 T120,20 T150,8 L160,4 L160,40 L0,40 Z" fill="url(#gradLoyalty)" />
+                <path
+                  d="M0,25 Q35,28 70,16 T120,20 T150,8 L160,4 L160,40 L0,40 Z"
+                  fill="url(#gradLoyalty)"
+                />
                 <path
                   d="M0,25 Q35,28 70,16 T120,20 T150,8 L160,4"
                   fill="none"
-                  stroke="var(--tertiary, #e6c278)"
+                  stroke="var(--tertiary)"
                   strokeLinecap="round"
                   strokeWidth="2.5"
                 />
-                <circle cx="160" cy="4" fill="var(--tertiary, #e6c278)" r="3.5" />
+                <circle cx="160" cy="4" fill="var(--tertiary)" r="3.5" />
               </svg>
             </div>
           </div>
 
           {/* KPI 4: Kitchen SLA Speed */}
-          <div className="bg-surface-card border border-border-subtle rounded-2xl p-5 shadow-lg space-y-3 hover:border-white/[0.14] transition-all">
+          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
             <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Brew &amp; Toast SLA</span>
+              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
+                Brew &amp; Toast SLA
+              </span>
               <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-emerald-400">
                 <Zap className="w-3.5 h-3.5 text-emerald-400" /> -1.2m Fast
               </span>
             </div>
             <div>
-              <div className="text-2xl font-bold text-text-primary tracking-tight">5.8 mins</div>
+              <div className="text-2xl font-bold tracking-tight text-text-primary">
+                <CountUp value={5.8} decimals={1} suffix=" mins" />
+              </div>
               <div className="font-mono text-xs text-text-muted mt-1">
-                <span className="text-text-primary font-semibold">94.2%</span> &lt;8 min SLA • Overdue:{" "}
+                <span className="text-text-primary font-semibold">94.2%</span>{' '}
+                &lt;8 min SLA • Overdue:{' '}
                 <span className="text-text-muted">0.8%</span>
               </div>
             </div>
             <div className="pt-2">
-              <svg className="w-full h-10 overflow-visible" preserveAspectRatio="none" viewBox="0 0 160 40">
+              <svg
+                className="w-full h-10 overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 160 40"
+              >
                 <defs>
                   <linearGradient id="gradSLA" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="var(--secondary, #ffb95f)" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="var(--secondary, #ffb95f)" stopOpacity="0.0" />
+                    <stop
+                      offset="0%"
+                      stopColor="var(--secondary)"
+                      stopOpacity="0.35"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--secondary)"
+                      stopOpacity="0.0"
+                    />
                   </linearGradient>
                 </defs>
-                <path d="M0,10 Q30,16 65,22 T115,26 T145,30 L160,32 L160,40 L0,40 Z" fill="url(#gradSLA)" />
+                <path
+                  d="M0,10 Q30,16 65,22 T115,26 T145,30 L160,32 L160,40 L0,40 Z"
+                  fill="url(#gradSLA)"
+                />
                 <path
                   d="M0,10 Q30,16 65,22 T115,26 T145,30 L160,32"
                   fill="none"
-                  stroke="var(--secondary, #ffb95f)"
+                  stroke="var(--secondary)"
                   strokeLinecap="round"
                   strokeWidth="2.5"
                 />
-                <circle cx="160" cy="32" fill="var(--secondary, #ffb95f)" r="3.5" />
+                <circle cx="160" cy="32" fill="var(--secondary)" r="3.5" />
               </svg>
             </div>
           </div>
@@ -359,8 +475,9 @@ export default function ExecutiveOperationsAnalyticsPage() {
                 Ijen Highland Single-Origin Extraction Telemetry
               </h2>
               <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Darmo flagship pressure-profiling grinders maintain 9.2 bar steady state across 18.5g dry doses.
-                Extraction total dissolved solids (TDS) tested at 1.38% optimum sweetness band.
+                Darmo flagship pressure-profiling grinders maintain 9.2 bar
+                steady state across 18.5g dry doses. Extraction total dissolved
+                solids (TDS) tested at 1.38% optimum sweetness band.
               </p>
             </div>
           </div>
@@ -368,18 +485,27 @@ export default function ExecutiveOperationsAnalyticsPage() {
           <div className="rounded-2xl bg-surface-card border border-border-subtle p-6 flex flex-col justify-between shadow-xl">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-accent-amber uppercase font-semibold">Shift Performance</span>
+                <span className="font-mono text-xs text-accent-amber uppercase font-semibold">
+                  Shift Performance
+                </span>
                 <Award className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary">Barista Maestro Shift</h3>
+              <h3 className="text-lg font-bold text-text-primary">
+                Barista Maestro Shift
+              </h3>
               <p className="text-xs text-text-muted leading-relaxed">
-                Night squad lead barista Rian H. logged 340 consecutive pour-overs with 0.00% customer refactors.
+                Night squad lead barista Rian H. logged 340 consecutive
+                pour-overs with 0.00% customer refactors.
               </p>
             </div>
             <div className="pt-4 mt-4 bg-surface-secondary p-3.5 rounded-xl flex items-center justify-between border border-border-subtle">
               <div>
-                <div className="font-mono text-[10px] text-text-muted">STEAM WAND TEMP</div>
-                <div className="font-mono text-xs text-text-primary font-bold">64.5°C Optimal Microfoam</div>
+                <div className="font-mono text-[10px] text-text-muted">
+                  STEAM WAND TEMP
+                </div>
+                <div className="font-mono text-xs text-text-primary font-bold">
+                  64.5°C Optimal Microfoam
+                </div>
               </div>
               <Thermometer className="w-6 h-6 text-accent-amber" />
             </div>
@@ -395,7 +521,9 @@ export default function ExecutiveOperationsAnalyticsPage() {
             <div className="space-y-1">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-text-primary">Hourly Sales &amp; Footfall Dynamics</h3>
+                  <h3 className="text-lg font-bold text-text-primary">
+                    Hourly Sales &amp; Footfall Dynamics
+                  </h3>
                   <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-surface-secondary text-primary font-bold">
                     24H CYCLE
                   </span>
@@ -413,7 +541,8 @@ export default function ExecutiveOperationsAnalyticsPage() {
                 </div>
               </div>
               <p className="text-xs text-text-muted">
-                Comparative telemetry between revenue volume (bars) and patron headcount (curve).
+                Comparative telemetry between revenue volume (bars) and patron
+                headcount (curve).
               </p>
             </div>
 
@@ -422,61 +551,311 @@ export default function ExecutiveOperationsAnalyticsPage() {
               <div className="min-w-[560px]">
                 <svg className="w-full h-64" fill="none" viewBox="0 0 600 240">
                   {/* Gridlines */}
-                  <line stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" x1="40" x2="590" y1="20" y2="20" />
-                  <line stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" x1="40" x2="590" y1="70" y2="70" />
-                  <line stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" x1="40" x2="590" y1="120" y2="120" />
-                  <line stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" x1="40" x2="590" y1="170" y2="170" />
-                  <line stroke="rgba(255,255,255,0.12)" x1="40" x2="590" y1="210" y2="210" />
+                  <line
+                    stroke="rgba(255,255,255,0.05)"
+                    strokeDasharray="3 3"
+                    x1="40"
+                    x2="590"
+                    y1="20"
+                    y2="20"
+                  />
+                  <line
+                    stroke="rgba(255,255,255,0.05)"
+                    strokeDasharray="3 3"
+                    x1="40"
+                    x2="590"
+                    y1="70"
+                    y2="70"
+                  />
+                  <line
+                    stroke="rgba(255,255,255,0.05)"
+                    strokeDasharray="3 3"
+                    x1="40"
+                    x2="590"
+                    y1="120"
+                    y2="120"
+                  />
+                  <line
+                    stroke="rgba(255,255,255,0.05)"
+                    strokeDasharray="3 3"
+                    x1="40"
+                    x2="590"
+                    y1="170"
+                    y2="170"
+                  />
+                  <line
+                    stroke="rgba(255,255,255,0.12)"
+                    x1="40"
+                    x2="590"
+                    y1="210"
+                    y2="210"
+                  />
 
                   {/* Y Axis Labels */}
-                  <text className="text-[10px] fill-current text-text-muted font-mono" textAnchor="end" x="32" y="24">
+                  <text
+                    className="text-[10px] fill-current text-text-muted font-mono"
+                    textAnchor="end"
+                    x="32"
+                    y="24"
+                  >
                     Rp 5M
                   </text>
-                  <text className="text-[10px] fill-current text-text-muted font-mono" textAnchor="end" x="32" y="74">
+                  <text
+                    className="text-[10px] fill-current text-text-muted font-mono"
+                    textAnchor="end"
+                    x="32"
+                    y="74"
+                  >
                     Rp 3.5M
                   </text>
-                  <text className="text-[10px] fill-current text-text-muted font-mono" textAnchor="end" x="32" y="124">
+                  <text
+                    className="text-[10px] fill-current text-text-muted font-mono"
+                    textAnchor="end"
+                    x="32"
+                    y="124"
+                  >
                     Rp 2M
                   </text>
-                  <text className="text-[10px] fill-current text-text-muted font-mono" textAnchor="end" x="32" y="174">
+                  <text
+                    className="text-[10px] fill-current text-text-muted font-mono"
+                    textAnchor="end"
+                    x="32"
+                    y="174"
+                  >
                     Rp 1M
                   </text>
 
                   {/* Peak Highlight Zones */}
-                  <rect fill="var(--accent-amber, #f59e0b)" fillOpacity="0.06" height="195" rx="6" width="85" x="295" y="15" />
-                  <text className="text-[9px] fill-current text-accent-amber font-mono font-bold" textAnchor="middle" x="337" y="12">
+                  <rect
+                    fill="var(--accent-amber, #f59e0b)"
+                    fillOpacity="0.06"
+                    height="195"
+                    rx="6"
+                    width="85"
+                    x="295"
+                    y="15"
+                  />
+                  <text
+                    className="text-[9px] fill-current text-accent-amber font-mono font-bold"
+                    textAnchor="middle"
+                    x="337"
+                    y="12"
+                  >
                     PEAK 1: COWORK
                   </text>
 
-                  <rect fill="var(--primary, #f7bb82)" fillOpacity="0.08" height="195" rx="6" width="145" x="440" y="15" />
-                  <text className="text-[9px] fill-current text-primary font-mono font-bold" textAnchor="middle" x="512" y="12">
+                  <rect
+                    fill="var(--primary, #f7bb82)"
+                    fillOpacity="0.08"
+                    height="195"
+                    rx="6"
+                    width="145"
+                    x="440"
+                    y="15"
+                  />
+                  <text
+                    className="text-[9px] fill-current text-primary font-mono font-bold"
+                    textAnchor="middle"
+                    x="512"
+                    y="12"
+                  >
                     PEAK 2: MIDNIGHT DEV SPRINT
                   </text>
 
                   {/* 24 Hour Bars */}
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.7" height="65" rx="2" width="12" x="48" y="145" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.6" height="50" rx="2" width="12" x="70" y="160" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.5" height="35" rx="2" width="12" x="92" y="175" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.4" height="30" rx="2" width="12" x="114" y="180" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.5" height="40" rx="2" width="12" x="136" y="170" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.7" height="60" rx="2" width="12" x="158" y="150" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.8" height="80" rx="2" width="12" x="180" y="130" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.85" height="95" rx="2" width="12" x="202" y="115" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" fillOpacity="0.9" height="100" rx="2" width="12" x="224" y="110" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" height="115" rx="2" width="12" x="246" y="95" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" height="120" rx="2" width="12" x="268" y="90" />
-                  <rect fill="var(--accent-amber, #f59e0b)" height="162" rx="2" width="12" x="302" y="48" />
-                  <rect fill="var(--accent-amber, #f59e0b)" height="170" rx="2" width="12" x="324" y="40" />
-                  <rect fill="var(--accent-amber, #f59e0b)" height="158" rx="2" width="12" x="346" y="52" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" height="140" rx="2" width="12" x="368" y="70" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" height="125" rx="2" width="12" x="395" y="85" />
-                  <rect fill="var(--brand-coffee, #9c6b3a)" height="135" rx="2" width="12" x="417" y="75" />
-                  <rect fill="var(--primary, #f7bb82)" height="178" rx="2" width="12" x="450" y="32" />
-                  <rect fill="var(--primary, #f7bb82)" height="186" rx="2" width="12" x="472" y="24" />
-                  <rect fill="var(--primary, #f7bb82)" height="190" rx="2" width="12" x="494" y="20" />
-                  <rect fill="var(--primary, #f7bb82)" height="182" rx="2" width="12" x="516" y="28" />
-                  <rect fill="var(--primary, #f7bb82)" height="165" rx="2" width="12" x="538" y="45" />
-                  <rect fill="var(--primary, #f7bb82)" height="130" rx="2" width="12" x="560" y="80" />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.7"
+                    height="65"
+                    rx="2"
+                    width="12"
+                    x="48"
+                    y="145"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.6"
+                    height="50"
+                    rx="2"
+                    width="12"
+                    x="70"
+                    y="160"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.5"
+                    height="35"
+                    rx="2"
+                    width="12"
+                    x="92"
+                    y="175"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.4"
+                    height="30"
+                    rx="2"
+                    width="12"
+                    x="114"
+                    y="180"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.5"
+                    height="40"
+                    rx="2"
+                    width="12"
+                    x="136"
+                    y="170"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.7"
+                    height="60"
+                    rx="2"
+                    width="12"
+                    x="158"
+                    y="150"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.8"
+                    height="80"
+                    rx="2"
+                    width="12"
+                    x="180"
+                    y="130"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.85"
+                    height="95"
+                    rx="2"
+                    width="12"
+                    x="202"
+                    y="115"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    fillOpacity="0.9"
+                    height="100"
+                    rx="2"
+                    width="12"
+                    x="224"
+                    y="110"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    height="115"
+                    rx="2"
+                    width="12"
+                    x="246"
+                    y="95"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    height="120"
+                    rx="2"
+                    width="12"
+                    x="268"
+                    y="90"
+                  />
+                  <rect
+                    fill="var(--accent-amber, #f59e0b)"
+                    height="162"
+                    rx="2"
+                    width="12"
+                    x="302"
+                    y="48"
+                  />
+                  <rect
+                    fill="var(--accent-amber, #f59e0b)"
+                    height="170"
+                    rx="2"
+                    width="12"
+                    x="324"
+                    y="40"
+                  />
+                  <rect
+                    fill="var(--accent-amber, #f59e0b)"
+                    height="158"
+                    rx="2"
+                    width="12"
+                    x="346"
+                    y="52"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    height="140"
+                    rx="2"
+                    width="12"
+                    x="368"
+                    y="70"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    height="125"
+                    rx="2"
+                    width="12"
+                    x="395"
+                    y="85"
+                  />
+                  <rect
+                    fill="var(--brand-coffee, #9c6b3a)"
+                    height="135"
+                    rx="2"
+                    width="12"
+                    x="417"
+                    y="75"
+                  />
+                  <rect
+                    fill="var(--primary, #f7bb82)"
+                    height="178"
+                    rx="2"
+                    width="12"
+                    x="450"
+                    y="32"
+                  />
+                  <rect
+                    fill="var(--primary, #f7bb82)"
+                    height="186"
+                    rx="2"
+                    width="12"
+                    x="472"
+                    y="24"
+                  />
+                  <rect
+                    fill="var(--primary, #f7bb82)"
+                    height="190"
+                    rx="2"
+                    width="12"
+                    x="494"
+                    y="20"
+                  />
+                  <rect
+                    fill="var(--primary, #f7bb82)"
+                    height="182"
+                    rx="2"
+                    width="12"
+                    x="516"
+                    y="28"
+                  />
+                  <rect
+                    fill="var(--primary, #f7bb82)"
+                    height="165"
+                    rx="2"
+                    width="12"
+                    x="538"
+                    y="45"
+                  />
+                  <rect
+                    fill="var(--primary, #f7bb82)"
+                    height="130"
+                    rx="2"
+                    width="12"
+                    x="560"
+                    y="80"
+                  />
 
                   {/* Headcount Smooth Polyline */}
                   <path
@@ -486,29 +865,78 @@ export default function ExecutiveOperationsAnalyticsPage() {
                     strokeLinecap="round"
                     strokeWidth="2.5"
                   />
-                  <circle cx="330" cy="50" fill="var(--accent-amber, #f59e0b)" r="4" stroke="var(--surface-card, #18181c)" strokeWidth="2" />
-                  <circle cx="504" cy="26" fill="var(--primary, #f7bb82)" r="4" stroke="var(--surface-card, #18181c)" strokeWidth="2" />
+                  <circle
+                    cx="330"
+                    cy="50"
+                    fill="var(--accent-amber, #f59e0b)"
+                    r="4"
+                    stroke="var(--surface-card, #18181c)"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx="504"
+                    cy="26"
+                    fill="var(--primary, #f7bb82)"
+                    r="4"
+                    stroke="var(--surface-card, #18181c)"
+                    strokeWidth="2"
+                  />
 
                   {/* X Axis Time markers */}
-                  <text className="text-[9px] fill-current text-text-muted font-mono" textAnchor="middle" x="54" y="226">
+                  <text
+                    className="text-[9px] fill-current text-text-muted font-mono"
+                    textAnchor="middle"
+                    x="54"
+                    y="226"
+                  >
                     00:00
                   </text>
-                  <text className="text-[9px] fill-current text-text-muted font-mono" textAnchor="middle" x="142" y="226">
+                  <text
+                    className="text-[9px] fill-current text-text-muted font-mono"
+                    textAnchor="middle"
+                    x="142"
+                    y="226"
+                  >
                     04:00
                   </text>
-                  <text className="text-[9px] fill-current text-text-muted font-mono" textAnchor="middle" x="230" y="226">
+                  <text
+                    className="text-[9px] fill-current text-text-muted font-mono"
+                    textAnchor="middle"
+                    x="230"
+                    y="226"
+                  >
                     08:00
                   </text>
-                  <text className="text-[9px] fill-current text-accent-amber font-mono font-bold" textAnchor="middle" x="318" y="226">
+                  <text
+                    className="text-[9px] fill-current text-accent-amber font-mono font-bold"
+                    textAnchor="middle"
+                    x="318"
+                    y="226"
+                  >
                     13:00
                   </text>
-                  <text className="text-[9px] fill-current text-text-muted font-mono" textAnchor="middle" x="406" y="226">
+                  <text
+                    className="text-[9px] fill-current text-text-muted font-mono"
+                    textAnchor="middle"
+                    x="406"
+                    y="226"
+                  >
                     18:00
                   </text>
-                  <text className="text-[9px] fill-current text-primary font-mono font-bold" textAnchor="middle" x="484" y="226">
+                  <text
+                    className="text-[9px] fill-current text-primary font-mono font-bold"
+                    textAnchor="middle"
+                    x="484"
+                    y="226"
+                  >
                     22:00
                   </text>
-                  <text className="text-[9px] fill-current text-text-muted font-mono" textAnchor="middle" x="566" y="226">
+                  <text
+                    className="text-[9px] fill-current text-text-muted font-mono"
+                    textAnchor="middle"
+                    x="566"
+                    y="226"
+                  >
                     02:00
                   </text>
                 </svg>
@@ -523,10 +951,14 @@ export default function ExecutiveOperationsAnalyticsPage() {
                   <span>13:00 – 16:00 WIB • COWORKING RUSH</span>
                 </div>
                 <div className="text-lg font-bold text-text-primary">
-                  Rp 14.850.000 <span className="text-xs text-text-muted font-normal">(89% Desk Load)</span>
+                  Rp 14.850.000{' '}
+                  <span className="text-xs text-text-muted font-normal">
+                    (89% Desk Load)
+                  </span>
                 </div>
                 <p className="text-xs text-text-muted">
-                  Primary items: Cold Brew Aren, Pastrami Toast &amp; Day-pass VIP desk slots.
+                  Primary items: Cold Brew Aren, Pastrami Toast &amp; Day-pass
+                  VIP desk slots.
                 </p>
               </div>
 
@@ -536,10 +968,14 @@ export default function ExecutiveOperationsAnalyticsPage() {
                   <span>20:00 – 01:00 WIB • MIDNIGHT SPRINT</span>
                 </div>
                 <div className="text-lg font-bold text-text-primary">
-                  Rp 21.200.000 <span className="text-xs text-text-muted font-normal">(96% Table Load)</span>
+                  Rp 21.200.000{' '}
+                  <span className="text-xs text-text-muted font-normal">
+                    (96% Table Load)
+                  </span>
                 </div>
                 <p className="text-xs text-text-muted">
-                  Peak artisanal pour-over volume, brioche snacks, and shared extension plugs.
+                  Peak artisanal pour-over volume, brioche snacks, and shared
+                  extension plugs.
                 </p>
               </div>
             </div>
@@ -549,11 +985,14 @@ export default function ExecutiveOperationsAnalyticsPage() {
               <div className="flex items-center gap-2">
                 <Moon className="w-4 h-4 text-accent-amber" />
                 <span>
-                  Off-Peak Dawn Shift (02:00 – 06:00 WIB): <strong className="text-text-primary">Rp 4.200.000</strong> baseline
-                  revenue sustained by remote dev teams.
+                  Off-Peak Dawn Shift (02:00 – 06:00 WIB):{' '}
+                  <strong className="text-text-primary">Rp 4.200.000</strong>{' '}
+                  baseline revenue sustained by remote dev teams.
                 </span>
               </div>
-              <span className="text-primary hidden sm:inline font-bold">100% Zero-Drop SLA</span>
+              <span className="text-primary hidden sm:inline font-bold">
+                100% Zero-Drop SLA
+              </span>
             </div>
           </div>
 
@@ -561,16 +1000,25 @@ export default function ExecutiveOperationsAnalyticsPage() {
           <div className="lg:col-span-5 bg-surface-card border border-border-subtle rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-text-primary">Revenue by Category</h3>
-                <span className="font-mono text-[11px] text-text-muted">SHARE RATIO</span>
+                <h3 className="text-lg font-bold text-text-primary">
+                  Revenue by Category
+                </h3>
+                <span className="font-mono text-[11px] text-text-muted">
+                  SHARE RATIO
+                </span>
               </div>
-              <p className="text-xs text-text-muted">Extraction &amp; culinary contribution across 24h audit.</p>
+              <p className="text-xs text-text-muted">
+                Extraction &amp; culinary contribution across 24h audit.
+              </p>
             </div>
 
             {/* Custom Donut Chart */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-2">
               <div className="relative w-40 h-40 flex items-center justify-center flex-shrink-0">
-                <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                <svg
+                  className="w-full h-full -rotate-90 transform"
+                  viewBox="0 0 100 100"
+                >
                   <circle
                     cx="50"
                     cy="50"
@@ -625,9 +1073,15 @@ export default function ExecutiveOperationsAnalyticsPage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="font-mono text-[10px] text-text-muted uppercase">Gross</span>
-                  <span className="text-xl font-bold text-text-primary">48.25M</span>
-                  <span className="font-mono text-[10px] text-accent-amber">IDR</span>
+                  <span className="font-mono text-[10px] text-text-muted uppercase">
+                    Gross
+                  </span>
+                  <span className="text-xl font-bold text-text-primary">
+                    48.25M
+                  </span>
+                  <span className="font-mono text-[10px] text-accent-amber">
+                    IDR
+                  </span>
                 </div>
               </div>
 
@@ -636,44 +1090,68 @@ export default function ExecutiveOperationsAnalyticsPage() {
                 <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded bg-accent-amber" />
-                    <span className="text-xs text-text-primary font-medium">Signature Aren &amp; Cold Drip</span>
+                    <span className="text-xs text-text-primary font-medium">
+                      Signature Aren &amp; Cold Drip
+                    </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">42%</span>
-                    <span className="block font-mono text-[10px] text-text-muted">Rp 20.26M</span>
+                    <span className="font-mono text-xs font-bold text-text-primary">
+                      42%
+                    </span>
+                    <span className="block font-mono text-[10px] text-text-muted">
+                      Rp 20.26M
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded bg-brand-coffee" />
-                    <span className="text-xs text-text-primary font-medium">Single-Origin V60 Pour-Over</span>
+                    <span className="text-xs text-text-primary font-medium">
+                      Single-Origin V60 Pour-Over
+                    </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">24%</span>
-                    <span className="block font-mono text-[10px] text-text-muted">Rp 11.58M</span>
+                    <span className="font-mono text-xs font-bold text-text-primary">
+                      24%
+                    </span>
+                    <span className="block font-mono text-[10px] text-text-muted">
+                      Rp 11.58M
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded bg-tertiary" />
-                    <span className="text-xs text-text-primary font-medium">Brioche Toast &amp; Artisan Eats</span>
+                    <span className="text-xs text-text-primary font-medium">
+                      Brioche Toast &amp; Artisan Eats
+                    </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">21%</span>
-                    <span className="block font-mono text-[10px] text-text-muted">Rp 10.13M</span>
+                    <span className="font-mono text-xs font-bold text-text-primary">
+                      21%
+                    </span>
+                    <span className="block font-mono text-[10px] text-text-muted">
+                      Rp 10.13M
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded bg-primary" />
-                    <span className="text-xs text-text-primary font-medium">Workspace Passes &amp; VIP Pods</span>
+                    <span className="text-xs text-text-primary font-medium">
+                      Workspace Passes &amp; VIP Pods
+                    </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">13%</span>
-                    <span className="block font-mono text-[10px] text-text-muted">Rp 6.27M</span>
+                    <span className="font-mono text-xs font-bold text-text-primary">
+                      13%
+                    </span>
+                    <span className="block font-mono text-[10px] text-text-muted">
+                      Rp 6.27M
+                    </span>
                   </div>
                 </div>
               </div>
@@ -683,26 +1161,48 @@ export default function ExecutiveOperationsAnalyticsPage() {
             <div className="space-y-2 pt-2 border-t border-border-subtle">
               <div className="flex items-center justify-between font-mono text-xs text-text-muted">
                 <span>SETTLEMENT RAILS</span>
-                <span className="text-primary font-semibold">97% Cashless Adoption</span>
+                <span className="text-primary font-semibold">
+                  97% Cashless Adoption
+                </span>
               </div>
               <div className="w-full h-3 rounded-full bg-surface-secondary flex overflow-hidden">
-                <div className="h-full bg-accent-amber" style={{ width: "64%" }} title="QRIS Midtrans: 64%" />
-                <div className="h-full bg-primary" style={{ width: "22%" }} title="GoPay / ShopeePay: 22%" />
-                <div className="h-full bg-tertiary" style={{ width: "11%" }} title="BCA Debit / Credit: 11%" />
-                <div className="h-full bg-text-muted" style={{ width: "3%" }} title="Cash: 3%" />
+                <div
+                  className="h-full bg-accent-amber"
+                  style={{ width: '64%' }}
+                  title="QRIS Midtrans: 64%"
+                />
+                <div
+                  className="h-full bg-primary"
+                  style={{ width: '22%' }}
+                  title="GoPay / ShopeePay: 22%"
+                />
+                <div
+                  className="h-full bg-tertiary"
+                  style={{ width: '11%' }}
+                  title="BCA Debit / Credit: 11%"
+                />
+                <div
+                  className="h-full bg-text-muted"
+                  style={{ width: '3%' }}
+                  title="Cash: 3%"
+                />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-text-muted pt-1">
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-accent-amber" /> QRIS Midtrans 64%
+                  <span className="w-2 h-2 rounded-full bg-accent-amber" /> QRIS
+                  Midtrans 64%
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-primary" /> E-Wallet 22%
+                  <span className="w-2 h-2 rounded-full bg-primary" /> E-Wallet
+                  22%
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-tertiary" /> BCA Card 11%
+                  <span className="w-2 h-2 rounded-full bg-tertiary" /> BCA Card
+                  11%
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-text-muted" /> Cash 3%
+                  <span className="w-2 h-2 rounded-full bg-text-muted" /> Cash
+                  3%
                 </span>
               </div>
             </div>
@@ -716,7 +1216,9 @@ export default function ExecutiveOperationsAnalyticsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-accent-amber" />
-              <h3 className="text-lg font-bold text-text-primary">Top Extraction Catalog Leaderboard</h3>
+              <h3 className="text-lg font-bold text-text-primary">
+                Top Extraction Catalog Leaderboard
+              </h3>
             </div>
             <span className="font-mono text-xs text-accent-amber font-semibold bg-surface-secondary px-2.5 py-1 rounded-full">
               RANKED BY VELOCITY
@@ -726,28 +1228,28 @@ export default function ExecutiveOperationsAnalyticsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
-                rank: "01",
-                name: "Cold Brew Aren Brûlée",
-                subtitle: "412 cups • 74.2% Margin",
-                revenue: "Rp 21.01M",
-                trend: "+18% vs avg",
-                badgeColor: "text-accent-amber",
+                rank: '01',
+                name: 'Cold Brew Aren Brûlée',
+                subtitle: '412 cups • 74.2% Margin',
+                revenue: 'Rp 21.01M',
+                trend: '+18% vs avg',
+                badgeColor: 'text-accent-amber',
               },
               {
-                rank: "02",
-                name: "Smoked Pastrami Brioche",
-                subtitle: "218 orders • 62.8% Margin",
-                revenue: "Rp 10.46M",
-                trend: "High Dinner",
-                badgeColor: "text-text-primary",
+                rank: '02',
+                name: 'Smoked Pastrami Brioche',
+                subtitle: '218 orders • 62.8% Margin',
+                revenue: 'Rp 10.46M',
+                trend: 'High Dinner',
+                badgeColor: 'text-text-primary',
               },
               {
-                rank: "03",
-                name: "Single-Origin V60 Ijen Honey",
-                subtitle: "186 carafes • 81.5% Margin",
-                revenue: "Rp 8.92M",
-                trend: "Late Night Peak",
-                badgeColor: "text-text-primary",
+                rank: '03',
+                name: 'Single-Origin V60 Ijen Honey',
+                subtitle: '186 carafes • 81.5% Margin',
+                revenue: 'Rp 8.92M',
+                trend: 'Late Night Peak',
+                badgeColor: 'text-text-primary',
               },
             ].map((item, idx) => (
               <div
@@ -755,15 +1257,27 @@ export default function ExecutiveOperationsAnalyticsPage() {
                 className="p-4 rounded-xl bg-surface-secondary border border-border-subtle flex items-center justify-between gap-3 hover:border-white/[0.1] transition-all"
               >
                 <div className="flex items-center gap-3">
-                  <span className={`font-mono text-lg font-bold ${item.badgeColor} w-6 text-center`}>{item.rank}</span>
+                  <span
+                    className={`font-mono text-lg font-bold ${item.badgeColor} w-6 text-center`}
+                  >
+                    {item.rank}
+                  </span>
                   <div>
-                    <h4 className="text-xs font-bold text-text-primary">{item.name}</h4>
-                    <p className="font-mono text-[10px] text-text-muted mt-0.5">{item.subtitle}</p>
+                    <h4 className="text-xs font-bold text-text-primary">
+                      {item.name}
+                    </h4>
+                    <p className="font-mono text-[10px] text-text-muted mt-0.5">
+                      {item.subtitle}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-mono text-xs font-bold text-text-primary">{item.revenue}</div>
-                  <div className="font-mono text-[10px] text-primary">{item.trend}</div>
+                  <div className="font-mono text-xs font-bold text-text-primary">
+                    {item.revenue}
+                  </div>
+                  <div className="font-mono text-[10px] text-primary">
+                    {item.trend}
+                  </div>
                 </div>
               </div>
             ))}

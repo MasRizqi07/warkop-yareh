@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { AuroraBackground, CountUp } from '@warkop-yareh/ui';
 import {
   Coffee,
   Briefcase,
@@ -18,10 +19,12 @@ import {
   Radio,
   Headphones,
   Tv,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function HomePage() {
-  const [selectedBranch, setSelectedBranch] = useState<"darmo" | "gubeng">("darmo");
+  const [selectedBranch, setSelectedBranch] = useState<'darmo' | 'gubeng'>(
+    'darmo'
+  );
 
   return (
     <div className="flex flex-col w-full bg-canvas-obsidian text-on-surface overflow-hidden">
@@ -29,6 +32,7 @@ export default function HomePage() {
           SECTION 1: MASTER HERO SECTION
           ══════════════════════════════════════════════════════════════ */}
       <section className="relative w-full overflow-hidden pb-20 pt-10 md:pt-16">
+        <AuroraBackground />
         {/* Ambient Radial Mesh Layer */}
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-accent-amber/15 via-brand-coffee/10 to-transparent blur-3xl pointer-events-none rounded-full" />
         <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-secondary-container/10 blur-[120px] pointer-events-none rounded-full" />
@@ -62,7 +66,9 @@ export default function HomePage() {
                   </span>
                 </h1>
                 <p className="text-base sm:text-lg text-text-muted max-w-xl leading-relaxed font-body">
-                  Surabaya&apos;s 24/7 nexus for artisanal single-origin coffees, gigabit mesh networking, and inspiring coworking spaces engineered for creators, engineers, and night owls.
+                  Surabaya&apos;s 24/7 nexus for artisanal single-origin
+                  coffees, gigabit mesh networking, and inspiring coworking
+                  spaces engineered for creators, engineers, and night owls.
                 </p>
               </div>
 
@@ -70,7 +76,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   href="/menu"
-                  className="group relative inline-flex items-center gap-2.5 px-7 py-4 rounded-xl bg-gradient-to-r from-brand-coffee via-secondary-container to-accent-amber text-canvas-obsidian font-bold text-base shadow-[0_8px_32px_-4px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_40px_-2px_rgba(245,158,11,0.55)] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="primary-cta-motion group relative inline-flex items-center gap-2.5 rounded-xl bg-primary-container px-7 py-4 text-base font-bold text-on-primary-container shadow-lg"
                 >
                   <Coffee className="w-5 h-5 text-current shrink-0" />
                   <span>Order for Pickup / Table</span>
@@ -88,7 +94,8 @@ export default function HomePage() {
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border-subtle">
                 <div>
                   <p className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-                    0.8<span className="text-accent-amber text-xl">ms</span>
+                    <CountUp value={0.8} decimals={1} />
+                    <span className="text-xl text-accent-amber">ms</span>
                   </p>
                   <p className="font-mono text-[11px] text-text-muted uppercase tracking-wider mt-0.5">
                     WiFi Mesh Latency
@@ -96,7 +103,8 @@ export default function HomePage() {
                 </div>
                 <div>
                   <p className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-                    18<span className="text-primary text-xl">h</span>
+                    <CountUp value={18} />
+                    <span className="text-xl text-primary">h</span>
                   </p>
                   <p className="font-mono text-[11px] text-text-muted uppercase tracking-wider mt-0.5">
                     Cold Drip Extraction
@@ -104,7 +112,8 @@ export default function HomePage() {
                 </div>
                 <div>
                   <p className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-                    365<span className="text-accent-amber text-xl">+</span>
+                    <CountUp value={365} />
+                    <span className="text-xl text-accent-amber">+</span>
                   </p>
                   <p className="font-mono text-[11px] text-text-muted uppercase tracking-wider mt-0.5">
                     Days Nonstop Ops
@@ -145,6 +154,7 @@ export default function HomePage() {
                     fill
                     sizes="(min-width: 1024px) 28vw, (min-width: 640px) 56vw, 65vw"
                     className="object-cover"
+                    priority
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-canvas-obsidian/95 via-canvas-obsidian/40 to-transparent" />
                   <div className="absolute bottom-3 left-3.5 right-3.5">
@@ -152,9 +162,13 @@ export default function HomePage() {
                       <span className="font-mono text-[10px] text-accent-amber bg-accent-amber/15 px-2 py-0.5 rounded border border-accent-amber/30 uppercase tracking-wider font-semibold">
                         Signature Drop
                       </span>
-                      <span className="font-mono text-xs text-text-primary font-bold">Rp 32.000</span>
+                      <span className="font-mono text-xs text-text-primary font-bold">
+                        Rp 32.000
+                      </span>
                     </div>
-                    <p className="font-bold text-sm text-text-primary mt-1">Cold Brew Aren Brulee</p>
+                    <p className="font-bold text-sm text-text-primary mt-1">
+                      Cold Brew Aren Brulee
+                    </p>
                     <p className="text-[11px] text-text-muted truncate">
                       Caramelized torch palm nectar × 18h slow drip
                     </p>
@@ -165,16 +179,24 @@ export default function HomePage() {
                 <div className="absolute top-4 left-0 backdrop-blur-xl bg-surface-secondary/90 border border-border-subtle p-3 rounded-xl shadow-xl flex items-center gap-2.5">
                   <Coffee className="w-5 h-5 text-accent-amber shrink-0" />
                   <div>
-                    <p className="text-xs font-bold text-text-primary">100% Single Origin</p>
-                    <p className="font-mono text-[10px] text-text-muted">Sumatra Gayo • Ijen Highland</p>
+                    <p className="text-xs font-bold text-text-primary">
+                      100% Single Origin
+                    </p>
+                    <p className="font-mono text-[10px] text-text-muted">
+                      Sumatra Gayo • Ijen Highland
+                    </p>
                   </div>
                 </div>
 
                 <div className="absolute top-44 -right-2 backdrop-blur-xl bg-surface-card/90 border border-border-subtle p-3 rounded-xl shadow-xl flex items-center gap-2.5">
                   <Zap className="w-5 h-5 text-emerald-400 shrink-0" />
                   <div>
-                    <p className="text-xs font-bold text-text-primary">Gigabit Mesh Fiber</p>
-                    <p className="font-mono text-[10px] text-emerald-400">99.9% Redundant Uptime</p>
+                    <p className="text-xs font-bold text-text-primary">
+                      Gigabit Mesh Fiber
+                    </p>
+                    <p className="font-mono text-[10px] text-emerald-400">
+                      99.9% Redundant Uptime
+                    </p>
                   </div>
                 </div>
               </div>
@@ -201,21 +223,21 @@ export default function HomePage() {
             {/* Branch Switcher */}
             <div className="flex items-center gap-2 p-1 rounded-xl bg-canvas-obsidian border border-border-subtle self-start md:self-auto">
               <button
-                onClick={() => setSelectedBranch("darmo")}
+                onClick={() => setSelectedBranch('darmo')}
                 className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                  selectedBranch === "darmo"
-                    ? "bg-brand-coffee text-white shadow-sm"
-                    : "text-text-muted hover:text-text-primary"
+                  selectedBranch === 'darmo'
+                    ? 'bg-brand-coffee text-white shadow-sm'
+                    : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 Darmo Flagship (SBY)
               </button>
               <button
-                onClick={() => setSelectedBranch("gubeng")}
+                onClick={() => setSelectedBranch('gubeng')}
                 className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                  selectedBranch === "gubeng"
-                    ? "bg-brand-coffee text-white shadow-sm"
-                    : "text-text-muted hover:text-text-primary"
+                  selectedBranch === 'gubeng'
+                    ? 'bg-brand-coffee text-white shadow-sm'
+                    : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 Gubeng Sanctuary (SBY)
@@ -225,65 +247,101 @@ export default function HomePage() {
 
           {/* Telemetry Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-surface-card border border-border-subtle/80 flex flex-col justify-between">
+            <div className="delight-card flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-5">
               <div className="flex items-center justify-between text-text-muted mb-3">
-                <span className="text-xs font-medium uppercase tracking-wider">Desks Occupancy</span>
+                <span className="text-xs font-medium uppercase tracking-wider">
+                  Desks Occupancy
+                </span>
                 <Briefcase className="w-5 h-5 text-accent-amber shrink-0" />
               </div>
               <div>
                 <p className="text-3xl font-extrabold text-text-primary font-mono">
-                  {selectedBranch === "darmo" ? "42/65" : "31/48"}
+                  <CountUp
+                    key={`occupancy-${selectedBranch}`}
+                    value={selectedBranch === 'darmo' ? 42 : 31}
+                  />
+                  <span>/{selectedBranch === 'darmo' ? 65 : 48}</span>
                 </p>
                 <div className="w-full bg-surface-container h-1.5 rounded-full mt-3 overflow-hidden">
                   <div
                     className="bg-gradient-to-r from-primary to-accent-amber h-full rounded-full"
-                    style={{ width: selectedBranch === "darmo" ? "64%" : "64%" }}
+                    style={{
+                      width: selectedBranch === 'darmo' ? '64%' : '64%',
+                    }}
                   />
                 </div>
               </div>
-              <span className="text-[11px] text-text-muted mt-3">23 Available seats right now</span>
+              <span className="text-[11px] text-text-muted mt-3">
+                23 Available seats right now
+              </span>
             </div>
 
-            <div className="p-5 rounded-2xl bg-surface-card border border-border-subtle/80 flex flex-col justify-between">
+            <div className="delight-card flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-5">
               <div className="flex items-center justify-between text-text-muted mb-3">
-                <span className="text-xs font-medium uppercase tracking-wider">Active Barista Queue</span>
+                <span className="text-xs font-medium uppercase tracking-wider">
+                  Active Barista Queue
+                </span>
                 <Coffee className="w-5 h-5 text-primary shrink-0" />
               </div>
               <div>
                 <p className="text-3xl font-extrabold text-text-primary font-mono">
-                  {selectedBranch === "darmo" ? "3.8" : "2.4"}
-                  <span className="text-sm font-normal text-text-muted ml-1">mins</span>
+                  <CountUp
+                    key={`queue-${selectedBranch}`}
+                    value={selectedBranch === 'darmo' ? 3.8 : 2.4}
+                    decimals={1}
+                  />
+                  <span className="text-sm font-normal text-text-muted ml-1">
+                    mins
+                  </span>
                 </p>
                 <span className="inline-flex items-center gap-1 mt-2 text-[11px] text-emerald-400 font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                   Optimal extraction speed
                 </span>
               </div>
-              <span className="text-[11px] text-text-muted mt-3">3 Baristas on active shift</span>
+              <span className="text-[11px] text-text-muted mt-3">
+                3 Baristas on active shift
+              </span>
             </div>
 
-            <div className="p-5 rounded-2xl bg-surface-card border border-border-subtle/80 flex flex-col justify-between">
+            <div className="delight-card flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-5">
               <div className="flex items-center justify-between text-text-muted mb-3">
-                <span className="text-xs font-medium uppercase tracking-wider">Redundant Mesh ISP</span>
+                <span className="text-xs font-medium uppercase tracking-wider">
+                  Redundant Mesh ISP
+                </span>
                 <Wifi className="w-5 h-5 text-emerald-400 shrink-0" />
               </div>
               <div>
-                <p className="text-3xl font-extrabold text-emerald-400 font-mono">940</p>
-                <p className="text-xs text-text-muted mt-1 font-mono">Mbps Symmetrical Up/Down</p>
+                <p className="font-mono text-3xl font-extrabold text-[var(--green-500)]">
+                  <CountUp value={940} />
+                </p>
+                <p className="text-xs text-text-muted mt-1 font-mono">
+                  Mbps Symmetrical Up/Down
+                </p>
               </div>
-              <span className="text-[11px] text-emerald-400 font-mono mt-3">0.8ms Jitter Nominal</span>
+              <span className="text-[11px] text-emerald-400 font-mono mt-3">
+                0.8ms Jitter Nominal
+              </span>
             </div>
 
-            <div className="p-5 rounded-2xl bg-surface-card border border-border-subtle/80 flex flex-col justify-between">
+            <div className="delight-card flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-5">
               <div className="flex items-center justify-between text-text-muted mb-3">
-                <span className="text-xs font-medium uppercase tracking-wider">Current Ambience</span>
+                <span className="text-xs font-medium uppercase tracking-wider">
+                  Current Ambience
+                </span>
                 <Thermometer className="w-5 h-5 text-cream-beige shrink-0" />
               </div>
               <div>
-                <p className="text-3xl font-extrabold text-text-primary font-mono">22.4°C</p>
-                <p className="text-xs text-text-muted mt-1">Quiet Deep Work Mode (Lo-Fi)</p>
+                <p className="font-mono text-3xl font-extrabold text-text-primary">
+                  <CountUp value={22.4} decimals={1} suffix="°C" />
+                </p>
+                <p className="text-xs text-text-muted mt-1">
+                  Quiet Deep Work Mode (Lo-Fi)
+                </p>
               </div>
-              <span className="text-[11px] text-cream-beige font-mono mt-3">Air Filter AQI: 12 (Pristine)</span>
+              <span className="text-[11px] text-cream-beige font-mono mt-3">
+                Air Filter AQI: 12 (Pristine)
+              </span>
             </div>
           </div>
         </div>
@@ -330,14 +388,21 @@ export default function HomePage() {
               </div>
               <div className="p-6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg text-text-primary font-heading">Cold Brew Aren Brulee</h3>
-                  <span className="font-mono font-bold text-base text-accent-amber">Rp 32.000</span>
+                  <h3 className="font-bold text-lg text-text-primary font-heading">
+                    Cold Brew Aren Brulee
+                  </h3>
+                  <span className="font-mono font-bold text-base text-accent-amber">
+                    Rp 32.000
+                  </span>
                 </div>
                 <p className="text-xs text-text-muted leading-relaxed font-body">
-                  Single-origin Sumatra Gayo 18h slow drip with torch-caramelized organic palm sugar and silky sea salt foam.
+                  Single-origin Sumatra Gayo 18h slow drip with
+                  torch-caramelized organic palm sugar and silky sea salt foam.
                 </p>
                 <div className="pt-2 flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-cream-beige">Notes: Dark Choco, Brown Butter</span>
+                  <span className="font-mono text-[11px] text-cream-beige">
+                    Notes: Dark Choco, Brown Butter
+                  </span>
                   <Link
                     href="/menu"
                     className="p-2 rounded-xl bg-surface-container hover:bg-brand-coffee text-text-primary transition-colors inline-flex items-center justify-center"
@@ -365,14 +430,21 @@ export default function HomePage() {
               </div>
               <div className="p-6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg text-text-primary font-heading">Iced Matcha Pandan Latte</h3>
-                  <span className="font-mono font-bold text-base text-accent-amber">Rp 35.000</span>
+                  <h3 className="font-bold text-lg text-text-primary font-heading">
+                    Iced Matcha Pandan Latte
+                  </h3>
+                  <span className="font-mono font-bold text-base text-accent-amber">
+                    Rp 35.000
+                  </span>
                 </div>
                 <p className="text-xs text-text-muted leading-relaxed font-body">
-                  Ceremonial Uji matcha whisked fresh with homemade fragrant Suji-Pandan reduction and creamy oat milk.
+                  Ceremonial Uji matcha whisked fresh with homemade fragrant
+                  Suji-Pandan reduction and creamy oat milk.
                 </p>
                 <div className="pt-2 flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-cream-beige">Notes: Umami, Pandan Aroma</span>
+                  <span className="font-mono text-[11px] text-cream-beige">
+                    Notes: Umami, Pandan Aroma
+                  </span>
                   <Link
                     href="/menu"
                     className="p-2 rounded-xl bg-surface-container hover:bg-brand-coffee text-text-primary transition-colors inline-flex items-center justify-center"
@@ -400,14 +472,21 @@ export default function HomePage() {
               </div>
               <div className="p-6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg text-text-primary font-heading">Artisan Toasted Sourdough</h3>
-                  <span className="font-mono font-bold text-base text-accent-amber">Rp 28.000</span>
+                  <h3 className="font-bold text-lg text-text-primary font-heading">
+                    Artisan Toasted Sourdough
+                  </h3>
+                  <span className="font-mono font-bold text-base text-accent-amber">
+                    Rp 28.000
+                  </span>
                 </div>
                 <p className="text-xs text-text-muted leading-relaxed font-body">
-                  Fermented 36-hour country sourdough grilled with artisan cultured butter, kaya jam, and soft-boiled omega eggs.
+                  Fermented 36-hour country sourdough grilled with artisan
+                  cultured butter, kaya jam, and soft-boiled omega eggs.
                 </p>
                 <div className="pt-2 flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-cream-beige">Heritage Surabaya Pairing</span>
+                  <span className="font-mono text-[11px] text-cream-beige">
+                    Heritage Surabaya Pairing
+                  </span>
                   <Link
                     href="/menu"
                     className="p-2 rounded-xl bg-surface-container hover:bg-brand-coffee text-text-primary transition-colors inline-flex items-center justify-center"
@@ -436,33 +515,44 @@ export default function HomePage() {
                 Engineered for 12-Hour Focus Sprints & Hackathons.
               </h2>
               <p className="text-sm sm:text-base text-text-muted leading-relaxed font-body">
-                Whether you need acoustic silence for deep code architecture, a high-spec meeting suite for client pitches, or a vibrant coffeehouse buzz for brainstorming, our sanctuary delivers.
+                Whether you need acoustic silence for deep code architecture, a
+                high-spec meeting suite for client pitches, or a vibrant
+                coffeehouse buzz for brainstorming, our sanctuary delivers.
               </p>
               <div className="space-y-3">
                 <div className="flex items-start gap-3 p-3.5 rounded-xl bg-surface-card border border-border-subtle/80">
                   <Headphones className="w-5 h-5 text-accent-amber shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-bold text-text-primary font-heading">Acoustic Quiet Pods</h4>
+                    <h4 className="text-sm font-bold text-text-primary font-heading">
+                      Acoustic Quiet Pods
+                    </h4>
                     <p className="text-xs text-text-muted mt-0.5 font-body">
-                      Sub-35dB silent zone with ergonomic Herman Miller seating and dedicated power nodes.
+                      Sub-35dB silent zone with ergonomic Herman Miller seating
+                      and dedicated power nodes.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3.5 rounded-xl bg-surface-card border border-border-subtle/80">
                   <Tv className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-bold text-text-primary font-heading">VIP Boardrooms & Suites</h4>
+                    <h4 className="text-sm font-bold text-text-primary font-heading">
+                      VIP Boardrooms & Suites
+                    </h4>
                     <p className="text-xs text-text-muted mt-0.5 font-body">
-                      Seats 10–14 pax with 4K AirPlay presentation display, dedicated barista button, and glass whiteboard.
+                      Seats 10–14 pax with 4K AirPlay presentation display,
+                      dedicated barista button, and glass whiteboard.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3.5 rounded-xl bg-surface-card border border-border-subtle/80">
                   <Zap className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-bold text-text-primary font-heading">Redundant Power & Fiber</h4>
+                    <h4 className="text-sm font-bold text-text-primary font-heading">
+                      Redundant Power & Fiber
+                    </h4>
                     <p className="text-xs text-text-muted mt-0.5 font-body">
-                      Zero blackouts with online UPS + automatic backup generator and dual-WAN gigabit mesh.
+                      Zero blackouts with online UPS + automatic backup
+                      generator and dual-WAN gigabit mesh.
                     </p>
                   </div>
                 </div>
@@ -498,7 +588,9 @@ export default function HomePage() {
                     </span>
                   </div>
                   <p className="text-xs text-on-surface-variant font-body">
-                    Over 65 high-density workstation desks equipped with dual international AC sockets, USB-C PD 100W, and low-latency Wi-Fi 6.
+                    Over 65 high-density workstation desks equipped with dual
+                    international AC sockets, USB-C PD 100W, and low-latency
+                    Wi-Fi 6.
                   </p>
                 </div>
               </div>
@@ -524,7 +616,9 @@ export default function HomePage() {
                   Sip, Code, and Level Up to Obsidian Elite.
                 </h2>
                 <p className="text-sm sm:text-base text-text-muted max-w-lg leading-relaxed font-body">
-                  Earn points on every espresso drop, unlock 1.5x weekend multipliers, complete midnight coding streaks, and redeem artisan single-origin bags.
+                  Earn points on every espresso drop, unlock 1.5x weekend
+                  multipliers, complete midnight coding streaks, and redeem
+                  artisan single-origin bags.
                 </p>
                 <div className="pt-2 flex flex-wrap items-center gap-4">
                   <Link
@@ -549,21 +643,27 @@ export default function HomePage() {
                       <span className="text-[10px] font-mono text-text-muted uppercase tracking-widest">
                         Membership Sanctuary
                       </span>
-                      <span className="text-lg font-extrabold text-text-primary">Kawan Ya&apos;reh</span>
+                      <span className="text-lg font-extrabold text-text-primary">
+                        Kawan Ya&apos;reh
+                      </span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded bg-accent-amber/20 text-accent-amber font-mono text-xs font-bold uppercase">
                       Gold Artisan
                     </span>
                   </div>
                   <div className="my-4">
-                    <p className="font-mono text-xs text-text-muted">Active Points Balance</p>
+                    <p className="font-mono text-xs text-text-muted">
+                      Active Points Balance
+                    </p>
                     <p className="text-3xl font-extrabold text-accent-amber font-mono mt-0.5">
                       1,450 <span className="text-xs text-primary">PTS</span>
                     </p>
                   </div>
                   <div className="pt-4 border-t border-border-subtle/80 flex items-center justify-between text-xs text-text-muted">
                     <span>Darmo Resident Patron</span>
-                    <span className="font-mono text-text-primary">#YR-9821</span>
+                    <span className="font-mono text-text-primary">
+                      #YR-9821
+                    </span>
                   </div>
                 </div>
               </div>
@@ -584,7 +684,8 @@ export default function HomePage() {
             Where Late-Night Ideas Become High-Growth Reality.
           </h2>
           <p className="text-sm sm:text-base text-text-muted max-w-xl mx-auto font-body">
-            Connect with software engineers, indie makers, UI/UX designers, and coffee connoisseurs across Surabaya.
+            Connect with software engineers, indie makers, UI/UX designers, and
+            coffee connoisseurs across Surabaya.
           </p>
           <div className="pt-4 flex flex-wrap justify-center items-center gap-4">
             <Link

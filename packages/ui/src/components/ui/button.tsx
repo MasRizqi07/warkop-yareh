@@ -1,41 +1,43 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '../../lib/utils';
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-highlight)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 cursor-pointer min-h-[44px] min-w-[44px] active:scale-[0.98] active:duration-150",
+  'inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all [transition-duration:var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-highlight)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default:
-          "bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] shadow-md hover:shadow-lg focus-visible:ring-[var(--button-primary-bg)]",
+          'primary-cta-motion bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] shadow-md focus-visible:ring-[var(--button-primary-bg)]',
         secondary:
-          "bg-[var(--bg-surface-overlay)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-raised)] border border-[var(--border-default)]",
+          'bg-[var(--bg-surface-overlay)] text-[var(--text-primary)] hover:bg-[var(--bg-surface-raised)] border border-[var(--border-default)]',
         outline:
-          "border-2 border-[var(--border-default)] bg-transparent hover:bg-[var(--bg-surface-overlay)] text-[var(--text-primary)]",
+          'border-2 border-[var(--border-default)] bg-transparent hover:bg-[var(--bg-surface-overlay)] text-[var(--text-primary)]',
         ghost:
-          "hover:bg-[var(--bg-surface-overlay)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
-        destructive: "bg-[var(--danger-fill)] text-[var(--neutral-0)] hover:bg-[var(--danger-container)] dark:text-[var(--neutral-950)] shadow-md",
-        gold: "bg-[var(--gold-highlight)] text-[var(--neutral-950)] hover:bg-[var(--gold-container)] dark:hover:text-[var(--neutral-0)] shadow-lg",
-        link: "text-[var(--accent-fill)] underline-offset-4 hover:underline min-h-0 min-w-0 px-0 py-0",
-        magnetic: "bg-[var(--bg-surface-raised)] text-[var(--text-primary)] border border-[var(--border-default)] shadow-sm hover:shadow-[var(--shadow-glow-soft)] hover:scale-[1.02] active:scale-[0.97] transition-all",
+          'hover:bg-[var(--bg-surface-overlay)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
+        destructive:
+          'bg-[var(--danger-fill)] text-[var(--neutral-0)] hover:bg-[var(--danger-container)] dark:text-[var(--neutral-950)] shadow-md',
+        gold: 'bg-[var(--gold-highlight)] text-[var(--neutral-950)] hover:bg-[var(--gold-container)] dark:hover:text-[var(--neutral-0)] shadow-lg',
+        link: 'text-[var(--accent-fill)] underline-offset-4 hover:underline min-h-0 min-w-0 px-0 py-0',
+        magnetic:
+          'bg-[var(--bg-surface-raised)] text-[var(--text-primary)] border border-[var(--border-default)] shadow-sm hover:shadow-[var(--shadow-glow-soft)] hover:scale-[1.02] active:scale-[0.97] transition-all',
       },
       size: {
-        sm: "h-9 px-4 text-xs rounded-lg min-h-9 min-w-9",
-        default: "h-11 px-6 py-2",
-        lg: "h-13 px-8 text-base rounded-xl min-h-[52px]",
-        xl: "h-14 px-10 text-base rounded-2xl min-h-[56px]",
-        icon: "h-10 w-10 rounded-lg min-h-[44px] min-w-[44px]",
+        sm: 'h-9 px-4 text-xs rounded-lg min-h-9 min-w-9',
+        default: 'h-11 px-6 py-2',
+        lg: 'h-13 px-8 text-base rounded-xl min-h-[52px]',
+        xl: 'h-14 px-10 text-base rounded-2xl min-h-[56px]',
+        icon: 'h-10 w-10 rounded-lg min-h-[44px] min-w-[44px]',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'default',
+      size: 'default',
     },
-  },
+  }
 );
 
 export interface ButtonProps
@@ -58,9 +60,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       ...props
     },
-    ref,
+    ref
   ) => {
-    const Comp = asChild ? Slot : "button";
+    const Comp = asChild ? Slot : 'button';
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
@@ -98,20 +100,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </Comp>
     );
-  },
+  }
 );
-Button.displayName = "Button";
+Button.displayName = 'Button';
 
 // Motion-enhanced Button using CSS transitions to avoid Framer Motion type conflicts
 const MotionButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (props, ref) => {
     return (
-      <span className="inline-flex transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]">
+      <span className="inline-flex transition-transform [transition-duration:var(--duration-micro)] hover:scale-[1.02] active:scale-[0.98]">
         <Button ref={ref} {...props} />
       </span>
     );
-  },
+  }
 );
-MotionButton.displayName = "MotionButton";
+MotionButton.displayName = 'MotionButton';
 
 export { Button, MotionButton, buttonVariants };

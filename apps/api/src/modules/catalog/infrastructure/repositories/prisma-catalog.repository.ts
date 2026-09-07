@@ -6,6 +6,7 @@ import {
   CreateCatalogProductInput,
   ICatalogRepository,
   UpdateCatalogProductInput,
+  UpdateBranchProductInput,
 } from '../../domain/repositories/catalog.repository.interface';
 
 @Injectable()
@@ -89,6 +90,16 @@ export class PrismaCatalogRepository implements ICatalogRepository {
         branch: true,
       },
       orderBy: [{ branchId: 'asc' }, { product: { name: 'asc' } }],
+    });
+  }
+
+  async getBranchProduct(branchId: string, productId: string) {
+    return this.prisma.branchProduct.findUnique({
+      where: { branchId_productId: { branchId, productId } },
+      include: {
+        product: { include: { category: true } },
+        branch: true,
+      },
     });
   }
 
@@ -182,6 +193,22 @@ export class PrismaCatalogRepository implements ICatalogRepository {
       where: { branchId_productId: { branchId, productId } },
       update: { isAvailable },
       create: { branchId, productId, isAvailable },
+      include: {
+        product: { include: { category: true } },
+        branch: true,
+      },
+    });
+  }
+
+  async updateBranchProduct(
+    branchId: string,
+    productId: string,
+    data: UpdateBranchProductInput,
+  ) {
+    return this.prisma.branchProduct.upsert({
+      where: { branchId_productId: { branchId, productId } },
+      update: data,
+      create: { branchId, productId, ...data },
       include: {
         product: { include: { category: true } },
         branch: true,

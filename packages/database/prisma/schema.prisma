@@ -16,34 +16,37 @@ datasource db {
 // ---- Auth & Users ----
 
 model User {
-  id              String           @id @default(cuid())
-  email           String           @unique
-  phone           String?          @unique
-  name            String
-  avatar          String?
-  passwordHash    String?
-  role            Role             @default(CUSTOMER)
-  membershipTier  MembershipTier   @default(BRONZE)
-  loyaltyPoints   Int              @default(0)
-  referralCode    String           @unique @default(cuid())
-  referredBy      String?
-  branchId        String?
-  branch          Branch?          @relation(fields: [branchId], references: [id])
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?
+  id             String         @id @default(cuid())
+  email          String         @unique
+  phone          String?        @unique
+  name           String
+  avatar         String?
+  passwordHash   String?
+  role           Role           @default(CUSTOMER)
+  membershipTier MembershipTier @default(BRONZE)
+  loyaltyPoints  Int            @default(0)
+  referralCode   String         @unique @default(cuid())
+  referredBy     String?
+  branchId       String?
+  branch         Branch?        @relation(fields: [branchId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
 
-  orders             Order[]
-  reservations       Reservation[]
-  reviews            Review[]
-  eventRegistrations EventRegistration[]
-  loyaltyTransactions LoyaltyTransaction[]
-  notifications      Notification[]
-  communityMemberships CommunityMembership[]
-  communityPosts     CommunityPost[]
-  sessions           Session[]
-  userDevices        UserDevice[]
-  voucherRedemptions VoucherRedemption[]
+  orders                     Order[]
+  reservations               Reservation[]
+  reviews                    Review[]
+  eventRegistrations         EventRegistration[]
+  loyaltyTransactions        LoyaltyTransaction[]
+  notifications              Notification[]
+  communityMemberships       CommunityMembership[]
+  communityPosts             CommunityPost[]
+  sessions                   Session[]
+  userDevices                UserDevice[]
+  voucherRedemptions         VoucherRedemption[]
+  createdMarketingCampaigns  MarketingCampaign[]   @relation("CampaignCreator")
+  targetedMarketingCampaigns MarketingCampaign[]   @relation("CampaignTarget")
+  marketingDeliveries        MarketingDelivery[]
 
   @@index([email])
   @@index([phone])
@@ -88,33 +91,34 @@ enum MembershipTier {
 // ---- Branches ----
 
 model Branch {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  address         String
-  city            String
-  province        String
-  postalCode      String?
-  phone           String?
-  email           String?
-  latitude        Float?
-  longitude       Float?
-  isMainBranch    Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  capacity        Int      @default(0)
-  features        String[] @default([])
-  weekdayHours    String   @default("07:00-24:00")
-  weekendHours    String   @default("07:00-01:00")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  deletedAt       DateTime?
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  address      String
+  city         String
+  province     String
+  postalCode   String?
+  phone        String?
+  email        String?
+  latitude     Float?
+  longitude    Float?
+  isMainBranch Boolean   @default(false)
+  isActive     Boolean   @default(true)
+  capacity     Int       @default(0)
+  features     String[]  @default([])
+  weekdayHours String    @default("07:00-24:00")
+  weekendHours String    @default("07:00-01:00")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
-  users        User[]
-  products     BranchProduct[]
-  orders       Order[]
-  reservations Reservation[]
-  tables       Table[]
-  events       Event[]
+  users              User[]
+  products           BranchProduct[]
+  orders             Order[]
+  reservations       Reservation[]
+  tables             Table[]
+  events             Event[]
+  marketingCampaigns MarketingCampaign[]
 
   @@index([city])
   @@index([isActive])
@@ -124,14 +128,14 @@ model Branch {
 // ---- Products ----
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  icon        String?
-  sortOrder   Int       @default(0)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  icon      String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   products Product[]
 
@@ -178,7 +182,7 @@ model ProductCustomization {
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   name      String
-  options   Json     // [{label: string, price: number}]
+  options   Json // [{label: string, price: number}]
   createdAt DateTime @default(now())
 
   @@index([productId])
@@ -186,13 +190,21 @@ model ProductCustomization {
 }
 
 model BranchProduct {
-  id        String  @id @default(cuid())
-  branchId  String
-  branch    Branch  @relation(fields: [branchId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  isAvailable Boolean @default(true)
-  priceOverride Int?
+  id                 String    @id @default(cuid())
+  branchId           String
+  branch             Branch    @relation(fields: [branchId], references: [id])
+  productId          String
+  product            Product   @relation(fields: [productId], references: [id])
+  isAvailable        Boolean   @default(true)
+  priceOverride      Int?
+  stockQuantity      Decimal?  @db.Decimal(12, 3)
+  stockCapacity      Decimal?  @db.Decimal(12, 3)
+  stockThreshold     Decimal?  @db.Decimal(12, 3)
+  stockUnit          String?
+  supplier           String?
+  leadTimeHours      Int?
+  burnRatePerDay     Decimal?  @db.Decimal(12, 3)
+  inventoryUpdatedAt DateTime?
 
   @@unique([branchId, productId])
   @@map("branch_products")
@@ -201,40 +213,40 @@ model BranchProduct {
 // ---- Orders ----
 
 model Order {
-  id                  String      @id @default(cuid())
-  orderNumber         String      @unique  // Format: CNB-YYYYMMDD-XXXX
-  userId              String?
-  user                User?       @relation(fields: [userId], references: [id])
-  branchId            String?
-  branch              Branch?     @relation(fields: [branchId], references: [id])
-  tableId             String?
-  table               Table?      @relation(fields: [tableId], references: [id])
-  type                OrderType   @default(DINE_IN)
-  status              OrderStatus @default(PENDING)
-  subtotal            Int
-  tax                 Int         @default(0)
-  serviceFee          Int         @default(0)
-  discount            Int         @default(0)
-  total               Int
-  paymentStatus       PaymentStatus @default(UNPAID)
-  pickupTime          DateTime?
-  notes               String?
-  customerName        String?     // Guest orders (no account)
-  customerPhone       String?
-  loyaltyPointsEarned Int         @default(0)
-  loyaltyPointsUsed   Int         @default(0)
-  loyaltyPointsRestored Boolean   @default(false)
-  idempotencyKeyHash  String?     @unique
-  requestFingerprint String?
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  deletedAt           DateTime?
+  id                    String        @id @default(cuid())
+  orderNumber           String        @unique // Format: CNB-YYYYMMDD-XXXX
+  userId                String?
+  user                  User?         @relation(fields: [userId], references: [id])
+  branchId              String?
+  branch                Branch?       @relation(fields: [branchId], references: [id])
+  tableId               String?
+  table                 Table?        @relation(fields: [tableId], references: [id])
+  type                  OrderType     @default(DINE_IN)
+  status                OrderStatus   @default(PENDING)
+  subtotal              Int
+  tax                   Int           @default(0)
+  serviceFee            Int           @default(0)
+  discount              Int           @default(0)
+  total                 Int
+  paymentStatus         PaymentStatus @default(UNPAID)
+  pickupTime            DateTime?
+  notes                 String?
+  customerName          String? // Guest orders (no account)
+  customerPhone         String?
+  loyaltyPointsEarned   Int           @default(0)
+  loyaltyPointsUsed     Int           @default(0)
+  loyaltyPointsRestored Boolean       @default(false)
+  idempotencyKeyHash    String?       @unique
+  requestFingerprint    String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
 
-  items    OrderItem[]
-  payment  Payment?
-  feedback OrderFeedback?
+  items             OrderItem[]
+  payment           Payment?
+  feedback          OrderFeedback?
   voucherRedemption VoucherRedemption?
-  reservation Reservation?
+  reservation       Reservation?
 
   @@index([userId])
   @@index([branchId])
@@ -248,28 +260,28 @@ model Order {
 }
 
 model Voucher {
-  code          String   @id
-  amount        Int
-  minSubtotal   Int      @default(0)
-  isActive      Boolean  @default(true)
-  startsAt      DateTime @default(now())
-  expiresAt     DateTime?
-  usageLimit    Int?
-  usedCount     Int      @default(0)
-  createdAt     DateTime @default(now())
-  redemptions   VoucherRedemption[]
+  code        String              @id
+  amount      Int
+  minSubtotal Int                 @default(0)
+  isActive    Boolean             @default(true)
+  startsAt    DateTime            @default(now())
+  expiresAt   DateTime?
+  usageLimit  Int?
+  usedCount   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  redemptions VoucherRedemption[]
 
   @@map("vouchers")
 }
 
 model VoucherRedemption {
-  id          String @id @default(cuid())
+  id          String   @id @default(cuid())
   voucherCode String
-  voucher     Voucher @relation(fields: [voucherCode], references: [code])
+  voucher     Voucher  @relation(fields: [voucherCode], references: [code])
   userId      String
-  user        User @relation(fields: [userId], references: [id])
-  orderId     String @unique
-  order       Order @relation(fields: [orderId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  orderId     String   @unique
+  order       Order    @relation(fields: [orderId], references: [id])
   createdAt   DateTime @default(now())
 
   @@unique([voucherCode, userId])
@@ -289,9 +301,9 @@ model OrderItem {
   notes          String?
 
   // Audited Price Snapshot Fields
-  snapshotName   String
-  snapshotPrice  Int
-  snapshotTax    Int      @default(0)
+  snapshotName  String
+  snapshotPrice Int
+  snapshotTax   Int    @default(0)
 
   @@index([orderId])
   @@map("order_items")
@@ -331,7 +343,7 @@ model Payment {
   method          PaymentMethod
   status          PaymentStatus @default(UNPAID)
   amount          Int
-  midtransToken   String?       // Snap token for online payment
+  midtransToken   String? // Snap token for online payment
   midtransOrderId String?       @unique
   redirectUrl     String?
   reference       String?
@@ -347,19 +359,19 @@ model Payment {
 // ---- Reservations ----
 
 model Table {
-  id          String      @id @default(cuid())
-  branchId    String
-  branch      Branch      @relation(fields: [branchId], references: [id])
-  number      String      // "Table 1", "Meeting Room A", etc.
-  name        String      // Display name same as number
-  type        TableType   @default(INDOOR)
-  capacity    Int
-  zone        String?
-  qrCode      String      @unique @default(cuid())
-  status      TableStatus @default(AVAILABLE)
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String      @id @default(cuid())
+  branchId  String
+  branch    Branch      @relation(fields: [branchId], references: [id])
+  number    String // "Table 1", "Meeting Room A", etc.
+  name      String // Display name same as number
+  type      TableType   @default(INDOOR)
+  capacity  Int
+  zone      String?
+  qrCode    String      @unique @default(cuid())
+  status    TableStatus @default(AVAILABLE)
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   reservations Reservation[]
   orders       Order[]
@@ -469,15 +481,15 @@ enum EventStatus {
 }
 
 model EventRegistration {
-  id        String                  @id @default(cuid())
-  eventId   String
-  event     Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User                    @relation(fields: [userId], references: [id])
-  status    EventRegistrationStatus @default(REGISTERED)
-  ticketCode String                 @unique @default(cuid())
-  paidAmount Int                    @default(0)
-  createdAt DateTime                @default(now())
+  id         String                  @id @default(cuid())
+  eventId    String
+  event      Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User                    @relation(fields: [userId], references: [id])
+  status     EventRegistrationStatus @default(REGISTERED)
+  ticketCode String                  @unique @default(cuid())
+  paidAmount Int                     @default(0)
+  createdAt  DateTime                @default(now())
 
   @@unique([eventId, userId])
   @@index([eventId])
@@ -495,16 +507,16 @@ enum EventRegistrationStatus {
 // ---- Community ----
 
 model CommunityGroup {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  slug        String   @unique
+  slug        String    @unique
   description String
   image       String?
   category    String
-  isActive    Boolean  @default(true)
-  tags        String[] @default([])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  tags        String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
   memberships CommunityMembership[]
@@ -515,12 +527,12 @@ model CommunityGroup {
 }
 
 model CommunityMembership {
-  id      String               @id @default(cuid())
-  userId  String
-  user    User                 @relation(fields: [userId], references: [id])
-  groupId String
-  group   CommunityGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  role    CommunityMemberRole  @default(MEMBER)
+  id       String              @id @default(cuid())
+  userId   String
+  user     User                @relation(fields: [userId], references: [id])
+  groupId  String
+  group    CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  role     CommunityMemberRole @default(MEMBER)
   joinedAt DateTime            @default(now())
 
   @@unique([userId, groupId])
@@ -556,15 +568,15 @@ model CommunityPost {
 // ---- Loyalty ----
 
 model LoyaltyTransaction {
-  id          String              @id @default(cuid())
+  id          String      @id @default(cuid())
   userId      String
-  user        User                @relation(fields: [userId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
   type        LoyaltyType
   points      Int
   description String
   orderId     String?
   expiresAt   DateTime?
-  createdAt   DateTime            @default(now())
+  createdAt   DateTime    @default(now())
 
   @@index([userId])
   @@index([type])
@@ -601,19 +613,19 @@ model Reward {
 // ---- Reviews ----
 
 model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-  branchId  String?
-  rating    Int
-  comment   String
-  images    String[] @default([])
-  helpful   Int      @default(0)
-  isVerified Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  productId  String?
+  product    Product? @relation(fields: [productId], references: [id])
+  branchId   String?
+  rating     Int
+  comment    String
+  images     String[] @default([])
+  helpful    Int      @default(0)
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([userId])
   @@index([productId])
@@ -648,25 +660,88 @@ enum NotificationType {
   SYSTEM
 }
 
+// ---- Marketing Operations ----
+
+model MarketingCampaign {
+  id                 String                  @id @default(cuid())
+  name               String
+  objective          String
+  audience           String
+  targetUserId       String?
+  targetUser         User?                   @relation("CampaignTarget", fields: [targetUserId], references: [id])
+  branchId           String?
+  branch             Branch?                 @relation(fields: [branchId], references: [id])
+  discountPercent    Int                     @default(0)
+  expiresInHours     Int
+  message            String
+  includeHeaderMedia Boolean                 @default(false)
+  status             MarketingCampaignStatus @default(DRAFT)
+  recipientCount     Int                     @default(0)
+  createdById        String
+  createdBy          User                    @relation("CampaignCreator", fields: [createdById], references: [id])
+  dispatchedAt       DateTime?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  deliveries         MarketingDelivery[]
+
+  @@index([branchId, createdAt])
+  @@index([targetUserId])
+  @@index([status, createdAt])
+  @@map("marketing_campaigns")
+}
+
+model MarketingDelivery {
+  id                String                  @id @default(cuid())
+  campaignId        String
+  campaign          MarketingCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User                    @relation(fields: [userId], references: [id])
+  channel           String                  @default("WHATSAPP")
+  recipient         String
+  status            MarketingDeliveryStatus @default(PENDING)
+  providerMessageId String?
+  failureReason     String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@unique([campaignId, userId, channel])
+  @@index([campaignId, status])
+  @@index([userId, createdAt])
+  @@map("marketing_deliveries")
+}
+
+enum MarketingCampaignStatus {
+  DRAFT
+  DISPATCHING
+  SENT
+  FAILED
+}
+
+enum MarketingDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 // ---- Blog ----
 
 model BlogPost {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  excerpt     String
-  content     String
-  image       String?
-  authorName  String
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  excerpt      String
+  content      String
+  image        String?
+  authorName   String
   authorAvatar String?
-  authorRole  String?
-  category    String
-  tags        String[] @default([])
-  readTime    Int      @default(5)
-  isPublished Boolean  @default(false)
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  authorRole   String?
+  category     String
+  tags         String[]  @default([])
+  readTime     Int       @default(5)
+  isPublished  Boolean   @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([isPublished])
   @@index([category])
@@ -711,15 +786,15 @@ model OutboxEvent {
 // ---- Sessions (Refresh Token Rotation) ----
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash    String   @unique
-  userAgent    String?
-  ipAddress    String?
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  revokedAt    DateTime?
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
 
   @@index([userId])
   @@index([expiresAt])
@@ -729,14 +804,14 @@ model Session {
 // ---- User Devices (Push Notifications) ----
 
 model UserDevice {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deviceToken  String   @unique
-  platform     String   // "web" | "android" | "ios"
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceToken String   @unique
+  platform    String // "web" | "android" | "ios"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([userId])
   @@map("user_devices")
@@ -745,19 +820,19 @@ model UserDevice {
 // ---- Franchise (Phase 4) ----
 
 model FranchiseAgreement {
-  id              String            @id @default(cuid())
-  branchId        String            @unique
-  ownerName       String
-  ownerEmail      String
-  companyName     String?
-  agreementStart  DateTime
-  agreementEnd    DateTime?
-  monthlyFee      Int
-  revenueShare    Float             @default(0)
-  status          FranchiseStatus   @default(ACTIVE)
-  terms           Json?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id             String          @id @default(cuid())
+  branchId       String          @unique
+  ownerName      String
+  ownerEmail     String
+  companyName    String?
+  agreementStart DateTime
+  agreementEnd   DateTime?
+  monthlyFee     Int
+  revenueShare   Float           @default(0)
+  status         FranchiseStatus @default(ACTIVE)
+  terms          Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   billings FranchiseBilling[]
 
@@ -773,18 +848,18 @@ enum FranchiseStatus {
 }
 
 model FranchiseBilling {
-  id            String    @id @default(cuid())
+  id            String             @id @default(cuid())
   agreementId   String
   agreement     FranchiseAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
-  period        String    // "2026-07"
+  period        String // "2026-07"
   amount        Int
-  revenueAmount Int       @default(0)
-  status        BillingStatus @default(PENDING)
+  revenueAmount Int                @default(0)
+  status        BillingStatus      @default(PENDING)
   paidAt        DateTime?
   dueDate       DateTime
   invoiceUrl    String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@unique([agreementId, period])
   @@index([status])
@@ -802,13 +877,13 @@ enum BillingStatus {
 // ---- Operations (Phase 1 Pivot) ----
 
 model WaiterCall {
-  id          String         @id @default(cuid())
-  tableId     String
-  table       Table          @relation(fields: [tableId], references: [id])
-  type        WaiterCallType
-  status      CallStatus     @default(PENDING)
-  resolvedAt  DateTime?
-  createdAt   DateTime       @default(now())
+  id         String         @id @default(cuid())
+  tableId    String
+  table      Table          @relation(fields: [tableId], references: [id])
+  type       WaiterCallType
+  status     CallStatus     @default(PENDING)
+  resolvedAt DateTime?
+  createdAt  DateTime       @default(now())
 
   @@index([tableId])
   @@index([status])
@@ -830,9 +905,9 @@ model OrderFeedback {
   id               String   @id @default(cuid())
   orderId          String   @unique
   order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productRating    Int      // 1-5
-  serviceRating    Int      // 1-5
-  atmosphereRating Int      // 1-5
+  productRating    Int // 1-5
+  serviceRating    Int // 1-5
+  atmosphereRating Int // 1-5
   comment          String?
   createdAt        DateTime @default(now())
 

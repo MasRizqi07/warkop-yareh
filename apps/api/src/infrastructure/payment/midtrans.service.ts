@@ -37,33 +37,32 @@ export class MidtransService {
 
   constructor(private configService: ConfigService) {
     const serverKey = this.configService.get<string>('MIDTRANS_SERVER_KEY');
+    const clientKey = this.configService.get<string>('MIDTRANS_CLIENT_KEY');
     if (
-      !serverKey &&
+      (!serverKey || !clientKey) &&
       this.configService.get<string>('NODE_ENV') === 'production'
     ) {
-      throw new Error('MIDTRANS_SERVER_KEY is required in production');
+      throw new Error(
+        'MIDTRANS_SERVER_KEY and MIDTRANS_CLIENT_KEY are required in production',
+      );
     }
-    if (!serverKey) {
+    if (!serverKey || !clientKey) {
       this.logger.warn(
-        'MIDTRANS_SERVER_KEY is missing! Payment gateway will not work.',
+        'Midtrans credentials are incomplete. Payment gateway will not work.',
       );
     }
     this.coreApi = new midtransClient.CoreApi({
       isProduction:
         this.configService.get<string>('MIDTRANS_IS_PRODUCTION') === 'true',
       serverKey: serverKey || 'sandbox_server_key',
-      clientKey:
-        this.configService.get<string>('MIDTRANS_CLIENT_KEY') ||
-        'sandbox_client_key',
+      clientKey: clientKey || 'sandbox_client_key',
     }) as unknown as MidtransCoreApiClient;
 
     this.snap = new midtransClient.Snap({
       isProduction:
         this.configService.get<string>('MIDTRANS_IS_PRODUCTION') === 'true',
       serverKey: serverKey || 'sandbox_server_key',
-      clientKey:
-        this.configService.get<string>('MIDTRANS_CLIENT_KEY') ||
-        'sandbox_client_key',
+      clientKey: clientKey || 'sandbox_client_key',
     }) as unknown as MidtransSnapClient;
     this.coreApi.httpClient.http_client.defaults.timeout = 10_000;
     this.snap.httpClient.http_client.defaults.timeout = 10_000;
@@ -86,10 +85,14 @@ export class MidtransService {
     }>;
   }) {
     const serverKey = this.configService.get<string>('MIDTRANS_SERVER_KEY');
+    const clientKey = this.configService.get<string>('MIDTRANS_CLIENT_KEY');
     const isPlaceholderKey =
       !serverKey ||
+      !clientKey ||
       serverKey.includes('xxx') ||
-      serverKey === 'sandbox_server_key';
+      clientKey.includes('xxx') ||
+      serverKey === 'sandbox_server_key' ||
+      clientKey === 'sandbox_client_key';
 
     if (isPlaceholderKey) {
       throw new ServiceUnavailableException(

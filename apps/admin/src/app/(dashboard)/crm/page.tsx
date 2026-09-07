@@ -1,504 +1,294 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Award,
-  Coffee,
-  HeartCrack,
-  MessageSquare,
-  Rocket,
+  CalendarClock,
+  MessageCircle,
+  RefreshCw,
   Search,
-  Send,
+  ShieldAlert,
   UserPlus,
+  Users,
 } from 'lucide-react';
+import {
+  createCampaign,
+  getCustomerInsights,
+  type CustomerInsight,
+} from '@/lib/operations-api';
 
-interface Patron {
-  id: string;
-  name: string;
-  initials: string;
-  phone: string;
-  tier: 'Platinum' | 'Gold' | 'Silver' | 'Bronze';
-  rfmScore: string;
-  lifetimeSpend: number;
-  totalVisits: number;
-  lastVisit: string;
-  favoriteItem: string;
-  favoriteHub: string;
-  segment: 'vip' | 'regular' | 'at-risk' | 'new';
-}
+type Cohort = CustomerInsight['cohort'] | 'all';
 
-const PATRONS_DATA: Patron[] = [
-  {
-    id: 'PTR-001',
-    name: 'Arya Wijaya',
-    initials: 'AW',
-    phone: '+62 812-****-8812',
-    tier: 'Platinum',
-    rfmScore: '5-5-5',
-    lifetimeSpend: 4820000,
-    totalVisits: 74,
-    lastVisit: 'Today 20:15 @ Darmo VIP #14',
-    favoriteItem: 'Cold Brew Aren Brûlée (Double Shot)',
-    favoriteHub: 'Darmo Flagship',
-    segment: 'vip',
-  },
-  {
-    id: 'PTR-002',
-    name: 'Nadia Kusuma',
-    initials: 'NK',
-    phone: '+62 813-****-4491',
-    tier: 'Gold',
-    rfmScore: '5-4-5',
-    lifetimeSpend: 3150000,
-    totalVisits: 48,
-    lastVisit: 'Yesterday 19:40 @ Gubeng Table B6',
-    favoriteItem: 'Single-Origin V60 Ijen Honey',
-    favoriteHub: 'Gubeng 24H',
-    segment: 'regular',
-  },
-  {
-    id: 'PTR-003',
-    name: 'Dimas Kurniawan',
-    initials: 'DK',
-    phone: '+62 811-****-9023',
-    tier: 'Gold',
-    rfmScore: '4-4-4',
-    lifetimeSpend: 2890000,
-    totalVisits: 42,
-    lastVisit: '2 days ago @ Dharmahusada Hub',
-    favoriteItem: 'Matcha Pandan Oat Latte',
-    favoriteHub: 'Dharmahusada Campus',
-    segment: 'regular',
-  },
-  {
-    id: 'PTR-004',
-    name: 'Farhan Hakim',
-    initials: 'FH',
-    phone: '+62 856-****-1102',
-    tier: 'Silver',
-    rfmScore: '2-3-3',
-    lifetimeSpend: 1420000,
-    totalVisits: 18,
-    lastVisit: '24 days ago @ Gubeng Sanctuary',
-    favoriteItem: 'Smoked Pastrami Brioche',
-    favoriteHub: 'Gubeng 24H',
-    segment: 'at-risk',
-  },
-  {
-    id: 'PTR-005',
-    name: 'Jessica Tanuwijaya',
-    initials: 'JT',
-    phone: '+62 817-****-3388',
-    tier: 'Bronze',
-    rfmScore: '5-1-2',
-    lifetimeSpend: 380000,
-    totalVisits: 3,
-    lastVisit: '4 days ago @ Darmo Flagship',
-    favoriteItem: 'Cold Brew Aren Brûlée',
-    favoriteHub: 'Darmo Flagship',
-    segment: 'new',
-  },
-  {
-    id: 'PTR-006',
-    name: 'Bambang Soedjarwo',
-    initials: 'BS',
-    phone: '+62 812-****-7721',
-    tier: 'Platinum',
-    rfmScore: '5-5-5',
-    lifetimeSpend: 5410000,
-    totalVisits: 89,
-    lastVisit: 'Today 14:00 @ Darmo Boardroom',
-    favoriteItem: 'Single-Origin V60 Anaerobic',
-    favoriteHub: 'Darmo Flagship',
-    segment: 'vip',
-  },
-];
+const rupiah = (value: number) =>
+  `Rp ${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
 
-export default function PatronCrmLifecyclePage() {
-  const patrons = PATRONS_DATA;
-  const [selectedCohort, setSelectedCohort] = useState<'all' | 'vip' | 'regular' | 'at-risk' | 'new'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [whatsappToast, setWhatsappToast] = useState<string | null>(null);
+const formatDate = (value: string | null) =>
+  value
+    ? new Date(value).toLocaleString('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : 'No completed visit';
 
-  const handleSendVoucher = (patronName: string) => {
-    setWhatsappToast(`Retention WhatsApp Voucher (20% V60) queued for ${patronName}!`);
-    setTimeout(() => setWhatsappToast(null), 4000);
+export default function PatronCrmPage() {
+  const [customers, setCustomers] = useState<CustomerInsight[]>([]);
+  const [search, setSearch] = useState('');
+  const [cohort, setCohort] = useState<Cohort>('all');
+  const [loading, setLoading] = useState(true);
+  const [creatingFor, setCreatingFor] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const loadCustomers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getCustomerInsights({ limit: 100 });
+      setCustomers(response.data);
+    } catch (loadError: unknown) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'Customer analytics could not be loaded'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCustomers();
+  }, [loadCustomers]);
+
+  const filteredCustomers = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase('en-US');
+    return customers.filter(
+      (customer) =>
+        (cohort === 'all' || customer.cohort === cohort) &&
+        (!query ||
+          customer.name.toLocaleLowerCase('en-US').includes(query) ||
+          customer.email.toLocaleLowerCase('en-US').includes(query) ||
+          customer.phone?.toLocaleLowerCase('en-US').includes(query))
+    );
+  }, [cohort, customers, search]);
+
+  const summary = useMemo(
+    () => ({
+      total: customers.length,
+      vip: customers.filter((customer) => customer.cohort === 'vip').length,
+      atRisk: customers.filter((customer) => customer.cohort === 'at-risk')
+        .length,
+      newCustomers: customers.filter((customer) => customer.cohort === 'new')
+        .length,
+    }),
+    [customers]
+  );
+
+  const createRetentionDraft = async (customer: CustomerInsight) => {
+    setCreatingFor(customer.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const campaign = await createCampaign({
+        name: `Retention · ${customer.name}`,
+        objective: 'retention',
+        audience: 'single_customer',
+        targetUserId: customer.id,
+        discountPercent: 20,
+        expiresInHours: 72,
+        message: `Kami rindu menyeduh untuk ${customer.name}. Nikmati voucher retensi 20% dalam 72 jam ke depan.`,
+        includeHeaderMedia: false,
+      });
+      setNotice(`Draft ${campaign.id} persisted for ${customer.name}.`);
+      await loadCustomers();
+    } catch (createError: unknown) {
+      setError(
+        createError instanceof Error
+          ? createError.message
+          : 'Retention draft could not be created'
+      );
+    } finally {
+      setCreatingFor(null);
+    }
   };
 
-  const filteredPatrons = patrons.filter((p) => {
-    const matchCohort = selectedCohort === 'all' || p.segment === selectedCohort;
-    const matchSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.favoriteItem.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCohort && matchSearch;
-  });
-
   return (
-    <div className="min-h-screen bg-canvas-obsidian text-text-primary font-sans">
-      {/* ══════════════════════════════════════════════════════════════
-          TOP COMMAND & TELEMETRY BAR
-          ══════════════════════════════════════════════════════════════ */}
-      <div className="w-full bg-surface-secondary border-b border-border-subtle px-4 sm:px-6 lg:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 font-mono text-xs text-text-muted">
-              <span>Admin Portal</span>
-              <span>/</span>
-              <span>Growth &amp; Customer Relations</span>
-              <span>/</span>
-              <span className="text-primary font-semibold">CRM &amp; Patron Intelligence</span>
-            </div>
-            <div className="flex flex-wrap items-baseline gap-3 pt-0.5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight font-headline-xl">
-                Patron CRM &amp; Lifecycle Segmentation
-              </h1>
-              <span className="font-mono text-[11px] px-2.5 py-0.5 rounded-full bg-surface-card text-accent-amber border border-border-subtle">
-                Module 5.0 • Live Cohort Engine
-              </span>
-            </div>
-            <p className="text-xs text-text-muted max-w-3xl font-body-md">
-              Target high-value midnight regulars, prevent churn via automated WhatsApp triggers, and personalize Surabaya table experiences.
+    <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-7">
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-widest text-accent-amber">
+              Growth / Customer Intelligence
+            </p>
+            <h1 className="mt-2 text-3xl font-bold">Patron Lifecycle CRM</h1>
+            <p className="mt-2 max-w-3xl text-sm text-text-muted">
+              Cohorts and spend are calculated from persisted customer and
+              completed-order records. Retention actions create reviewable
+              campaign drafts.
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => void loadCustomers()}
+            className="primary-cta-motion inline-flex items-center justify-center gap-2 rounded-xl bg-brand-coffee px-4 py-2 text-sm font-semibold text-on-primary"
+          >
+            <RefreshCw className="h-4 w-4" /> Refresh analytics
+          </button>
+        </header>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => alert('Exporting CRM Segment CSV...')}
-              className="px-3.5 py-2.5 rounded-xl bg-surface-card hover:bg-surface-container text-xs font-semibold text-text-primary border border-border-subtle transition-colors"
-            >
-              Export CSV
-            </button>
-
-            <button
-              onClick={() => alert('Retention Campaign Studio Wizard triggered!')}
-              className="px-4 py-2.5 rounded-xl bg-brand-coffee hover:bg-primary-container text-xs font-bold text-text-primary shadow-md flex items-center gap-1.5 transition-all"
-            >
-              <Rocket className="w-4 h-4" />
-              <span>+ Launch Campaign</span>
-            </button>
+        {(error || notice) && (
+          <div
+            role={error ? 'alert' : 'status'}
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              error
+                ? 'border-error/40 bg-error-container text-on-error-container'
+                : 'border-primary/30 bg-primary-container text-on-primary-container'
+            }`}
+          >
+            {error ?? notice}
           </div>
-        </div>
-      </div>
+        )}
 
-      {whatsappToast && (
-        <aside
-          role="status"
-          aria-live="polite"
-          className="fixed top-4 right-4 z-50 bg-emerald-500 text-canvas-obsidian font-bold text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-bounce"
-        >
-          <Send className="w-4 h-4" />
-          <span>{whatsappToast}</span>
-        </aside>
-      )}
-
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* ══════════════════════════════════════════════════════════════
-            SECTION 1: RFM CUSTOMER SEGMENTATION MATRIX (4 Cards)
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {/* Card 1: VIP Patrons */}
-          <div className="relative overflow-hidden rounded-2xl bg-surface-card border border-border-subtle p-5 shadow-xl flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center text-purple-400">
-                  <Award className="w-5 h-5" />
-                </div>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-purple-950/40 text-purple-300 border border-purple-500/20">
-                  Top 5% • Platinum
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-text-primary font-mono">482</span>
-                  <span className="font-mono text-xs text-emerald-400 font-bold">+8.4% MoM</span>
-                </div>
-                <p className="text-xs text-text-muted">VIP Patrons in Sanctuary Guild</p>
-              </div>
-              <div className="pt-2 border-t border-border-subtle space-y-1 font-mono text-[11px] text-text-muted">
-                <div className="flex justify-between">
-                  <span>Rev Share:</span>
-                  <span className="text-text-primary font-bold">42.6% (Rp 184M)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Avg LTV:</span>
-                  <span className="text-text-primary">Rp 3.820.000</span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedCohort('vip')}
-              className="w-full py-2 rounded-xl bg-surface-secondary hover:bg-surface-container text-purple-300 font-bold text-xs transition-colors border border-border-subtle"
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: 'Customers', value: summary.total, icon: Users },
+            { label: 'VIP patrons', value: summary.vip, icon: Award },
+            { label: 'At risk', value: summary.atRisk, icon: ShieldAlert },
+            {
+              label: 'New · 30 days',
+              value: summary.newCustomers,
+              icon: UserPlus,
+            },
+          ].map(({ label, value, icon: Icon }) => (
+            <article
+              key={label}
+              className="delight-card rounded-2xl border border-border-subtle bg-surface-card p-5"
             >
-              Filter VIPs (482)
-            </button>
-          </div>
-
-          {/* Card 2: Active Regulars */}
-          <div className="relative overflow-hidden rounded-2xl bg-surface-card border border-border-subtle p-5 shadow-xl flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center text-accent-amber">
-                  <Coffee className="w-5 h-5" />
-                </div>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-accent-amber/20 text-accent-amber border border-accent-amber/30">
-                  Visited ≤ 7 Days
-                </span>
+              <div className="flex items-center justify-between text-xs uppercase tracking-wider text-text-muted">
+                {label}
+                <Icon className="h-5 w-5 text-accent-amber" />
               </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-text-primary font-mono">1.894</span>
-                  <span className="font-mono text-xs text-emerald-400 font-bold">+12.1% MoM</span>
-                </div>
-                <p className="text-xs text-text-muted">High-Frequency Weekly Visitors</p>
-              </div>
-              <div className="pt-2 border-t border-border-subtle space-y-1 font-mono text-[11px] text-text-muted">
-                <div className="flex justify-between">
-                  <span>Rev Share:</span>
-                  <span className="text-text-primary font-bold">38.2% (Rp 165M)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Frequency:</span>
-                  <span className="text-text-primary">3.4 visits / week</span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedCohort('regular')}
-              className="w-full py-2 rounded-xl bg-surface-secondary hover:bg-surface-container text-accent-amber font-bold text-xs transition-colors border border-border-subtle"
-            >
-              Filter Regulars (1.894)
-            </button>
-          </div>
-
-          {/* Card 3: At-Risk / Inactive */}
-          <div className="relative overflow-hidden rounded-2xl bg-surface-card border border-border-subtle p-5 shadow-xl flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center text-red-400">
-                  <HeartCrack className="w-5 h-5" />
-                </div>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-red-950/40 text-red-300 border border-red-500/30">
-                  &gt; 21 Days Inactive
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-red-400 font-mono">412</span>
-                  <span className="font-mono text-xs text-red-400 font-semibold">Churn Hazard</span>
-                </div>
-                <p className="text-xs text-text-muted">Dormant Patrons Requiring Winback</p>
-              </div>
-              <div className="pt-2 border-t border-border-subtle space-y-1 font-mono text-[11px] text-text-muted">
-                <div className="flex justify-between">
-                  <span>At-Risk LTV:</span>
-                  <span className="text-red-400 font-bold">Rp 32.8M</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Avg Inactive:</span>
-                  <span className="text-text-primary">28.4 days</span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedCohort('at-risk')}
-              className="w-full py-2 rounded-xl bg-surface-secondary hover:bg-surface-container text-red-400 font-bold text-xs transition-colors border border-border-subtle"
-            >
-              Trigger Winback (412)
-            </button>
-          </div>
-
-          {/* Card 4: New Patrons */}
-          <div className="relative overflow-hidden rounded-2xl bg-surface-card border border-border-subtle p-5 shadow-xl flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center text-emerald-400">
-                  <UserPlus className="w-5 h-5" />
-                </div>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/40 text-emerald-300 border border-emerald-500/30">
-                  Joined ≤ 14 Days
-                </span>
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-text-primary font-mono">620</span>
-                  <span className="font-mono text-xs text-emerald-400 font-bold">+19.2% MoM</span>
-                </div>
-                <p className="text-xs text-text-muted">First-Time Onboarding Cohort</p>
-              </div>
-              <div className="pt-2 border-t border-border-subtle space-y-1 font-mono text-[11px] text-text-muted">
-                <div className="flex justify-between">
-                  <span>Repeat Rate:</span>
-                  <span className="text-emerald-400 font-bold">38.4%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>2nd Order SLA:</span>
-                  <span className="text-text-primary">Avg 4.8 days</span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedCohort('new')}
-              className="w-full py-2 rounded-xl bg-surface-secondary hover:bg-surface-container text-emerald-300 font-bold text-xs transition-colors border border-border-subtle"
-            >
-              Filter Newbies (620)
-            </button>
-          </div>
+              <p className="mt-4 font-mono text-3xl font-bold">{value}</p>
+            </article>
+          ))}
         </section>
 
-        {/* ══════════════════════════════════════════════════════════════
-            SECTION 2: COHORT FILTERS & PATRON DIRECTORY TABLE
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="bg-surface-card border border-border-subtle rounded-2xl shadow-xl p-6 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 font-mono text-xs">
-              {(['all', 'vip', 'regular', 'at-risk', 'new'] as const).map((c) => (
+        <section className="grid gap-3 rounded-2xl border border-border-subtle bg-surface-card p-4 md:grid-cols-[1fr_auto]">
+          <label className="relative">
+            <span className="sr-only">Search patrons</span>
+            <Search className="absolute left-3 top-3 h-4 w-4 text-text-muted" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search name, email, or phone"
+              className="w-full rounded-xl border border-border-subtle bg-surface-secondary py-2.5 pl-10 pr-3 text-sm"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {(['all', 'vip', 'regular', 'at-risk', 'new'] as const).map(
+              (value) => (
                 <button
-                  key={c}
-                  onClick={() => setSelectedCohort(c)}
-                  className={`px-3.5 py-1.5 rounded-lg capitalize transition-all whitespace-nowrap ${
-                    selectedCohort === c
-                      ? 'bg-surface-container text-accent-amber font-bold border border-accent-amber/30'
-                      : 'text-text-muted hover:text-text-primary'
+                  key={value}
+                  type="button"
+                  aria-pressed={cohort === value}
+                  onClick={() => setCohort(value)}
+                  className={`rounded-xl border px-3 py-2 text-xs font-semibold capitalize ${
+                    cohort === value
+                      ? 'border-primary bg-primary-container text-on-primary-container'
+                      : 'border-border-subtle bg-surface-secondary text-text-muted'
                   }`}
                 >
-                  {c === 'all' ? 'All Patrons' : c}
+                  {value}
                 </button>
-              ))}
-            </div>
-
-            <div className="relative w-full md:w-64">
-              <span className="material-symbols-outlined absolute left-3 top-2 text-[#94a3b8] text-[18px]">
-                search
-              </span>
-              <Search className="w-4 h-4 absolute left-3 top-2 text-text-muted" />
-              <input
-                aria-label="Search patrons"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search name, phone, item..."
-                className="w-full pl-9 pr-3 py-1.5 bg-surface-secondary border border-border-subtle text-text-primary text-xs rounded-xl outline-none focus:border-accent-amber"
-              />
-            </div>
+              )
+            )}
           </div>
+        </section>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-surface-secondary text-text-muted font-mono text-[11px] uppercase tracking-wider border-b border-border-subtle">
-                  <th className="py-3 px-4">Patron Identity</th>
-                  <th className="py-3 px-4">Tier</th>
-                  <th className="py-3 px-4">RFM Score</th>
-                  <th className="py-3 px-4">Lifetime Spend</th>
-                  <th className="py-3 px-4">Visits</th>
-                  <th className="py-3 px-4">Last Sanctuary Order</th>
-                  <th className="py-3 px-4">Favorite Ritual</th>
-                  <th className="py-3 px-4 text-right">Direct Re-engagement</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {filteredPatrons.map((p) => (
-                  <tr key={p.id} className="hover:bg-surface-container/50 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-brand-coffee flex items-center justify-center font-bold text-text-primary text-xs font-mono">
-                          {p.initials}
-                        </div>
-                        <div>
-                          <div className="font-bold text-text-primary">{p.name}</div>
-                          <div className="font-mono text-[10px] text-text-muted">{p.phone}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`font-mono text-[10px] px-2 py-0.5 rounded-full ${
-                          p.tier === 'Platinum'
-                            ? 'bg-purple-950/50 text-purple-300 border border-purple-500/30'
-                            : p.tier === 'Gold'
-                            ? 'bg-accent-amber/20 text-accent-amber border border-accent-amber/30'
-                            : p.tier === 'Silver'
-                            ? 'bg-blue-950/50 text-blue-300 border border-blue-500/30'
-                            : 'bg-surface-container text-text-muted'
-                        }`}
-                      >
-                        {p.tier}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-primary font-bold">{p.rfmScore}</td>
-                    <td className="py-3 px-4 font-mono text-text-primary font-bold">
-                      Rp {p.lifetimeSpend.toLocaleString('id-ID')}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-text-muted">{p.totalVisits} visits</td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-text-muted">{p.lastVisit}</td>
-                    <td className="py-3 px-4 text-xs text-text-primary">{p.favoriteItem}</td>
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => handleSendVoucher(p.name)}
-                        className="px-3 py-1 rounded-lg bg-surface-secondary hover:bg-surface-container text-accent-amber border border-accent-amber/30 text-xs font-semibold inline-flex items-center gap-1 transition-colors"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>WA Voucher</span>
-                      </button>
-                    </td>
+        <section className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-card">
+          {loading ? (
+            <p className="p-8 text-center text-text-muted">
+              Loading customer analytics from API…
+            </p>
+          ) : filteredCustomers.length === 0 ? (
+            <p className="p-8 text-center text-text-muted">
+              No customers match this cohort and search.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1020px] text-left text-sm">
+                <thead className="bg-surface-secondary text-xs uppercase tracking-wider text-text-muted">
+                  <tr>
+                    <th className="p-4">Patron</th>
+                    <th className="p-4">Cohort / Tier</th>
+                    <th className="p-4">Completed spend</th>
+                    <th className="p-4">Last visit</th>
+                    <th className="p-4">Last retention draft</th>
+                    <th className="p-4 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border-subtle">
+                  {filteredCustomers.map((customer) => (
+                    <tr
+                      key={customer.id}
+                      data-testid={`crm-row-${customer.id}`}
+                      className="hover:bg-surface-container/40"
+                    >
+                      <td className="p-4">
+                        <strong>{customer.name}</strong>
+                        <span className="mt-1 block text-xs text-text-muted">
+                          {customer.email} · {customer.phone ?? 'No phone'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="rounded-full bg-surface-container px-2.5 py-1 text-xs font-semibold capitalize text-primary">
+                          {customer.cohort}
+                        </span>
+                        <span className="ml-2 font-mono text-xs text-text-muted">
+                          {customer.membershipTier} · {customer.loyaltyPoints}{' '}
+                          pts
+                        </span>
+                      </td>
+                      <td className="p-4 font-mono">
+                        {rupiah(customer.totalSpend)}
+                        <span className="mt-1 block text-xs text-text-muted">
+                          {customer.orderCount} completed orders
+                        </span>
+                      </td>
+                      <td className="p-4 text-xs">
+                        <span className="inline-flex items-center gap-2">
+                          <CalendarClock className="h-4 w-4 text-accent-amber" />
+                          {formatDate(customer.lastVisit)}
+                        </span>
+                      </td>
+                      <td className="p-4 font-mono text-xs">
+                        {customer.lastCampaign
+                          ? `${customer.lastCampaign.status} · ${formatDate(customer.lastCampaign.createdAt)}`
+                          : 'None'}
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          type="button"
+                          disabled={
+                            !customer.phone || creatingFor === customer.id
+                          }
+                          onClick={() => void createRetentionDraft(customer)}
+                          className="primary-cta-motion inline-flex items-center gap-2 rounded-xl bg-brand-coffee px-3 py-2 text-xs font-semibold text-on-primary disabled:opacity-40"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          {creatingFor === customer.id
+                            ? 'Saving…'
+                            : 'Create retention draft'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
-
-        {/* ══════════════════════════════════════════════════════════════
-            SECTION 3: AUTOMATED LIFECYCLE RE-ENGAGEMENT RULES
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="bg-surface-card border border-border-subtle rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-text-primary">Automated WhatsApp Lifecycle Triggers</h3>
-              <p className="text-xs text-text-muted">Real-time background triggers executing on patron telemetry.</p>
-            </div>
-            <span className="font-mono text-xs text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-500/30">
-              Engine Status: Active (3 Triggers)
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-surface-secondary border border-border-subtle space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-text-primary">At-Risk Winback</span>
-                <span className="text-emerald-400 font-mono text-[10px]">Active</span>
-              </div>
-              <p className="text-xs text-text-muted">
-                Trigger: Inactive &gt; 21 days → Dispatches WhatsApp message with 20% V60 single-origin coupon.
-              </p>
-              <div className="font-mono text-[10px] text-primary">412 messages sent this month • 28% claim rate</div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-surface-secondary border border-border-subtle space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-text-primary">Night Owl Milestone</span>
-                <span className="text-emerald-400 font-mono text-[10px]">Active</span>
-              </div>
-              <p className="text-xs text-text-muted">
-                Trigger: 10th late-night sprint order post-21:00 → Complimentary Cold Brew Aren upgrade.
-              </p>
-              <div className="font-mono text-[10px] text-primary">184 rewarded • 94% NPS satisfaction</div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-surface-secondary border border-border-subtle space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-text-primary">Birthday Sanctuary Gift</span>
-                <span className="text-emerald-400 font-mono text-[10px]">Active</span>
-              </div>
-              <p className="text-xs text-text-muted">
-                Trigger: Patron Birthday D-Day → Free artisan sourdough toast and VIP pod day pass.
-              </p>
-              <div className="font-mono text-[10px] text-primary">52 claimed this month • 100% redemption</div>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
