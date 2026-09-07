@@ -140,6 +140,7 @@ describe('AnalyticsService', () => {
           name: 'Ayu',
           email: 'ayu@example.com',
           phone: '081234567890',
+          whatsAppMarketingOptInAt: new Date('2026-08-01T00:00:00.000Z'),
           membershipTier: 'GOLD',
           loyaltyPoints: 1_500,
           createdAt,
@@ -176,6 +177,7 @@ describe('AnalyticsService', () => {
           orderCount: 4,
           lastVisit,
           cohort: 'vip',
+          whatsAppMarketingOptInAt: expect.any(Date),
           lastCampaign: expect.objectContaining({ id: 'campaign-1' }),
         }),
       );

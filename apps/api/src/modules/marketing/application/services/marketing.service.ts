@@ -2,9 +2,12 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
+import type { Queue } from 'bullmq';
 import {
   MarketingCampaignStatus,
   MarketingDeliveryStatus,
@@ -16,6 +19,11 @@ import {
 } from '@warkop-yareh/database';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 import { WhatsAppCloudService } from '../../infrastructure/whatsapp-cloud.service';
+import {
+  MARKETING_DISPATCH_JOB,
+  MARKETING_DISPATCH_QUEUE,
+  type MarketingDispatchJobData,
+} from '../../marketing.constants';
 import type {
   CreateMarketingCampaignDto,
   UpdateMarketingCampaignDto,
@@ -35,10 +43,14 @@ const jakartaHour = new Intl.DateTimeFormat('en-US', {
 
 @Injectable()
 export class MarketingService {
+  private readonly logger = new Logger(MarketingService.name);
+
   constructor(
     private readonly prisma: DatabaseService,
     private readonly whatsapp: WhatsAppCloudService,
     private readonly config: ConfigService,
+    @InjectQueue(MARKETING_DISPATCH_QUEUE)
+    private readonly dispatchQueue: Queue<MarketingDispatchJobData>,
   ) {}
 
   providerStatus() {
@@ -161,6 +173,10 @@ export class MarketingService {
     this.whatsapp.assertConfigured();
     const campaign = await this.requireCampaign(id, managedBranchId);
     if (campaign.status === MarketingCampaignStatus.SENT) return campaign;
+    if (campaign.status === MarketingCampaignStatus.DISPATCHING) {
+      await this.ensureDispatchJob(id);
+      return campaign;
+    }
 
     const lock = await this.prisma.marketingCampaign.updateMany({
       where: {
@@ -172,35 +188,86 @@ export class MarketingService {
       data: { status: MarketingCampaignStatus.DISPATCHING },
     });
     if (lock.count !== 1) {
-      throw new ConflictException('Campaign dispatch is already in progress');
+      const current = await this.requireCampaign(id, managedBranchId);
+      if (
+        current.status === MarketingCampaignStatus.SENT ||
+        current.status === MarketingCampaignStatus.DISPATCHING
+      ) {
+        if (current.status === MarketingCampaignStatus.DISPATCHING) {
+          await this.ensureDispatchJob(id);
+        }
+        return current;
+      }
+      throw new ConflictException('Campaign dispatch could not be acquired');
+    }
+
+    try {
+      await this.ensureDispatchJob(id);
+      return await this.requireCampaign(id, managedBranchId);
+    } catch (error: unknown) {
+      await this.prisma.marketingCampaign.updateMany({
+        where: { id, status: MarketingCampaignStatus.DISPATCHING },
+        data: { status: MarketingCampaignStatus.FAILED },
+      });
+      throw error;
+    }
+  }
+
+  async processCampaign(id: string) {
+    this.whatsapp.assertConfigured();
+    let campaign = await this.requireCampaign(id);
+    if (campaign.status === MarketingCampaignStatus.SENT) return campaign;
+    if (campaign.status !== MarketingCampaignStatus.DISPATCHING) {
+      const lock = await this.prisma.marketingCampaign.updateMany({
+        where: {
+          id,
+          status: {
+            in: [MarketingCampaignStatus.DRAFT, MarketingCampaignStatus.FAILED],
+          },
+        },
+        data: { status: MarketingCampaignStatus.DISPATCHING },
+      });
+      if (lock.count !== 1) {
+        throw new ConflictException('Campaign is not dispatchable');
+      }
+      campaign = await this.requireCampaign(id);
     }
 
     try {
       const recipients = await this.findRecipients(campaign);
       if (recipients.length === 0) {
-        throw new BadRequestException(
-          'The selected audience has no WhatsApp-capable recipients',
-        );
+        return this.prisma.marketingCampaign.update({
+          where: { id },
+          data: {
+            status: MarketingCampaignStatus.FAILED,
+            recipientCount: 0,
+            dispatchedAt: new Date(),
+          },
+          include: campaignInclude,
+        });
       }
-      await Promise.all(
-        recipients.map((recipient) =>
-          this.prisma.marketingDelivery.upsert({
-            where: {
-              campaignId_userId_channel: {
+
+      for (let offset = 0; offset < recipients.length; offset += 50) {
+        await Promise.all(
+          recipients.slice(offset, offset + 50).map((recipient) =>
+            this.prisma.marketingDelivery.upsert({
+              where: {
+                campaignId_userId_channel: {
+                  campaignId: id,
+                  userId: recipient.id,
+                  channel: 'WHATSAPP',
+                },
+              },
+              update: { recipient: recipient.phone, failureReason: null },
+              create: {
                 campaignId: id,
                 userId: recipient.id,
-                channel: 'WHATSAPP',
+                recipient: recipient.phone,
               },
-            },
-            update: { recipient: recipient.phone, failureReason: null },
-            create: {
-              campaignId: id,
-              userId: recipient.id,
-              recipient: recipient.phone,
-            },
-          }),
-        ),
-      );
+            }),
+          ),
+        );
+      }
 
       for (let offset = 0; offset < recipients.length; offset += 5) {
         await Promise.all(
@@ -215,6 +282,13 @@ export class MarketingService {
               },
             });
             if (existing?.status === MarketingDeliveryStatus.SENT) return;
+            const deliveryKey = {
+              campaignId_userId_channel: {
+                campaignId: id,
+                userId: recipient.id,
+                channel: 'WHATSAPP',
+              },
+            };
             try {
               const providerMessageId =
                 await this.whatsapp.sendCampaignTemplate({
@@ -224,62 +298,61 @@ export class MarketingService {
                   expiresInHours: campaign.expiresInHours,
                   includeHeaderMedia: campaign.includeHeaderMedia,
                 });
-              const deliveryKey = {
-                campaignId_userId_channel: {
-                  campaignId: id,
-                  userId: recipient.id,
-                  channel: 'WHATSAPP',
+              await this.prisma.marketingDelivery.update({
+                where: deliveryKey,
+                data: {
+                  status: MarketingDeliveryStatus.SENT,
+                  providerMessageId,
+                  failureReason: null,
                 },
-              };
-              await Promise.all([
-                this.prisma.marketingDelivery.update({
-                  where: deliveryKey,
-                  data: {
-                    status: MarketingDeliveryStatus.SENT,
-                    providerMessageId,
-                    failureReason: null,
-                  },
-                }),
-                this.prisma.notification.create({
-                  data: {
-                    userId: recipient.id,
-                    title: campaign.name,
-                    message: campaign.message,
-                    type: NotificationType.PROMO,
-                    actionUrl: '/menu',
-                  },
-                }),
-              ]);
+              });
             } catch (error: unknown) {
               await this.prisma.marketingDelivery.update({
-                where: {
-                  campaignId_userId_channel: {
-                    campaignId: id,
-                    userId: recipient.id,
-                    channel: 'WHATSAPP',
-                  },
-                },
+                where: deliveryKey,
                 data: {
                   status: MarketingDeliveryStatus.FAILED,
                   failureReason: this.errorMessage(error).slice(0, 500),
                 },
               });
+              return;
+            }
+
+            try {
+              await this.prisma.notification.create({
+                data: {
+                  userId: recipient.id,
+                  title: campaign.name,
+                  message: campaign.message,
+                  type: NotificationType.PROMO,
+                  actionUrl: '/menu',
+                },
+              });
+            } catch (error: unknown) {
+              this.logger.warn(
+                `Campaign ${id} was delivered to user ${recipient.id}, but the in-app notification failed: ${this.errorMessage(error)}`,
+              );
             }
           }),
         );
       }
 
-      const failed = await this.prisma.marketingDelivery.count({
-        where: { campaignId: id, status: MarketingDeliveryStatus.FAILED },
+      const recipientIds = recipients.map((recipient) => recipient.id);
+      const sent = await this.prisma.marketingDelivery.count({
+        where: {
+          campaignId: id,
+          userId: { in: recipientIds },
+          channel: 'WHATSAPP',
+          status: MarketingDeliveryStatus.SENT,
+        },
       });
       return this.prisma.marketingCampaign.update({
         where: { id },
         data: {
           status:
-            failed === 0
+            sent === recipients.length
               ? MarketingCampaignStatus.SENT
               : MarketingCampaignStatus.FAILED,
-          recipientCount: recipients.length - failed,
+          recipientCount: sent,
           dispatchedAt: new Date(),
         },
         include: campaignInclude,
@@ -291,6 +364,26 @@ export class MarketingService {
       });
       throw error;
     }
+  }
+
+  private async ensureDispatchJob(campaignId: string): Promise<void> {
+    const existing = await this.dispatchQueue.getJob(campaignId);
+    if (existing) {
+      const state = await existing.getState();
+      if (state !== 'completed' && state !== 'failed') return;
+      await existing.remove().catch(() => undefined);
+    }
+    await this.dispatchQueue.add(
+      MARKETING_DISPATCH_JOB,
+      { campaignId },
+      {
+        jobId: campaignId,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5_000 },
+        removeOnComplete: true,
+        removeOnFail: { age: 7 * 86_400, count: 1_000 },
+      },
+    );
   }
 
   private async requireCampaign(id: string, managedBranchId?: string) {
@@ -306,9 +399,14 @@ export class MarketingService {
     if (!targetUserId) return;
     const user = await this.prisma.user.findFirst({
       where: { id: targetUserId, role: Role.CUSTOMER, deletedAt: null },
-      select: { id: true },
+      select: { id: true, whatsAppMarketingOptInAt: true },
     });
     if (!user) throw new NotFoundException('Target customer not found');
+    if (!user.whatsAppMarketingOptInAt) {
+      throw new BadRequestException(
+        'Target customer has not opted in to WhatsApp marketing',
+      );
+    }
   }
 
   private async findRecipients(campaign: {
@@ -336,6 +434,7 @@ export class MarketingService {
         role: Role.CUSTOMER,
         deletedAt: null,
         phone: { not: null },
+        whatsAppMarketingOptInAt: { not: null },
         ...(campaign.targetUserId ? { id: campaign.targetUserId } : {}),
         ...(campaign.audience === 'all_active'
           ? {

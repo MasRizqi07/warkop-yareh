@@ -52,9 +52,20 @@ export default function MultiBranchManagementPage() {
         getBranches(),
         getBranchProducts(),
       ]);
+      const nextSelectedBranchId = branchData.some(
+        (branch) => branch.id === selectedBranchId
+      )
+        ? selectedBranchId
+        : branchData[0]?.id || '';
       setBranches(branchData);
       setBranchProducts(productData);
-      setSelectedBranchId((current) => current || branchData[0]?.id || '');
+      setSelectedBranchId(nextSelectedBranchId);
+      setCapacityDraft(
+        String(
+          branchData.find((branch) => branch.id === nextSelectedBranchId)
+            ?.capacity ?? ''
+        )
+      );
       setPriceDrafts(
         Object.fromEntries(
           productData.map((item) => [
@@ -72,19 +83,51 @@ export default function MultiBranchManagementPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedBranchId]);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    let active = true;
+    void Promise.all([getBranches(), getBranchProducts()])
+      .then(([branchData, productData]) => {
+        if (!active) return;
+        const initialBranchId = branchData[0]?.id || '';
+        setBranches(branchData);
+        setBranchProducts(productData);
+        setSelectedBranchId(initialBranchId);
+        setCapacityDraft(
+          String(
+            branchData.find((branch) => branch.id === initialBranchId)
+              ?.capacity ?? ''
+          )
+        );
+        setPriceDrafts(
+          Object.fromEntries(
+            productData.map((item) => [
+              item.id,
+              item.priceOverride === null ? '' : String(item.priceOverride),
+            ])
+          )
+        );
+      })
+      .catch((loadError: unknown) => {
+        if (!active) return;
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : 'Branch operations data could not be loaded'
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const selectedBranch = branches.find(
     (branch) => branch.id === selectedBranchId
   );
-
-  useEffect(() => {
-    setCapacityDraft(selectedBranch ? String(selectedBranch.capacity) : '');
-  }, [selectedBranch]);
 
   const matrix = useMemo(() => {
     const rows = new Map<string, ProductMatrixRow>();
@@ -246,7 +289,10 @@ export default function MultiBranchManagementPage() {
             <button
               key={branch.id}
               type="button"
-              onClick={() => setSelectedBranchId(branch.id)}
+              onClick={() => {
+                setSelectedBranchId(branch.id);
+                setCapacityDraft(String(branch.capacity));
+              }}
               className={`delight-card rounded-2xl border p-5 text-left ${
                 selectedBranchId === branch.id
                   ? 'border-accent-amber bg-surface-container'

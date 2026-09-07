@@ -1,29 +1,11 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import {
-  Coffee,
-  Users,
-  Heart,
-  Target,
-  Lightbulb,
-  Globe,
-  Award,
-  Calendar,
-} from 'lucide-react';
+import { Users, Heart, Target, Lightbulb, Globe, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/shared/section-header';
-import { STATS } from '@/lib/constants';
 import { staggerContainer, staggerItem } from '@/lib/animations';
-
-const iconMap: Record<string, React.ReactNode> = {
-  Users: <Users className="w-5 h-5 text-primary" />,
-  Coffee: <Coffee className="w-5 h-5 text-primary" />,
-  Calendar: <Calendar className="w-5 h-5 text-primary" />,
-  Heart: <Heart className="w-5 h-5 text-primary" />,
-};
 
 export default function AboutPage() {
   return (
@@ -60,40 +42,6 @@ export default function AboutPage() {
               komunitas di Surabaya.
             </p>
           </motion.div>
-        </div>
-      </section>
-
-      {/* Interactive Statistics Grid */}
-      <section className="relative z-10 -mt-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {STATS.map((stat, idx) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="delight-card flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-card p-4 sm:p-5"
-            >
-              <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                  {iconMap[stat.icon] || (
-                    <Coffee className="w-4 h-4 sm:w-5 sm:h-5" />
-                  )}
-                </div>
-                <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-primary sm:text-[10px]">
-                  Metric
-                </span>
-              </div>
-              <div>
-                <h3 className="mb-1 font-heading text-xl font-extrabold leading-none text-text-primary sm:text-2xl">
-                  {stat.value}
-                </h3>
-                <p className="font-mono text-[9px] uppercase tracking-tight text-on-surface-variant sm:text-[10px]">
-                  {stat.label}
-                </p>
-              </div>
-            </motion.div>
-          ))}
         </div>
       </section>
 
@@ -159,10 +107,9 @@ export default function AboutPage() {
                   baik — dan secangkir kopi yang sempurna.
                 </p>
                 <p>
-                  Dengan lebih dari 3,000 member komunitas aktif, 500+ event
-                  yang telah terselenggara, dan misi untuk terus bertumbuh,
-                  Ya&apos;reh siap menjadi pusat ekosistem digital untuk
-                  komunitas lokal di Indonesia.
+                  Dengan misi untuk terus bertumbuh, Ya&apos;reh membangun
+                  layanan yang mempertemukan pengalaman kedai dan kebutuhan
+                  komunitas lokal melalui platform digital.
                 </p>
               </div>
             </motion.div>

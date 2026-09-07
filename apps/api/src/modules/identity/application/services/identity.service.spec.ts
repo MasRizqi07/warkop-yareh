@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { IdentityService } from './identity.service';
 
@@ -26,7 +25,10 @@ describe('IdentityService', () => {
   });
 
   it('should get user profile by userId', async () => {
-    mockUserRepository.findById.mockResolvedValue({ id: 'user-1', name: 'Rizqi' });
+    mockUserRepository.findById.mockResolvedValue({
+      id: 'user-1',
+      name: 'Rizqi',
+    });
 
     const result = await service.getUserProfile('user-1');
 
@@ -35,12 +37,16 @@ describe('IdentityService', () => {
   });
 
   it('should get user by email', async () => {
-    mockUserRepository.findByEmail.mockResolvedValue({ email: 'rizqi@warkop.com' });
+    mockUserRepository.findByEmail.mockResolvedValue({
+      email: 'rizqi@warkop.com',
+    });
 
     const result = await service.getUserByEmail('rizqi@warkop.com');
 
     expect(result).toEqual({ email: 'rizqi@warkop.com' });
-    expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('rizqi@warkop.com');
+    expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(
+      'rizqi@warkop.com',
+    );
   });
 
   it('should create user', async () => {
@@ -59,12 +65,47 @@ describe('IdentityService', () => {
       id: 'user-1',
       name: 'Before Update',
     });
-    mockUserRepository.update.mockResolvedValue({ id: 'user-1', name: 'Updated Name' });
+    mockUserRepository.update.mockResolvedValue({
+      id: 'user-1',
+      name: 'Updated Name',
+    });
 
     const result = await service.updateUser('user-1', updateData);
 
     expect(result.name).toBe('Updated Name');
-    expect(mockUserRepository.update).toHaveBeenCalledWith('user-1', updateData);
+    expect(mockUserRepository.update).toHaveBeenCalledWith(
+      'user-1',
+      updateData,
+    );
+  });
+
+  it('preserves the original WhatsApp opt-in timestamp on subsequent profile saves', async () => {
+    const optedInAt = new Date('2026-09-07T10:00:00.000Z');
+    mockUserRepository.findById.mockResolvedValue({
+      id: 'user-1',
+      whatsAppMarketingOptInAt: optedInAt,
+    });
+    mockUserRepository.update.mockResolvedValue({ id: 'user-1' });
+
+    await service.updateUser('user-1', { whatsAppMarketingOptIn: true });
+
+    expect(mockUserRepository.update).toHaveBeenCalledWith('user-1', {
+      whatsAppMarketingOptInAt: optedInAt,
+    });
+  });
+
+  it('stores null when the account owner withdraws WhatsApp marketing consent', async () => {
+    mockUserRepository.findById.mockResolvedValue({
+      id: 'user-1',
+      whatsAppMarketingOptInAt: new Date(),
+    });
+    mockUserRepository.update.mockResolvedValue({ id: 'user-1' });
+
+    await service.updateUser('user-1', { whatsAppMarketingOptIn: false });
+
+    expect(mockUserRepository.update).toHaveBeenCalledWith('user-1', {
+      whatsAppMarketingOptInAt: null,
+    });
   });
 
   it('should list users with pagination params', async () => {
@@ -73,7 +114,11 @@ describe('IdentityService', () => {
       total: 1,
     });
 
-    const result = await service.listUsers({ page: 1, limit: 10, role: 'CUSTOMER' });
+    const result = await service.listUsers({
+      page: 1,
+      limit: 10,
+      role: 'CUSTOMER',
+    });
 
     expect(result.data).toHaveLength(1);
     expect(mockUserRepository.findAll).toHaveBeenCalledWith({

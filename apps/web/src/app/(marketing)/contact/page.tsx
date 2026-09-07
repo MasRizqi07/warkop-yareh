@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   MapPin,
   Phone,
@@ -9,7 +9,6 @@ import {
   Clock,
   MessageCircle,
   Send,
-  CheckCircle,
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ import { SectionHeader } from '@/components/shared/section-header';
 import { SITE, BRANCH_LOCATIONS } from '@/lib/constants';
 
 export default function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -27,12 +25,19 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setName('');
-    setEmail('');
-    setSubject('');
-    setMessage('');
-    setTimeout(() => setSubmitted(false), 3000);
+    const text = [
+      "Halo Warkop Ya'reh, saya ingin menghubungi tim:",
+      `Nama: ${name.trim()}`,
+      `Email: ${email.trim()}`,
+      `Subjek: ${subject.trim()}`,
+      '',
+      message.trim(),
+    ].join('\n');
+    window.open(
+      `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(text)}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
   };
 
   return (
@@ -67,109 +72,95 @@ export default function ContactPage() {
                 Send a Message
               </h3>
 
-              <AnimatePresence mode="wait">
-                {submitted ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-center py-12 space-y-4"
-                  >
-                    <CheckCircle className="w-16 h-16 text-success-500 mx-auto animate-bounce" />
-                    <div className="space-y-1">
-                      <h4 className="text-base font-bold text-text-primary">
-                        Pesan Terkirim!
-                      </h4>
-                      <p className="mx-auto max-w-xs text-xs leading-relaxed text-on-surface-variant">
-                        Terima kasih atas pesan kamu! Team Warkop Ya&apos;reh
-                        akan merespons dalam waktu 1x24 jam.
-                      </p>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <label
-                          htmlFor="contact-name"
-                          className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                        >
-                          Name
-                        </label>
-                        <Input
-                          id="contact-name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="Nama lengkap kamu"
-                          required
-                          className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <label
-                          htmlFor="contact-email"
-                          className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                        >
-                          Email
-                        </label>
-                        <Input
-                          id="contact-email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="email@example.com"
-                          required
-                          className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor="contact-subject"
-                        className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                      >
-                        Subject
-                      </label>
-                      <Input
-                        id="contact-subject"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        placeholder="Apa yang bisa kami bantu?"
-                        required
-                        className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor="contact-message"
-                        className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                      >
-                        Message
-                      </label>
-                      <textarea
-                        id="contact-message"
-                        rows={5}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Tulis detail pesan kamu di sini..."
-                        required
-                        className="flex w-full resize-none rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs text-text-primary transition-colors [transition-duration:var(--duration-fast)] placeholder:text-text-muted hover:border-outline-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full sm:w-auto font-bold uppercase tracking-wider text-xs shadow-md"
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      htmlFor="contact-name"
+                      className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
                     >
-                      <Send className="w-4 h-4 mr-1.5" />
-                      Kirim Pesan
-                    </Button>
-                  </form>
-                )}
-              </AnimatePresence>
+                      Name
+                    </label>
+                    <Input
+                      id="contact-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      maxLength={100}
+                      placeholder="Nama lengkap kamu"
+                      required
+                      className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      htmlFor="contact-email"
+                      className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
+                    >
+                      Email
+                    </label>
+                    <Input
+                      id="contact-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      maxLength={254}
+                      placeholder="email@example.com"
+                      required
+                      className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="contact-subject"
+                    className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
+                  >
+                    Subject
+                  </label>
+                  <Input
+                    id="contact-subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    maxLength={120}
+                    placeholder="Apa yang bisa kami bantu?"
+                    required
+                    className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="contact-message"
+                    className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
+                  >
+                    Message
+                  </label>
+                  <textarea
+                    id="contact-message"
+                    rows={5}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    maxLength={1500}
+                    placeholder="Tulis detail pesan kamu di sini..."
+                    required
+                    className="flex w-full resize-none rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs text-text-primary transition-colors [transition-duration:var(--duration-fast)] placeholder:text-text-muted hover:border-outline-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full sm:w-auto font-bold uppercase tracking-wider text-xs shadow-md"
+                >
+                  <Send className="w-4 h-4 mr-1.5" />
+                  Lanjutkan di WhatsApp
+                </Button>
+                <p className="text-xs leading-relaxed text-text-muted">
+                  Tombol ini membuka WhatsApp dengan draf pesan. Pesan baru
+                  terkirim setelah kamu menekan tombol kirim di WhatsApp.
+                </p>
+              </form>
             </div>
           </motion.div>
 
@@ -249,7 +240,7 @@ export default function ContactPage() {
                   Chat via WhatsApp
                 </div>
                 <div className="mt-0.5 text-[10px] text-on-primary-container/80">
-                  Respon instan dari team barista kami
+                  Buka percakapan dengan tim kami
                 </div>
               </div>
             </a>

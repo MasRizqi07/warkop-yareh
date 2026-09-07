@@ -105,6 +105,7 @@ export class AnalyticsService {
           name: true,
           email: true,
           phone: true,
+          whatsAppMarketingOptInAt: true,
           membershipTier: true,
           loyaltyPoints: true,
           createdAt: true,

@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, type AdminUser } from './api';
 
 interface Envelope<T> {
   data: T;
@@ -62,6 +62,7 @@ export interface CustomerInsight {
   name: string;
   email: string;
   phone: string | null;
+  whatsAppMarketingOptInAt: string | null;
   membershipTier: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
   loyaltyPoints: number;
   createdAt: string;
@@ -74,6 +75,18 @@ export interface CustomerInsight {
     status: MarketingCampaignStatus;
     createdAt: string;
   } | null;
+}
+
+export interface RevenueAnalytics {
+  totalRevenue: number;
+  orderCount: number;
+  averageOrderValue: number;
+}
+
+export interface CategoryPerformance {
+  category: string;
+  unitsSold: number;
+  revenue: number;
 }
 
 export type MarketingCampaignStatus =
@@ -114,6 +127,30 @@ export interface CampaignInput {
 
 export async function getBranches(): Promise<BranchRecord[]> {
   return (await apiFetch<Envelope<BranchRecord[]>>('/branches')).data;
+}
+
+export async function getAdminProfile(): Promise<AdminUser> {
+  return (await apiFetch<Envelope<AdminUser>>('/auth/me')).data;
+}
+
+export async function getRevenueAnalytics(
+  branchId?: string
+): Promise<RevenueAnalytics> {
+  const query = branchId ? `?branchId=${encodeURIComponent(branchId)}` : '';
+  return (
+    await apiFetch<Envelope<RevenueAnalytics>>(`/analytics/revenue${query}`)
+  ).data;
+}
+
+export async function getCategoryPerformance(
+  branchId?: string
+): Promise<CategoryPerformance[]> {
+  const query = branchId ? `?branchId=${encodeURIComponent(branchId)}` : '';
+  return (
+    await apiFetch<Envelope<CategoryPerformance[]>>(
+      `/analytics/categories${query}`
+    )
+  ).data;
 }
 
 export async function updateBranch(

@@ -217,15 +217,19 @@ export default function MenuPage() {
                 </h1>
 
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <Clock className="h-3.5 w-3.5 text-accent-amber" />
 
-                  <span className="font-mono text-xs text-emerald-400">
-                    Open 24 Hours • Baristas Online
+                  <span className="font-mono text-xs text-text-muted">
+                    {activeBranch
+                      ? `Hari kerja ${activeBranch.weekdayHours}`
+                      : 'Memuat jam operasional…'}
                   </span>
 
-                  <span className="text-text-muted text-xs hidden sm:inline">
-                    • Fast Wifi 350 Mbps
-                  </span>
+                  {activeBranch && (
+                    <span className="hidden text-xs text-text-muted sm:inline">
+                      • {activeBranch.city}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

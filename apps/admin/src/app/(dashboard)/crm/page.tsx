@@ -57,8 +57,26 @@ export default function PatronCrmPage() {
   }, []);
 
   useEffect(() => {
-    void loadCustomers();
-  }, [loadCustomers]);
+    let active = true;
+    void getCustomerInsights({ limit: 100 })
+      .then((response) => {
+        if (active) setCustomers(response.data);
+      })
+      .catch((loadError: unknown) => {
+        if (!active) return;
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : 'Customer analytics could not be loaded'
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredCustomers = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('en-US');
@@ -239,6 +257,11 @@ export default function PatronCrmPage() {
                         <span className="mt-1 block text-xs text-text-muted">
                           {customer.email} · {customer.phone ?? 'No phone'}
                         </span>
+                        <span className="mt-1 block text-xs text-text-muted">
+                          {customer.whatsAppMarketingOptInAt
+                            ? 'WhatsApp marketing opt-in recorded'
+                            : 'No WhatsApp marketing opt-in'}
+                        </span>
                       </td>
                       <td className="p-4">
                         <span className="rounded-full bg-surface-container px-2.5 py-1 text-xs font-semibold capitalize text-primary">
@@ -270,7 +293,14 @@ export default function PatronCrmPage() {
                         <button
                           type="button"
                           disabled={
-                            !customer.phone || creatingFor === customer.id
+                            !customer.phone ||
+                            !customer.whatsAppMarketingOptInAt ||
+                            creatingFor === customer.id
+                          }
+                          title={
+                            customer.whatsAppMarketingOptInAt
+                              ? undefined
+                              : 'Customer consent is required before creating a WhatsApp campaign'
                           }
                           onClick={() => void createRetentionDraft(customer)}
                           className="primary-cta-motion inline-flex items-center gap-2 rounded-xl bg-brand-coffee px-3 py-2 text-xs font-semibold text-on-primary disabled:opacity-40"

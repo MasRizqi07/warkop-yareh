@@ -63,6 +63,11 @@ export class UsersController {
     @Body() body: UpdateUserDto,
   ) {
     this.assertCanRequestProfile(user, id);
+    if (body.whatsAppMarketingOptIn !== undefined && user.id !== id) {
+      throw new ForbiddenException(
+        'Only the account owner can change WhatsApp marketing consent',
+      );
+    }
     const profile = await this.identityService.getUserProfile(id);
     if (!profile) throw new NotFoundException('User not found');
     this.assertCanManageProfile(user, profile.id, profile.branchId);

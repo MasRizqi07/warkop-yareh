@@ -168,9 +168,15 @@ export class CatalogService {
       );
     }
 
-    const capacity = data.stockCapacity ?? current?.stockCapacity?.toNumber();
-    const threshold =
-      data.stockThreshold ?? current?.stockThreshold?.toNumber();
+    const capacity = Object.prototype.hasOwnProperty.call(data, 'stockCapacity')
+      ? data.stockCapacity
+      : current?.stockCapacity?.toNumber();
+    const threshold = Object.prototype.hasOwnProperty.call(
+      data,
+      'stockThreshold',
+    )
+      ? data.stockThreshold
+      : current?.stockThreshold?.toNumber();
     if (
       capacity !== null &&
       capacity !== undefined &&

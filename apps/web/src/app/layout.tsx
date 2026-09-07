@@ -131,12 +131,6 @@ const jsonLd = {
   servesCuisine: ['Coffee', 'Indonesian Food', 'Pastry'],
   hasMenu: `${SITE.url}/menu`,
   acceptsReservations: true,
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    reviewCount: '3000',
-    bestRating: '5',
-  },
   sameAs: [
     SITE.social.instagram,
     SITE.social.tiktok,

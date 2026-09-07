@@ -96,27 +96,32 @@ export default function EnterpriseInventoryPage() {
   }, []);
 
   useEffect(() => {
-    void (async () => {
-      setLoading(true);
-      try {
-        const records = await getBranches();
+    let active = true;
+    void getBranches()
+      .then(async (records) => {
+        if (!active) return;
         setBranches(records);
-        setSelectedBranchId((current) => current || records[0]?.id || '');
-        if (records.length === 0) setLoading(false);
-      } catch (loadError: unknown) {
+        const initialBranchId = records[0]?.id || '';
+        setSelectedBranchId(initialBranchId);
+        if (!initialBranchId) return;
+        const branchItems = await getBranchProducts(initialBranchId);
+        if (active) setItems(branchItems);
+      })
+      .catch((loadError: unknown) => {
+        if (!active) return;
         setError(
           loadError instanceof Error
             ? loadError.message
             : 'Branches could not be loaded'
         );
-        setLoading(false);
-      }
-    })();
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
-
-  useEffect(() => {
-    if (selectedBranchId) void loadItems(selectedBranchId);
-  }, [loadItems, selectedBranchId]);
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('en-US');
@@ -213,7 +218,11 @@ export default function EnterpriseInventoryPage() {
             <select
               aria-label="Inventory branch"
               value={selectedBranchId}
-              onChange={(event) => setSelectedBranchId(event.target.value)}
+              onChange={(event) => {
+                const nextBranchId = event.target.value;
+                setSelectedBranchId(nextBranchId);
+                void loadItems(nextBranchId);
+              }}
               className="rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm"
             >
               {branches.map((branch) => (

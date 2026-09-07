@@ -17,9 +17,12 @@ function readDurationToken(): number {
     .getPropertyValue('--duration-normal')
     .trim();
 
-  if (raw.endsWith('ms')) return Number.parseFloat(raw);
-  if (raw.endsWith('s')) return Number.parseFloat(raw) * 1_000;
-  return 300;
+  const parsed = raw.endsWith('ms')
+    ? Number.parseFloat(raw)
+    : raw.endsWith('s')
+      ? Number.parseFloat(raw) * 1_000
+      : Number.NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 300;
 }
 
 export function CountUp({

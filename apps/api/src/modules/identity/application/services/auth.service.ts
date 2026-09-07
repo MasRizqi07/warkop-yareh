@@ -81,11 +81,17 @@ export class AuthService {
     name: string;
     phone?: string;
     password: string;
+    whatsAppMarketingOptIn?: boolean;
   }) {
     const email = this.normalizeEmail(data.email);
     const existing = await this.identityService.getUserByEmail(email);
     if (existing) {
       throw new BadRequestException('User with this email already exists');
+    }
+    if (data.whatsAppMarketingOptIn && !data.phone) {
+      throw new BadRequestException(
+        'A phone number is required to opt in to WhatsApp marketing',
+      );
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
@@ -94,6 +100,9 @@ export class AuthService {
       name: data.name,
       phone: data.phone,
       passwordHash,
+      ...(data.whatsAppMarketingOptIn
+        ? { whatsAppMarketingOptInAt: new Date() }
+        : {}),
     });
   }
 

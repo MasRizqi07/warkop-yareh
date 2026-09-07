@@ -148,15 +148,7 @@ export class CatalogController {
 
   @Patch('branches/:branchId/products/:productId')
   @UseGuards(JwtAuthGuard)
-  @Roles(
-    Role.STAFF,
-    Role.CASHIER,
-    Role.KITCHEN,
-    Role.MANAGER,
-    Role.ADMIN,
-    Role.OWNER,
-    Role.SUPERADMIN,
-  )
+  @Roles(Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
   @ApiBearerAuth('JWT')
   @ApiOperation({
     summary: 'Update branch pricing, availability, or inventory telemetry',

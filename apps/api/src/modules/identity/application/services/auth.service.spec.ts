@@ -156,6 +156,40 @@ describe('AuthService', () => {
         }),
       );
     });
+
+    it('records explicit WhatsApp marketing opt-in only when a phone is supplied', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue(null);
+      mockIdentityService.createUser.mockResolvedValue({ id: 'user-new' });
+
+      await service.register({
+        email: 'optin@warkopyareh.com',
+        name: 'Opt In User',
+        phone: '081234567890',
+        password: 'password123',
+        whatsAppMarketingOptIn: true,
+      });
+
+      expect(mockIdentityService.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phone: '081234567890',
+          whatsAppMarketingOptInAt: expect.any(Date),
+        }),
+      );
+    });
+
+    it('rejects WhatsApp marketing opt-in without a destination phone', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue(null);
+
+      await expect(
+        service.register({
+          email: 'optin@warkopyareh.com',
+          name: 'Opt In User',
+          password: 'password123',
+          whatsAppMarketingOptIn: true,
+        }),
+      ).rejects.toThrow('A phone number is required');
+      expect(mockIdentityService.createUser).not.toHaveBeenCalled();
+    });
   });
 
   describe('refreshTokens', () => {

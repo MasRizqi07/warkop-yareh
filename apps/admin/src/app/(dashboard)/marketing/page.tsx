@@ -76,8 +76,33 @@ export default function MarketingCampaignStudioPage() {
   }, []);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    let active = true;
+    void Promise.all([
+      getBranches(),
+      getCampaigns({ limit: 20 }),
+      getMarketingProviderStatus(),
+    ])
+      .then(([branchData, campaignData, provider]) => {
+        if (!active) return;
+        setBranches(branchData);
+        setCampaigns(campaignData.data);
+        setProviderConfigured(provider.configured);
+      })
+      .catch((loadError: unknown) => {
+        if (!active) return;
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : 'Marketing operations could not be loaded'
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const campaignInput = (): CampaignInput => {
     const discount = Number(discountPercent);
@@ -167,10 +192,15 @@ export default function MarketingCampaignStudioPage() {
         dispatched,
         ...current.filter((item) => item.id !== dispatched.id),
       ]);
-      setNotice(
-        `${dispatched.status}: ${dispatched.recipientCount} provider-confirmed recipients.`
-      );
-      if (dispatched.status !== 'SENT') {
+      if (dispatched.status === 'DISPATCHING') {
+        setNotice(
+          'Campaign queued for background delivery. Refresh the list to inspect the final provider-confirmed count.'
+        );
+      } else if (dispatched.status === 'SENT') {
+        setNotice(
+          `SENT: ${dispatched.recipientCount} provider-confirmed recipients.`
+        );
+      } else {
         setError(
           'One or more deliveries failed. Review delivery status before retrying.'
         );
@@ -460,7 +490,7 @@ export default function MarketingCampaignStudioPage() {
                 className="primary-cta-motion inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary disabled:opacity-40"
               >
                 <Rocket className="h-4 w-4" />
-                {busy === 'dispatch' ? 'Dispatching…' : 'Broadcast live'}
+                {busy === 'dispatch' ? 'Queueing…' : 'Queue broadcast'}
               </button>
             </div>
           </form>

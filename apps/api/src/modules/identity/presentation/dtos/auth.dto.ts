@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsString,
   IsOptional,
@@ -34,6 +35,14 @@ export class RegisterDto {
   @MinLength(12, { message: 'Password must be at least 12 characters long' })
   @MaxLength(128)
   password!: string;
+
+  @ApiPropertyOptional({
+    default: false,
+    description: 'Explicit opt-in for promotional WhatsApp messages',
+  })
+  @IsOptional()
+  @IsBoolean()
+  whatsAppMarketingOptIn?: boolean;
 }
 
 export class LoginDto {

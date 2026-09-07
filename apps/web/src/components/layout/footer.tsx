@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { BrandLogo } from '@warkop-yareh/ui';
 import { SITE, NAV_LINKS } from '@/lib/constants';
+import { useBranches } from '@/features/catalog/catalog.hooks';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const branches = useBranches();
 
   return (
     <footer className="relative overflow-hidden border-t border-border-subtle bg-canvas-obsidian text-on-surface">
@@ -21,18 +23,13 @@ export function Footer() {
               <BrandLogo size={40} />
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-text-muted">
-              Surabaya&apos;s 24/7 nexus for artisanal single-origin coffees,
-              gigabit mesh networking, and inspiring coworking spaces engineered
-              for creators, engineers, and night owls.
+              Kopi, workspace, pemesanan, reservasi, komunitas, dan loyalty
+              Warkop Ya&apos;reh dalam satu platform.
             </p>
-            {/* Sanctuary Status Badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3.5 py-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--green-500)] opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--green-500)]"></span>
-              </span>
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--green-500)]">
-                Dual-WAN Gigabit Fiber Nominal • 940 Mbps
+              <span className="h-2 w-2 rounded-full bg-accent-amber" />
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-cream-beige">
+                Jam dan fasilitas mengikuti cabang pilihan
               </span>
             </div>
           </div>
@@ -40,42 +37,30 @@ export function Footer() {
           {/* Outlets Sanctuary (3 cols) */}
           <div id="locations" className="lg:col-span-3 space-y-3 scroll-mt-24">
             <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
-              Sanctuary Outlets
+              Cabang aktif
             </h4>
             <div className="space-y-2.5 text-sm text-text-muted">
-              <div className="rounded-xl border border-border-subtle bg-surface-secondary p-2.5">
-                <p className="text-xs font-semibold text-text-primary">
-                  Darmo Flagship (SBY Pusat)
+              {(branches.data ?? []).slice(0, 3).map((branch) => (
+                <div
+                  key={branch.id}
+                  className="rounded-xl border border-border-subtle bg-surface-secondary p-2.5"
+                >
+                  <p className="text-xs font-semibold text-text-primary">
+                    {branch.name}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-text-muted">
+                    {branch.address}, {branch.city}
+                  </p>
+                  <span className="mt-1 inline-block rounded bg-primary-container/20 px-1.5 py-0.5 font-mono text-[10px] text-cream-beige">
+                    Hari kerja {branch.weekdayHours}
+                  </span>
+                </div>
+              ))}
+              {!branches.isPending && !branches.data?.length && (
+                <p className="text-xs text-text-muted">
+                  Informasi cabang belum tersedia.
                 </p>
-                <p className="mt-0.5 text-[11px] text-text-muted">
-                  Jl. Raya Darmo No. 88, Surabaya
-                </p>
-                <span className="mt-1 inline-block rounded bg-primary-container/20 px-1.5 py-0.5 font-mono text-[10px] text-cream-beige">
-                  24/7 Nonstop Ops
-                </span>
-              </div>
-              <div className="rounded-xl border border-border-subtle bg-surface-secondary p-2.5">
-                <p className="text-xs font-semibold text-text-primary">
-                  Gubeng 24H Hub (SBY Timur)
-                </p>
-                <p className="mt-0.5 text-[11px] text-text-muted">
-                  Jl. Raya Gubeng No. 42, Surabaya
-                </p>
-                <span className="mt-1 inline-block rounded bg-primary-container/20 px-1.5 py-0.5 font-mono text-[10px] text-cream-beige">
-                  24/7 Nonstop Ops
-                </span>
-              </div>
-              <div className="rounded-xl border border-border-subtle bg-surface-secondary p-2.5">
-                <p className="text-xs font-semibold text-text-primary">
-                  Dharmahusada Campus (Unair)
-                </p>
-                <p className="mt-0.5 text-[11px] text-text-muted">
-                  Jl. Dharmahusada No. 115, Surabaya
-                </p>
-                <span className="mt-1 inline-block rounded bg-primary-container/20 px-1.5 py-0.5 font-mono text-[10px] text-cream-beige">
-                  07:00 - 02:00 WIB
-                </span>
-              </div>
+              )}
             </div>
           </div>
 

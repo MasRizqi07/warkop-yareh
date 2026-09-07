@@ -16,22 +16,23 @@ datasource db {
 // ---- Auth & Users ----
 
 model User {
-  id             String         @id @default(cuid())
-  email          String         @unique
-  phone          String?        @unique
-  name           String
-  avatar         String?
-  passwordHash   String?
-  role           Role           @default(CUSTOMER)
-  membershipTier MembershipTier @default(BRONZE)
-  loyaltyPoints  Int            @default(0)
-  referralCode   String         @unique @default(cuid())
-  referredBy     String?
-  branchId       String?
-  branch         Branch?        @relation(fields: [branchId], references: [id])
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  deletedAt      DateTime?
+  id                       String         @id @default(cuid())
+  email                    String         @unique
+  phone                    String?        @unique
+  name                     String
+  avatar                   String?
+  passwordHash             String?
+  role                     Role           @default(CUSTOMER)
+  membershipTier           MembershipTier @default(BRONZE)
+  loyaltyPoints            Int            @default(0)
+  whatsAppMarketingOptInAt DateTime?
+  referralCode             String         @unique @default(cuid())
+  referredBy               String?
+  branchId                 String?
+  branch                   Branch?        @relation(fields: [branchId], references: [id])
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  deletedAt                DateTime?
 
   orders                     Order[]
   reservations               Reservation[]

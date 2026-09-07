@@ -9,6 +9,8 @@ import request from 'supertest';
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from '../../application/services/catalog.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
+import { ROLES_KEY } from '../../../../common/decorators/roles.decorator';
+import { Role } from '@warkop-yareh/database';
 
 let mockUser: any = null;
 
@@ -33,6 +35,7 @@ describe('CatalogController (E2E / Controller)', () => {
       createProduct: jest.fn(),
       updateProduct: jest.fn(),
       toggleAvailability: jest.fn(),
+      updateBranchProduct: jest.fn(),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -112,5 +115,22 @@ describe('CatalogController (E2E / Controller)', () => {
       .expect(201);
 
     expect(res.body.data.id).toBe('prod-new');
+  });
+
+  it('limits inventory and price changes to management roles while preserving staff availability access', () => {
+    expect(
+      Reflect.getMetadata(
+        ROLES_KEY,
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- Decorator metadata is read; the method is never invoked.
+        CatalogController.prototype.updateBranchProduct,
+      ),
+    ).toEqual([Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN]);
+    expect(
+      Reflect.getMetadata(
+        ROLES_KEY,
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- Decorator metadata is read; the method is never invoked.
+        CatalogController.prototype.toggleAvailability,
+      ),
+    ).toEqual(expect.arrayContaining([Role.STAFF, Role.CASHIER, Role.KITCHEN]));
   });
 });

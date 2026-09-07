@@ -167,5 +167,34 @@ describe('CatalogService', () => {
       ).rejects.toThrow('Stock threshold cannot exceed capacity');
       expect(mockCatalogRepo.updateBranchProduct).not.toHaveBeenCalled();
     });
+
+    it('allows an explicit null threshold to clear persisted inventory limits', async () => {
+      mockCatalogRepo.getBranchProduct.mockResolvedValue({
+        stockCapacity: { toNumber: () => 5 },
+        stockThreshold: { toNumber: () => 10 },
+      });
+      mockCatalogRepo.updateBranchProduct.mockResolvedValue({
+        branchId: 'branch-1',
+        productId: 'prod-1',
+        stockCapacity: 5,
+        stockThreshold: null,
+      });
+
+      await expect(
+        service.updateBranchProduct('branch-1', 'prod-1', {
+          stockCapacity: 5,
+          stockThreshold: null,
+        }),
+      ).resolves.toEqual(expect.objectContaining({ stockThreshold: null }));
+
+      expect(mockCatalogRepo.updateBranchProduct).toHaveBeenCalledWith(
+        'branch-1',
+        'prod-1',
+        expect.objectContaining({
+          stockCapacity: 5,
+          stockThreshold: null,
+        }),
+      );
+    });
   });
 });

@@ -1,1289 +1,430 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CountUp } from '@warkop-yareh/ui';
 import {
   Activity,
-  RefreshCw,
+  BarChart3,
   Download,
-  ChevronDown,
-  FileText,
-  Database,
+  PackageCheck,
+  ReceiptText,
+  RefreshCw,
   Store,
-  TrendingUp,
-  QrCode,
-  Award,
-  Zap,
-  Flame,
-  Thermometer,
-  Briefcase,
-  Moon,
-  Trophy,
+  Users,
+  WalletCards,
 } from 'lucide-react';
+import {
+  getAdminProfile,
+  getBranches,
+  getCategoryPerformance,
+  getCustomerInsights,
+  getRevenueAnalytics,
+  type BranchRecord,
+  type CategoryPerformance,
+  type RevenueAnalytics,
+} from '@/lib/operations-api';
 
-type BranchScope = 'consolidated' | 'darmo' | 'gubeng';
+interface AnalyticsSnapshot {
+  revenue: RevenueAnalytics;
+  categories: CategoryPerformance[];
+  customerCount: number;
+}
+
+const GLOBAL_BRANCH_ROLES = new Set(['ADMIN', 'SUPERADMIN']);
+const EMPTY_REVENUE: RevenueAnalytics = {
+  totalRevenue: 0,
+  orderCount: 0,
+  averageOrderValue: 0,
+};
+
+const rupiah = (value: number) =>
+  `Rp ${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
+
+async function fetchSnapshot(branchId?: string): Promise<AnalyticsSnapshot> {
+  const [revenue, categories, customers] = await Promise.all([
+    getRevenueAnalytics(branchId),
+    getCategoryPerformance(branchId),
+    getCustomerInsights({ branchId, page: 1, limit: 1 }),
+  ]);
+  return { revenue, categories, customerCount: customers.meta.total };
+}
+
+function csvCell(value: string | number): string {
+  const text = String(value);
+  const spreadsheetSafe = /^[=+\-@]/.test(text) ? `'${text}` : text;
+  return `"${spreadsheetSafe.replaceAll('"', '""')}"`;
+}
+
+function downloadFile(filename: string, content: string, type: string): void {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function ExecutiveOperationsAnalyticsPage() {
-  const [period, setPeriod] = useState<'today' | '7d' | 'mtd' | 'custom'>('7d');
-  const [selectedBranch, setSelectedBranch] =
-    useState<BranchScope>('consolidated');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const requestId = useRef(0);
+  const [branches, setBranches] = useState<BranchRecord[]>([]);
+  const [canViewConsolidated, setCanViewConsolidated] = useState(false);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
+  const [revenue, setRevenue] = useState<RevenueAnalytics>(EMPTY_REVENUE);
+  const [categories, setCategories] = useState<CategoryPerformance[]>([]);
+  const [customerCount, setCustomerCount] = useState(0);
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1200);
+  const applySnapshot = useCallback((snapshot: AnalyticsSnapshot) => {
+    setRevenue(snapshot.revenue);
+    setCategories(snapshot.categories);
+    setCustomerCount(snapshot.customerCount);
+    setLoadedAt(new Date());
+  }, []);
+
+  const loadSnapshot = useCallback(
+    async (branchId: string) => {
+      const currentRequest = ++requestId.current;
+      setLoading(true);
+      setError(null);
+      try {
+        const snapshot = await fetchSnapshot(branchId || undefined);
+        if (requestId.current === currentRequest) applySnapshot(snapshot);
+      } catch (loadError: unknown) {
+        if (requestId.current !== currentRequest) return;
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : 'Analytics could not be loaded'
+        );
+      } finally {
+        if (requestId.current === currentRequest) setLoading(false);
+      }
+    },
+    [applySnapshot]
+  );
+
+  useEffect(() => {
+    let active = true;
+    const currentRequest = ++requestId.current;
+    void Promise.all([getAdminProfile(), getBranches()])
+      .then(async ([user, allBranches]) => {
+        if (!active) return;
+        const globalAccess = GLOBAL_BRANCH_ROLES.has(user.role);
+        const visibleBranches = globalAccess
+          ? allBranches
+          : allBranches.filter((branch) => branch.id === user.branchId);
+        const initialBranchId = globalAccess
+          ? ''
+          : visibleBranches[0]?.id || user.branchId || '';
+        if (!globalAccess && !initialBranchId) {
+          throw new Error(
+            'This account needs a branch assignment before analytics can be opened'
+          );
+        }
+        setCanViewConsolidated(globalAccess);
+        setBranches(visibleBranches);
+        setSelectedBranchId(initialBranchId);
+        const snapshot = await fetchSnapshot(initialBranchId || undefined);
+        if (active && requestId.current === currentRequest) {
+          applySnapshot(snapshot);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!active || requestId.current !== currentRequest) return;
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : 'Analytics could not be loaded'
+        );
+      })
+      .finally(() => {
+        if (active && requestId.current === currentRequest) setLoading(false);
+      });
+    return () => {
+      active = false;
+      requestId.current += 1;
+    };
+  }, [applySnapshot]);
+
+  const selectedBranchName =
+    branches.find((branch) => branch.id === selectedBranchId)?.name ??
+    'Semua cabang';
+  const totalUnits = useMemo(
+    () => categories.reduce((sum, item) => sum + item.unitsSold, 0),
+    [categories]
+  );
+  const maximumCategoryRevenue = Math.max(
+    1,
+    ...categories.map((item) => item.revenue)
+  );
+
+  const exportJson = () => {
+    downloadFile(
+      `analytics-${selectedBranchId || 'all'}-${Date.now()}.json`,
+      JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          scope: selectedBranchName,
+          basis: 'completed orders, all time',
+          revenue,
+          customerCount,
+          categories,
+        },
+        null,
+        2
+      ),
+      'application/json;charset=utf-8'
+    );
+  };
+
+  const exportCsv = () => {
+    const rows = [
+      ['category', 'units_sold', 'revenue_rupiah'],
+      ...categories.map((item) => [
+        item.category,
+        item.unitsSold,
+        item.revenue,
+      ]),
+    ];
+    downloadFile(
+      `category-performance-${selectedBranchId || 'all'}-${Date.now()}.csv`,
+      rows.map((row) => row.map(csvCell).join(',')).join('\r\n'),
+      'text/csv;charset=utf-8'
+    );
   };
 
   return (
-    <div className="min-h-screen bg-canvas-obsidian text-text-primary font-sans">
-      {/* ══════════════════════════════════════════════════════════════
-          TOP OPERATIONAL AUDIT BANNER
-          ══════════════════════════════════════════════════════════════ */}
-      <div className="bg-surface-secondary border-b border-border-subtle px-4 sm:px-6 lg:px-8 py-2.5">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent-amber/15 text-accent-amber font-semibold text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-amber animate-pulse" />
-              AUDIT ENGINE ACTIVE
-            </span>
-            <span className="text-text-muted hidden sm:inline text-[11px]">
-              Telemetry sync: Node-ID #SBY-DRM-01 &amp; #SBY-GBG-02 consolidated
-            </span>
+    <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-7">
+        <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-accent-amber">
+              <Activity className="h-4 w-4" /> Operations / Analytics
+            </p>
+            <h1 className="mt-2 text-3xl font-bold">
+              Revenue &amp; Category Performance
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm text-text-muted">
+              Angka dihitung dari order berstatus COMPLETED yang tersimpan.
+              Cakupan waktu saat ini adalah sepanjang riwayat data, bukan feed
+              real-time.
+            </p>
           </div>
-          <div className="flex items-center gap-4 text-text-muted text-[11px]">
-            <span>
-              Dual-WAN Gigabit Fiber:{' '}
-              <strong className="text-primary">940 Mbps (Nominal)</strong>
-            </span>
-            <span className="hidden md:inline">•</span>
-            <span className="hidden md:inline">
-              Shift Manager:{' '}
-              <strong className="text-text-primary">
-                Agung W. (Darmo 24H)
-              </strong>
-            </span>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={loading || categories.length === 0}
+              className="inline-flex items-center gap-2 rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" /> CSV kategori
+            </button>
+            <button
+              type="button"
+              onClick={exportJson}
+              disabled={loading || !loadedAt}
+              className="inline-flex items-center gap-2 rounded-xl border border-border-subtle bg-surface-card px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" /> JSON snapshot
+            </button>
+            <button
+              type="button"
+              onClick={() => void loadSnapshot(selectedBranchId)}
+              disabled={loading}
+              className="primary-cta-motion inline-flex items-center gap-2 rounded-xl bg-brand-coffee px-4 py-2 text-sm font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+              />
+              Muat ulang
+            </button>
           </div>
-        </div>
-      </div>
+        </header>
 
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* ══════════════════════════════════════════════════════════════
-            HEADER & INTERACTIVE COMMAND TOOLBAR
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="space-y-6">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-mono text-accent-amber uppercase tracking-wider">
-                <Activity className="w-4 h-4 text-accent-amber" />
-                <span>Executive Intelligence • Real-Time Audit</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-                Enterprise Operations &amp; Revenue Analytics
-              </h1>
-              <p className="text-sm text-text-muted max-w-3xl">
-                Consolidated operational telemetry, bean extraction yield, and
-                patron footfall across Darmo Flagship &amp; Gubeng 24H
-                sanctuaries.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Refresh Feed */}
-              <button
-                onClick={handleRefresh}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-card border border-border-subtle hover:bg-surface-container transition-colors text-text-primary text-xs font-bold shadow-sm"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 text-accent-amber ${
-                    isRefreshing ? 'animate-spin' : ''
-                  }`}
-                />
-                <span>Refresh Feed</span>
-              </button>
-
-              {/* Export Ledger */}
-              <div className="relative inline-block text-left">
-                <button
-                  onClick={() => setExportMenuOpen(!exportMenuOpen)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-coffee hover:bg-primary-container text-text-primary text-xs font-bold transition-all shadow-md"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export Ledger</span>
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-
-                {exportMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 rounded-xl bg-surface-card border border-border-subtle shadow-2xl p-1.5 z-30 space-y-1">
-                    <button
-                      onClick={() => {
-                        setExportMenuOpen(false);
-                        alert('Exporting CSV Financial Raw...');
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left text-text-primary hover:bg-surface-container"
-                    >
-                      <FileText className="w-4 h-4 text-accent-amber" /> CSV
-                      Financial Raw
-                    </button>
-                    <button
-                      onClick={() => {
-                        setExportMenuOpen(false);
-                        alert('Exporting Executive PDF Summary...');
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left text-text-primary hover:bg-surface-container"
-                    >
-                      <FileText className="w-4 h-4 text-primary" /> Executive
-                      PDF Summary
-                    </button>
-                    <button
-                      onClick={() => {
-                        setExportMenuOpen(false);
-                        alert('Exporting JSON Telemetry Stream...');
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left text-text-primary hover:bg-surface-container"
-                    >
-                      <Database className="w-4 h-4 text-secondary" /> JSON
-                      Telemetry Stream
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Segmented Controls & Context Bar */}
-          <div className="p-2 rounded-xl bg-surface-card border border-border-subtle shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            {/* Date Segmented Pills */}
-            <div className="flex items-center p-1 rounded-lg bg-canvas-obsidian gap-1 overflow-x-auto">
-              {(['today', '7d', 'mtd', 'custom'] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  className={`px-4 py-1.5 rounded-md text-xs font-semibold capitalize transition-all whitespace-nowrap ${
-                    period === p
-                      ? 'bg-surface-container text-accent-amber shadow-sm border border-border-subtle'
-                      : 'text-text-muted hover:text-text-primary'
-                  }`}
-                >
-                  {p === 'today'
-                    ? 'Today'
-                    : p === '7d'
-                      ? 'Last 7 Days'
-                      : p === 'mtd'
-                        ? 'Month to Date'
-                        : 'Custom Range'}
-                </button>
+        <section className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-surface-card p-4 sm:flex-row sm:items-center sm:justify-between">
+          <label className="flex items-center gap-3 text-sm font-medium">
+            <Store className="h-4 w-4 text-accent-amber" />
+            <span>Cakupan cabang</span>
+            <select
+              value={selectedBranchId}
+              disabled={
+                loading || (!canViewConsolidated && branches.length < 2)
+              }
+              onChange={(event) => {
+                const branchId = event.target.value;
+                setSelectedBranchId(branchId);
+                void loadSnapshot(branchId);
+              }}
+              className="rounded-xl border border-border-subtle bg-surface-secondary px-3 py-2 text-text-primary disabled:opacity-60"
+            >
+              {canViewConsolidated && <option value="">Semua cabang</option>}
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
               ))}
-            </div>
-
-            {/* Branch Selector & Real-Time Pulse */}
-            <div className="flex flex-wrap items-center gap-4 justify-between md:justify-end px-2">
-              <div className="flex items-center gap-2 bg-surface-secondary border border-border-subtle px-3 py-1.5 rounded-lg">
-                <Store className="w-4 h-4 text-primary" />
-                <select
-                  aria-label="Analytics branch scope"
-                  value={selectedBranch}
-                  onChange={(e) =>
-                    setSelectedBranch(e.target.value as BranchScope)
-                  }
-                  className="bg-transparent text-xs font-semibold text-text-primary focus:outline-none cursor-pointer"
-                >
-                  <option
-                    className="bg-surface-card text-text-primary"
-                    value="consolidated"
-                  >
-                    All Sanctuaries (Consolidated)
-                  </option>
-                  <option
-                    className="bg-surface-card text-text-primary"
-                    value="darmo"
-                  >
-                    Darmo Flagship (Central 24H)
-                  </option>
-                  <option
-                    className="bg-surface-card text-text-primary"
-                    value="gubeng"
-                  >
-                    Gubeng Annex (Creative Hub)
-                  </option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-amber opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-amber" />
-                </span>
-                <span>Live Engine • Synced 12s ago</span>
-              </div>
-            </div>
-          </div>
+            </select>
+          </label>
+          <p className="font-mono text-xs text-text-muted" aria-live="polite">
+            {loading
+              ? 'Mengambil snapshot…'
+              : loadedAt
+                ? `Dimuat ${loadedAt.toLocaleString('id-ID')}`
+                : 'Belum ada snapshot'}
+          </p>
         </section>
 
-        {/* ══════════════════════════════════════════════════════════════
-            EXECUTIVE KPI GRID (4 Columns)
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* KPI 1: Gross Revenue */}
-          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
-            <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                Gross Revenue
-              </span>
-              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-primary">
-                <TrendingUp className="w-3.5 h-3.5 text-primary" /> +14.2%
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold tracking-tight text-text-primary">
-                <CountUp
-                  value={48_250_000}
-                  prefix="Rp "
-                  formatter={(value) =>
-                    Math.round(value).toLocaleString('id-ID')
-                  }
-                />
-              </div>
-              <div className="font-mono text-xs text-text-muted mt-1">
-                Daily target:{' '}
-                <span className="text-text-primary font-semibold">
-                  Rp 45.000.000
-                </span>{' '}
-                <span className="text-accent-amber">(107.2%)</span>
-              </div>
-            </div>
-            {/* Sparkline SVG */}
-            <div className="pt-2">
-              <svg
-                className="w-full h-10 overflow-visible"
-                preserveAspectRatio="none"
-                viewBox="0 0 160 40"
-              >
-                <defs>
-                  <linearGradient id="gradRev" x1="0" x2="0" y1="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--accent-amber)"
-                      stopOpacity="0.35"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--accent-amber)"
-                      stopOpacity="0.0"
-                    />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M0,32 Q25,28 45,22 T90,26 T130,12 L160,6 L160,40 L0,40 Z"
-                  fill="url(#gradRev)"
-                />
-                <path
-                  d="M0,32 Q25,28 45,22 T90,26 T130,12 L160,6"
-                  fill="none"
-                  stroke="var(--accent-amber)"
-                  strokeLinecap="round"
-                  strokeWidth="2.5"
-                />
-                <circle cx="160" cy="6" fill="var(--accent-amber)" r="3.5" />
-              </svg>
-            </div>
+        {error && (
+          <div
+            role="alert"
+            className="rounded-xl border border-error/40 bg-error-container px-4 py-3 text-sm text-on-error-container"
+          >
+            {error}
           </div>
+        )}
 
-          {/* KPI 2: Total Orders */}
-          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
-            <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                Orders Processed
-              </span>
-              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-primary">
-                <QrCode className="w-3.5 h-3.5 text-primary" /> +8.4%
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold tracking-tight text-text-primary">
-                <CountUp value={1_280} suffix=" Orders" />
-              </div>
-              <div className="font-mono text-xs text-text-muted mt-1">
-                Avg Ticket:{' '}
-                <span className="text-text-primary font-semibold">
-                  Rp 37.695
-                </span>{' '}
-                / patron
-              </div>
-            </div>
-            <div className="pt-2">
-              <svg
-                className="w-full h-10 overflow-visible"
-                preserveAspectRatio="none"
-                viewBox="0 0 160 40"
-              >
-                <defs>
-                  <linearGradient id="gradOrders" x1="0" x2="0" y1="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--primary)"
-                      stopOpacity="0.35"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--primary)"
-                      stopOpacity="0.0"
-                    />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M0,30 Q30,34 60,20 T110,18 T140,8 L160,10 L160,40 L0,40 Z"
-                  fill="url(#gradOrders)"
-                />
-                <path
-                  d="M0,30 Q30,34 60,20 T110,18 T140,8 L160,10"
-                  fill="none"
-                  stroke="var(--primary)"
-                  strokeLinecap="round"
-                  strokeWidth="2.5"
-                />
-                <circle cx="160" cy="10" fill="var(--primary)" r="3.5" />
-              </svg>
-            </div>
-          </div>
-
-          {/* KPI 3: Loyalty Retention */}
-          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
-            <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                Patron Retention
-              </span>
-              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-accent-amber">
-                <Award className="w-3.5 h-3.5 text-accent-amber" /> Gold +120
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold tracking-tight text-text-primary">
-                <CountUp value={68.4} decimals={1} suffix="% Repeat" />
-              </div>
-              <div className="font-mono text-xs text-text-muted mt-1">
-                Active Patrons:{' '}
-                <span className="text-text-primary font-semibold">2,420</span> •
-                34.2k burn
-              </div>
-            </div>
-            <div className="pt-2">
-              <svg
-                className="w-full h-10 overflow-visible"
-                preserveAspectRatio="none"
-                viewBox="0 0 160 40"
-              >
-                <defs>
-                  <linearGradient id="gradLoyalty" x1="0" x2="0" y1="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--tertiary)"
-                      stopOpacity="0.35"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--tertiary)"
-                      stopOpacity="0.0"
-                    />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M0,25 Q35,28 70,16 T120,20 T150,8 L160,4 L160,40 L0,40 Z"
-                  fill="url(#gradLoyalty)"
-                />
-                <path
-                  d="M0,25 Q35,28 70,16 T120,20 T150,8 L160,4"
-                  fill="none"
-                  stroke="var(--tertiary)"
-                  strokeLinecap="round"
-                  strokeWidth="2.5"
-                />
-                <circle cx="160" cy="4" fill="var(--tertiary)" r="3.5" />
-              </svg>
-            </div>
-          </div>
-
-          {/* KPI 4: Kitchen SLA Speed */}
-          <div className="delight-card space-y-3 rounded-2xl border border-border-subtle bg-surface-card p-5 shadow-lg">
-            <div className="flex items-start justify-between">
-              <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                Brew &amp; Toast SLA
-              </span>
-              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-emerald-400">
-                <Zap className="w-3.5 h-3.5 text-emerald-400" /> -1.2m Fast
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold tracking-tight text-text-primary">
-                <CountUp value={5.8} decimals={1} suffix=" mins" />
-              </div>
-              <div className="font-mono text-xs text-text-muted mt-1">
-                <span className="text-text-primary font-semibold">94.2%</span>{' '}
-                &lt;8 min SLA • Overdue:{' '}
-                <span className="text-text-muted">0.8%</span>
-              </div>
-            </div>
-            <div className="pt-2">
-              <svg
-                className="w-full h-10 overflow-visible"
-                preserveAspectRatio="none"
-                viewBox="0 0 160 40"
-              >
-                <defs>
-                  <linearGradient id="gradSLA" x1="0" x2="0" y1="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--secondary)"
-                      stopOpacity="0.35"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--secondary)"
-                      stopOpacity="0.0"
-                    />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M0,10 Q30,16 65,22 T115,26 T145,30 L160,32 L160,40 L0,40 Z"
-                  fill="url(#gradSLA)"
-                />
-                <path
-                  d="M0,10 Q30,16 65,22 T115,26 T145,30 L160,32"
-                  fill="none"
-                  stroke="var(--secondary)"
-                  strokeLinecap="round"
-                  strokeWidth="2.5"
-                />
-                <circle cx="160" cy="32" fill="var(--secondary)" r="3.5" />
-              </svg>
-            </div>
-          </div>
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            icon={WalletCards}
+            label="Pendapatan selesai"
+            value={revenue.totalRevenue}
+            prefix="Rp "
+            supporting={rupiah(revenue.totalRevenue)}
+            loading={loading}
+          />
+          <MetricCard
+            icon={ReceiptText}
+            label="Order selesai"
+            value={revenue.orderCount}
+            supporting="Transaksi berstatus COMPLETED"
+            loading={loading}
+          />
+          <MetricCard
+            icon={BarChart3}
+            label="Rata-rata nilai order"
+            value={revenue.averageOrderValue}
+            prefix="Rp "
+            supporting={rupiah(revenue.averageOrderValue)}
+            loading={loading}
+          />
+          <MetricCard
+            icon={Users}
+            label="Akun pelanggan"
+            value={customerCount}
+            supporting={`Dalam cakupan ${selectedBranchName}`}
+            loading={loading}
+          />
         </section>
 
-        {/* ══════════════════════════════════════════════════════════════
-            VISUAL STORYTELLING: EXTRACTION TELEMETRY & SHIFT LEAD
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 relative rounded-2xl overflow-hidden min-h-[220px] bg-surface-secondary border border-border-subtle flex flex-col justify-end p-6 sm:p-8 shadow-xl">
-            <div className="absolute inset-0 bg-gradient-to-t from-canvas-obsidian via-surface-card/80 to-transparent" />
-            <div className="relative z-10 space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-amber/20 text-accent-amber font-mono text-[11px] backdrop-blur-md">
-                <Flame className="w-3.5 h-3.5 text-accent-amber" />
-                BATCH ROAST METRICS: 48h DEGASSING CYCLE COMPLETE
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-text-primary">
-                Ijen Highland Single-Origin Extraction Telemetry
-              </h2>
-              <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Darmo flagship pressure-profiling grinders maintain 9.2 bar
-                steady state across 18.5g dry doses. Extraction total dissolved
-                solids (TDS) tested at 1.38% optimum sweetness band.
+        <section className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-card">
+          <div className="flex flex-col gap-2 border-b border-border-subtle p-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-widest text-accent-amber">
+                Persisted order items
+              </p>
+              <h2 className="mt-1 text-xl font-semibold">Kinerja kategori</h2>
+            </div>
+            <p className="text-sm text-text-muted">
+              {totalUnits.toLocaleString('id-ID')} unit pada {categories.length}{' '}
+              kategori
+            </p>
+          </div>
+
+          {loading ? (
+            <div
+              className="p-8 text-center text-sm text-text-muted"
+              role="status"
+            >
+              Menghitung data kategori…
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="p-8 text-center">
+              <PackageCheck className="mx-auto h-9 w-9 text-text-muted" />
+              <p className="mt-3 text-sm text-text-muted">
+                Belum ada item dari order selesai untuk cakupan ini.
               </p>
             </div>
-          </div>
-
-          <div className="rounded-2xl bg-surface-card border border-border-subtle p-6 flex flex-col justify-between shadow-xl">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs text-accent-amber uppercase font-semibold">
-                  Shift Performance
-                </span>
-                <Award className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-lg font-bold text-text-primary">
-                Barista Maestro Shift
-              </h3>
-              <p className="text-xs text-text-muted leading-relaxed">
-                Night squad lead barista Rian H. logged 340 consecutive
-                pour-overs with 0.00% customer refactors.
-              </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="bg-surface-secondary text-xs uppercase tracking-wider text-text-muted">
+                  <tr>
+                    <th className="px-5 py-3 font-medium">Kategori</th>
+                    <th className="px-5 py-3 text-right font-medium">Unit</th>
+                    <th className="px-5 py-3 text-right font-medium">
+                      Pendapatan
+                    </th>
+                    <th className="px-5 py-3 font-medium">Proporsi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle">
+                  {categories.map((item) => (
+                    <tr key={item.category}>
+                      <td className="px-5 py-4 font-semibold">
+                        {item.category}
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        {item.unitsSold.toLocaleString('id-ID')}
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono text-accent-amber">
+                        {rupiah(item.revenue)}
+                      </td>
+                      <td className="w-56 px-5 py-4">
+                        <div className="h-2 overflow-hidden rounded-full bg-surface-secondary">
+                          <div
+                            className="h-full rounded-full bg-accent-amber"
+                            style={{
+                              width: `${Math.max(
+                                2,
+                                (item.revenue / maximumCategoryRevenue) * 100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="pt-4 mt-4 bg-surface-secondary p-3.5 rounded-xl flex items-center justify-between border border-border-subtle">
-              <div>
-                <div className="font-mono text-[10px] text-text-muted">
-                  STEAM WAND TEMP
-                </div>
-                <div className="font-mono text-xs text-text-primary font-bold">
-                  64.5°C Optimal Microfoam
-                </div>
-              </div>
-              <Thermometer className="w-6 h-6 text-accent-amber" />
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════════════
-            MAIN ANALYTICS SPLIT (60% / 40%)
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT: 24-HOUR PEAK HOURS & FOOTFALL DYNAMICS */}
-          <div className="lg:col-span-7 bg-surface-card border border-border-subtle rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
-            <div className="space-y-1">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-text-primary">
-                    Hourly Sales &amp; Footfall Dynamics
-                  </h3>
-                  <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-surface-secondary text-primary font-bold">
-                    24H CYCLE
-                  </span>
-                </div>
-                {/* Legend */}
-                <div className="flex items-center gap-4 text-xs font-mono">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-sm bg-brand-coffee" />
-                    <span className="text-text-muted">Revenue</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-1 bg-accent-amber rounded-full" />
-                    <span className="text-text-muted">Headcount</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-text-muted">
-                Comparative telemetry between revenue volume (bars) and patron
-                headcount (curve).
-              </p>
-            </div>
-
-            {/* Custom Multi-Bar SVG Visualization */}
-            <div className="relative w-full overflow-x-auto py-2">
-              <div className="min-w-[560px]">
-                <svg className="w-full h-64" fill="none" viewBox="0 0 600 240">
-                  {/* Gridlines */}
-                  <line
-                    stroke="rgba(255,255,255,0.05)"
-                    strokeDasharray="3 3"
-                    x1="40"
-                    x2="590"
-                    y1="20"
-                    y2="20"
-                  />
-                  <line
-                    stroke="rgba(255,255,255,0.05)"
-                    strokeDasharray="3 3"
-                    x1="40"
-                    x2="590"
-                    y1="70"
-                    y2="70"
-                  />
-                  <line
-                    stroke="rgba(255,255,255,0.05)"
-                    strokeDasharray="3 3"
-                    x1="40"
-                    x2="590"
-                    y1="120"
-                    y2="120"
-                  />
-                  <line
-                    stroke="rgba(255,255,255,0.05)"
-                    strokeDasharray="3 3"
-                    x1="40"
-                    x2="590"
-                    y1="170"
-                    y2="170"
-                  />
-                  <line
-                    stroke="rgba(255,255,255,0.12)"
-                    x1="40"
-                    x2="590"
-                    y1="210"
-                    y2="210"
-                  />
-
-                  {/* Y Axis Labels */}
-                  <text
-                    className="text-[10px] fill-current text-text-muted font-mono"
-                    textAnchor="end"
-                    x="32"
-                    y="24"
-                  >
-                    Rp 5M
-                  </text>
-                  <text
-                    className="text-[10px] fill-current text-text-muted font-mono"
-                    textAnchor="end"
-                    x="32"
-                    y="74"
-                  >
-                    Rp 3.5M
-                  </text>
-                  <text
-                    className="text-[10px] fill-current text-text-muted font-mono"
-                    textAnchor="end"
-                    x="32"
-                    y="124"
-                  >
-                    Rp 2M
-                  </text>
-                  <text
-                    className="text-[10px] fill-current text-text-muted font-mono"
-                    textAnchor="end"
-                    x="32"
-                    y="174"
-                  >
-                    Rp 1M
-                  </text>
-
-                  {/* Peak Highlight Zones */}
-                  <rect
-                    fill="var(--accent-amber, #f59e0b)"
-                    fillOpacity="0.06"
-                    height="195"
-                    rx="6"
-                    width="85"
-                    x="295"
-                    y="15"
-                  />
-                  <text
-                    className="text-[9px] fill-current text-accent-amber font-mono font-bold"
-                    textAnchor="middle"
-                    x="337"
-                    y="12"
-                  >
-                    PEAK 1: COWORK
-                  </text>
-
-                  <rect
-                    fill="var(--primary, #f7bb82)"
-                    fillOpacity="0.08"
-                    height="195"
-                    rx="6"
-                    width="145"
-                    x="440"
-                    y="15"
-                  />
-                  <text
-                    className="text-[9px] fill-current text-primary font-mono font-bold"
-                    textAnchor="middle"
-                    x="512"
-                    y="12"
-                  >
-                    PEAK 2: MIDNIGHT DEV SPRINT
-                  </text>
-
-                  {/* 24 Hour Bars */}
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.7"
-                    height="65"
-                    rx="2"
-                    width="12"
-                    x="48"
-                    y="145"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.6"
-                    height="50"
-                    rx="2"
-                    width="12"
-                    x="70"
-                    y="160"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.5"
-                    height="35"
-                    rx="2"
-                    width="12"
-                    x="92"
-                    y="175"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.4"
-                    height="30"
-                    rx="2"
-                    width="12"
-                    x="114"
-                    y="180"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.5"
-                    height="40"
-                    rx="2"
-                    width="12"
-                    x="136"
-                    y="170"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.7"
-                    height="60"
-                    rx="2"
-                    width="12"
-                    x="158"
-                    y="150"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.8"
-                    height="80"
-                    rx="2"
-                    width="12"
-                    x="180"
-                    y="130"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.85"
-                    height="95"
-                    rx="2"
-                    width="12"
-                    x="202"
-                    y="115"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    fillOpacity="0.9"
-                    height="100"
-                    rx="2"
-                    width="12"
-                    x="224"
-                    y="110"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    height="115"
-                    rx="2"
-                    width="12"
-                    x="246"
-                    y="95"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    height="120"
-                    rx="2"
-                    width="12"
-                    x="268"
-                    y="90"
-                  />
-                  <rect
-                    fill="var(--accent-amber, #f59e0b)"
-                    height="162"
-                    rx="2"
-                    width="12"
-                    x="302"
-                    y="48"
-                  />
-                  <rect
-                    fill="var(--accent-amber, #f59e0b)"
-                    height="170"
-                    rx="2"
-                    width="12"
-                    x="324"
-                    y="40"
-                  />
-                  <rect
-                    fill="var(--accent-amber, #f59e0b)"
-                    height="158"
-                    rx="2"
-                    width="12"
-                    x="346"
-                    y="52"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    height="140"
-                    rx="2"
-                    width="12"
-                    x="368"
-                    y="70"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    height="125"
-                    rx="2"
-                    width="12"
-                    x="395"
-                    y="85"
-                  />
-                  <rect
-                    fill="var(--brand-coffee, #9c6b3a)"
-                    height="135"
-                    rx="2"
-                    width="12"
-                    x="417"
-                    y="75"
-                  />
-                  <rect
-                    fill="var(--primary, #f7bb82)"
-                    height="178"
-                    rx="2"
-                    width="12"
-                    x="450"
-                    y="32"
-                  />
-                  <rect
-                    fill="var(--primary, #f7bb82)"
-                    height="186"
-                    rx="2"
-                    width="12"
-                    x="472"
-                    y="24"
-                  />
-                  <rect
-                    fill="var(--primary, #f7bb82)"
-                    height="190"
-                    rx="2"
-                    width="12"
-                    x="494"
-                    y="20"
-                  />
-                  <rect
-                    fill="var(--primary, #f7bb82)"
-                    height="182"
-                    rx="2"
-                    width="12"
-                    x="516"
-                    y="28"
-                  />
-                  <rect
-                    fill="var(--primary, #f7bb82)"
-                    height="165"
-                    rx="2"
-                    width="12"
-                    x="538"
-                    y="45"
-                  />
-                  <rect
-                    fill="var(--primary, #f7bb82)"
-                    height="130"
-                    rx="2"
-                    width="12"
-                    x="560"
-                    y="80"
-                  />
-
-                  {/* Headcount Smooth Polyline */}
-                  <path
-                    d="M54,152 Q80,170 102,185 T146,175 T212,125 T256,105 T314,56 T356,65 T405,90 T460,40 T504,26 T548,50 T566,95"
-                    fill="none"
-                    stroke="var(--accent-amber, #f59e0b)"
-                    strokeLinecap="round"
-                    strokeWidth="2.5"
-                  />
-                  <circle
-                    cx="330"
-                    cy="50"
-                    fill="var(--accent-amber, #f59e0b)"
-                    r="4"
-                    stroke="var(--surface-card, #18181c)"
-                    strokeWidth="2"
-                  />
-                  <circle
-                    cx="504"
-                    cy="26"
-                    fill="var(--primary, #f7bb82)"
-                    r="4"
-                    stroke="var(--surface-card, #18181c)"
-                    strokeWidth="2"
-                  />
-
-                  {/* X Axis Time markers */}
-                  <text
-                    className="text-[9px] fill-current text-text-muted font-mono"
-                    textAnchor="middle"
-                    x="54"
-                    y="226"
-                  >
-                    00:00
-                  </text>
-                  <text
-                    className="text-[9px] fill-current text-text-muted font-mono"
-                    textAnchor="middle"
-                    x="142"
-                    y="226"
-                  >
-                    04:00
-                  </text>
-                  <text
-                    className="text-[9px] fill-current text-text-muted font-mono"
-                    textAnchor="middle"
-                    x="230"
-                    y="226"
-                  >
-                    08:00
-                  </text>
-                  <text
-                    className="text-[9px] fill-current text-accent-amber font-mono font-bold"
-                    textAnchor="middle"
-                    x="318"
-                    y="226"
-                  >
-                    13:00
-                  </text>
-                  <text
-                    className="text-[9px] fill-current text-text-muted font-mono"
-                    textAnchor="middle"
-                    x="406"
-                    y="226"
-                  >
-                    18:00
-                  </text>
-                  <text
-                    className="text-[9px] fill-current text-primary font-mono font-bold"
-                    textAnchor="middle"
-                    x="484"
-                    y="226"
-                  >
-                    22:00
-                  </text>
-                  <text
-                    className="text-[9px] fill-current text-text-muted font-mono"
-                    textAnchor="middle"
-                    x="566"
-                    y="226"
-                  >
-                    02:00
-                  </text>
-                </svg>
-              </div>
-            </div>
-
-            {/* Metric Summary Callout Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="p-4 rounded-xl bg-surface-secondary border border-border-subtle space-y-1">
-                <div className="flex items-center gap-1.5 font-mono text-[11px] text-accent-amber">
-                  <Briefcase className="w-3.5 h-3.5 text-accent-amber" />
-                  <span>13:00 – 16:00 WIB • COWORKING RUSH</span>
-                </div>
-                <div className="text-lg font-bold text-text-primary">
-                  Rp 14.850.000{' '}
-                  <span className="text-xs text-text-muted font-normal">
-                    (89% Desk Load)
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted">
-                  Primary items: Cold Brew Aren, Pastrami Toast &amp; Day-pass
-                  VIP desk slots.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-surface-secondary border border-border-subtle space-y-1">
-                <div className="flex items-center gap-1.5 font-mono text-[11px] text-primary">
-                  <Moon className="w-3.5 h-3.5 text-primary" />
-                  <span>20:00 – 01:00 WIB • MIDNIGHT SPRINT</span>
-                </div>
-                <div className="text-lg font-bold text-text-primary">
-                  Rp 21.200.000{' '}
-                  <span className="text-xs text-text-muted font-normal">
-                    (96% Table Load)
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted">
-                  Peak artisanal pour-over volume, brioche snacks, and shared
-                  extension plugs.
-                </p>
-              </div>
-            </div>
-
-            {/* Off-Peak Footnote */}
-            <div className="p-3 rounded-lg bg-surface-secondary border border-border-subtle flex items-center justify-between font-mono text-xs text-text-muted">
-              <div className="flex items-center gap-2">
-                <Moon className="w-4 h-4 text-accent-amber" />
-                <span>
-                  Off-Peak Dawn Shift (02:00 – 06:00 WIB):{' '}
-                  <strong className="text-text-primary">Rp 4.200.000</strong>{' '}
-                  baseline revenue sustained by remote dev teams.
-                </span>
-              </div>
-              <span className="text-primary hidden sm:inline font-bold">
-                100% Zero-Drop SLA
-              </span>
-            </div>
-          </div>
-
-          {/* RIGHT: REVENUE BY CATEGORY & PAYMENT CHANNELS */}
-          <div className="lg:col-span-5 bg-surface-card border border-border-subtle rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-text-primary">
-                  Revenue by Category
-                </h3>
-                <span className="font-mono text-[11px] text-text-muted">
-                  SHARE RATIO
-                </span>
-              </div>
-              <p className="text-xs text-text-muted">
-                Extraction &amp; culinary contribution across 24h audit.
-              </p>
-            </div>
-
-            {/* Custom Donut Chart */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-2">
-              <div className="relative w-40 h-40 flex items-center justify-center flex-shrink-0">
-                <svg
-                  className="w-full h-full -rotate-90 transform"
-                  viewBox="0 0 100 100"
-                >
-                  <circle
-                    cx="50"
-                    cy="50"
-                    fill="none"
-                    r="38"
-                    stroke="rgba(255,255,255,0.06)"
-                    strokeWidth="12"
-                  />
-                  {/* Segment 1: Signature Aren (42%) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    fill="none"
-                    r="38"
-                    stroke="var(--accent-amber, #f59e0b)"
-                    strokeDasharray="100.28 238.76"
-                    strokeDashoffset="0"
-                    strokeWidth="12"
-                  />
-                  {/* Segment 2: Single Origin (24%) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    fill="none"
-                    r="38"
-                    stroke="var(--brand-coffee, #9c6b3a)"
-                    strokeDasharray="57.30 238.76"
-                    strokeDashoffset="-100.28"
-                    strokeWidth="12"
-                  />
-                  {/* Segment 3: Sourdough (21%) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    fill="none"
-                    r="38"
-                    stroke="var(--tertiary, #e8c47a)"
-                    strokeDasharray="50.14 238.76"
-                    strokeDashoffset="-157.58"
-                    strokeWidth="12"
-                  />
-                  {/* Segment 4: Coworking Passes (13%) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    fill="none"
-                    r="38"
-                    stroke="var(--primary, #f7bb82)"
-                    strokeDasharray="31.04 238.76"
-                    strokeDashoffset="-207.72"
-                    strokeWidth="12"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="font-mono text-[10px] text-text-muted uppercase">
-                    Gross
-                  </span>
-                  <span className="text-xl font-bold text-text-primary">
-                    48.25M
-                  </span>
-                  <span className="font-mono text-[10px] text-accent-amber">
-                    IDR
-                  </span>
-                </div>
-              </div>
-
-              {/* Donut Legend */}
-              <div className="space-y-2 w-full">
-                <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded bg-accent-amber" />
-                    <span className="text-xs text-text-primary font-medium">
-                      Signature Aren &amp; Cold Drip
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">
-                      42%
-                    </span>
-                    <span className="block font-mono text-[10px] text-text-muted">
-                      Rp 20.26M
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded bg-brand-coffee" />
-                    <span className="text-xs text-text-primary font-medium">
-                      Single-Origin V60 Pour-Over
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">
-                      24%
-                    </span>
-                    <span className="block font-mono text-[10px] text-text-muted">
-                      Rp 11.58M
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded bg-tertiary" />
-                    <span className="text-xs text-text-primary font-medium">
-                      Brioche Toast &amp; Artisan Eats
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">
-                      21%
-                    </span>
-                    <span className="block font-mono text-[10px] text-text-muted">
-                      Rp 10.13M
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-lg bg-surface-secondary">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded bg-primary" />
-                    <span className="text-xs text-text-primary font-medium">
-                      Workspace Passes &amp; VIP Pods
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-mono text-xs font-bold text-text-primary">
-                      13%
-                    </span>
-                    <span className="block font-mono text-[10px] text-text-muted">
-                      Rp 6.27M
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Settlement Rails */}
-            <div className="space-y-2 pt-2 border-t border-border-subtle">
-              <div className="flex items-center justify-between font-mono text-xs text-text-muted">
-                <span>SETTLEMENT RAILS</span>
-                <span className="text-primary font-semibold">
-                  97% Cashless Adoption
-                </span>
-              </div>
-              <div className="w-full h-3 rounded-full bg-surface-secondary flex overflow-hidden">
-                <div
-                  className="h-full bg-accent-amber"
-                  style={{ width: '64%' }}
-                  title="QRIS Midtrans: 64%"
-                />
-                <div
-                  className="h-full bg-primary"
-                  style={{ width: '22%' }}
-                  title="GoPay / ShopeePay: 22%"
-                />
-                <div
-                  className="h-full bg-tertiary"
-                  style={{ width: '11%' }}
-                  title="BCA Debit / Credit: 11%"
-                />
-                <div
-                  className="h-full bg-text-muted"
-                  style={{ width: '3%' }}
-                  title="Cash: 3%"
-                />
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-text-muted pt-1">
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-accent-amber" /> QRIS
-                  Midtrans 64%
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-primary" /> E-Wallet
-                  22%
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-tertiary" /> BCA Card
-                  11%
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-text-muted" /> Cash
-                  3%
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════════════
-            EXTRACTION LEADERBOARD
-            ══════════════════════════════════════════════════════════════ */}
-        <section className="bg-surface-card border border-border-subtle rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-accent-amber" />
-              <h3 className="text-lg font-bold text-text-primary">
-                Top Extraction Catalog Leaderboard
-              </h3>
-            </div>
-            <span className="font-mono text-xs text-accent-amber font-semibold bg-surface-secondary px-2.5 py-1 rounded-full">
-              RANKED BY VELOCITY
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              {
-                rank: '01',
-                name: 'Cold Brew Aren Brûlée',
-                subtitle: '412 cups • 74.2% Margin',
-                revenue: 'Rp 21.01M',
-                trend: '+18% vs avg',
-                badgeColor: 'text-accent-amber',
-              },
-              {
-                rank: '02',
-                name: 'Smoked Pastrami Brioche',
-                subtitle: '218 orders • 62.8% Margin',
-                revenue: 'Rp 10.46M',
-                trend: 'High Dinner',
-                badgeColor: 'text-text-primary',
-              },
-              {
-                rank: '03',
-                name: 'Single-Origin V60 Ijen Honey',
-                subtitle: '186 carafes • 81.5% Margin',
-                revenue: 'Rp 8.92M',
-                trend: 'Late Night Peak',
-                badgeColor: 'text-text-primary',
-              },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl bg-surface-secondary border border-border-subtle flex items-center justify-between gap-3 hover:border-white/[0.1] transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`font-mono text-lg font-bold ${item.badgeColor} w-6 text-center`}
-                  >
-                    {item.rank}
-                  </span>
-                  <div>
-                    <h4 className="text-xs font-bold text-text-primary">
-                      {item.name}
-                    </h4>
-                    <p className="font-mono text-[10px] text-text-muted mt-0.5">
-                      {item.subtitle}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono text-xs font-bold text-text-primary">
-                    {item.revenue}
-                  </div>
-                  <div className="font-mono text-[10px] text-primary">
-                    {item.trend}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          )}
         </section>
       </div>
-    </div>
+    </main>
+  );
+}
+
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  prefix,
+  supporting,
+  loading,
+}: {
+  icon: typeof Activity;
+  label: string;
+  value: number;
+  prefix?: string;
+  supporting: string;
+  loading: boolean;
+}) {
+  return (
+    <article className="delight-card rounded-2xl border border-border-subtle bg-surface-card p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-text-muted">{label}</p>
+        <Icon className="h-5 w-5 text-accent-amber" />
+      </div>
+      <p className="mt-4 font-mono text-2xl font-bold" aria-busy={loading}>
+        {loading ? (
+          <span className="text-text-muted">—</span>
+        ) : (
+          <CountUp value={value} prefix={prefix} />
+        )}
+      </p>
+      <p className="mt-2 text-xs text-text-muted">{supporting}</p>
+    </article>
   );
 }

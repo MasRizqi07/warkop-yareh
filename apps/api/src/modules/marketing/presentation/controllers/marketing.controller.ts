@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -88,6 +90,7 @@ export class MarketingController {
   }
 
   @Post('campaigns/:id/dispatch')
+  @HttpCode(HttpStatus.ACCEPTED)
   async dispatchCampaign(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,

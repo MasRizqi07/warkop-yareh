@@ -16,6 +16,7 @@ const safeUserSelect = Prisma.validator<Prisma.UserSelect>()({
   role: true,
   membershipTier: true,
   loyaltyPoints: true,
+  whatsAppMarketingOptInAt: true,
   referralCode: true,
   referredBy: true,
   branchId: true,
