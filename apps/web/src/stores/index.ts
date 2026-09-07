@@ -41,7 +41,21 @@ export const useThemeStore = create<ThemeStore>()(
     {
       name: 'warkop-theme',
       version: 1,
-      storage: createJSONStorage(() => window.localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined'
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {},
+            }
+      ),
+      migrate: (persistedState: any) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return { isDark: true };
+        }
+        return persistedState;
+      },
     }
   )
 );
@@ -197,7 +211,21 @@ export const useCartStore = create<CartStore>()(
     {
       name: 'warkop-cart',
       version: 2,
-      storage: createJSONStorage(() => window.localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined'
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {},
+            }
+      ),
+      migrate: (persistedState: any) => {
+        if (persistedState && Array.isArray(persistedState.items)) {
+          return persistedState;
+        }
+        return { items: [] };
+      },
     }
   )
 );
