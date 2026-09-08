@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
   ShoppingBag,
@@ -17,53 +17,57 @@ import {
   MonitorCheck,
   Coffee,
   X,
-} from "lucide-react";
-import { useAppStore, AppCartItem, PaymentMethod } from "@/store/useAppStore";
-import { MOCK_PRODUCTS, MockProduct } from "@/lib/mockData";
-import { soundEffects } from "@/lib/audioAlerts";
+} from 'lucide-react';
+import { useAppStore, AppCartItem, PaymentMethod } from '@/store/useAppStore';
+import { MOCK_PRODUCTS, MockProduct } from '@/lib/mockData';
+import { soundEffects } from '@/lib/audioAlerts';
+import { calculateClientCheckoutEstimate } from '@/lib/client-checkout-estimate';
 
 function createPosItemId() {
   return `pos-${crypto.randomUUID()}`;
 }
 
 export default function PosTerminalPage() {
-  const {
-    getActiveBranch,
-    createOrder,
-    tables,
-    currentShift,
-  } = useAppStore();
+  const { getActiveBranch, createOrder, tables, currentShift } = useAppStore();
 
   const activeBranch = getActiveBranch();
 
   // POS local active ticket state
   const [ticketItems, setTicketItems] = useState<AppCartItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [orderType, setOrderType] = useState<"dine-in" | "pickup">("dine-in");
-  const [selectedTable, setSelectedTable] = useState("T-01");
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [orderType, setOrderType] = useState<'dine-in' | 'pickup'>('dine-in');
+  const [selectedTable, setSelectedTable] = useState('T-01');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
 
   // Cash / Payment Modals
   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
   const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
   const [cashTendered, setCashTendered] = useState<number>(0);
-  const [completedOrderSuccess, setCompletedOrderSuccess] = useState<string | null>(null);
+  const [completedOrderSuccess, setCompletedOrderSuccess] = useState<
+    string | null
+  >(null);
 
   // Filter products
   const filteredProducts = MOCK_PRODUCTS.filter((prod) => {
-    const matchCategory = selectedCategory === "all" || prod.category === selectedCategory;
-    const matchSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCategory =
+      selectedCategory === 'all' || prod.category === selectedCategory;
+    const matchSearch = prod.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     return matchCategory && matchSearch;
   });
 
   // Add product to POS ticket
   const handleAddProduct = (prod: MockProduct) => {
-    const existingIndex = ticketItems.findIndex((item) => item.productId === prod.id);
+    const existingIndex = ticketItems.findIndex(
+      (item) => item.productId === prod.id
+    );
     if (existingIndex > -1) {
       const updated = [...ticketItems];
       updated[existingIndex].quantity += 1;
-      updated[existingIndex].subtotal = updated[existingIndex].price * updated[existingIndex].quantity;
+      updated[existingIndex].subtotal =
+        updated[existingIndex].price * updated[existingIndex].quantity;
       setTicketItems(updated);
     } else {
       const newItem: AppCartItem = {
@@ -74,10 +78,10 @@ export default function PosTerminalPage() {
         image: prod.image,
         quantity: 1,
         customizations: {
-          sweetness: "Normal (100%)",
-          iceLevel: "Normal Ice",
-          milkType: "Fresh Milk",
-          beanRoast: "Signature House Blend",
+          sweetness: 'Normal (100%)',
+          iceLevel: 'Normal Ice',
+          milkType: 'Fresh Milk',
+          beanRoast: 'Signature House Blend',
         },
         subtotal: prod.price,
       };
@@ -111,28 +115,24 @@ export default function PosTerminalPage() {
   // Financial calculations
   const subtotal = ticketItems.reduce((acc, item) => acc + item.subtotal, 0);
   const discountAmount = Math.round((subtotal * discountPercent) / 100);
-  const taxableAmount = Math.max(0, subtotal - discountAmount);
-  const tax = Math.round(taxableAmount * 0.1); // PB1 10%
-  const grandTotal = taxableAmount + tax;
+  const estimate = calculateClientCheckoutEstimate(subtotal, discountAmount);
+  const { tax, serviceFee, total: grandTotal } = estimate;
 
   const cashChange = Math.max(0, cashTendered - grandTotal);
 
   const handleFinalizeSale = (method: PaymentMethod) => {
     const created = createOrder({
-      customerName: "Walk-In Cashier Guest",
-      customerPhone: "0812-POS-OFFLINE",
+      customerName: 'Walk-In Cashier Guest',
+      customerPhone: '0812-POS-OFFLINE',
       branchId: activeBranch.id,
       branchName: activeBranch.name,
       fulfillmentType: orderType,
-      tableNumber: orderType === "dine-in" ? selectedTable : undefined,
+      tableNumber: orderType === 'dine-in' ? selectedTable : undefined,
       items: ticketItems,
-      subtotal,
       voucherDiscount: discountAmount,
-      tax,
-      total: grandTotal,
       paymentMethod: method,
-      paymentStatus: "paid",
-      orderStatus: "confirmed", // POS orders go directly to confirmed for kitchen
+      paymentStatus: 'paid',
+      orderStatus: 'confirmed', // POS orders go directly to confirmed for kitchen
     });
 
     soundEffects.playKdsBell();
@@ -158,11 +158,15 @@ export default function PosTerminalPage() {
             <span>TERMINAL KASIR #1</span>
           </div>
           <span className="font-mono text-neutral-300">
-            Cabang: <span className="text-[#f59e0b] font-bold">{activeBranch.name}</span>
+            Cabang:{' '}
+            <span className="text-[#f59e0b] font-bold">
+              {activeBranch.name}
+            </span>
           </span>
           <span className="text-neutral-500 hidden sm:inline">|</span>
           <span className="text-neutral-400 hidden sm:inline">
-            Kasir: <span className="text-white">{currentShift.cashierName}</span>
+            Kasir:{' '}
+            <span className="text-white">{currentShift.cashierName}</span>
           </span>
         </div>
 
@@ -188,7 +192,8 @@ export default function PosTerminalPage() {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5" />
             <span>
-              Transaksi Sukses #{completedOrderSuccess}! Tiket otomatis diteruskan ke layar KDS Barista.
+              Transaksi Sukses #{completedOrderSuccess}! Tiket otomatis
+              diteruskan ke layar KDS Barista.
             </span>
           </div>
           <Link
@@ -220,19 +225,19 @@ export default function PosTerminalPage() {
 
             <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
               {[
-                { id: "all", label: "Semua" },
-                { id: "coffee", label: "Kopi" },
-                { id: "non-coffee", label: "Non-Kopi" },
-                { id: "food", label: "Makanan" },
-                { id: "pastry", label: "Pastry" },
+                { id: 'all', label: 'Semua' },
+                { id: 'coffee', label: 'Kopi' },
+                { id: 'non-coffee', label: 'Non-Kopi' },
+                { id: 'food', label: 'Makanan' },
+                { id: 'pastry', label: 'Pastry' },
               ].map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                     selectedCategory === cat.id
-                      ? "bg-[#9c6b3a] text-white"
-                      : "bg-[#18181c] text-neutral-400 hover:text-white"
+                      ? 'bg-[#9c6b3a] text-white'
+                      : 'bg-[#18181c] text-neutral-400 hover:text-white'
                   }`}
                 >
                   {cat.label}
@@ -267,7 +272,7 @@ export default function PosTerminalPage() {
                     {prod.name}
                   </h4>
                   <div className="font-mono font-bold text-xs text-[#f59e0b] mt-1">
-                    Rp {prod.price.toLocaleString("id-ID")}
+                    Rp {prod.price.toLocaleString('id-ID')}
                   </div>
                 </div>
               </button>
@@ -281,7 +286,9 @@ export default function PosTerminalPage() {
           <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-[#f59e0b]" />
-              <span className="font-heading font-bold text-sm text-white">Tiket Aktif</span>
+              <span className="font-heading font-bold text-sm text-white">
+                Tiket Aktif
+              </span>
               <span className="text-[11px] font-mono text-neutral-400">
                 ({ticketItems.length} item)
               </span>
@@ -290,21 +297,21 @@ export default function PosTerminalPage() {
             {/* Dine-In vs Takeaway */}
             <div className="flex items-center gap-1 bg-[#111114] p-1 rounded-xl text-[11px]">
               <button
-                onClick={() => setOrderType("dine-in")}
+                onClick={() => setOrderType('dine-in')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
-                  orderType === "dine-in"
-                    ? "bg-[#9c6b3a] text-white"
-                    : "text-neutral-400 hover:text-white"
+                  orderType === 'dine-in'
+                    ? 'bg-[#9c6b3a] text-white'
+                    : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 Dine-In
               </button>
               <button
-                onClick={() => setOrderType("pickup")}
+                onClick={() => setOrderType('pickup')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
-                  orderType === "pickup"
-                    ? "bg-[#9c6b3a] text-white"
-                    : "text-neutral-400 hover:text-white"
+                  orderType === 'pickup'
+                    ? 'bg-[#9c6b3a] text-white'
+                    : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 Takeaway
@@ -313,9 +320,11 @@ export default function PosTerminalPage() {
           </div>
 
           {/* Table Selector if Dine-In */}
-          {orderType === "dine-in" && (
+          {orderType === 'dine-in' && (
             <div className="flex items-center gap-2 mb-3 bg-[#111114] p-2 rounded-xl text-xs">
-              <span className="text-neutral-400 font-mono text-[11px]">Meja:</span>
+              <span className="text-neutral-400 font-mono text-[11px]">
+                Meja:
+              </span>
               <select
                 aria-label="Pilih meja"
                 value={selectedTable}
@@ -324,7 +333,7 @@ export default function PosTerminalPage() {
               >
                 {tables.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.label} ({t.zoneName.split(" ")[0]})
+                    {t.label} ({t.zoneName.split(' ')[0]})
                   </option>
                 ))}
               </select>
@@ -336,7 +345,9 @@ export default function PosTerminalPage() {
             {ticketItems.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-neutral-500 text-xs p-6">
                 <Coffee className="w-10 h-10 mb-2 text-neutral-600" />
-                <p>Ketuk menu di layar kiri untuk menambahkan ke tiket kasir.</p>
+                <p>
+                  Ketuk menu di layar kiri untuk menambahkan ke tiket kasir.
+                </p>
               </div>
             ) : (
               ticketItems.map((item) => (
@@ -345,9 +356,11 @@ export default function PosTerminalPage() {
                   className="p-2.5 rounded-2xl bg-[#111114] border border-white/5 flex items-center justify-between text-xs"
                 >
                   <div className="min-w-0 flex-1 pr-2">
-                    <div className="font-medium text-white truncate">{item.name}</div>
+                    <div className="font-medium text-white truncate">
+                      {item.name}
+                    </div>
                     <div className="font-mono text-[#f59e0b] text-[11px]">
-                      Rp {item.subtotal.toLocaleString("id-ID")}
+                      Rp {item.subtotal.toLocaleString('id-ID')}
                     </div>
                   </div>
 
@@ -395,11 +408,11 @@ export default function PosTerminalPage() {
                   onClick={() => setDiscountPercent(pct)}
                   className={`py-1 rounded-lg text-xs font-mono font-bold transition-colors ${
                     discountPercent === pct
-                      ? "bg-[#f59e0b] text-black"
-                      : "bg-[#111114] text-neutral-400 hover:text-white"
+                      ? 'bg-[#f59e0b] text-black'
+                      : 'bg-[#111114] text-neutral-400 hover:text-white'
                   }`}
                 >
-                  {pct === 0 ? "Normal" : `${pct}%`}
+                  {pct === 0 ? 'Normal' : `${pct}%`}
                 </button>
               ))}
             </div>
@@ -409,22 +422,32 @@ export default function PosTerminalPage() {
           <div className="space-y-2 pt-2 border-t border-white/10 text-xs">
             <div className="flex justify-between text-neutral-400 font-mono">
               <span>Subtotal:</span>
-              <span className="text-white">Rp {subtotal.toLocaleString("id-ID")}</span>
+              <span className="text-white">
+                Rp {subtotal.toLocaleString('id-ID')}
+              </span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between text-emerald-400 font-mono">
                 <span>Potongan Diskon:</span>
-                <span>-Rp {discountAmount.toLocaleString("id-ID")}</span>
+                <span>-Rp {discountAmount.toLocaleString('id-ID')}</span>
               </div>
             )}
             <div className="flex justify-between text-neutral-400 font-mono">
-              <span>Pajak Resto (10%):</span>
-              <span className="text-white">Rp {tax.toLocaleString("id-ID")}</span>
+              <span>Pajak Resto (11%):</span>
+              <span className="text-white">
+                Rp {tax.toLocaleString('id-ID')}
+              </span>
+            </div>
+            <div className="flex justify-between text-neutral-400 font-mono">
+              <span>Service Fee (5%):</span>
+              <span className="text-white">
+                Rp {serviceFee.toLocaleString('id-ID')}
+              </span>
             </div>
             <div className="flex justify-between font-bold text-sm text-white pt-1 border-t border-white/5">
               <span>Total Akhir:</span>
               <span className="font-mono text-base text-[#f59e0b]">
-                Rp {grandTotal.toLocaleString("id-ID")}
+                Rp {grandTotal.toLocaleString('id-ID')}
               </span>
             </div>
 
@@ -479,9 +502,11 @@ export default function PosTerminalPage() {
               </div>
 
               <div className="p-3 rounded-2xl bg-[#111114] text-center">
-                <div className="text-xs text-neutral-400 font-mono">Total Tagihan</div>
+                <div className="text-xs text-neutral-400 font-mono">
+                  Total Tagihan
+                </div>
                 <div className="font-mono font-extrabold text-2xl text-[#f59e0b]">
-                  Rp {grandTotal.toLocaleString("id-ID")}
+                  Rp {grandTotal.toLocaleString('id-ID')}
                 </div>
               </div>
 
@@ -493,36 +518,47 @@ export default function PosTerminalPage() {
                     onClick={() => setCashTendered(amount)}
                     className={`p-2.5 rounded-xl border text-xs font-mono font-bold transition-colors ${
                       cashTendered === amount
-                        ? "bg-emerald-600 text-white border-emerald-500"
-                        : "bg-[#111114] border-white/10 text-neutral-300 hover:text-white"
+                        ? 'bg-emerald-600 text-white border-emerald-500'
+                        : 'bg-[#111114] border-white/10 text-neutral-300 hover:text-white'
                     }`}
                   >
-                    {amount === grandTotal ? "Uang Pas" : `Rp ${amount.toLocaleString("id-ID")}`}
+                    {amount === grandTotal
+                      ? 'Uang Pas'
+                      : `Rp ${amount.toLocaleString('id-ID')}`}
                   </button>
                 ))}
               </div>
 
               <div>
-                <label htmlFor="cash-tendered" className="block text-xs text-neutral-400 mb-1">Uang Diterima (Rp)</label>
+                <label
+                  htmlFor="cash-tendered"
+                  className="block text-xs text-neutral-400 mb-1"
+                >
+                  Uang Diterima (Rp)
+                </label>
                 <input
                   id="cash-tendered"
                   type="number"
-                  value={cashTendered || ""}
-                  onChange={(e) => setCashTendered(parseInt(e.target.value) || 0)}
+                  value={cashTendered || ''}
+                  onChange={(e) =>
+                    setCashTendered(parseInt(e.target.value) || 0)
+                  }
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#111114] border border-white/10 text-white font-mono text-base font-bold focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div className="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 flex items-center justify-between text-xs">
-                <span className="text-neutral-300 font-medium">Uang Kembalian:</span>
+                <span className="text-neutral-300 font-medium">
+                  Uang Kembalian:
+                </span>
                 <span className="font-mono font-extrabold text-base text-emerald-400">
-                  Rp {cashChange.toLocaleString("id-ID")}
+                  Rp {cashChange.toLocaleString('id-ID')}
                 </span>
               </div>
 
               <button
                 disabled={cashTendered < grandTotal}
-                onClick={() => handleFinalizeSale("cash")}
+                onClick={() => handleFinalizeSale('cash')}
                 className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-heading font-bold text-xs shadow-lg transition-all"
               >
                 Selesaikan Transaksi & Buka Laci Kas
@@ -543,7 +579,9 @@ export default function PosTerminalPage() {
               className="w-full max-w-sm rounded-3xl bg-[#18181c] border border-white/10 p-6 space-y-4 text-center shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <span className="font-heading font-bold text-sm text-white">QRIS Dinamis Kasir</span>
+                <span className="font-heading font-bold text-sm text-white">
+                  QRIS Dinamis Kasir
+                </span>
                 <button
                   onClick={() => setIsQrisModalOpen(false)}
                   className="text-neutral-400 hover:text-white"
@@ -555,16 +593,17 @@ export default function PosTerminalPage() {
               <div className="p-4 bg-white rounded-2xl inline-block shadow-md">
                 <QrCode className="w-44 h-44 text-black mx-auto" />
                 <div className="font-mono text-[10px] text-neutral-600 font-bold mt-1">
-                  TAGIHAN: Rp {grandTotal.toLocaleString("id-ID")}
+                  TAGIHAN: Rp {grandTotal.toLocaleString('id-ID')}
                 </div>
               </div>
 
               <p className="text-xs text-neutral-400">
-                Arahkan layar monitor ke pelanggan untuk scan pembayaran via e-wallet.
+                Arahkan layar monitor ke pelanggan untuk scan pembayaran via
+                e-wallet.
               </p>
 
               <button
-                onClick={() => handleFinalizeSale("qris")}
+                onClick={() => handleFinalizeSale('qris')}
                 className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-heading font-bold text-xs shadow-md"
               >
                 Simulasikan QRIS Terbayar (Instant Webhook)

@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getPersistStorage } from './persist-storage';
 
 export type FulfillmentType =
   | 'dine-in'
@@ -22,13 +23,55 @@ interface CheckoutState {
   resetCheckout: () => void;
 }
 
-const initialState = {
+type PersistedCheckoutState = Pick<
+  CheckoutState,
+  | 'fulfillmentType'
+  | 'tableId'
+  | 'tableLabel'
+  | 'deliveryAddress'
+  | 'splitBillCount'
+>;
+
+const initialState: PersistedCheckoutState = {
   fulfillmentType: 'pickup' as FulfillmentType,
   tableId: null,
   tableLabel: '',
   deliveryAddress: '',
   splitBillCount: 1,
 };
+
+const fulfillmentTypes: ReadonlySet<string> = new Set([
+  'dine-in',
+  'pickup',
+  'drive-thru',
+  'delivery',
+]);
+
+function migrateCheckoutState(persistedState: unknown): PersistedCheckoutState {
+  const candidate =
+    persistedState && typeof persistedState === 'object'
+      ? (persistedState as Record<string, unknown>)
+      : {};
+  const rawSplitBillCount = Number(candidate.splitBillCount);
+
+  return {
+    fulfillmentType:
+      typeof candidate.fulfillmentType === 'string' &&
+      fulfillmentTypes.has(candidate.fulfillmentType)
+        ? (candidate.fulfillmentType as FulfillmentType)
+        : initialState.fulfillmentType,
+    tableId: typeof candidate.tableId === 'string' ? candidate.tableId : null,
+    tableLabel:
+      typeof candidate.tableLabel === 'string' ? candidate.tableLabel : '',
+    deliveryAddress:
+      typeof candidate.deliveryAddress === 'string'
+        ? candidate.deliveryAddress
+        : '',
+    splitBillCount: Number.isFinite(rawSplitBillCount)
+      ? Math.min(10, Math.max(1, Math.trunc(rawSplitBillCount)))
+      : 1,
+  };
+}
 
 export const useCheckoutStore = create<CheckoutState>()(
   persist(
@@ -44,18 +87,15 @@ export const useCheckoutStore = create<CheckoutState>()(
     {
       name: 'warkop-checkout',
       version: 1,
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? window.localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-            }
-      ),
-      migrate: (persistedState: any) => {
-        return { ...initialState, ...(persistedState || {}) };
-      },
+      storage: createJSONStorage<PersistedCheckoutState>(getPersistStorage),
+      partialize: (state) => ({
+        fulfillmentType: state.fulfillmentType,
+        tableId: state.tableId,
+        tableLabel: state.tableLabel,
+        deliveryAddress: state.deliveryAddress,
+        splitBillCount: state.splitBillCount,
+      }),
+      migrate: migrateCheckoutState,
     },
   ),
 );

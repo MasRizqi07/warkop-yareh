@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { CartItem, Product } from '@warkop-yareh/types';
+import { getPersistStorage } from './persist-storage';
 
 export interface CommerceCartItem extends CartItem {
   unitPrice: number;
@@ -14,6 +15,8 @@ interface ThemeStore {
   toggle: () => void;
   setDark: (dark: boolean) => void;
 }
+
+type PersistedThemeState = Pick<ThemeStore, 'isDark'>;
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
@@ -41,20 +44,19 @@ export const useThemeStore = create<ThemeStore>()(
     {
       name: 'warkop-theme',
       version: 1,
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? window.localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-            }
-      ),
-      migrate: (persistedState: any) => {
-        if (!persistedState || typeof persistedState !== 'object') {
+      storage: createJSONStorage<PersistedThemeState>(getPersistStorage),
+      partialize: (state) => ({ isDark: state.isDark }),
+      migrate: (persistedState): PersistedThemeState => {
+        if (
+          !persistedState ||
+          typeof persistedState !== 'object' ||
+          typeof (persistedState as { isDark?: unknown }).isDark !== 'boolean'
+        ) {
           return { isDark: true };
         }
-        return persistedState;
+        return {
+          isDark: (persistedState as { isDark: boolean }).isDark,
+        };
       },
     }
   )
@@ -99,6 +101,8 @@ interface CartStore {
   total: () => number;
   itemCount: () => number;
 }
+
+type PersistedCartState = Pick<CartStore, 'items'>;
 
 export const useCartStore = create<CartStore>()(
   persist(
@@ -211,18 +215,17 @@ export const useCartStore = create<CartStore>()(
     {
       name: 'warkop-cart',
       version: 2,
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? window.localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-            }
-      ),
-      migrate: (persistedState: any) => {
-        if (persistedState && Array.isArray(persistedState.items)) {
-          return persistedState;
+      storage: createJSONStorage<PersistedCartState>(getPersistStorage),
+      partialize: (state) => ({ items: state.items }),
+      migrate: (persistedState): PersistedCartState => {
+        if (
+          persistedState &&
+          typeof persistedState === 'object' &&
+          Array.isArray((persistedState as { items?: unknown }).items)
+        ) {
+          return {
+            items: (persistedState as { items: CommerceCartItem[] }).items,
+          };
         }
         return { items: [] };
       },

@@ -14,9 +14,9 @@ import {
 import {
   createCampaign,
   dispatchCampaign,
-  getBranches,
   getCampaigns,
   getMarketingProviderStatus,
+  getOperationalBranchScope,
   testCampaign,
   updateCampaign,
   type BranchRecord,
@@ -51,17 +51,28 @@ export default function MarketingCampaignStudioPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [canManageMarketing, setCanManageMarketing] = useState<boolean | null>(
+    null
+  );
+  const [canViewAllBranches, setCanViewAllBranches] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [branchData, campaignData, provider] = await Promise.all([
-        getBranches(),
+      const scope = await getOperationalBranchScope();
+      setCanManageMarketing(scope.canAccessManagement);
+      setCanViewAllBranches(scope.canViewAllBranches);
+      if (!scope.canAccessManagement) {
+        throw new Error(
+          'WhatsApp campaigns require a manager, owner, or admin role'
+        );
+      }
+      const [campaignData, provider] = await Promise.all([
         getCampaigns({ limit: 20 }),
         getMarketingProviderStatus(),
       ]);
-      setBranches(branchData);
+      setBranches(scope.branches);
       setCampaigns(campaignData.data);
       setProviderConfigured(provider.configured);
     } catch (loadError: unknown) {
@@ -77,14 +88,22 @@ export default function MarketingCampaignStudioPage() {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([
-      getBranches(),
-      getCampaigns({ limit: 20 }),
-      getMarketingProviderStatus(),
-    ])
-      .then(([branchData, campaignData, provider]) => {
+    void getOperationalBranchScope()
+      .then(async (scope) => {
         if (!active) return;
-        setBranches(branchData);
+        setCanManageMarketing(scope.canAccessManagement);
+        setCanViewAllBranches(scope.canViewAllBranches);
+        if (!scope.canAccessManagement) {
+          throw new Error(
+            'WhatsApp campaigns require a manager, owner, or admin role'
+          );
+        }
+        const [campaignData, provider] = await Promise.all([
+          getCampaigns({ limit: 20 }),
+          getMarketingProviderStatus(),
+        ]);
+        if (!active) return;
+        setBranches(scope.branches);
         setCampaigns(campaignData.data);
         setProviderConfigured(provider.configured);
       })
@@ -244,6 +263,21 @@ export default function MarketingCampaignStudioPage() {
     setError(null);
   };
 
+  if (!loading && canManageMarketing === false) {
+    return (
+      <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-error/40 bg-error-container p-6 text-on-error-container">
+          <ShieldAlert className="h-6 w-6" />
+          <h1 className="mt-4 text-2xl font-bold">Marketing access denied</h1>
+          <p className="mt-2 text-sm">
+            WhatsApp campaigns require a manager, owner, or admin role. No
+            campaign or provider data was requested for this session.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-7">
@@ -389,7 +423,11 @@ export default function MarketingCampaignStudioPage() {
                   onChange={(event) => setBranchId(event.target.value)}
                   className="w-full rounded-xl border border-border-subtle bg-surface-secondary px-3 py-2.5 text-sm"
                 >
-                  <option value="">All permitted branches</option>
+                  <option value="">
+                    {canViewAllBranches
+                      ? 'All permitted branches'
+                      : 'Assigned branch'}
+                  </option>
                   {branches.map((branch) => (
                     <option key={branch.id} value={branch.id}>
                       {branch.name}

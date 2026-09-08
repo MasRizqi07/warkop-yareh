@@ -308,9 +308,6 @@ export default function CommunityGroupDetailPage() {
                     : "bg-accent-amber text-canvas-obsidian hover:bg-secondary"
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">
-                  {isJoined ? "check_circle" : "person_add"}
-                </span>
                 {isJoined ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 ) : (
@@ -354,9 +351,6 @@ export default function CommunityGroupDetailPage() {
 
             {/* Live Search */}
             <div className="relative w-full md:w-64">
-              <span className="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-[#94a3b8] pointer-events-none">
-                search
-              </span>
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-text-muted pointer-events-none" />
               <input
                 aria-label="Search group threads"

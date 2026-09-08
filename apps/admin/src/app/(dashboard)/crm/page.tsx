@@ -14,6 +14,7 @@ import {
 import {
   createCampaign,
   getCustomerInsights,
+  getOperationalBranchScope,
   type CustomerInsight,
 } from '@/lib/operations-api';
 
@@ -38,12 +39,21 @@ export default function PatronCrmPage() {
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [canManageCrm, setCanManageCrm] = useState<boolean | null>(null);
 
   const loadCustomers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getCustomerInsights({ limit: 100 });
+      const scope = await getOperationalBranchScope();
+      setCanManageCrm(scope.canAccessManagement);
+      if (!scope.canAccessManagement) {
+        throw new Error('CRM access requires a manager, owner, or admin role');
+      }
+      const response = await getCustomerInsights({
+        branchId: scope.canViewAllBranches ? undefined : scope.branches[0]?.id,
+        limit: 100,
+      });
       setCustomers(response.data);
     } catch (loadError: unknown) {
       setError(
@@ -58,8 +68,19 @@ export default function PatronCrmPage() {
 
   useEffect(() => {
     let active = true;
-    void getCustomerInsights({ limit: 100 })
-      .then((response) => {
+    void getOperationalBranchScope()
+      .then(async (scope) => {
+        if (!active) return;
+        setCanManageCrm(scope.canAccessManagement);
+        if (!scope.canAccessManagement) {
+          throw new Error('CRM access requires a manager, owner, or admin role');
+        }
+        const response = await getCustomerInsights({
+          branchId: scope.canViewAllBranches
+            ? undefined
+            : scope.branches[0]?.id,
+          limit: 100,
+        });
         if (active) setCustomers(response.data);
       })
       .catch((loadError: unknown) => {
@@ -129,6 +150,21 @@ export default function PatronCrmPage() {
       setCreatingFor(null);
     }
   };
+
+  if (!loading && canManageCrm === false) {
+    return (
+      <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-error/40 bg-error-container p-6 text-on-error-container">
+          <ShieldAlert className="h-6 w-6" />
+          <h1 className="mt-4 text-2xl font-bold">CRM access denied</h1>
+          <p className="mt-2 text-sm">
+            Customer analytics and retention campaigns require a manager,
+            owner, or admin role.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">

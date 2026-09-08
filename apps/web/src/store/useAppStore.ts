@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { getPersistStorage } from '@/stores/persist-storage';
 import {
   MOCK_BRANCHES,
   MOCK_TABLES,
@@ -18,6 +19,7 @@ import {
   ForumPost,
 } from '@/lib/mockData';
 import { soundEffects } from '@/lib/audioAlerts';
+import { calculateClientCheckoutEstimate } from '@/lib/client-checkout-estimate';
 
 /* =========================================================
    TYPES & INTERFACES
@@ -78,6 +80,28 @@ export interface MasterOrder {
   estimatedMinutes: number;
   isKdsBumped?: boolean;
 }
+
+export type CreateClientOrderInput = Partial<
+  Pick<
+    MasterOrder,
+    | 'customerName'
+    | 'customerPhone'
+    | 'branchId'
+    | 'branchName'
+    | 'fulfillmentType'
+    | 'tableNumber'
+    | 'deliveryAddress'
+    | 'items'
+    | 'voucherCode'
+    | 'voucherDiscount'
+    | 'pointsRedeemed'
+    | 'paymentMethod'
+    | 'paymentStatus'
+    | 'orderStatus'
+    | 'estimatedMinutes'
+    | 'isKdsBumped'
+  >
+>;
 
 export interface UserProfile {
   id: string;
@@ -175,7 +199,7 @@ export interface AppStoreState {
   // 4. Order Slice (Omnichannel, POS, KDS sync)
   orders: MasterOrder[];
   activeTrackingOrderId: string | null;
-  createOrder: (orderParams?: Partial<MasterOrder>) => MasterOrder;
+  createOrder: (orderParams?: CreateClientOrderInput) => MasterOrder;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   setActiveTrackingOrder: (orderId: string) => void;
   getOrderById: (orderId: string) => MasterOrder | undefined;
@@ -208,6 +232,23 @@ export interface AppStoreState {
   currentShift: CashierShift;
   reconcileShift: (actualCash: number, notes?: string) => void;
 }
+
+type PersistedAppStoreState = Pick<
+  AppStoreState,
+  | 'activeBranchId'
+  | 'user'
+  | 'cartItems'
+  | 'fulfillmentType'
+  | 'tableNumber'
+  | 'deliveryAddress'
+  | 'orders'
+  | 'activeTrackingOrderId'
+  | 'inventory'
+  | 'reservations'
+  | 'events'
+  | 'forumPosts'
+  | 'currentShift'
+>;
 
 /* =========================================================
    INITIAL SEED DATA
@@ -279,10 +320,10 @@ const INITIAL_ORDERS: MasterOrder[] = [
     voucherCode: 'YAREHHEMAT10',
     voucherDiscount: 8200,
     pointsRedeemed: 200,
-    pointsDiscount: 2000,
-    tax: 7180,
-    serviceFee: 2000,
-    total: 80980,
+    pointsDiscount: 20000,
+    tax: 9020,
+    serviceFee: 4100,
+    total: 66920,
     paymentMethod: 'qris',
     paymentStatus: 'paid',
     orderStatus: 'preparing',
@@ -320,9 +361,9 @@ const INITIAL_ORDERS: MasterOrder[] = [
     voucherDiscount: 0,
     pointsRedeemed: 0,
     pointsDiscount: 0,
-    tax: 3400,
-    serviceFee: 2000,
-    total: 39400,
+    tax: 3740,
+    serviceFee: 1700,
+    total: 39440,
     paymentMethod: 'bca-va',
     paymentStatus: 'paid',
     orderStatus: 'ready',
@@ -360,9 +401,9 @@ const INITIAL_ORDERS: MasterOrder[] = [
     voucherDiscount: 0,
     pointsRedeemed: 0,
     pointsDiscount: 0,
-    tax: 3800,
-    serviceFee: 2000,
-    total: 43800,
+    tax: 4180,
+    serviceFee: 1900,
+    total: 44080,
     paymentMethod: 'credit-card',
     paymentStatus: 'paid',
     orderStatus: 'completed',
@@ -543,7 +584,19 @@ export const useAppStore = create<AppStoreState>()(
         if (found) {
           const subtotal = get().getCartSubtotal();
           if (subtotal >= found.minOrder) {
-            set({ appliedVoucher: found });
+            const voucherDiscount =
+              found.discountType === 'percentage'
+                ? Math.round((subtotal * found.discountValue) / 100)
+                : found.discountValue;
+            const estimate = calculateClientCheckoutEstimate(
+              subtotal,
+              voucherDiscount,
+              Math.min(get().redeemedPoints, get().user.points)
+            );
+            set({
+              appliedVoucher: found,
+              redeemedPoints: estimate.loyaltyPointsUsed,
+            });
             return true;
           }
         }
@@ -551,8 +604,30 @@ export const useAppStore = create<AppStoreState>()(
       },
 
       removeVoucher: () => set({ appliedVoucher: null }),
-      setRedeemedPoints: (points) => set({ redeemedPoints: points }),
-      setSplitBillCount: (count) => set({ splitBillCount: Math.max(1, count) }),
+      setRedeemedPoints: (points) => {
+        const state = get();
+        const subtotal = state.getCartSubtotal();
+        const requestedPoints = Number.isFinite(points)
+          ? Math.max(0, Math.trunc(points))
+          : 0;
+        const voucherDiscount = state.appliedVoucher
+          ? state.appliedVoucher.discountType === 'percentage'
+            ? Math.round((subtotal * state.appliedVoucher.discountValue) / 100)
+            : state.appliedVoucher.discountValue
+          : 0;
+        const estimate = calculateClientCheckoutEstimate(
+          subtotal,
+          voucherDiscount,
+          Math.min(requestedPoints, state.user.points)
+        );
+        set({ redeemedPoints: estimate.loyaltyPointsUsed });
+      },
+      setSplitBillCount: (count) =>
+        set({
+          splitBillCount: Number.isFinite(count)
+            ? Math.min(10, Math.max(1, Math.trunc(count)))
+            : 1,
+        }),
       setCartDrawerOpen: (open) => set({ isCartDrawerOpen: open }),
 
       getCartSubtotal: () => {
@@ -574,16 +649,11 @@ export const useAppStore = create<AppStoreState>()(
           }
         }
 
-        // Each 10 points = Rp 100 discount (1 pt = Rp 10)
-        const pointsDiscount = redeemedPoints * 10;
-        const taxable = Math.max(
-          0,
-          subtotal - voucherDiscount - pointsDiscount
-        );
-        const tax = Math.round(taxable * 0.1); // 10% PB1 Restaurant Tax
-        const serviceFee = 2000;
-
-        return Math.max(0, taxable + tax + serviceFee);
+        return calculateClientCheckoutEstimate(
+          subtotal,
+          Math.round(voucherDiscount),
+          Math.min(redeemedPoints, get().user.points)
+        ).total;
       },
 
       // 4. Order Slice
@@ -593,27 +663,57 @@ export const useAppStore = create<AppStoreState>()(
       createOrder: (customParams) => {
         const state = get();
         const activeBranch = state.getActiveBranch();
-        const subtotal = customParams?.subtotal ?? state.getCartSubtotal();
-        const total = customParams?.total ?? state.getCartTotal();
-        const items = customParams?.items ?? [...state.cartItems];
+        const requestedItems = customParams?.items ?? [...state.cartItems];
+        const items: AppCartItem[] =
+          requestedItems.length > 0
+            ? requestedItems
+            : [
+                {
+                  id: `item-${Date.now()}`,
+                  productId: 'prod-1',
+                  name: 'Kopi Susu Aren Brulee',
+                  price: 28000,
+                  image:
+                    'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop&q=80',
+                  quantity: 1,
+                  customizations: {
+                    sweetness: 'Normal (100%)',
+                    iceLevel: 'Normal Ice',
+                    milkType: 'Fresh Milk',
+                    beanRoast: 'Signature House Blend',
+                  },
+                  subtotal: 28000,
+                },
+              ];
+        const itemSubtotal = items.reduce(
+          (sum, item) => sum + Math.max(0, Math.trunc(item.subtotal)),
+          0
+        );
+        const subtotal = itemSubtotal;
 
         // Generate Order ID
         const orderNum = Math.floor(1000 + Math.random() * 9000);
         const orderId = `YRH-${orderNum}`;
 
-        let voucherDiscount = 0;
-        if (state.appliedVoucher) {
+        let voucherDiscount = customParams?.voucherDiscount ?? 0;
+        if (
+          customParams?.voucherDiscount === undefined &&
+          state.appliedVoucher
+        ) {
           voucherDiscount =
             state.appliedVoucher.discountType === 'percentage'
               ? (subtotal * state.appliedVoucher.discountValue) / 100
               : state.appliedVoucher.discountValue;
         }
 
-        const pointsDiscount = state.redeemedPoints * 10;
-        const tax = Math.round(
-          Math.max(0, subtotal - voucherDiscount - pointsDiscount) * 0.1
+        const estimate = calculateClientCheckoutEstimate(
+          subtotal,
+          Math.round(voucherDiscount),
+          Math.min(
+            customParams?.pointsRedeemed ?? state.redeemedPoints,
+            state.user.points
+          )
         );
-
         const newOrder: MasterOrder = {
           id: orderId,
           createdAt: new Date().toISOString(),
@@ -633,52 +733,31 @@ export const useAppStore = create<AppStoreState>()(
             state.fulfillmentType === 'delivery'
               ? customParams?.deliveryAddress || state.deliveryAddress
               : undefined,
-          items:
-            items.length > 0
-              ? items
-              : [
-                  {
-                    id: `item-${Date.now()}`,
-                    productId: 'prod-1',
-                    name: 'Kopi Susu Aren Brulee',
-                    price: 28000,
-                    image:
-                      'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop&q=80',
-                    quantity: 1,
-                    customizations: {
-                      sweetness: 'Normal (100%)',
-                      iceLevel: 'Normal Ice',
-                      milkType: 'Fresh Milk',
-                      beanRoast: 'Signature House Blend',
-                    },
-                    subtotal: 28000,
-                  },
-                ],
-          subtotal: subtotal > 0 ? subtotal : 28000,
-          voucherCode: state.appliedVoucher?.code,
-          voucherDiscount,
-          pointsRedeemed: state.redeemedPoints,
-          pointsDiscount,
-          tax: tax > 0 ? tax : 2800,
-          serviceFee: 2000,
-          total: total > 0 ? total : 32800,
+          items,
+          subtotal,
+          voucherCode: customParams?.voucherCode ?? state.appliedVoucher?.code,
+          voucherDiscount: estimate.voucherDiscount,
+          pointsRedeemed: estimate.loyaltyPointsUsed,
+          pointsDiscount: estimate.pointsDiscount,
+          tax: estimate.tax,
+          serviceFee: estimate.serviceFee,
+          total: estimate.total,
           paymentMethod: customParams?.paymentMethod || 'qris',
-          paymentStatus: 'paid',
-          orderStatus: 'pending',
-          estimatedMinutes: 8,
-          isKdsBumped: false,
-          ...customParams,
+          paymentStatus: customParams?.paymentStatus ?? 'pending',
+          orderStatus: customParams?.orderStatus ?? 'pending',
+          estimatedMinutes: customParams?.estimatedMinutes ?? 8,
+          isKdsBumped: customParams?.isKdsBumped ?? false,
         };
 
         // Award loyalty points: +10 points per Rp 10.000 spent
         const earnedPoints = Math.floor(newOrder.total / 10000) * 10;
-        if (earnedPoints > 0) {
+        if (newOrder.paymentStatus === 'paid' && earnedPoints > 0) {
           state.addLoyaltyPoints(earnedPoints);
         }
 
         // Deduct redeemed points if used
-        if (state.redeemedPoints > 0) {
-          state.deductLoyaltyPoints(state.redeemedPoints);
+        if (newOrder.paymentStatus === 'paid' && newOrder.pointsRedeemed > 0) {
+          state.deductLoyaltyPoints(newOrder.pointsRedeemed);
         }
 
         // Auto decrement mock inventory
@@ -924,16 +1003,11 @@ export const useAppStore = create<AppStoreState>()(
     {
       name: 'warkop-yareh-unified-state-v1',
       version: 1,
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? window.localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-            }
-      ),
-      migrate: (persistedState: any) => persistedState,
+      storage: createJSONStorage<PersistedAppStoreState>(getPersistStorage),
+      migrate: (persistedState): PersistedAppStoreState =>
+        (persistedState && typeof persistedState === 'object'
+          ? persistedState
+          : {}) as PersistedAppStoreState,
       partialize: (state) => ({
         activeBranchId: state.activeBranchId,
         user: state.user,

@@ -2,12 +2,15 @@
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { getPersistStorage } from './persist-storage';
 
 interface BranchState {
   activeBranchId: string | null;
   setActiveBranchId: (branchId: string) => void;
   clearActiveBranch: () => void;
 }
+
+type PersistedBranchState = Pick<BranchState, 'activeBranchId'>;
 
 export const useBranchStore = create<BranchState>()(
   persist(
@@ -19,19 +22,20 @@ export const useBranchStore = create<BranchState>()(
     {
       name: 'warkop-active-branch',
       version: 1,
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? window.localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-            }
-      ),
-      migrate: (persistedState: any) => {
-        return persistedState || { activeBranchId: null };
+      storage: createJSONStorage<PersistedBranchState>(getPersistStorage),
+      partialize: (state) => ({ activeBranchId: state.activeBranchId }),
+      migrate: (persistedState): PersistedBranchState => {
+        const candidate =
+          persistedState && typeof persistedState === 'object'
+            ? (persistedState as { activeBranchId?: unknown })
+            : undefined;
+        return {
+          activeBranchId:
+            typeof candidate?.activeBranchId === 'string'
+              ? candidate.activeBranchId
+              : null,
+        };
       },
     },
   ),
 );
-

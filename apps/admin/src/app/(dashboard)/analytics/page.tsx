@@ -14,10 +14,9 @@ import {
   WalletCards,
 } from 'lucide-react';
 import {
-  getAdminProfile,
-  getBranches,
   getCategoryPerformance,
   getCustomerInsights,
+  getOperationalBranchScope,
   getRevenueAnalytics,
   type BranchRecord,
   type CategoryPerformance,
@@ -30,7 +29,6 @@ interface AnalyticsSnapshot {
   customerCount: number;
 }
 
-const GLOBAL_BRANCH_ROLES = new Set(['ADMIN', 'SUPERADMIN']);
 const EMPTY_REVENUE: RevenueAnalytics = {
   totalRevenue: 0,
   orderCount: 0,
@@ -75,6 +73,9 @@ export default function ExecutiveOperationsAnalyticsPage() {
   const [loadedAt, setLoadedAt] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canViewAnalytics, setCanViewAnalytics] = useState<boolean | null>(
+    null
+  );
 
   const applySnapshot = useCallback((snapshot: AnalyticsSnapshot) => {
     setRevenue(snapshot.revenue);
@@ -108,16 +109,20 @@ export default function ExecutiveOperationsAnalyticsPage() {
   useEffect(() => {
     let active = true;
     const currentRequest = ++requestId.current;
-    void Promise.all([getAdminProfile(), getBranches()])
-      .then(async ([user, allBranches]) => {
+    void getOperationalBranchScope()
+      .then(async (scope) => {
         if (!active) return;
-        const globalAccess = GLOBAL_BRANCH_ROLES.has(user.role);
-        const visibleBranches = globalAccess
-          ? allBranches
-          : allBranches.filter((branch) => branch.id === user.branchId);
+        setCanViewAnalytics(scope.canAccessManagement);
+        if (!scope.canAccessManagement) {
+          throw new Error(
+            'Analytics access requires a manager, owner, or admin role'
+          );
+        }
+        const globalAccess = scope.canViewAllBranches;
+        const visibleBranches = scope.branches;
         const initialBranchId = globalAccess
           ? ''
-          : visibleBranches[0]?.id || user.branchId || '';
+          : visibleBranches[0]?.id || '';
         if (!globalAccess && !initialBranchId) {
           throw new Error(
             'This account needs a branch assignment before analytics can be opened'
@@ -194,6 +199,21 @@ export default function ExecutiveOperationsAnalyticsPage() {
       'text/csv;charset=utf-8'
     );
   };
+
+  if (!loading && canViewAnalytics === false) {
+    return (
+      <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-error/40 bg-error-container p-6 text-on-error-container">
+          <Activity className="h-6 w-6" />
+          <h1 className="mt-4 text-2xl font-bold">Analytics access denied</h1>
+          <p className="mt-2 text-sm">
+            Revenue and customer analytics require a manager, owner, or admin
+            role.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-canvas-obsidian px-4 py-8 text-text-primary sm:px-6 lg:px-8">
