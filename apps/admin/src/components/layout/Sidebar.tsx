@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, ShoppingCart, Package, CalendarCheck, MapPin, 
   Users, CalendarDays, MessageSquare, Star, BarChart3, Settings, Coffee, X,
-  Boxes, Receipt, Send, UserCheck, MonitorPlay
+  Boxes, Receipt, Send, UserCheck, MonitorPlay, Armchair
 } from "lucide-react";
 import { BrandEmblem } from "@warkop-yareh/ui";
 
@@ -34,6 +34,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { icon: Boxes,          label: "Inventory & Silos", href: "/inventory" },
         { icon: Receipt,        label: "Shifts & Drawer", href: "/shifts" },
         { icon: CalendarCheck,  label: "Reservations", href: "/reservations" },
+        { icon: Armchair,       label: "Tables & Calls", href: "/tables" },
         { icon: MapPin,         label: "Branches & Pricing", href: "/branches" },
       ]
     },
@@ -117,15 +118,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         ))}
       </nav>
       
-      {/* Footer */}
-      <div className="p-4 border-t border-white/[0.08] space-y-2">
-        <div className="flex items-center justify-between text-[10px] font-mono text-[#94a3b8]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-emerald-400">Nodes Online</span>
-          </span>
-          <span>v4.2.1-prod</span>
-        </div>
+      <div className="border-t border-white/[0.08] p-4 text-[10px] font-mono leading-5 text-[#94a3b8]">
+        Status layanan diverifikasi per permintaan API, bukan diasumsikan dari antarmuka.
       </div>
     </aside>
   );

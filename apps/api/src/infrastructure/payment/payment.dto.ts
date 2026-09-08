@@ -33,3 +33,17 @@ export class CreateSnapPaymentDto {
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod = PaymentMethod.E_WALLET;
 }
+
+export class SettleCashPaymentDto {
+  @ApiProperty()
+  @IsString()
+  @MaxLength(128)
+  orderId!: string;
+
+  @ApiProperty({ minimum: 1, maximum: 2_000_000_000 })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(2_000_000_000)
+  cashReceived!: number;
+}

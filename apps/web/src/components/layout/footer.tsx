@@ -8,6 +8,20 @@ import { useBranches } from '@/features/catalog/catalog.hooks';
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const branches = useBranches();
+  const contactLinks = [
+    { label: 'Instagram', href: SITE.social.instagram, external: true },
+    {
+      label: 'WhatsApp Official',
+      href: SITE.whatsapp ? `https://wa.me/${SITE.whatsapp}` : '',
+      external: true,
+    },
+    { label: 'TikTok', href: SITE.social.tiktok, external: true },
+    {
+      label: SITE.email,
+      href: SITE.email ? `mailto:${SITE.email}` : '',
+      external: false,
+    },
+  ].filter((item) => item.href && item.label);
 
   return (
     <footer className="relative overflow-hidden border-t border-border-subtle bg-canvas-obsidian text-on-surface">
@@ -105,36 +119,26 @@ export function Footer() {
               Connect
             </h4>
             <div className="flex flex-col gap-2 text-sm text-text-muted">
-              <a
-                href={SITE.social.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 transition-colors hover:text-primary"
-              >
-                <span>Instagram</span>
-              </a>
-              <a
-                href={`https://wa.me/${SITE.whatsapp}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 transition-colors hover:text-primary"
-              >
-                <span>WhatsApp Official</span>
-              </a>
-              <a
-                href={SITE.social.tiktok}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 transition-colors hover:text-primary"
-              >
-                <span>TikTok</span>
-              </a>
-              <a
-                href={`mailto:${SITE.email}`}
-                className="flex items-center gap-1.5 transition-colors hover:text-primary"
-              >
-                <span>{SITE.email}</span>
-              </a>
+              {contactLinks.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  {...(item.external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
+                  className="flex items-center gap-1.5 transition-colors hover:text-primary"
+                >
+                  {item.label}
+                </a>
+              ))}
+              {contactLinks.length === 0 && (
+                <Link
+                  href="/contact"
+                  className="transition-colors hover:text-primary"
+                >
+                  Lihat halaman kontak
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { AuroraBackground, CountUp } from '@warkop-yareh/ui';
+import { useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
   Award,
@@ -13,11 +14,14 @@ import {
   Coffee,
   MapPin,
   PackageCheck,
+  Star,
   Users,
 } from 'lucide-react';
 import { DataState, LoadingState } from '@/components/data-state';
 import { useActiveBranch, useCatalog } from '@/features/catalog/catalog.hooks';
 import { useBranchStore, useCartStore } from '@/stores';
+import { listVerifiedReviews } from '@/features/public/public.api';
+import { getApiErrorMessage } from '@/lib/api-error';
 
 const rupiah = (value: number) => `Rp ${value.toLocaleString('id-ID')}`;
 
@@ -25,6 +29,13 @@ export default function HomePage() {
   const branches = useActiveBranch();
   const { activeBranch } = branches;
   const catalog = useCatalog(activeBranch?.id);
+  const reviews = useQuery({
+    queryKey: ['verified-reviews', activeBranch?.id ?? 'none'],
+    queryFn: () => listVerifiedReviews(activeBranch!.id),
+    enabled: Boolean(activeBranch?.id),
+    staleTime: 60_000,
+    retry: 1,
+  });
   const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
   const clearCart = useCartStore((state) => state.clearCart);
 
@@ -313,6 +324,82 @@ export default function HomePage() {
               Buka loyalty <ArrowRight className="h-4 w-4" />
             </Link>
           </article>
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 max-w-2xl">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent-amber">
+              Ulasan terverifikasi
+            </p>
+            <h2 className="mt-2 font-heading text-3xl font-bold text-text-primary">
+              Pengalaman pelanggan pada cabang ini
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-text-muted">
+              Hanya ulasan yang ditandai terverifikasi oleh layanan konten yang
+              ditampilkan.
+            </p>
+          </div>
+          {!activeBranch ? (
+            <DataState title="Pilih cabang untuk melihat ulasan" />
+          ) : reviews.isPending ? (
+            <LoadingState label="Memuat ulasan…" />
+          ) : reviews.isError ? (
+            <DataState
+              title="Ulasan belum dapat dimuat"
+              detail={getApiErrorMessage(reviews.error)}
+              retry={() => void reviews.refetch()}
+            />
+          ) : !reviews.data.length ? (
+            <DataState
+              title="Belum ada ulasan terverifikasi"
+              detail="Ulasan baru akan tampil setelah melewati proses verifikasi."
+            />
+          ) : (
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {reviews.data.slice(0, 6).map((review) => (
+                <article
+                  key={review.id}
+                  className="rounded-2xl border border-border-subtle bg-surface-card p-6"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className="flex"
+                      aria-label={`${review.rating} dari 5 bintang`}
+                    >
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <Star
+                          key={index}
+                          aria-hidden="true"
+                          className={`h-4 w-4 ${index < review.rating ? 'fill-accent-amber text-accent-amber' : 'text-border-subtle'}`}
+                        />
+                      ))}
+                    </div>
+                    <time
+                      dateTime={review.createdAt}
+                      className="text-xs text-text-muted"
+                    >
+                      {new Intl.DateTimeFormat('id-ID', {
+                        dateStyle: 'medium',
+                      }).format(new Date(review.createdAt))}
+                    </time>
+                  </div>
+                  <p className="mt-4 text-sm leading-7 text-text-secondary">
+                    {review.comment}
+                  </p>
+                  <footer className="mt-5 border-t border-border-subtle pt-4">
+                    <p className="font-semibold">{review.user.name}</p>
+                    {review.product && (
+                      <p className="mt-1 text-xs text-text-muted">
+                        Pesanan: {review.product.name}
+                      </p>
+                    )}
+                  </footer>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </main>

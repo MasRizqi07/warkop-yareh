@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { TableService } from './table.service';
@@ -27,11 +26,14 @@ describe('TableService', () => {
       updateTableStatus: jest.fn(),
       getRecentPendingWaiterCall: jest.fn().mockResolvedValue(null),
       createWaiterCall: jest.fn(),
+      getWaiterCallById: jest.fn(),
+      resolveWaiterCall: jest.fn(),
     };
 
     mockEventsGateway = {
       broadcastTableUpdated: jest.fn(),
       broadcastWaiterCalled: jest.fn(),
+      broadcastWaiterResolved: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -47,8 +49,14 @@ describe('TableService', () => {
 
   describe('State Machine - Exhaustive Valid Transitions (11 transitions)', () => {
     it('1. AVAILABLE -> OCCUPIED', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.AVAILABLE });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.OCCUPIED });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.AVAILABLE,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.OCCUPIED,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.OCCUPIED);
       expect(res.status).toBe(TableStatus.OCCUPIED);
@@ -56,89 +64,158 @@ describe('TableService', () => {
     });
 
     it('2. AVAILABLE -> RESERVED', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.AVAILABLE });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.RESERVED });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.AVAILABLE,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.RESERVED,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.RESERVED);
       expect(res.status).toBe(TableStatus.RESERVED);
     });
 
     it('3. AVAILABLE -> MAINTENANCE', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.AVAILABLE });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.MAINTENANCE });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.AVAILABLE,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.MAINTENANCE,
+      });
 
-      const res = await service.updateStatus('table-1', TableStatus.MAINTENANCE);
+      const res = await service.updateStatus(
+        'table-1',
+        TableStatus.MAINTENANCE,
+      );
       expect(res.status).toBe(TableStatus.MAINTENANCE);
     });
 
     it('4. AVAILABLE -> AVAILABLE (same-state no-op)', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.AVAILABLE });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.AVAILABLE });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.AVAILABLE,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.AVAILABLE,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.AVAILABLE);
       expect(res.status).toBe(TableStatus.AVAILABLE);
     });
 
     it('5. OCCUPIED -> CLEANING', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.OCCUPIED });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.CLEANING });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.OCCUPIED,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.CLEANING,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.CLEANING);
       expect(res.status).toBe(TableStatus.CLEANING);
     });
 
     it('6. OCCUPIED -> OCCUPIED (same-state no-op)', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.OCCUPIED });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.OCCUPIED });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.OCCUPIED,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.OCCUPIED,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.OCCUPIED);
       expect(res.status).toBe(TableStatus.OCCUPIED);
     });
 
     it('7. RESERVED -> OCCUPIED', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.RESERVED });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.OCCUPIED });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.RESERVED,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.OCCUPIED,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.OCCUPIED);
       expect(res.status).toBe(TableStatus.OCCUPIED);
     });
 
     it('8. RESERVED -> AVAILABLE', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.RESERVED });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.AVAILABLE });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.RESERVED,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.AVAILABLE,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.AVAILABLE);
       expect(res.status).toBe(TableStatus.AVAILABLE);
     });
 
     it('9. RESERVED -> RESERVED (same-state no-op)', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.RESERVED });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.RESERVED });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.RESERVED,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.RESERVED,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.RESERVED);
       expect(res.status).toBe(TableStatus.RESERVED);
     });
 
     it('10. CLEANING -> AVAILABLE', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.CLEANING });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.AVAILABLE });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.CLEANING,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.AVAILABLE,
+      });
 
       const res = await service.updateStatus('table-1', TableStatus.AVAILABLE);
       expect(res.status).toBe(TableStatus.AVAILABLE);
     });
 
     it('11. CLEANING -> MAINTENANCE', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.CLEANING });
-      mockTableRepo.updateTableStatus.mockResolvedValue({ ...mockTable, status: TableStatus.MAINTENANCE });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.CLEANING,
+      });
+      mockTableRepo.updateTableStatus.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.MAINTENANCE,
+      });
 
-      const res = await service.updateStatus('table-1', TableStatus.MAINTENANCE);
+      const res = await service.updateStatus(
+        'table-1',
+        TableStatus.MAINTENANCE,
+      );
       expect(res.status).toBe(TableStatus.MAINTENANCE);
     });
   });
 
   describe('State Machine - Invalid Transitions & Broadcast Suppression', () => {
     it('should reject OCCUPIED -> AVAILABLE (must pass through CLEANING) and NOT broadcast websocket event', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.OCCUPIED });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.OCCUPIED,
+      });
 
       await expect(
         service.updateStatus('table-1', TableStatus.AVAILABLE),
@@ -147,7 +224,10 @@ describe('TableService', () => {
     });
 
     it('should reject OCCUPIED -> RESERVED', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.OCCUPIED });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.OCCUPIED,
+      });
 
       await expect(
         service.updateStatus('table-1', TableStatus.RESERVED),
@@ -156,7 +236,10 @@ describe('TableService', () => {
     });
 
     it('should reject MAINTENANCE -> OCCUPIED', async () => {
-      mockTableRepo.getTableById.mockResolvedValue({ ...mockTable, status: TableStatus.MAINTENANCE });
+      mockTableRepo.getTableById.mockResolvedValue({
+        ...mockTable,
+        status: TableStatus.MAINTENANCE,
+      });
 
       await expect(
         service.updateStatus('table-1', TableStatus.OCCUPIED),
@@ -215,6 +298,58 @@ describe('TableService', () => {
       expect(mockEventsGateway.broadcastWaiterCalled).toHaveBeenCalledWith(
         expect.objectContaining({ priority: 'HIGH' }),
       );
+    });
+
+    it('deduplicates the same pending request within the cooldown window', async () => {
+      mockTableRepo.getTableById.mockResolvedValue(mockTable);
+      mockTableRepo.getRecentPendingWaiterCall.mockResolvedValue({
+        id: 'call-existing',
+        tableId: 'table-1',
+        type: 'REQUEST_BILL',
+      });
+
+      const result = await service.createWaiterCall('table-1', 'REQUEST_BILL');
+
+      expect(result).toEqual(
+        expect.objectContaining({ id: 'call-existing', priority: 'MEDIUM' }),
+      );
+      expect(mockTableRepo.createWaiterCall).not.toHaveBeenCalled();
+      expect(mockEventsGateway.broadcastWaiterCalled).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resolveWaiterCall', () => {
+    it('persists and broadcasts the resolution of a pending call', async () => {
+      const pending = {
+        id: 'call-1',
+        status: 'PENDING',
+        table: { branchId: 'branch-1' },
+      };
+      const resolved = { ...pending, status: 'RESOLVED' };
+      mockTableRepo.getWaiterCallById.mockResolvedValue(pending);
+      mockTableRepo.resolveWaiterCall.mockResolvedValue(resolved);
+
+      await expect(service.resolveWaiterCall('call-1')).resolves.toEqual(
+        resolved,
+      );
+      expect(mockEventsGateway.broadcastWaiterResolved).toHaveBeenCalledWith(
+        resolved,
+      );
+    });
+
+    it('is idempotent when a call was already resolved', async () => {
+      const resolved = {
+        id: 'call-1',
+        status: 'RESOLVED',
+        table: { branchId: 'branch-1' },
+      };
+      mockTableRepo.getWaiterCallById.mockResolvedValue(resolved);
+
+      await expect(service.resolveWaiterCall('call-1')).resolves.toEqual(
+        resolved,
+      );
+      expect(mockTableRepo.resolveWaiterCall).not.toHaveBeenCalled();
+      expect(mockEventsGateway.broadcastWaiterResolved).not.toHaveBeenCalled();
     });
   });
 });

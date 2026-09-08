@@ -90,7 +90,7 @@ export default function ThankYouPage() {
       </div>
       <h1 className="text-3xl font-bold font-display text-slate-900 dark:text-white text-center mb-2">Order Complete!</h1>
       <p className="text-slate-600 dark:text-slate-400 text-center mb-8 max-w-sm">
-        We hope you enjoyed your time at {process.env.NEXT_PUBLIC_BRAND_NAME || "Cold 'N Brew"}. How was your experience?
+        We hope you enjoyed your time at {process.env.NEXT_PUBLIC_BRAND_NAME || "Warkop Ya'reh"}. How was your experience?
       </p>
 
       <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800">

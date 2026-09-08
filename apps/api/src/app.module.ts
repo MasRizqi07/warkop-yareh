@@ -28,6 +28,8 @@ import { TablesModule } from './modules/tables/tables.module';
 import { AiModule } from './modules/ai/ai.module';
 import { HealthModule } from './modules/health/health.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
+import { OperationsModule } from './modules/operations/operations.module';
+import { ContentModule } from './modules/content/content.module';
 import { validateEnvironment } from './config/environment.validation';
 
 @Module({
@@ -64,6 +66,8 @@ import { validateEnvironment } from './config/environment.validation';
     AiModule,
     HealthModule,
     MarketingModule,
+    OperationsModule,
+    ContentModule,
   ],
   controllers: [],
   providers: [

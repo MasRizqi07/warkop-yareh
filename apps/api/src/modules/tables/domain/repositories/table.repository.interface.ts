@@ -38,4 +38,7 @@ export interface ITableRepository {
     tableId: string,
     type: WaiterCallType,
   ): Promise<WaiterCallWithTable>;
+  listPendingWaiterCalls(branchId: string): Promise<WaiterCallWithTable[]>;
+  getWaiterCallById(id: string): Promise<WaiterCallWithTable | null>;
+  resolveWaiterCall(id: string): Promise<WaiterCallWithTable>;
 }

@@ -61,4 +61,10 @@ export class ListUsersQueryDto {
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  search?: string;
 }

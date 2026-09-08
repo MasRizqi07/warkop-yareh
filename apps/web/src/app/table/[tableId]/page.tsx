@@ -1,317 +1,131 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Wifi,
-  Copy,
-  Check,
-  BellRing,
-  Users,
-  ChevronRight,
-  Plus,
-} from "lucide-react";
-import { useAppStore } from "@/store/useAppStore";
-import { MOCK_PRODUCTS, MockProduct } from "@/lib/mockData";
-import { ProductCustomizerModal } from "@/components/menu/ProductCustomizerModal";
-import { soundEffects } from "@/lib/audioAlerts";
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { ArrowRight, BellRing, Coffee, HandPlatter, Plus, ReceiptText, Search, ShoppingBag, Users } from 'lucide-react';
+import type { Product } from '@warkop-yareh/types';
+import { ProductCustomizerModal } from '@/components/menu/ProductCustomizerModal';
+import { DataState, LoadingState } from '@/components/data-state';
+import { getBranches, getCatalog, toUiProduct } from '@/features/catalog/catalog.api';
+import { createWaiterCall, getPublicTable } from '@/features/public/public.api';
+import { getApiErrorMessage } from '@/lib/api-error';
+import { useBranchStore } from '@/stores/branch.store';
+import { useCartStore, useCheckoutStore } from '@/stores';
 
-export default function TableDineInPage() {
-  const params = useParams();
-  const rawTableId = (params?.tableId as string) || "T-04";
-  const tableId = decodeURIComponent(rawTableId).toUpperCase();
+const STATUS_LABELS = {
+  AVAILABLE: 'Tersedia',
+  OCCUPIED: 'Sedang digunakan',
+  RESERVED: 'Dipesan',
+  CLEANING: 'Sedang dibersihkan',
+  MAINTENANCE: 'Dalam perawatan',
+} as const;
 
-  const {
-    setTableNumber,
-    setFulfillmentType,
-    getActiveBranch,
-    orders,
-  } = useAppStore();
+const CALL_OPTIONS = [
+  { type: 'CALL_WAITER' as const, label: 'Panggil staf', detail: 'Staf akan menuju meja ini.', icon: BellRing },
+  { type: 'REQUEST_BILL' as const, label: 'Minta tagihan', detail: 'Staf akan membantu proses pembayaran.', icon: ReceiptText },
+  { type: 'NEED_ASSISTANCE' as const, label: 'Perlu bantuan', detail: 'Gunakan untuk kebutuhan mendesak di meja.', icon: HandPlatter },
+];
 
-  const activeBranch = getActiveBranch();
-  const [copiedWifi, setCopiedWifi] = useState(false);
-  const [isCallBaristaOpen, setIsCallBaristaOpen] = useState(false);
-  const [callReason, setCallReason] = useState("Minta Air Putih Mineral");
-  const [callAlertSent, setCallAlertSent] = useState(false);
-  const [customizingProduct, setCustomizingProduct] = useState<MockProduct | null>(null);
+export default function TableMenuPage() {
+  const params = useParams<{ tableId: string }>();
+  const tableId = Array.isArray(params.tableId) ? params.tableId[0] : params.tableId;
+  const [search, setSearch] = useState('');
+  const [customizing, setCustomizing] = useState<Product | null>(null);
+  const itemCount = useCartStore((state) => state.itemCount());
 
-  // Auto-lock table in state
+  const table = useQuery({
+    queryKey: ['public-table', tableId],
+    queryFn: () => getPublicTable(tableId),
+    enabled: Boolean(tableId),
+    retry: 1,
+  });
+  const branches = useQuery({ queryKey: ['branches'], queryFn: getBranches, staleTime: 5 * 60_000, retry: 1 });
+  const catalog = useQuery({
+    queryKey: ['catalog', table.data?.branchId ?? 'none'],
+    queryFn: () => getCatalog(table.data!.branchId),
+    enabled: Boolean(table.data?.branchId),
+    select: (data) => ({ ...data, products: data.products.map((product) => toUiProduct(product, table.data!.branchId)) }),
+    staleTime: 60_000,
+    retry: 1,
+  });
+  const waiterCall = useMutation({ mutationFn: (type: (typeof CALL_OPTIONS)[number]['type']) => createWaiterCall(tableId, type) });
+
   useEffect(() => {
-    setTableNumber(tableId);
-    setFulfillmentType("dine-in");
-  }, [tableId, setTableNumber, setFulfillmentType]);
-
-  const handleCopyWifi = () => {
-    if (typeof navigator !== "undefined") {
-      navigator.clipboard.writeText(activeBranch.wifiPass);
-      setCopiedWifi(true);
-      setTimeout(() => setCopiedWifi(false), 2500);
+    if (!table.data) return;
+    const branchStore = useBranchStore.getState();
+    if (branchStore.activeBranchId && branchStore.activeBranchId !== table.data.branchId) {
+      useCartStore.getState().clearCart();
     }
-  };
+    branchStore.setActiveBranchId(table.data.branchId);
+    const checkout = useCheckoutStore.getState();
+    checkout.setFulfillmentType('dine-in');
+    checkout.setTable(table.data.id, `Meja ${table.data.number}`);
+  }, [table.data]);
 
-  const handleSendCallBarista = (e: React.FormEvent) => {
-    e.preventDefault();
-    soundEffects.playKdsBell();
-    setCallAlertSent(true);
-    setTimeout(() => {
-      setCallAlertSent(false);
-      setIsCallBaristaOpen(false);
-    }, 2000);
-  };
+  const products = useMemo(() => {
+    const needle = search.trim().toLocaleLowerCase('id-ID');
+    if (!needle) return catalog.data?.products ?? [];
+    return (catalog.data?.products ?? []).filter((product) =>
+      [product.name, product.description, ...(product.tags ?? [])].some((value) => value.toLocaleLowerCase('id-ID').includes(needle)),
+    );
+  }, [catalog.data?.products, search]);
 
-  // Find active orders belonging to this table
-  const activeTableOrders = orders.filter(
-    (o) => o.tableNumber === tableId && o.orderStatus !== "completed"
-  );
+  if (table.isPending) {
+    return <main className="mx-auto min-h-screen max-w-7xl px-4 pb-28 pt-24"><LoadingState label="Menghubungkan meja…" /></main>;
+  }
+  if (table.isError || !table.data) {
+    return <main className="mx-auto min-h-screen max-w-7xl px-4 pb-28 pt-24"><DataState title="Meja tidak dapat dibuka" detail={getApiErrorMessage(table.error, 'Kode meja tidak valid atau meja sedang tidak aktif.')} retry={() => void table.refetch()} /></main>;
+  }
+
+  const currentTable = table.data;
+  const branch = branches.data?.find((item) => item.id === currentTable.branchId);
+  const orderingUnavailable = currentTable.status === 'MAINTENANCE' || currentTable.status === 'CLEANING';
 
   return (
-    <div className="min-h-screen bg-canvas-obsidian text-text-primary pt-8 sm:pt-10 pb-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto transition-colors">
-      {/* Table Welcome Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-surface-card border border-border-subtle shadow-2xl mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    <main className="min-h-screen bg-background pb-32 text-text-primary">
+      <section className="border-b border-border-subtle bg-surface-secondary pt-20">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-end">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-accent-amber uppercase tracking-wider mb-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>QR DINE-IN DIGITAL MENU • {activeBranch.name}</span>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-amber">Dine-in terhubung</p>
+            <h1 className="mt-2 text-3xl font-extrabold sm:text-5xl">Meja {currentTable.number}</h1>
+            <div className="mt-4 flex flex-wrap gap-4 text-sm text-text-muted">
+              <span>{branch?.name ?? 'Cabang sedang dimuat'}</span>
+              <span className="inline-flex items-center gap-1"><Users className="h-4 w-4" />Kapasitas {currentTable.capacity}</span>
+              <span className="rounded-full border border-border-subtle bg-surface-card px-3 py-1 font-semibold text-text-primary">{STATUS_LABELS[currentTable.status]}</span>
             </div>
-            <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-text-primary">
-              Selamat Datang di Meja {tableId}
-            </h1>
-            <p className="text-xs text-text-muted mt-1">
-              Pesanan dari halaman ini otomatis terhubung ke meja kamu tanpa antre di kasir.
-            </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Wi-Fi Copy Chip */}
-            <button
-              onClick={handleCopyWifi}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-surface-secondary border border-border-subtle hover:border-accent-amber/40 text-xs font-mono text-text-secondary transition-colors cursor-pointer"
-            >
-              <Wifi className="w-4 h-4 text-accent-amber" />
-              <span>{activeBranch.wifiName}</span>
-              {copiedWifi ? (
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" /> Tersalin!
-                </span>
-              ) : (
-                <Copy className="w-3.5 h-3.5 text-text-muted" />
-              )}
-            </button>
-
-            {/* Call Barista Modal Trigger */}
-            <button
-              onClick={() => setIsCallBaristaOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-accent-amber/10 hover:bg-accent-amber/20 border border-accent-amber/20 text-xs font-semibold text-accent-amber transition-colors cursor-pointer"
-            >
-              <BellRing className="w-4 h-4" />
-              <span>Panggil Barista</span>
-            </button>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/cart" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border-subtle bg-surface-card px-5 py-3 text-sm font-bold"><ShoppingBag className="h-4 w-4" />Keranjang ({itemCount})</Link>
+            <Link href="/checkout" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary-container px-5 py-3 text-sm font-bold text-on-primary-container">Checkout meja ini<ArrowRight className="h-4 w-4" /></Link>
           </div>
         </div>
+      </section>
+
+      <div className="mx-auto grid max-w-7xl items-start gap-8 px-4 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="min-w-0 space-y-6" aria-labelledby="table-menu-heading">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div><h2 id="table-menu-heading" className="text-2xl font-bold">Menu cabang</h2><p className="mt-1 text-sm text-text-muted">Harga dan ketersediaan diambil langsung dari katalog cabang meja ini.</p></div>
+            <label className="relative block sm:w-72"><span className="sr-only">Cari menu</span><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" /><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari menu…" className="min-h-11 w-full rounded-xl border border-border-subtle bg-surface-card py-2 pl-10 pr-3 text-sm outline-none focus:border-accent-amber" /></label>
+          </div>
+
+          {orderingUnavailable ? <DataState title="Pemesanan meja sedang dinonaktifkan" detail={`Status meja saat ini: ${STATUS_LABELS[currentTable.status]}. Hubungi staf bila status belum diperbarui.`} /> : catalog.isPending ? <LoadingState label="Memuat katalog cabang…" /> : catalog.isError ? <DataState title="Katalog belum dapat dimuat" detail={getApiErrorMessage(catalog.error)} retry={() => void catalog.refetch()} /> : products.length === 0 ? <DataState title="Menu tidak ditemukan" detail={search ? 'Coba kata kunci lain.' : 'Belum ada produk aktif pada cabang ini.'} /> : <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{products.map((product) => <article key={product.id} className="flex overflow-hidden rounded-2xl border border-border-subtle bg-surface-card sm:flex-col"><div className="relative h-36 w-32 shrink-0 bg-surface-container sm:h-44 sm:w-full"><Image src={product.image} alt={product.name} fill sizes="(min-width: 1280px) 22vw, (min-width: 640px) 45vw, 128px" className="object-cover" /></div><div className="flex min-w-0 flex-1 flex-col p-4"><h3 className="font-bold">{product.name}</h3><p className="mt-2 line-clamp-2 text-xs leading-5 text-text-muted">{product.description}</p><div className="mt-auto flex items-end justify-between gap-3 pt-4"><div><p className="font-mono text-sm font-bold text-accent-amber">Rp {product.price.toLocaleString('id-ID')}</p><p className="mt-1 text-[11px] text-text-muted">± {product.preparationTime} menit</p></div><button type="button" onClick={() => setCustomizing(product)} aria-label={`Pesan ${product.name}`} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-primary-container px-3 text-on-primary-container"><Plus className="h-4 w-4" /></button></div></div></article>)}</div>}
+        </section>
+
+        <aside className="space-y-5 lg:sticky lg:top-24">
+          <section className="space-y-4 rounded-2xl border border-border-subtle bg-surface-card p-5">
+            <div><h2 className="flex items-center gap-2 font-bold"><Coffee className="h-5 w-5 text-accent-amber" />Bantuan meja</h2><p className="mt-1 text-xs leading-5 text-text-muted">Permintaan dicatat di server dan diteruskan ke panel operasional cabang.</p></div>
+            <div className="space-y-2">{CALL_OPTIONS.map((option) => <button key={option.type} type="button" disabled={waiterCall.isPending} onClick={() => waiterCall.mutate(option.type)} className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-border-subtle bg-surface-secondary p-3 text-left disabled:opacity-50"><option.icon className="h-5 w-5 shrink-0 text-accent-amber" /><span><strong className="block text-sm">{option.label}</strong><span className="mt-0.5 block text-xs text-text-muted">{option.detail}</span></span></button>)}</div>
+            {waiterCall.isSuccess && <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm font-semibold text-emerald-400">Permintaan diterima. Staf cabang telah diberi notifikasi.</p>}
+            {waiterCall.isError && <DataState title="Permintaan belum terkirim" detail={getApiErrorMessage(waiterCall.error)} />}
+          </section>
+          <section className="rounded-2xl border border-border-subtle bg-surface-card p-5 text-sm text-text-muted"><h2 className="font-bold text-text-primary">Harga final</h2><p className="mt-2 leading-6">Keranjang menampilkan estimasi. Server memvalidasi harga, stok, pajak 11%, dan service fee 5% saat checkout.</p></section>
+        </aside>
       </div>
 
-      {/* Active Table Orders (Shared Bill) */}
-      {activeTableOrders.length > 0 && (
-        <div className="p-6 rounded-3xl bg-surface-card border border-accent-amber/30 shadow-xl mb-8 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-accent-amber" />
-              <h3 className="font-heading font-bold text-sm text-text-primary">
-                Tagihan Meja Aktif ({tableId})
-              </h3>
-            </div>
-            <span className="text-xs font-mono text-accent-amber">
-              Sedang diproses oleh Barista
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            {activeTableOrders.map((ord) => (
-              <div
-                key={ord.id}
-                className="p-3.5 rounded-2xl bg-surface-secondary border border-border-subtle flex items-center justify-between text-xs"
-              >
-                <div>
-                  <div className="font-medium text-text-primary">
-                    #{ord.id} • {ord.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
-                  </div>
-                  <div className="text-[11px] text-text-muted font-mono mt-0.5">
-                    Status: <span className="text-accent-amber uppercase font-semibold">{ord.orderStatus}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono font-bold text-text-primary">
-                    Rp {ord.total.toLocaleString("id-ID")}
-                  </div>
-                  <Link
-                    href={`/order/track/${ord.id}`}
-                    className="text-[11px] text-accent-amber hover:underline"
-                  >
-                    Lacak Langsung
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Menu Selection */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-heading font-bold text-lg text-text-primary">
-              Pesan Menu Tambahan ke Meja {tableId}
-            </h2>
-            <p className="text-xs text-text-muted">
-              Pesanan akan langsung diantarkan oleh barista ke meja kamu.
-            </p>
-          </div>
-
-          <Link
-            href="/menu"
-            className="text-xs text-accent-amber hover:underline flex items-center gap-1 font-semibold"
-          >
-            <span>Lihat Semua Menu</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MOCK_PRODUCTS.map((product) => (
-            <div
-              key={product.id}
-              className="p-5 rounded-3xl bg-surface-card border border-border-subtle hover:border-accent-amber/40 transition-all flex flex-col justify-between group shadow-lg"
-            >
-              <div className="flex gap-4">
-                <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-surface-secondary flex-shrink-0">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-heading font-bold text-sm text-text-primary line-clamp-1 group-hover:text-accent-amber transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-[11px] text-text-muted line-clamp-2 mt-1">
-                    {product.description}
-                  </p>
-                  <div className="font-mono font-bold text-xs text-accent-amber mt-2">
-                    Rp {product.price.toLocaleString("id-ID")}
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 mt-4 border-t border-border-subtle flex items-center justify-between">
-                <span className="text-[11px] font-mono text-text-muted">
-                  {product.preparationTime} mnt saji
-                </span>
-                <button
-                  onClick={() => setCustomizingProduct(product)}
-                  className="px-3.5 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Pesan</span>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Call Barista Modal */}
-      <AnimatePresence>
-        {isCallBaristaOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-            <motion.form
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              onSubmit={handleSendCallBarista}
-              className="w-full max-w-sm rounded-3xl bg-surface-card border border-border-subtle p-6 space-y-4 shadow-2xl"
-            >
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-2xl bg-accent-amber/10 text-accent-amber flex items-center justify-center mx-auto mb-2 border border-accent-amber/20">
-                  <BellRing className="w-6 h-6" />
-                </div>
-                <h3 className="font-heading font-bold text-base text-text-primary">
-                  Panggil Barista ke Meja {tableId}
-                </h3>
-                <p className="text-xs text-text-muted mt-0.5">
-                  Lonceng notifikasi KDS akan segera berbunyi di stasiun barista.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                {[
-                  "Minta Air Putih Mineral (Free)",
-                  "Tolong Bersihkan / Lap Meja",
-                  "Minta Kabel / Colokan Ekstra",
-                  "Bantuan Pembayaran / Split Bill",
-                ].map((reason) => (
-                  <button
-                    key={reason}
-                    type="button"
-                    onClick={() => setCallReason(reason)}
-                    className={`w-full p-2.5 rounded-xl border text-xs font-medium text-left transition-all cursor-pointer ${
-                      callReason === reason
-                        ? "bg-accent-amber/20 border-accent-amber text-text-primary"
-                        : "bg-surface-secondary border-border-subtle text-text-muted hover:text-text-primary"
-                    }`}
-                  >
-                    {reason}
-                  </button>
-                ))}
-              </div>
-
-              {callAlertSent ? (
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center font-semibold">
-                  Lonceng Berbunyi! Barista sedang menuju ke meja kamu.
-                </div>
-              ) : (
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsCallBaristaOpen(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-surface-secondary hover:bg-surface-container border border-border-subtle text-xs text-text-secondary font-semibold cursor-pointer transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#9c6b3a] via-[#ee9800] to-[#f59e0b] text-[#0a0a0c] font-bold text-xs shadow-md cursor-pointer hover:brightness-110 active:scale-95 transition-all"
-                  >
-                    Kirim Panggilan
-                  </button>
-                </div>
-              )}
-            </motion.form>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Product Customizer Modal */}
-      <ProductCustomizerModal
-        product={
-          customizingProduct
-            ? ({
-                ...customizingProduct,
-                isPopular: Boolean(customizingProduct.isPopular),
-                isNew: Boolean(customizingProduct.isNew),
-              } as unknown as import("@warkop-yareh/types").Product)
-            : null
-        }
-        isOpen={Boolean(customizingProduct)}
-        onClose={() => setCustomizingProduct(null)}
-      />
-    </div>
+      <ProductCustomizerModal product={customizing} isOpen={Boolean(customizing)} onClose={() => setCustomizing(null)} />
+    </main>
   );
 }

@@ -1,31 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  MessageCircle,
-  Send,
-  Sparkles,
-} from 'lucide-react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/shared/section-header';
-import { SITE, BRANCH_LOCATIONS } from '@/lib/constants';
+import { DataState, LoadingState } from '@/components/data-state';
+import { getBranches } from '@/features/catalog/catalog.api';
+import { getApiErrorMessage } from '@/lib/api-error';
+import { SITE } from '@/lib/constants';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
+  const branches = useQuery({
+    queryKey: ['branches'],
+    queryFn: getBranches,
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+  const contactChannel = SITE.whatsapp
+    ? 'WhatsApp'
+    : SITE.email
+      ? 'email'
+      : null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = [
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!contactChannel) return;
+    const body = [
       "Halo Warkop Ya'reh, saya ingin menghubungi tim:",
       `Nama: ${name.trim()}`,
       `Email: ${email.trim()}`,
@@ -33,252 +39,217 @@ export default function ContactPage() {
       '',
       message.trim(),
     ].join('\n');
-    window.open(
-      `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(text)}`,
-      '_blank',
-      'noopener,noreferrer'
+    if (SITE.whatsapp) {
+      window.open(
+        `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(body)}`,
+        '_blank',
+        'noopener,noreferrer'
+      );
+      return;
+    }
+    window.location.assign(
+      `mailto:${SITE.email}?subject=${encodeURIComponent(subject.trim())}&body=${encodeURIComponent(body)}`
     );
   };
 
-  return (
-    <div className="relative min-h-screen bg-canvas-obsidian pb-16 font-body text-on-surface">
-      {/* Noise Overlay */}
-      <div className="pointer-events-none fixed inset-0 z-0 bg-grid opacity-20" />
+  const quickContacts = [
+    SITE.phone
+      ? {
+          label: 'Telepon',
+          value: SITE.phone,
+          href: `tel:${SITE.phone}`,
+          icon: Phone,
+        }
+      : null,
+    SITE.email
+      ? {
+          label: 'Email',
+          value: SITE.email,
+          href: `mailto:${SITE.email}`,
+          icon: Mail,
+        }
+      : null,
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
 
-      {/* Hero Header with Background Mesh */}
+  return (
+    <main className="min-h-screen bg-background pb-24 text-text-primary">
       <section className="relative overflow-hidden border-b border-border-subtle bg-surface-secondary pb-12 pt-24">
-        <div className="absolute inset-0 bg-mesh z-0" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 bg-mesh" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeader
-            badge="Contact Us"
+            badge="Contact"
             title="Hubungi Kami"
-            description="Punya pertanyaan, feedback, atau ide kerja sama menarik? Kami sangat senang mendengar cerita dari kamu."
+            description="Pilih kanal yang sudah dikonfigurasi atau lihat lokasi cabang aktif yang diterbitkan oleh API."
           />
         </div>
       </section>
-
-      {/* Form and info sections */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="grid lg:grid-cols-5 gap-8">
-          {/* Contact Form card wrapper */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-3"
-          >
-            <div className="rounded-3xl border border-border-subtle bg-surface-card p-6 sm:p-8 space-y-6">
-              <h3 className="flex items-center gap-2 font-heading text-lg font-bold text-text-primary">
-                <Sparkles className="w-5 h-5 text-primary" />
-                Send a Message
-              </h3>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label
-                      htmlFor="contact-name"
-                      className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                    >
-                      Name
-                    </label>
-                    <Input
-                      id="contact-name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={100}
-                      placeholder="Nama lengkap kamu"
-                      required
-                      className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label
-                      htmlFor="contact-email"
-                      className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                    >
-                      Email
-                    </label>
-                    <Input
-                      id="contact-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      maxLength={254}
-                      placeholder="email@example.com"
-                      required
-                      className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="contact-subject"
-                    className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                  >
-                    Subject
-                  </label>
-                  <Input
-                    id="contact-subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    maxLength={120}
-                    placeholder="Apa yang bisa kami bantu?"
-                    required
-                    className="rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="contact-message"
-                    className="px-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="contact-message"
-                    rows={5}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    maxLength={1500}
-                    placeholder="Tulis detail pesan kamu di sini..."
-                    required
-                    className="flex w-full resize-none rounded-xl border border-border-subtle bg-surface-container-high/40 px-4 py-3 text-xs text-text-primary transition-colors [transition-duration:var(--duration-fast)] placeholder:text-text-muted hover:border-outline-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full sm:w-auto font-bold uppercase tracking-wider text-xs shadow-md"
-                >
-                  <Send className="w-4 h-4 mr-1.5" />
-                  Lanjutkan di WhatsApp
-                </Button>
-                <p className="text-xs leading-relaxed text-text-muted">
-                  Tombol ini membuka WhatsApp dengan draf pesan. Pesan baru
-                  terkirim setelah kamu menekan tombol kirim di WhatsApp.
-                </p>
-              </form>
+      <div className="mx-auto grid max-w-7xl items-start gap-8 px-4 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <section className="rounded-3xl border border-border-subtle bg-surface-card p-6 sm:p-8">
+          <h2 className="text-xl font-bold">Siapkan pesan</h2>
+          <p className="mt-2 text-sm leading-6 text-text-muted">
+            Formulir ini membuka {contactChannel ?? 'kanal kontak'} dengan draf
+            pesan. Pesan baru terkirim setelah kamu mengonfirmasi pada aplikasi
+            tujuan.
+          </p>
+          {!contactChannel && (
+            <div className="mt-5">
+              <DataState
+                title="Kanal kontak belum dikonfigurasi"
+                detail="Administrator perlu mengisi NEXT_PUBLIC_WHATSAPP_NUMBER atau NEXT_PUBLIC_CONTACT_EMAIL saat deployment."
+              />
             </div>
-          </motion.div>
-
-          {/* Contact Info and locations column */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2 space-y-6"
-          >
-            {/* Quick Contact info */}
-            <div className="rounded-3xl border border-border-subtle bg-surface-card p-6 space-y-5">
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
-                Quick Contact
-              </h4>
-              {[
-                {
-                  icon: <Phone className="w-4 h-4" />,
-                  label: 'Phone',
-                  value: SITE.phone,
-                  href: `tel:${SITE.phone}`,
-                },
-                {
-                  icon: <Mail className="w-4 h-4" />,
-                  label: 'Email',
-                  value: SITE.email,
-                  href: `mailto:${SITE.email}`,
-                },
-                {
-                  icon: <MapPin className="w-4 h-4" />,
-                  label: 'Address',
-                  value: SITE.address,
-                },
-                {
-                  icon: <Clock className="w-4 h-4" />,
-                  label: 'Hours',
-                  value: `${SITE.operatingHours.weekday} (Weekday)`,
-                },
-              ].map((item) => (
-                <div key={item.label} className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
-                    {item.icon}
-                  </div>
-                  <div>
-                    <div className="font-mono text-[9px] font-semibold uppercase tracking-tight text-text-muted">
-                      {item.label}
-                    </div>
-                    {item.href ? (
-                      <a
-                        href={item.href}
-                        className="text-xs font-semibold leading-relaxed text-text-primary transition-colors hover:text-primary"
-                      >
-                        {item.value}
-                      </a>
-                    ) : (
-                      <div className="text-xs leading-relaxed text-text-primary">
-                        {item.value}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+          )}
+          <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label
+                className="space-y-2 text-sm font-semibold"
+                htmlFor="contact-name"
+              >
+                Nama
+                <Input
+                  id="contact-name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  maxLength={100}
+                  required
+                  autoComplete="name"
+                />
+              </label>
+              <label
+                className="space-y-2 text-sm font-semibold"
+                htmlFor="contact-email"
+              >
+                Email
+                <Input
+                  id="contact-email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  maxLength={254}
+                  required
+                  autoComplete="email"
+                />
+              </label>
             </div>
-
-            {/* WhatsApp CTA Link */}
-            <a
-              href={`https://wa.me/${SITE.whatsapp}?text=Halo%20Warkop%20Ya'reh!`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="primary-cta-motion flex items-center gap-4 rounded-3xl bg-primary-container p-5 text-on-primary-container shadow-lg"
+            <label
+              className="block space-y-2 text-sm font-semibold"
+              htmlFor="contact-subject"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-on-primary-container/15">
-                <MessageCircle className="h-6 w-6 text-on-primary-container" />
-              </div>
-              <div>
-                <div className="font-bold text-xs uppercase tracking-wider">
-                  Chat via WhatsApp
-                </div>
-                <div className="mt-0.5 text-[10px] text-on-primary-container/80">
-                  Buka percakapan dengan tim kami
-                </div>
-              </div>
-            </a>
+              Subjek
+              <Input
+                id="contact-subject"
+                value={subject}
+                onChange={(event) => setSubject(event.target.value)}
+                minLength={3}
+                maxLength={120}
+                required
+              />
+            </label>
+            <label
+              className="block space-y-2 text-sm font-semibold"
+              htmlFor="contact-message"
+            >
+              Pesan
+              <textarea
+                id="contact-message"
+                rows={7}
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                minLength={10}
+                maxLength={1500}
+                required
+                className="w-full resize-y rounded-xl border border-border-subtle bg-surface-secondary p-3 text-sm leading-6 outline-none focus:border-primary"
+              />
+            </label>
+            <Button type="submit" size="lg" disabled={!contactChannel}>
+              <Send className="mr-1.5 h-4 w-4" />
+              Lanjutkan di {contactChannel ?? 'kanal kontak'}
+            </Button>
+          </form>
+        </section>
 
-            {/* Branch Locations list */}
-            <div className="rounded-3xl border border-border-subtle bg-surface-card p-6 space-y-4">
-              <h4 className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
-                Our Branches
-              </h4>
-              <div className="space-y-4">
-                {BRANCH_LOCATIONS.map((branch) => (
-                  <div
+        <aside className="space-y-5">
+          <section className="space-y-4 rounded-3xl border border-border-subtle bg-surface-card p-6">
+            <h2 className="font-bold">Kontak resmi</h2>
+            {quickContacts.length ? (
+              quickContacts.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="flex min-h-12 items-center gap-3 rounded-xl border border-border-subtle bg-surface-secondary p-3"
+                >
+                  <item.icon className="h-5 w-5 text-accent-amber" />
+                  <span>
+                    <span className="block text-xs text-text-muted">
+                      {item.label}
+                    </span>
+                    <strong className="break-all text-sm">{item.value}</strong>
+                  </span>
+                </a>
+              ))
+            ) : (
+              <p className="text-sm leading-6 text-text-muted">
+                Belum ada nomor telepon atau email yang dikonfigurasi.
+              </p>
+            )}
+            {SITE.whatsapp && (
+              <a
+                href={`https://wa.me/${SITE.whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-12 items-center gap-3 rounded-xl bg-primary-container p-3 font-bold text-on-primary-container"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Buka WhatsApp resmi
+              </a>
+            )}
+          </section>
+          <section className="space-y-4 rounded-3xl border border-border-subtle bg-surface-card p-6">
+            <h2 className="flex items-center gap-2 font-bold">
+              <MapPin className="h-5 w-5 text-accent-amber" />
+              Cabang aktif
+            </h2>
+            {branches.isPending ? (
+              <LoadingState label="Memuat cabang…" />
+            ) : branches.isError ? (
+              <DataState
+                title="Cabang belum dapat dimuat"
+                detail={getApiErrorMessage(branches.error)}
+                retry={() => void branches.refetch()}
+              />
+            ) : !branches.data.length ? (
+              <DataState title="Belum ada cabang aktif" />
+            ) : (
+              <div className="space-y-3">
+                {branches.data.map((branch) => (
+                  <article
                     key={branch.id}
-                    className="space-y-1.5 rounded-2xl border border-border-subtle bg-surface-container-high/20 p-4"
+                    className="rounded-xl border border-border-subtle bg-surface-secondary p-4"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-text-primary">
-                        {branch.name}
-                      </span>
-                      {branch.isMainBranch && (
-                        <Badge
-                          variant="gold"
-                          className="text-[8px] uppercase px-2 py-0.5"
-                        >
-                          Main
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-[10px] leading-relaxed text-text-muted">
+                    <h3 className="font-semibold">{branch.name}</h3>
+                    <p className="mt-1 text-xs leading-5 text-text-muted">
                       {branch.address}, {branch.city}
                     </p>
-                  </div>
+                    <p className="mt-3 flex items-center gap-2 text-xs text-text-muted">
+                      <Clock className="h-4 w-4" />
+                      Hari kerja {branch.weekdayHours} · akhir pekan{' '}
+                      {branch.weekendHours}
+                    </p>
+                    {branch.phone && (
+                      <a
+                        href={`tel:${branch.phone}`}
+                        className="mt-3 inline-flex text-xs font-semibold text-primary"
+                      >
+                        {branch.phone}
+                      </a>
+                    )}
+                  </article>
                 ))}
               </div>
-            </div>
-          </motion.div>
-        </div>
-      </main>
-    </div>
+            )}
+          </section>
+        </aside>
+      </div>
+    </main>
   );
 }

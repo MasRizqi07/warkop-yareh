@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Get,
   Post,
   Body,
@@ -43,6 +44,22 @@ export class CommunityController {
     return { data };
   }
 
+  @Get('groups/:groupId')
+  @Public()
+  async getGroup(@Param('groupId') groupId: string) {
+    return { data: await this.communityService.getGroup(groupId) };
+  }
+
+  @Get('groups/:groupId/membership')
+  async getMembership(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return {
+      data: await this.communityService.getMembership(userId, groupId),
+    };
+  }
+
   @Post('groups/:groupId/join')
   @HttpCode(HttpStatus.OK)
   async joinGroup(
@@ -66,6 +83,17 @@ export class CommunityController {
     return { data };
   }
 
+  @Get('posts/manage')
+  @Roles(Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
+  @ApiOperation({ summary: 'List recent posts for community moderation' })
+  async listRecentPosts(@Query() query: ListPostsQueryDto) {
+    const { data, total } = await this.communityService.listRecentPosts(
+      query.page,
+      query.limit,
+    );
+    return paginate(data, total, query.page, query.limit);
+  }
+
   @Get('groups/:groupId/posts')
   @Public()
   async listPosts(
@@ -78,5 +106,15 @@ export class CommunityController {
       query.limit,
     );
     return paginate(data, total, query.page, query.limit);
+  }
+
+  @Delete('posts/:postId')
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiOperation({ summary: 'Moderate and remove a community post' })
+  async deletePost(@Param('postId') postId: string) {
+    return {
+      data: await this.communityService.deletePost(postId),
+      message: 'Community post removed',
+    };
   }
 }

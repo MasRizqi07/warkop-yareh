@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -18,7 +19,9 @@ import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { LoyaltyService } from '../../application/services/loyalty.service';
 import {
   AwardPointsDto,
+  CreateRewardDto,
   LoyaltyTransactionsQueryDto,
+  UpdateRewardDto,
 } from '../dtos/loyalty.dto';
 
 const GLOBAL_LOYALTY_ROLES: readonly Role[] = [Role.ADMIN, Role.SUPERADMIN];
@@ -54,6 +57,30 @@ export class LoyaltyController {
   @ApiOperation({ summary: 'List active, unexpired loyalty rewards' })
   async listRewards() {
     return { data: await this.loyaltyService.getAvailableRewards() };
+  }
+
+  @Get('rewards/manage')
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiOperation({ summary: 'List every reward for administration' })
+  async listRewardsForManagement() {
+    return { data: await this.loyaltyService.listRewardsForManagement() };
+  }
+
+  @Post('rewards')
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiOperation({ summary: 'Create a loyalty reward' })
+  async createReward(@Body() body: CreateRewardDto) {
+    return { data: await this.loyaltyService.createReward(body) };
+  }
+
+  @Patch('rewards/:rewardId')
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @ApiOperation({ summary: 'Update a loyalty reward' })
+  async updateReward(
+    @Param('rewardId') rewardId: string,
+    @Body() body: UpdateRewardDto,
+  ) {
+    return { data: await this.loyaltyService.updateReward(rewardId, body) };
   }
 
   @Post('rewards/:rewardId/redeem')

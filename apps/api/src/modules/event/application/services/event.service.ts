@@ -33,6 +33,10 @@ interface ListEventsInput {
   limit: number;
 }
 
+interface UpdateEventInput extends Partial<CreateEventInput> {
+  status?: EventStatus;
+}
+
 @Injectable()
 export class EventService {
   constructor(private readonly prisma: DatabaseService) {}
@@ -53,6 +57,11 @@ export class EventService {
     if (!branch) throw new BadRequestException('Branch is not active');
 
     const price = data.price ?? 0;
+    if (price > 0) {
+      throw new BadRequestException(
+        'Paid events cannot be created until event payment is configured',
+      );
+    }
     const slugBase =
       data.title
         .trim()
@@ -78,10 +87,12 @@ export class EventService {
     });
   }
 
-  async listEvents(params: ListEventsInput) {
+  async listEvents(params: ListEventsInput, includeInactive = false) {
     const where: Prisma.EventWhereInput = {
       deletedAt: null,
-      status: { in: [EventStatus.UPCOMING, EventStatus.ONGOING] },
+      ...(!includeInactive
+        ? { status: { in: [EventStatus.UPCOMING, EventStatus.ONGOING] } }
+        : {}),
       branch: { isActive: true, deletedAt: null },
       ...(params.branchId ? { branchId: params.branchId } : {}),
       ...(params.category ? { category: params.category } : {}),
@@ -90,7 +101,20 @@ export class EventService {
       this.prisma.event.findMany({
         where,
         include: {
-          _count: { select: { registrations: true } },
+          _count: {
+            select: {
+              registrations: {
+                where: {
+                  status: {
+                    in: [
+                      EventRegistrationStatus.REGISTERED,
+                      EventRegistrationStatus.ATTENDED,
+                    ],
+                  },
+                },
+              },
+            },
+          },
         },
         skip: (params.page - 1) * params.limit,
         take: params.limit,
@@ -99,6 +123,142 @@ export class EventService {
       this.prisma.event.count({ where }),
     ]);
     return { data, total };
+  }
+
+  async getEvent(eventId: string) {
+    const event = await this.prisma.event.findFirst({
+      where: { id: eventId, deletedAt: null },
+      include: {
+        branch: { select: { id: true, name: true, city: true } },
+        _count: {
+          select: {
+            registrations: {
+              where: {
+                status: {
+                  in: [
+                    EventRegistrationStatus.REGISTERED,
+                    EventRegistrationStatus.ATTENDED,
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    return event;
+  }
+
+  async getPublicEvent(eventId: string) {
+    const event = await this.prisma.event.findFirst({
+      where: {
+        id: eventId,
+        deletedAt: null,
+        status: { in: [EventStatus.UPCOMING, EventStatus.ONGOING] },
+        branch: { isActive: true, deletedAt: null },
+      },
+      include: {
+        branch: { select: { id: true, name: true, city: true } },
+        _count: {
+          select: {
+            registrations: {
+              where: {
+                status: {
+                  in: [
+                    EventRegistrationStatus.REGISTERED,
+                    EventRegistrationStatus.ATTENDED,
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    return event;
+  }
+
+  async updateEvent(eventId: string, data: UpdateEventInput) {
+    const existing = await this.getEvent(eventId);
+    const startTime = data.startTime ?? existing.startTime;
+    const endTime = data.endTime ?? existing.endTime;
+    if (startTime >= endTime) {
+      throw new BadRequestException('endTime must be later than startTime');
+    }
+    const branchId = data.branchId ?? existing.branchId;
+    if (data.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { id: branchId, isActive: true, deletedAt: null },
+        select: { id: true },
+      });
+      if (!branch) throw new BadRequestException('Branch is not active');
+    }
+    const price = data.price ?? existing.price;
+    if (data.price !== undefined && price > 0) {
+      throw new BadRequestException(
+        'Paid events cannot be enabled until event payment is configured',
+      );
+    }
+    if (
+      data.capacity !== undefined &&
+      data.capacity < existing._count.registrations
+    ) {
+      throw new BadRequestException(
+        'Event capacity cannot be lower than active registrations',
+      );
+    }
+    if (data.status === EventStatus.UPCOMING) {
+      const eventDate =
+        data.date !== undefined
+          ? this.parseEventDate(data.date)
+          : existing.date;
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      if (eventDate < today) {
+        throw new BadRequestException('A past event cannot be reactivated');
+      }
+    }
+    return this.prisma.event.update({
+      where: { id: eventId },
+      data: {
+        ...(data.title !== undefined ? { title: data.title.trim() } : {}),
+        ...(data.description !== undefined
+          ? { description: data.description.trim() }
+          : {}),
+        ...(data.branchId !== undefined ? { branchId } : {}),
+        ...(data.date !== undefined
+          ? { date: this.parseEventDate(data.date) }
+          : {}),
+        ...(data.startTime !== undefined ? { startTime } : {}),
+        ...(data.endTime !== undefined ? { endTime } : {}),
+        ...(data.location !== undefined
+          ? { location: data.location.trim() || 'Main Lounge' }
+          : {}),
+        ...(data.capacity !== undefined ? { capacity: data.capacity } : {}),
+        ...(data.price !== undefined ? { price, isFree: price === 0 } : {}),
+        ...(data.category !== undefined ? { category: data.category } : {}),
+        ...(data.status !== undefined ? { status: data.status } : {}),
+      },
+      include: {
+        branch: { select: { id: true, name: true, city: true } },
+        _count: {
+          select: {
+            registrations: {
+              where: {
+                status: {
+                  in: [
+                    EventRegistrationStatus.REGISTERED,
+                    EventRegistrationStatus.ATTENDED,
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   async registerForEvent(userId: string, eventId: string) {
@@ -139,6 +299,17 @@ export class EventService {
               );
             }
 
+            const existingRegistration = await tx.eventRegistration.findUnique({
+              where: { eventId_userId: { eventId, userId } },
+            });
+            if (
+              existingRegistration?.status ===
+                EventRegistrationStatus.REGISTERED ||
+              existingRegistration?.status === EventRegistrationStatus.ATTENDED
+            ) {
+              throw new ConflictException('Already registered for this event');
+            }
+
             const registrationCount = await tx.eventRegistration.count({
               where: {
                 eventId,
@@ -154,13 +325,21 @@ export class EventService {
               throw new BadRequestException('Event is fully booked');
             }
 
-            const registration = await tx.eventRegistration.create({
-              data: {
-                userId,
-                eventId,
-                status: EventRegistrationStatus.REGISTERED,
-              },
-            });
+            const registration = existingRegistration
+              ? await tx.eventRegistration.update({
+                  where: { id: existingRegistration.id },
+                  data: {
+                    status: EventRegistrationStatus.REGISTERED,
+                    paidAmount: 0,
+                  },
+                })
+              : await tx.eventRegistration.create({
+                  data: {
+                    userId,
+                    eventId,
+                    status: EventRegistrationStatus.REGISTERED,
+                  },
+                });
 
             await tx.event.update({
               where: { id: eventId },
@@ -214,6 +393,69 @@ export class EventService {
         user: { select: { id: true, name: true, email: true } },
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateRegistrationStatus(
+    eventId: string,
+    registrationId: string,
+    status: EventRegistrationStatus,
+  ) {
+    return this.prisma.withTenantTransaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`event-registration:${eventId}`}))`;
+      const registration = await tx.eventRegistration.findFirst({
+        where: { id: registrationId, eventId },
+        select: { id: true, status: true },
+      });
+      if (!registration) throw new NotFoundException('Registration not found');
+      const activatingRegistration =
+        (status === EventRegistrationStatus.REGISTERED ||
+          status === EventRegistrationStatus.ATTENDED) &&
+        registration.status !== EventRegistrationStatus.REGISTERED &&
+        registration.status !== EventRegistrationStatus.ATTENDED;
+      if (activatingRegistration) {
+        const [event, activeRegistrations] = await Promise.all([
+          tx.event.findFirst({
+            where: { id: eventId, deletedAt: null },
+            select: { capacity: true },
+          }),
+          tx.eventRegistration.count({
+            where: {
+              eventId,
+              status: {
+                in: [
+                  EventRegistrationStatus.REGISTERED,
+                  EventRegistrationStatus.ATTENDED,
+                ],
+              },
+            },
+          }),
+        ]);
+        if (!event) throw new NotFoundException('Event not found');
+        if (activeRegistrations >= event.capacity) {
+          throw new BadRequestException('Event is fully booked');
+        }
+      }
+      const updated = await tx.eventRegistration.update({
+        where: { id: registrationId },
+        data: { status },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      });
+      const registered = await tx.eventRegistration.count({
+        where: {
+          eventId,
+          status: {
+            in: [
+              EventRegistrationStatus.REGISTERED,
+              EventRegistrationStatus.ATTENDED,
+            ],
+          },
+        },
+      });
+      await tx.event.update({ where: { id: eventId }, data: { registered } });
+      return updated;
     });
   }
 

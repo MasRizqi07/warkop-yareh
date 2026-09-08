@@ -11,7 +11,6 @@ import { motion } from 'framer-motion';
 import {
   Search,
   SlidersHorizontal,
-  Heart,
   Clock,
   Zap,
   Coffee,
@@ -78,10 +77,6 @@ export default function MenuPage() {
 
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  const [favorites, setFavorites] = useState<Set<string>>(
-    () => new Set<string>()
-  );
-
   const [customizingProduct, setCustomizingProduct] = useState<Product | null>(
     null
   );
@@ -125,17 +120,6 @@ export default function MenuPage() {
       return matchesSearch && matchesCategory && matchesTag;
     });
   }, [allProducts, searchQuery, selectedCategory, selectedTag]);
-
-  const toggleFavorite = (productId: string) => {
-    setFavorites((current) => {
-      const next = new Set(current);
-
-      if (next.has(productId)) next.delete(productId);
-      else next.add(productId);
-
-      return next;
-    });
-  };
 
   const totalCartCount = cartItems.reduce(
     (acc, item) => acc + item.quantity,
@@ -478,8 +462,6 @@ export default function MenuPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product, index) => {
-              const isFav = favorites.has(product.id);
-
               const isSoldOut = product.tags.includes('Sold Out Today');
 
               return (
@@ -553,26 +535,6 @@ export default function MenuPage() {
                       )}
                     </div>
 
-                    {/* Favorite Heart Button */}
-
-                    <button
-                      type="button"
-
-                      onClick={() => toggleFavorite(product.id)}
-
-                      className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center transition-transform hover:scale-110 cursor-pointer ${
-                        isFav
-                          ? 'text-rose-500'
-                          : 'text-neutral-400 hover:text-white'
-                      }`}
-
-                      aria-label="Simpan ke favorit"
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${isFav ? 'fill-rose-500' : ''}`}
-                      />
-                    </button>
-
                     {/* Bottom Metadata Badges */}
 
                     <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs">
@@ -581,11 +543,11 @@ export default function MenuPage() {
                         {product.preparationTime} mins
                       </span>
 
-                      <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-cream-beige">
-                        {product.calories
-                          ? `${product.calories} kcal`
-                          : '195mg Caf'}
-                      </span>
+                      {product.calories !== undefined ? (
+                        <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-cream-beige">
+                          {product.calories} kcal
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 

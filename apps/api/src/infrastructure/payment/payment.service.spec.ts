@@ -83,7 +83,12 @@ describe('PaymentService', () => {
         (operation: (tx: typeof prisma) => unknown) => operation(prisma),
       ),
       $queryRaw: jest.fn(),
-      order: { findUnique: jest.fn().mockResolvedValue(makeOrder()) },
+      order: {
+        findUnique: jest.fn().mockResolvedValue({
+          ...makeOrder(),
+          payment: null,
+        }),
+      },
       payment: {
         findUnique: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue({ id: 'payment-1' }),
@@ -185,6 +190,35 @@ describe('PaymentService', () => {
         PaymentMethod.E_WALLET,
       ),
     ).rejects.toThrow(InternalServerErrorException);
+    expect(prisma.payment.create).not.toHaveBeenCalled();
+  });
+
+  it('settles cash through the authoritative payment transition and returns change', async () => {
+    ordering.applyPaymentNotification.mockResolvedValue(
+      makeOrder({ paymentStatus: PaymentStatus.PAID }),
+    );
+
+    const result = await service.settleCash(makeOrder(), 60_000);
+
+    expect(prisma.payment.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        orderId: 'order-1',
+        method: PaymentMethod.CASH,
+        amount: 55_500,
+        status: PaymentStatus.UNPAID,
+      }),
+    });
+    expect(ordering.applyPaymentNotification).toHaveBeenCalledWith(
+      'WY-20260906-0011223344556677',
+      PaymentStatus.PAID,
+    );
+    expect(result.change).toBe(4_500);
+  });
+
+  it('rejects cash below the server-stored total without creating a payment', async () => {
+    await expect(service.settleCash(makeOrder(), 55_499)).rejects.toThrow(
+      BadRequestException,
+    );
     expect(prisma.payment.create).not.toHaveBeenCalled();
   });
 

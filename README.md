@@ -1,6 +1,6 @@
 # ☕ Warkop Ya'reh — Monorepo Platform
 
-![Node.js](https://img.shields.io/badge/Node.js-v20.x-339933?style=flat-square&logo=node.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-v24.x-339933?style=flat-square&logo=node.js&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-9.0.0-F69220?style=flat-square&logo=pnpm&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)
@@ -56,7 +56,7 @@ graph TD
     %% Frontend Applications
     A[apps/web<br/>Next.js 16 / React 19] -->|Consumes| D[packages/types]
     A -->|JWT API authentication| C
-    A -->|Validates| F[packages/validation]
+    A -->|Shared Types| F[packages/types]
     A -->|UI Elements| G[packages/ui]
 
     B[apps/admin<br/>Next.js 16 / React 19] -->|Consumes| D
@@ -65,7 +65,6 @@ graph TD
 
     %% Backend Services
     C[apps/api<br/>NestJS 11] -->|Consumes| D
-    C -->|Validates| F
     C -->|Database Access| H[packages/database<br/>Prisma Client]
 
     %% Middleware & Cache
@@ -100,11 +99,7 @@ warkop-yareh/
 ├── 📦 packages/
 │   ├── database/             # Prisma schema, migrations, and database client wrapper
 │   ├── types/                # Unified TypeScript interfaces and DTOs
-│   ├── validation/           # Zod-based request validation schemas
 │   ├── ui/                   # Shared UI component library
-│   ├── config/               # Linting, formatting, and TS configurations
-│   ├── shared/               # Shared general utility functions
-│   └── analytics/            # Unified analytics calculations
 ├── ⚙️ infra/
 │   ├── docker/               # Local infrastructure (PostgreSQL & Redis containers)
 │   ├── terraform/            # Infrastructure as Code (IaC) files
@@ -232,7 +227,7 @@ Key models defined in [schema.prisma](./packages/database/prisma/schema.prisma):
 
 ### Prerequisites
 
-1. **Node.js**: `v20.x` or higher
+1. **Node.js**: `v24.x` LTS (use the exact baseline in `.node-version`)
 2. **Package Manager**: `pnpm` (run `corepack enable` or `npm install -g pnpm`)
 3. **Docker**: Running engine for local databases
 
@@ -280,6 +275,8 @@ REDIS_URL="redis://localhost:6379"
 JWT_SECRET="your-random-secret-minimum-32-characters"
 JWT_REFRESH_SECRET="a-different-random-secret-minimum-32-characters"
 NEXT_PUBLIC_API_URL="http://localhost:4000/api/v1"
+NEXT_PUBLIC_ADMIN_URL="http://localhost:3001"
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 
 # Midtrans Settings
 MIDTRANS_CLIENT_KEY="your-midtrans-client-key"
@@ -292,7 +289,7 @@ MIDTRANS_IS_PRODUCTION=false
 Deploy Prisma schemas and insert seed tables:
 
 ```bash
-pnpm --filter @warkop-yareh/database db:push
+pnpm --filter @warkop-yareh/database db:migrate:deploy
 pnpm --filter @warkop-yareh/database db:seed
 ```
 

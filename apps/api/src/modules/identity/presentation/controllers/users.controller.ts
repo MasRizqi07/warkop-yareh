@@ -52,6 +52,7 @@ export class UsersController {
       limit: query.limit,
       role: query.role,
       branchId,
+      search: query.search,
     });
     return paginate(result.data, result.total, query.page, query.limit);
   }

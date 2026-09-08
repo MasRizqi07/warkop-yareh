@@ -261,6 +261,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .emit('waiter.called', call);
   }
 
+  broadcastWaiterResolved<T extends RealtimeWaiterCall>(call: T): void {
+    this.server
+      .to(`cashier:${call.table.branchId}`)
+      .emit('waiter.resolved', call);
+  }
+
   broadcastTableUpdated<T extends RealtimeTable>(table: T): void {
     this.server
       .to(`cashier:${table.branchId}`)

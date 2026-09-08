@@ -114,6 +114,47 @@ export class PaymentService {
     };
   }
 
+  async settleCash(order: OrderDetails, cashReceived: number) {
+    if (cashReceived < order.total) {
+      throw new BadRequestException('Cash received is below the order total');
+    }
+    if (
+      order.status === OrderStatus.CANCELLED ||
+      order.status === OrderStatus.COMPLETED
+    ) {
+      throw new BadRequestException(
+        `Cash payment cannot be accepted for a ${order.status} order`,
+      );
+    }
+    if (
+      order.paymentStatus === PaymentStatus.REFUNDED ||
+      order.paymentStatus === PaymentStatus.FAILED
+    ) {
+      throw new BadRequestException('This payment is no longer payable');
+    }
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      if (order.payment?.method !== PaymentMethod.CASH) {
+        throw new ConflictException('Order was paid through another method');
+      }
+      return {
+        order,
+        cashReceived,
+        change: cashReceived - order.total,
+      };
+    }
+
+    await this.claimCashPayment(order);
+    const settled = await this.ordering.applyPaymentNotification(
+      order.orderNumber,
+      PaymentStatus.PAID,
+    );
+    return {
+      order: settled,
+      cashReceived,
+      change: cashReceived - settled.total,
+    };
+  }
+
   async handleWebhook(body: unknown) {
     const payload = this.parseWebhook(body);
     this.verifySignature(payload);
@@ -213,6 +254,58 @@ export class PaymentService {
           throw new ConflictException(
             'Payment initialization is already in progress',
           );
+        }
+        throw error;
+      }
+    });
+  }
+
+  private async claimCashPayment(order: OrderDetails) {
+    return this.prisma.withTenantTransaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "orders" WHERE "id" = ${order.id} FOR UPDATE`;
+      const current = await tx.order.findUnique({
+        where: { id: order.id },
+        include: { payment: true },
+      });
+      if (!current) throw new NotFoundException('Order not found');
+      if (current.paymentStatus === PaymentStatus.PAID) {
+        if (current.payment?.method !== PaymentMethod.CASH) {
+          throw new ConflictException('Order was paid through another method');
+        }
+        return current.payment;
+      }
+      if (
+        current.paymentStatus !== PaymentStatus.UNPAID ||
+        current.status === OrderStatus.CANCELLED ||
+        current.status === OrderStatus.COMPLETED ||
+        current.total !== order.total
+      ) {
+        throw new ConflictException('Order changed and is no longer payable');
+      }
+      if (current.payment) {
+        if (current.payment.method !== PaymentMethod.CASH) {
+          throw new ConflictException(
+            'An online payment is already attached to this order',
+          );
+        }
+        return current.payment;
+      }
+      try {
+        return await tx.payment.create({
+          data: {
+            orderId: order.id,
+            method: PaymentMethod.CASH,
+            status: PaymentStatus.UNPAID,
+            amount: order.total,
+            reference: `CASH-${order.orderNumber}`,
+          },
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          throw new ConflictException('Payment is already being settled');
         }
         throw error;
       }

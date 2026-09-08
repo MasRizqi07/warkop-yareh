@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/stores";
 import { useAuthStore } from "@/stores/auth.store";
+import { getAdminUrl } from "@/lib/admin-url";
 
 function subscribeToNetworkStatus(onStoreChange: () => void) {
   window.addEventListener("online", onStoreChange);
@@ -148,7 +149,7 @@ export function PwaBottomDock() {
                         Portal Ekosistem
                       </div>
                       <Link
-                        href="/ops/pos"
+                        href={getAdminUrl('/pos')}
                         onClick={() => setIsOpsMenuOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-text-primary hover:text-accent-amber hover:bg-surface-secondary transition-colors"
                       >
@@ -159,7 +160,7 @@ export function PwaBottomDock() {
                         </div>
                       </Link>
                       <Link
-                        href="/ops/kds"
+                        href={getAdminUrl('/kitchen')}
                         onClick={() => setIsOpsMenuOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-text-primary hover:text-accent-amber hover:bg-surface-secondary transition-colors"
                       >
@@ -170,7 +171,7 @@ export function PwaBottomDock() {
                         </div>
                       </Link>
                       <Link
-                        href="/ops/shift"
+                        href={getAdminUrl('/shifts')}
                         onClick={() => setIsOpsMenuOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-text-primary hover:text-accent-amber hover:bg-surface-secondary transition-colors"
                       >

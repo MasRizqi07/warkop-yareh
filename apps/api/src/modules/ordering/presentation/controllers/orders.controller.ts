@@ -72,11 +72,11 @@ export class OrdersController {
       : isBranchOperator
         ? this.requireAssignedBranch(user)
         : body.branchId;
-    const userId =
-      isGlobal || isBranchOperator ? (body.userId ?? user.id) : user.id;
+    const userId = isGlobal || isBranchOperator ? body.userId : user.id;
 
     const order = await this.orderingService.createOrder({
       userId,
+      actorId: user.id,
       branchId,
       items: body.items,
       type: body.type,
@@ -104,7 +104,13 @@ export class OrdersController {
       : body.branchId;
     return {
       data: await this.orderingService.quoteOrder({
-        userId: user.id,
+        userId: this.hasRole(user, [
+          ...GLOBAL_ORDER_ROLES,
+          ...BRANCH_ORDER_ROLES,
+        ])
+          ? body.userId
+          : user.id,
+        actorId: user.id,
         branchId,
         items: body.items,
         type: body.type,

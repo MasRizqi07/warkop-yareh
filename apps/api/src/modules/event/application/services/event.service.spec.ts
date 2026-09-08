@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ConflictException } from '@nestjs/common';
-import { EventStatus } from '@warkop-yareh/database';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { EventRegistrationStatus, EventStatus } from '@warkop-yareh/database';
 import { EventService } from './event.service';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 
@@ -22,7 +26,10 @@ describe('EventService', () => {
     eventRegistration: {
       create: jest.Mock;
       findMany: jest.Mock;
+      findFirst: jest.Mock;
+      findUnique: jest.Mock;
       count: jest.Mock;
+      update: jest.Mock;
     };
     outboxEvent: { create: jest.Mock };
   };
@@ -65,7 +72,10 @@ describe('EventService', () => {
       eventRegistration: {
         create: jest.fn(),
         findMany: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn().mockResolvedValue(null),
         count: jest.fn(),
+        update: jest.fn(),
       },
       outboxEvent: {
         create: jest.fn(),
@@ -118,6 +128,43 @@ describe('EventService', () => {
       const result = await service.registerForEvent('user-1', 'event-1');
       expect(result.id).toBe('reg-1');
     });
+
+    it('reactivates a cancelled registration instead of violating the unique key', async () => {
+      mockPrisma.event.findFirst.mockResolvedValue(mockEvent);
+      mockPrisma.eventRegistration.findUnique.mockResolvedValue({
+        id: 'reg-1',
+        status: EventRegistrationStatus.CANCELLED,
+      });
+      mockPrisma.eventRegistration.count.mockResolvedValue(0);
+      mockPrisma.eventRegistration.update.mockResolvedValue({
+        id: 'reg-1',
+        userId: 'user-1',
+        eventId: 'event-1',
+        status: EventRegistrationStatus.REGISTERED,
+      });
+
+      await expect(
+        service.registerForEvent('user-1', 'event-1'),
+      ).resolves.toEqual(expect.objectContaining({ id: 'reg-1' }));
+      expect(mockPrisma.eventRegistration.create).not.toHaveBeenCalled();
+      expect(mockPrisma.eventRegistration.update).toHaveBeenCalledWith({
+        where: { id: 'reg-1' },
+        data: { status: EventRegistrationStatus.REGISTERED, paidAmount: 0 },
+      });
+    });
+
+    it('rejects an already active registration before changing capacity', async () => {
+      mockPrisma.event.findFirst.mockResolvedValue(mockEvent);
+      mockPrisma.eventRegistration.findUnique.mockResolvedValue({
+        id: 'reg-1',
+        status: EventRegistrationStatus.REGISTERED,
+      });
+
+      await expect(
+        service.registerForEvent('user-1', 'event-1'),
+      ).rejects.toThrow(ConflictException);
+      expect(mockPrisma.eventRegistration.count).not.toHaveBeenCalled();
+    });
   });
 
   describe('createEvent & listEvents', () => {
@@ -160,6 +207,21 @@ describe('EventService', () => {
       });
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
+      expect(mockPrisma.event.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: {
+            _count: {
+              select: {
+                registrations: {
+                  where: {
+                    status: { in: ['REGISTERED', 'ATTENDED'] },
+                  },
+                },
+              },
+            },
+          },
+        }),
+      );
     });
 
     it('rejects event creation for an inactive branch', async () => {
@@ -175,6 +237,78 @@ describe('EventService', () => {
           capacity: 50,
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects paid event authoring until a payment workflow exists', async () => {
+      await expect(
+        service.createEvent({
+          title: 'Paid workshop',
+          branchId: 'branch-1',
+          date: '2099-08-15',
+          startTime: '19:00',
+          endTime: '22:00',
+          capacity: 50,
+          price: 50_000,
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.event.create).not.toHaveBeenCalled();
+    });
+
+    it('does not allow capacity below active registrations', async () => {
+      mockPrisma.event.findFirst.mockResolvedValue({
+        ...mockEvent,
+        _count: { registrations: 2 },
+      });
+
+      await expect(
+        service.updateEvent('event-1', { capacity: 1 }),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.event.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('registration status capacity', () => {
+    it('prevents an inactive registration from overfilling an event', async () => {
+      mockPrisma.eventRegistration.findFirst.mockResolvedValue({
+        id: 'reg-1',
+        status: EventRegistrationStatus.WAITLISTED,
+      });
+      mockPrisma.event.findFirst.mockResolvedValue({ capacity: 1 });
+      mockPrisma.eventRegistration.count.mockResolvedValue(1);
+
+      await expect(
+        service.updateRegistrationStatus(
+          'event-1',
+          'reg-1',
+          EventRegistrationStatus.REGISTERED,
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.eventRegistration.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('public detail visibility', () => {
+    it('returns only an active public event and its active registration count', async () => {
+      mockPrisma.event.findFirst.mockResolvedValue(mockEvent);
+      await expect(service.getPublicEvent('event-1')).resolves.toEqual(
+        mockEvent,
+      );
+      expect(mockPrisma.event.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: 'event-1',
+            status: { in: ['UPCOMING', 'ONGOING'] },
+            branch: { isActive: true, deletedAt: null },
+          }),
+        }),
+      );
+    });
+
+    it('does not expose cancelled, deleted, or inactive-branch events by direct URL', async () => {
+      mockPrisma.event.findFirst.mockResolvedValue(null);
+      await expect(service.getPublicEvent('hidden-event')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

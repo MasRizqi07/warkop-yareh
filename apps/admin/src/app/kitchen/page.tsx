@@ -1,275 +1,82 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
-import { Clock, Play, CheckCircle2, CheckSquare } from 'lucide-react';
-import { canTransitionOrder } from '../../lib/order-logic';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { io } from 'socket.io-client';
+import { Clock, Coffee, UtensilsCrossed } from 'lucide-react';
+import { getAdminToken } from '@/lib/api';
+import { getOrders, updateOrderStatus, type OrderRecord, type OrderStatus } from '@/lib/management-api';
+import { getOperationalBranchScope } from '@/lib/operations-api';
+import { DataPanel, Notice, fieldClass, useAsyncResource } from '@/components/management/page-kit';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const SOCKET_URL = API_URL?.replace(/\/api\/v1\/?$/, '');
-
-type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'SERVED';
-
-interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
-  customizations?: Record<string, string>;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  status: OrderStatus;
-  createdAt: string;
-  items: OrderItem[];
-}
-
-const DEMO_BOOT_TIME = Date.now();
-const DEMO_ORDERS: Order[] = [
-  {
-    id: '1',
-    orderNumber: '#CNB-1234',
-    status: 'PENDING',
-    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 2).toISOString(),
-    items: [
-      { id: 'i1', name: 'Cold Brew', quantity: 2 },
-      { id: 'i2', name: 'Croissant', quantity: 1 },
-    ],
-  },
-  {
-    id: '2',
-    orderNumber: '#CNB-1235',
-    status: 'PREPARING',
-    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 6).toISOString(),
-    items: [{ id: 'i3', name: 'Latte', quantity: 1 }],
-  },
-  {
-    id: '3',
-    orderNumber: '#CNB-1236',
-    status: 'PREPARING',
-    createdAt: new Date(DEMO_BOOT_TIME - 1000 * 60 * 12).toISOString(),
-    items: [{ id: 'i4', name: 'Americano', quantity: 4 }],
-  },
+const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1').replace(/\/api\/v1\/?$/, '');
+const COLUMNS: Array<{ status: OrderStatus; label: string; next?: OrderStatus }> = [
+  { status: 'PENDING', label: 'Baru', next: 'PREPARING' },
+  { status: 'CONFIRMED', label: 'Terkonfirmasi', next: 'PREPARING' },
+  { status: 'PREPARING', label: 'Disiapkan', next: 'READY' },
+  { status: 'READY', label: 'Siap diantar', next: 'SERVED' },
 ];
 
-// Kitchen Timer Hook
-function useKitchenTimer(createdAt: string) {
-  const [elapsed, setElapsed] = useState(0);
-
+function Elapsed({ createdAt }: { createdAt: string }) {
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const start = new Date(createdAt).getTime();
-    const interval = setInterval(() => {
-      setElapsed(Date.now() - start);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [createdAt]);
-
-  const minutes = Math.floor(elapsed / 60000);
-  const seconds = Math.floor((elapsed % 60000) / 1000);
-  
-  let statusColor = 'text-slate-400 bg-slate-800/50 border-slate-700/50';
-  if (minutes >= 5 && minutes < 10) {
-    statusColor = 'text-amber-400 bg-amber-900/30 border-amber-900/50';
-  } else if (minutes >= 10) {
-    statusColor = 'text-[var(--error-500)] bg-[var(--error-500)]/10 border-[var(--error-500)]/20 animate-pulse';
-  }
-
-  return {
-    timeString: `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
-    statusColor,
-  };
+    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const elapsed = Math.max(0, now - new Date(createdAt).getTime());
+  const minutes = Math.floor(elapsed / 60_000);
+  const seconds = Math.floor((elapsed % 60_000) / 1_000);
+  return <span className={minutes >= 10 ? 'text-red-400' : minutes >= 5 ? 'text-amber-400' : 'text-slate-300'}>{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}</span>;
 }
 
-const OrderCard = ({ order, onUpdateStatus }: { order: Order, onUpdateStatus: (id: string, status: string) => void }) => {
-  const { timeString, statusColor } = useKitchenTimer(order.createdAt);
-
-  let nextAction = null;
-  if (canTransitionOrder(order.status, 'PREPARING')) {
-    nextAction = (
-      <button 
-        onClick={() => onUpdateStatus(order.id, 'PREPARING')}
-        className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-medium py-2.5 rounded-lg transition-colors mt-4"
-      >
-        <Play className="w-4 h-4" /> Start Preparing
-      </button>
-    );
-  } else if (canTransitionOrder(order.status, 'READY')) {
-    nextAction = (
-      <button 
-        onClick={() => onUpdateStatus(order.id, 'READY')}
-        className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-medium py-2.5 rounded-lg transition-colors mt-4"
-      >
-        <CheckSquare className="w-4 h-4" /> Mark Ready
-      </button>
-    );
-  } else if (canTransitionOrder(order.status, 'SERVED')) {
-    nextAction = (
-      <button 
-        onClick={() => onUpdateStatus(order.id, 'SERVED')}
-        className="w-full flex items-center justify-center gap-2 bg-[var(--success-600)] hover:bg-[var(--success-500)] text-white font-medium py-2.5 rounded-lg transition-colors mt-4"
-      >
-        <CheckCircle2 className="w-4 h-4" /> Mark Served
-      </button>
-    );
-  }
-
-  return (
-    <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-sm flex flex-col gap-3">
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h3 className="font-bold text-white text-lg">{order.orderNumber}</h3>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold mt-1 border ${statusColor}`}>
-            <Clock className="w-3.5 h-3.5" />
-            {timeString}
-          </span>
-        </div>
-      </div>
-      
-      <div className="space-y-2 border-y border-slate-700/50 py-3 my-1">
-        {order.items.map((item, idx) => (
-          <div key={idx} className="flex justify-between items-start gap-3">
-            <span className="font-bold text-slate-300 w-6">{item.quantity}x</span>
-            <div className="flex-1">
-              <p className="font-medium text-white">{item.name}</p>
-              {item.customizations && (
-                <p className="text-sm text-slate-400 mt-0.5">Note: {JSON.stringify(item.customizations)}</p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {nextAction}
-    </div>
-  );
-};
-
 export default function KitchenPage() {
-  const [orders, setOrders] = useState<Order[]>(DEMO_ORDERS);
+  const scope = useAsyncResource(getOperationalBranchScope);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const branchId = selectedBranchId ?? scope.data?.user.branchId ?? scope.data?.branches[0]?.id ?? '';
+  const resource = useAsyncResource(async () => {
+    if (!branchId) return [];
+    const response = await getOrders({ branchId, limit: 100 });
+    return response.data.filter((order) => ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'].includes(order.status));
+  }, branchId);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+  const reloadOrders = resource.reload;
 
   useEffect(() => {
-    // 1. Fetch initial active orders from REST API
-    // fetch('/api/v1/orders/kitchen/active').then(...)
-
-    // 2. Connect to Socket.IO
-    if (!SOCKET_URL) return;
-
-    const socket = io(SOCKET_URL);
-    
-    socket.on('connect', () => {
-      console.log('Connected to WebSocket');
-      socket.emit('joinKitchen');
-    });
-
-    socket.on('order.created', (newOrder: Order) => {
-      setOrders(prev => [...prev, newOrder]);
-    });
-
-    socket.on('order.updated', (updatedOrder: Order) => {
-      setOrders(prev => {
-        if (updatedOrder.status === 'SERVED') {
-          return prev.filter(o => o.id !== updatedOrder.id);
-        }
-        return prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
-      });
-    });
-
+    if (!branchId) return;
+    const token = getAdminToken();
+    if (!token) return;
+    const socket = io(SOCKET_URL, { auth: { token }, transports: ['websocket', 'polling'] });
+    socket.on('connect', () => socket.emit('joinKitchen', { branchId }));
+    socket.on('order.created', () => void reloadOrders());
+    socket.on('order.updated', () => void reloadOrders());
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [branchId, reloadOrders]);
 
-  const handleUpdateStatus = async (orderId: string, status: string) => {
-    const previousOrders = orders;
-
-    // Optimistic update
-    setOrders(prev => {
-      if (status === 'SERVED') return prev.filter(o => o.id !== orderId);
-      return prev.map(o => o.id === orderId ? { ...o, status: status as OrderStatus } : o);
-    });
-
-    if (!API_URL) return;
-
-    // Call API
+  async function advance(order: OrderRecord, status: OrderStatus) {
+    setBusyId(order.id);
+    setNotice(null);
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (!response.ok) {
-        throw new Error(`Order status update failed with HTTP ${response.status}`);
-      }
-    } catch (e) {
-      setOrders(previousOrders);
-      console.error('Failed to update status', e);
+      await updateOrderStatus(order.id, status);
+      setNotice({ tone: 'success', text: `${order.orderNumber} diperbarui menjadi ${status}.` });
+      await resource.reload();
+    } catch (reason) {
+      setNotice({ tone: 'error', text: reason instanceof Error ? reason.message : 'Status order gagal diperbarui.' });
+    } finally {
+      setBusyId(null);
     }
-  };
-
-  const pending = orders.filter(o => o.status === 'PENDING');
-  const preparing = orders.filter(o => o.status === 'PREPARING');
-  const ready = orders.filter(o => o.status === 'READY');
+  }
 
   return (
-    <div className="flex flex-col h-screen w-full bg-slate-900 text-slate-100 overflow-hidden font-sans">
-      <header className="px-6 py-4 bg-slate-950 flex justify-between items-center shadow-lg border-b border-slate-800">
-        <h1 className="text-2xl font-bold font-display text-white tracking-wide">Kitchen Display System</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex gap-2">
-            <span className="flex items-center gap-2 px-3 py-1 bg-[var(--error-500)]/10 text-[var(--error-500)] rounded-full text-sm font-medium border border-[var(--error-500)]/20">
-              <span className="w-2 h-2 rounded-full bg-[var(--error-500)] animate-pulse"></span>
-              {pending.length} New
-            </span>
-          </div>
-          <div className="text-right text-sm text-slate-400">
-            <p>Station: Espresso Bar</p>
-          </div>
-        </div>
+    <main className="min-h-screen bg-slate-950 p-4 text-slate-100 sm:p-6">
+      <header className="mx-auto flex max-w-[1800px] flex-col gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-end md:justify-between">
+        <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-400">Authenticated live terminal</p><h1 className="mt-2 text-3xl font-bold">Kitchen Display System</h1><p className="mt-1 text-sm text-slate-400">Order awal dari REST API, pembaruan dari WebSocket cabang yang terotorisasi.</p></div>
+        <div className="flex flex-wrap items-end gap-3"><label className="text-xs font-semibold text-slate-300">Cabang<select disabled={!scope.data?.canViewAllBranches} className={`${fieldClass} mt-2 min-w-56 bg-slate-900`} value={branchId} onChange={(event) => setSelectedBranchId(event.target.value)}><option value="">Pilih cabang</option>{scope.data?.branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label><button type="button" onClick={() => void resource.reload()} className="min-h-11 rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold">Muat ulang</button><Link href="/" className="min-h-11 rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold leading-7">Dashboard</Link></div>
       </header>
-
-      {/* Columns */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
-        <div className="flex h-full gap-6 min-w-max">
-          
-          {/* Pending */}
-          <div className="flex flex-col w-80 h-full bg-slate-800/50 rounded-2xl border border-slate-700/50">
-            <div className="p-4 border-b border-slate-700/50 flex justify-between items-center bg-slate-800 rounded-t-2xl">
-              <h2 className="font-bold text-lg text-white">Pending</h2>
-              <span className="bg-slate-700 px-2.5 py-0.5 rounded-full text-sm font-medium">{pending.length}</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
-              {pending.map(o => <OrderCard key={o.id} order={o} onUpdateStatus={handleUpdateStatus} />)}
-              {pending.length === 0 && <div className="text-center text-slate-500 mt-10">No pending orders</div>}
-            </div>
-          </div>
-
-          {/* Preparing */}
-          <div className="flex flex-col w-80 h-full bg-slate-800/50 rounded-2xl border border-slate-700/50">
-            <div className="p-4 border-b border-slate-700/50 flex justify-between items-center bg-amber-900/20 border-amber-900/30 rounded-t-2xl">
-              <h2 className="font-bold text-lg text-amber-500">Preparing</h2>
-              <span className="bg-amber-900/50 text-amber-400 px-2.5 py-0.5 rounded-full text-sm font-medium">{preparing.length}</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
-              {preparing.map(o => <OrderCard key={o.id} order={o} onUpdateStatus={handleUpdateStatus} />)}
-              {preparing.length === 0 && <div className="text-center text-slate-500 mt-10">All clear</div>}
-            </div>
-          </div>
-
-          {/* Ready */}
-          <div className="flex flex-col w-80 h-full bg-slate-800/50 rounded-2xl border border-slate-700/50">
-            <div className="p-4 border-b border-slate-700/50 flex justify-between items-center bg-[var(--success-500)]/5 border-[var(--success-500)]/10 rounded-t-2xl">
-              <h2 className="font-bold text-lg text-[var(--success-500)]">Ready for Pickup</h2>
-              <span className="bg-[var(--success-500)]/10 text-[var(--success-500)] px-2.5 py-0.5 rounded-full text-sm font-medium">{ready.length}</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
-              {ready.map(o => <OrderCard key={o.id} order={o} onUpdateStatus={handleUpdateStatus} />)}
-              {ready.length === 0 && <div className="text-center text-slate-500 mt-10">No items waiting</div>}
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
+      {notice ? <div className="mx-auto mt-5 max-w-[1800px]"><Notice tone={notice.tone}>{notice.text}</Notice></div> : null}
+      <div className="mx-auto mt-6 max-w-[1800px]"><DataPanel loading={scope.loading || resource.loading} error={scope.error || resource.error} empty={!branchId} onRetry={() => { void scope.reload(); void resource.reload(); }}>{branchId ? <div className="grid gap-5 xl:grid-cols-4">{COLUMNS.map((column) => { const orders = (resource.data ?? []).filter((order) => order.status === column.status); return <section key={column.status} className="min-h-[420px] rounded-2xl border border-slate-800 bg-slate-900/60"><div className="flex items-center justify-between border-b border-slate-800 p-4"><h2 className="font-bold">{column.label}</h2><span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs font-bold">{orders.length}</span></div>{orders.length === 0 ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 text-slate-500"><Coffee className="h-7 w-7" /><p className="text-sm">Tidak ada order</p></div> : <ul className="space-y-4 p-4">{orders.map((order) => <li key={order.id} className="rounded-xl border border-slate-700 bg-slate-900 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-lg font-bold">{order.orderNumber}</p><p className="mt-1 text-xs text-slate-400">{order.type}{order.tableId ? ' · dine-in' : ''}</p></div><p className="flex items-center gap-1 rounded-lg border border-slate-700 px-2 py-1 font-mono text-xs"><Clock className="h-3.5 w-3.5" /><Elapsed createdAt={order.createdAt} /></p></div><ul className="my-4 space-y-2 border-y border-slate-800 py-3">{order.items.map((item) => <li key={item.id} className="flex gap-3 text-sm"><span className="font-bold text-amber-400">{item.quantity}×</span><span>{item.snapshotName}{item.notes ? <span className="block text-xs text-slate-400">{item.notes}</span> : null}</span></li>)}</ul>{column.next ? <button type="button" disabled={busyId === order.id} onClick={() => void advance(order, column.next!)} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"><UtensilsCrossed className="h-4 w-4" />{column.next === 'PREPARING' ? 'Mulai siapkan' : column.next === 'READY' ? 'Tandai siap' : 'Tandai disajikan'}</button> : null}</li>)}</ul>}</section>; })}</div> : null}</DataPanel></div>
+    </main>
   );
 }

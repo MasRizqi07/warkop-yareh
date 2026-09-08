@@ -56,6 +56,29 @@ export class CommunityService {
           select: { memberships: true, posts: true },
         },
       },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async getGroup(groupIdOrSlug: string) {
+    const group = await this.prisma.communityGroup.findFirst({
+      where: {
+        isActive: true,
+        deletedAt: null,
+        OR: [{ id: groupIdOrSlug }, { slug: groupIdOrSlug }],
+      },
+      include: {
+        _count: { select: { memberships: true, posts: true } },
+      },
+    });
+    if (!group) throw new NotFoundException('Community group not found');
+    return group;
+  }
+
+  async getMembership(userId: string, groupIdOrSlug: string) {
+    const group = await this.getGroup(groupIdOrSlug);
+    return this.prisma.communityMembership.findUnique({
+      where: { userId_groupId: { userId, groupId: group.id } },
     });
   }
 
@@ -149,6 +172,46 @@ export class CommunityService {
     ]);
 
     return { data, total };
+  }
+
+  async listRecentPosts(page: number, limit: number) {
+    const where: Prisma.CommunityPostWhereInput = {
+      group: { isActive: true, deletedAt: null },
+    };
+    const [data, total] = await Promise.all([
+      this.prisma.communityPost.findMany({
+        where,
+        include: {
+          author: { select: { id: true, name: true, avatar: true } },
+          group: { select: { id: true, name: true, slug: true } },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.communityPost.count({ where }),
+    ]);
+    return { data, total };
+  }
+
+  async deletePost(postId: string) {
+    return this.prisma.withTenantTransaction(async (tx) => {
+      const post = await tx.communityPost.findUnique({
+        where: { id: postId },
+        select: { id: true, groupId: true, authorId: true },
+      });
+      if (!post) throw new NotFoundException('Community post not found');
+      await tx.communityPost.delete({ where: { id: postId } });
+      await tx.outboxEvent.create({
+        data: {
+          aggregateType: 'CommunityPost',
+          aggregateId: postId,
+          eventType: 'CommunityPostModerated',
+          payload: post,
+        },
+      });
+      return post;
+    });
   }
 
   private getPrismaErrorCode(error: unknown): string | undefined {
