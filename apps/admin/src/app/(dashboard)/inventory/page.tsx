@@ -188,9 +188,7 @@ export default function EnterpriseInventoryPage() {
           burnRatePerDay: numberOrNull(form.burnRatePerDay),
         }
       );
-      setItems((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item))
-      );
+      await loadItems(editing.branchId);
       setNotice(`${updated.product.name} inventory persisted.`);
       setEditing(null);
       setForm(null);
