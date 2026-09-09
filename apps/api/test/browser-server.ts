@@ -56,8 +56,14 @@ async function bootstrap() {
     },
   });
   globalThis.fetch = async (input, init) => {
+    const targetUrl =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input.url;
     if (
-      String(input) !== 'https://api.sendgrid.com/v3/mail/send' ||
+      targetUrl !== 'https://api.sendgrid.com/v3/mail/send' ||
       typeof init?.body !== 'string'
     )
       throw new Error('Unexpected external provider request in browser tests');
