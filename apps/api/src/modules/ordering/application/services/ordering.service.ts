@@ -28,7 +28,8 @@ import { calculateCheckout } from '../../domain/checkout-pricing';
 
 export interface CreateOrderInput {
   expectedTotal?: number;
-  userId: string;
+  userId?: string;
+  actorId?: string;
   branchId: string;
   items: Array<{
     productId: string;
@@ -107,6 +108,10 @@ export class OrderingService {
       notes: item.notes?.trim() || undefined,
       customizations: this.normalizeCustomizations(item.customizations),
     }));
+    const idempotencyOwnerId = data.actorId ?? data.userId;
+    if (!idempotencyOwnerId) {
+      throw new BadRequestException('An authenticated order actor is required');
+    }
     const requestFingerprint = this.sha256(
       this.stableStringify({
         userId: data.userId,
@@ -121,7 +126,7 @@ export class OrderingService {
       }),
     );
     const idempotencyKeyHash = this.sha256(
-      `${data.userId}\u0000${idempotencyKey}`,
+      `${idempotencyOwnerId}\u0000${idempotencyKey}`,
     );
 
     const existing = quoteOnly
@@ -183,7 +188,7 @@ export class OrderingService {
     const orderData = {
       expectedTotal: data.expectedTotal,
       orderNumber,
-      userId: data.userId,
+      ...(data.userId ? { userId: data.userId } : {}),
       branchId: data.branchId,
       ...(data.tableId ? { tableId: data.tableId } : {}),
       type,
@@ -206,7 +211,7 @@ export class OrderingService {
 
     try {
       const order = await this.orderingRepo.createOrder(orderData, orderItems, {
-        userId: data.userId,
+        ...(data.userId ? { userId: data.userId } : {}),
         branchId: data.branchId,
         total,
         itemCount: normalizedItems.length,

@@ -1,12 +1,20 @@
 /**
- * Cold 'N Brew Gubeng — Database Seed
+ * Warkop Ya'reh Gubeng — Database Seed
  * =====================================
  * Seeds: categories, products (menu items), tables, branch, staff accounts
  *
  * Run: pnpm --filter @warkop-yareh/database db:seed
  */
 
-import { PrismaClient, Role, TableType, TableStatus } from '@prisma/client';
+import {
+  CommunityMemberRole,
+  EventCategory,
+  EventStatus,
+  PrismaClient,
+  Role,
+  TableStatus,
+  TableType,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -30,22 +38,38 @@ async function hashPassword(password: string): Promise<string> {
 }
 
 async function main() {
-  console.log('🌱 Starting Cold \'N Brew seed...');
+  console.log("🌱 Starting Warkop Ya'reh seed...");
 
   // ── 1. Upsert Branch ─────────────────────────────────────────────────────
   const branch = await prisma.branch.upsert({
     where: { id: BRANCH_ID },
-    update: {},
+    update: {
+      name: "Warkop Ya'reh Gubeng",
+      address: 'Jl. Gubeng Pojok No. 10',
+      city: 'Surabaya',
+      province: 'Jawa Timur',
+      postalCode: '60281',
+      phone: '+62 812-3456-7890',
+      email: 'gubeng@warkopyareh.id',
+      latitude: -7.265,
+      longitude: 112.7508,
+      isMainBranch: true,
+      isActive: true,
+      capacity: 80,
+      features: ['WiFi Kencang', 'Meeting Room', 'Drive Thru', 'Indoor & Outdoor'],
+      weekdayHours: '00:00-24:00',
+      weekendHours: '00:00-24:00',
+    },
     create: {
       id: BRANCH_ID,
-      name: "Cold 'N Brew Gubeng",
+      name: "Warkop Ya'reh Gubeng",
       slug: 'coldnbrew-gubeng',
       address: 'Jl. Gubeng Pojok No. 10',
       city: 'Surabaya',
       province: 'Jawa Timur',
       postalCode: '60281',
       phone: '+62 812-3456-7890',
-      email: 'gubeng@coldnbrew.id',
+      email: 'gubeng@warkopyareh.id',
       latitude: -7.265,
       longitude: 112.7508,
       isMainBranch: true,
@@ -278,6 +302,175 @@ async function main() {
     });
     console.log(`  👤 Staff: ${staff.email} (${staff.role})`);
   }
+
+  // ── 6. Public content and customer journey fixtures ───────────────────────
+  const customerPassword = await hashPassword(
+    getSeedPassword('SEED_CUSTOMER_PASSWORD', 'Customer123!'),
+  );
+  const customer = await prisma.user.upsert({
+    where: { email: 'customer.demo@warkopyareh.local' },
+    update: {
+      name: "Kawan Ya'reh Demo",
+      passwordHash: customerPassword,
+      role: Role.CUSTOMER,
+      branchId: BRANCH_ID,
+    },
+    create: {
+      id: 'seed-customer-demo',
+      email: 'customer.demo@warkopyareh.local',
+      name: "Kawan Ya'reh Demo",
+      passwordHash: customerPassword,
+      role: Role.CUSTOMER,
+      branchId: BRANCH_ID,
+      membershipTier: 'SILVER',
+      loyaltyPoints: 750,
+    },
+  });
+
+  const eventDate = new Date();
+  eventDate.setUTCDate(eventDate.getUTCDate() + 30);
+  eventDate.setUTCHours(12, 0, 0, 0);
+  await prisma.event.upsert({
+    where: { slug: 'ngopi-dan-bangun-produk' },
+    update: {
+      title: 'Ngopi & Bangun Produk',
+      description: 'Sesi komunitas untuk membedah proses membangun produk digital yang siap dipakai.',
+      longDescription: 'Bawa satu masalah produk yang sedang kamu kerjakan. Sesi mencakup diskusi validasi masalah, arsitektur solusi, dan umpan balik antarpeserta.',
+      date: eventDate,
+      startTime: '19:00',
+      endTime: '21:30',
+      location: "Warkop Ya'reh Gubeng",
+      branchId: BRANCH_ID,
+      category: EventCategory.TECH,
+      capacity: 40,
+      price: 0,
+      isFree: true,
+      isOnline: false,
+      tags: ['Produk Digital', 'Teknologi', 'Komunitas'],
+      status: EventStatus.UPCOMING,
+      deletedAt: null,
+    },
+    create: {
+      title: 'Ngopi & Bangun Produk',
+      slug: 'ngopi-dan-bangun-produk',
+      description: 'Sesi komunitas untuk membedah proses membangun produk digital yang siap dipakai.',
+      longDescription: 'Bawa satu masalah produk yang sedang kamu kerjakan. Sesi mencakup diskusi validasi masalah, arsitektur solusi, dan umpan balik antarpeserta.',
+      date: eventDate,
+      startTime: '19:00',
+      endTime: '21:30',
+      location: "Warkop Ya'reh Gubeng",
+      branchId: BRANCH_ID,
+      category: EventCategory.TECH,
+      capacity: 40,
+      price: 0,
+      isFree: true,
+      isOnline: false,
+      tags: ['Produk Digital', 'Teknologi', 'Komunitas'],
+      status: EventStatus.UPCOMING,
+    },
+  });
+
+  const publishedAt = new Date();
+  await prisma.blogPost.upsert({
+    where: { slug: 'panduan-memilih-kopi-untuk-sesi-kerja' },
+    update: {
+      title: 'Panduan Memilih Kopi untuk Sesi Kerja',
+      excerpt: 'Kenali karakter racikan dan kadar intensitas yang sesuai dengan ritme kerja kamu.',
+      content: 'Pilihan kopi yang tepat dimulai dari preferensi rasa, bukan sekadar kadar kafein. Espresso memberi karakter pekat, sedangkan cold brew cenderung lebih halus dan mudah dinikmati dalam sesi panjang.\n\nMulailah dari satu sajian, imbangi dengan air putih, dan beri jeda sebelum menambah pesanan. Tim barista dapat membantu menyesuaikan profil rasa tanpa membuat klaim kesehatan.',
+      image: '/images/cold-brew-aren-brulee.png',
+      authorName: "Tim Barista Ya'reh",
+      authorRole: 'Coffee Educator',
+      category: 'Coffee Guide',
+      tags: ['Kopi', 'Produktivitas', 'Panduan'],
+      readTime: 4,
+      isPublished: true,
+      publishedAt,
+    },
+    create: {
+      title: 'Panduan Memilih Kopi untuk Sesi Kerja',
+      slug: 'panduan-memilih-kopi-untuk-sesi-kerja',
+      excerpt: 'Kenali karakter racikan dan kadar intensitas yang sesuai dengan ritme kerja kamu.',
+      content: 'Pilihan kopi yang tepat dimulai dari preferensi rasa, bukan sekadar kadar kafein. Espresso memberi karakter pekat, sedangkan cold brew cenderung lebih halus dan mudah dinikmati dalam sesi panjang.\n\nMulailah dari satu sajian, imbangi dengan air putih, dan beri jeda sebelum menambah pesanan. Tim barista dapat membantu menyesuaikan profil rasa tanpa membuat klaim kesehatan.',
+      image: '/images/cold-brew-aren-brulee.png',
+      authorName: "Tim Barista Ya'reh",
+      authorRole: 'Coffee Educator',
+      category: 'Coffee Guide',
+      tags: ['Kopi', 'Produktivitas', 'Panduan'],
+      readTime: 4,
+      isPublished: true,
+      publishedAt,
+    },
+  });
+
+  const group = await prisma.communityGroup.upsert({
+    where: { slug: 'kawan-produk-surabaya' },
+    update: {
+      name: 'Kawan Produk Surabaya',
+      description: 'Ruang berbagi praktik pengembangan produk, desain, dan teknologi untuk komunitas Surabaya.',
+      category: 'Technology',
+      image: '/images/darmo-interior.png',
+      tags: ['Product', 'Design', 'Engineering'],
+      isActive: true,
+      deletedAt: null,
+    },
+    create: {
+      id: 'seed-community-product',
+      name: 'Kawan Produk Surabaya',
+      slug: 'kawan-produk-surabaya',
+      description: 'Ruang berbagi praktik pengembangan produk, desain, dan teknologi untuk komunitas Surabaya.',
+      category: 'Technology',
+      image: '/images/darmo-interior.png',
+      tags: ['Product', 'Design', 'Engineering'],
+      isActive: true,
+    },
+  });
+  await prisma.communityMembership.upsert({
+    where: { userId_groupId: { userId: customer.id, groupId: group.id } },
+    update: { role: CommunityMemberRole.MEMBER },
+    create: { userId: customer.id, groupId: group.id, role: CommunityMemberRole.MEMBER },
+  });
+  await prisma.communityPost.upsert({
+    where: { id: 'seed-community-welcome-post' },
+    update: {
+      authorId: customer.id,
+      groupId: group.id,
+      content: 'Selamat datang! Bagikan tantangan produk yang sedang kamu kerjakan dan konteks yang cukup agar anggota lain dapat memberi masukan yang berguna.',
+    },
+    create: {
+      id: 'seed-community-welcome-post',
+      authorId: customer.id,
+      groupId: group.id,
+      content: 'Selamat datang! Bagikan tantangan produk yang sedang kamu kerjakan dan konteks yang cukup agar anggota lain dapat memberi masukan yang berguna.',
+    },
+  });
+
+  const reviewedProduct = await prisma.product.findUnique({
+    where: { slug: 'classic-cold-brew' },
+  });
+  if (!reviewedProduct) {
+    throw new Error('Seeded classic cold brew product was not found');
+  }
+  await prisma.review.upsert({
+    where: { id: 'seed-verified-review' },
+    update: {
+      userId: customer.id,
+      productId: reviewedProduct.id,
+      branchId: BRANCH_ID,
+      rating: 5,
+      comment: 'Rasa cold brew seimbang dan proses pemesanan di meja mudah diikuti.',
+      isVerified: true,
+    },
+    create: {
+      id: 'seed-verified-review',
+      userId: customer.id,
+      productId: reviewedProduct.id,
+      branchId: BRANCH_ID,
+      rating: 5,
+      comment: 'Rasa cold brew seimbang dan proses pemesanan di meja mudah diikuti.',
+      isVerified: true,
+    },
+  });
+  console.log('✅ Public content: event, blog, community, and verified review seeded');
 
   console.log('\n🎉 Seed completed successfully!');
   console.log('─────────────────────────────────────────');

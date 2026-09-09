@@ -153,6 +153,36 @@ describe('OrdersController', () => {
     );
   });
 
+  it('does not attribute a guest POS order to the cashier account', async () => {
+    mockUser = {
+      id: 'cashier_1',
+      name: 'Cashier',
+      email: 'cashier@example.com',
+      role: Role.CASHIER,
+      branchId: 'branch_A',
+    };
+    orderingService.createOrder.mockResolvedValue(
+      orderResult({ userId: null }),
+    );
+
+    await request(app.getHttpServer())
+      .post('/api/v1/orders')
+      .set('Idempotency-Key', 'guest-pos-controller-001')
+      .send({
+        branchId: 'branch_B',
+        items: [{ productId: 'prod_1', quantity: 1 }],
+      })
+      .expect(201);
+
+    expect(orderingService.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'cashier_1',
+        branchId: 'branch_A',
+        userId: undefined,
+      }),
+    );
+  });
+
   it('prevents branch staff from reading another branch order', async () => {
     mockUser = {
       id: 'staff_1',

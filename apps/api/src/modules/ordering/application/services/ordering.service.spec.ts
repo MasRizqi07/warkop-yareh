@@ -310,6 +310,40 @@ describe('OrderingService', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('creates a true guest POS order scoped to the authenticated operator', async () => {
+    repository.getAvailableProductsByIds.mockResolvedValue([
+      { id: 'prod-1', name: 'Espresso', unitPrice: 18_000, customizations: [] },
+    ]);
+    repository.createOrder.mockResolvedValue(
+      makeOrder({ userId: null, user: null }),
+    );
+
+    await service.createOrder({
+      actorId: 'cashier-1',
+      branchId: 'branch-1',
+      idempotencyKey: 'guest-pos-001',
+      items: [{ productId: 'prod-1', quantity: 1 }],
+    });
+
+    const [persisted, , outbox] = repository.createOrder.mock.calls[0];
+    expect(persisted.userId).toBeUndefined();
+    expect(outbox.userId).toBeUndefined();
+    expect(repository.findByIdempotencyKeyHash).toHaveBeenCalledWith(
+      expect.stringMatching(/^[a-f0-9]{64}$/),
+    );
+  });
+
+  it('rejects an order with neither a customer nor an authenticated actor', async () => {
+    await expect(
+      service.createOrder({
+        branchId: 'branch-1',
+        idempotencyKey: 'missing-actor-001',
+        items: [{ productId: 'prod-1', quantity: 1 }],
+      }),
+    ).rejects.toThrow(BadRequestException);
+    expect(repository.getAvailableProductsByIds).not.toHaveBeenCalled();
+  });
+
   it('allows valid state transitions and broadcasts the update', async () => {
     repository.getOrder.mockResolvedValue(makeOrder());
     repository.updateOrderStatus.mockResolvedValue(

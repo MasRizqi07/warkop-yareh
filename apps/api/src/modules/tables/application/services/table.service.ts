@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   Injectable,
   BadRequestException,
@@ -33,6 +32,10 @@ export class TableService {
 
   async getTablesByBranch(branchId: string) {
     return this.tableRepo.getTablesByBranch(branchId);
+  }
+
+  async listPendingWaiterCalls(branchId: string) {
+    return this.tableRepo.listPendingWaiterCalls(branchId);
   }
 
   async getTableById(tableId: string) {
@@ -93,10 +96,7 @@ export class TableService {
     }
   }
 
-  async createWaiterCall(
-    tableId: string,
-    type: WaiterCallType,
-  ) {
+  async createWaiterCall(tableId: string, type: WaiterCallType) {
     const table = await this.tableRepo.getTableById(tableId);
     if (!table) throw new NotFoundException('Table not found');
     if (!table.isActive) {
@@ -116,6 +116,19 @@ export class TableService {
 
     this.eventsGateway.broadcastWaiterCalled(payload);
     return payload;
+  }
+
+  async getWaiterCallById(id: string) {
+    return this.tableRepo.getWaiterCallById(id);
+  }
+
+  async resolveWaiterCall(id: string) {
+    const existing = await this.tableRepo.getWaiterCallById(id);
+    if (!existing) throw new NotFoundException('Waiter call not found');
+    if (existing.status === 'RESOLVED') return existing;
+    const resolved = await this.tableRepo.resolveWaiterCall(id);
+    this.eventsGateway.broadcastWaiterResolved(resolved);
+    return resolved;
   }
 
   private withPriority<T extends object>(call: T, type: WaiterCallType) {

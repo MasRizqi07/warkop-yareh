@@ -75,7 +75,11 @@ export class IdentityService {
     limit: number;
     role?: Role;
     branchId?: string;
+    search?: string;
   }) {
-    return this.userRepository.findAll(params);
+    return this.userRepository.findAll({
+      ...params,
+      search: params.search?.trim() || undefined,
+    });
   }
 }

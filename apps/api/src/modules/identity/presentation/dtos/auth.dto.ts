@@ -11,7 +11,7 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
-  @ApiProperty({ example: 'user@coldnbrew.id' })
+  @ApiProperty({ example: 'user@warkopyareh.id' })
   @IsEmail()
   @MaxLength(254)
   email!: string;
@@ -46,7 +46,7 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-  @ApiProperty({ example: 'user@coldnbrew.id' })
+  @ApiProperty({ example: 'user@warkopyareh.id' })
   @IsEmail()
   @MaxLength(254)
   email!: string;
@@ -59,14 +59,14 @@ export class LoginDto {
 }
 
 export class SendOtpDto {
-  @ApiProperty({ example: 'user@coldnbrew.id' })
+  @ApiProperty({ example: 'user@warkopyareh.id' })
   @IsEmail()
   @MaxLength(254)
   email!: string;
 }
 
 export class VerifyOtpDto {
-  @ApiProperty({ example: 'user@coldnbrew.id' })
+  @ApiProperty({ example: 'user@warkopyareh.id' })
   @IsEmail()
   @MaxLength(254)
   email!: string;

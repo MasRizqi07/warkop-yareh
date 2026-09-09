@@ -1,9 +1,22 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { Role } from '@warkop-yareh/database';
 import { EventService } from '../../application/services/event.service';
 import { paginate } from '../../../../common/interfaces/paginated-response.interface';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
-import { CreateEventDto, ListEventsQueryDto } from '../dtos/event.dto';
+import {
+  CreateEventDto,
+  ListEventsQueryDto,
+  UpdateEventDto,
+  UpdateEventRegistrationDto,
+} from '../dtos/event.dto';
 import { Public } from '../../../../common/decorators/public.decorator';
 import { tenantContext } from '../../../../infrastructure/database/tenant-context';
 import { Roles } from '../../../../common/decorators/roles.decorator';
@@ -37,6 +50,38 @@ export class EventController {
     });
   }
 
+  @Get('manage')
+  @Roles(Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
+  async listEventsForManagement(
+    @Query() query: ListEventsQueryDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const branchId = resolveManagedBranch(user, query.branchId);
+    const result = await this.eventService.listEvents(
+      { ...query, branchId },
+      true,
+    );
+    return paginate(result.data, result.total, query.page, query.limit);
+  }
+
+  @Get(':eventId')
+  @Public()
+  async getEvent(@Param('eventId') eventId: string) {
+    return { data: await this.eventService.getPublicEvent(eventId) };
+  }
+
+  @Patch(':eventId')
+  @Roles(Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
+  async updateEvent(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: UpdateEventDto,
+  ) {
+    assertBranchAccess(user, await this.eventService.getEventBranchId(eventId));
+    if (body.branchId) assertBranchAccess(user, body.branchId);
+    return { data: await this.eventService.updateEvent(eventId, body) };
+  }
+
   @Post(':eventId/register')
   async registerForEvent(
     @Param('eventId') eventId: string,
@@ -56,5 +101,23 @@ export class EventController {
     assertBranchAccess(user, branchId);
     const data = await this.eventService.listRegistrations(eventId);
     return { data };
+  }
+
+  @Patch(':eventId/registrations/:registrationId')
+  @Roles(Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN)
+  async updateRegistration(
+    @Param('eventId') eventId: string,
+    @Param('registrationId') registrationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: UpdateEventRegistrationDto,
+  ) {
+    assertBranchAccess(user, await this.eventService.getEventBranchId(eventId));
+    return {
+      data: await this.eventService.updateRegistrationStatus(
+        eventId,
+        registrationId,
+        body.status,
+      ),
+    };
   }
 }

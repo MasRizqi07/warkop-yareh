@@ -12,8 +12,9 @@ import {
   Users,
 } from 'lucide-react';
 import {
-  getBranches,
   getBranchProducts,
+  getOperationalBranchScope,
+  toggleBranchProductAvailability,
   updateBranch,
   updateBranchProduct,
   type BranchProductRecord,
@@ -43,15 +44,18 @@ export default function MultiBranchManagementPage() {
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [canUpdateBranch, setCanUpdateBranch] = useState(false);
+  const [canUpdateBranchProducts, setCanUpdateBranchProducts] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [branchData, productData] = await Promise.all([
-        getBranches(),
+      const [scope, productData] = await Promise.all([
+        getOperationalBranchScope(),
         getBranchProducts(),
       ]);
+      const branchData = scope.branches;
       const nextSelectedBranchId = branchData.some(
         (branch) => branch.id === selectedBranchId
       )
@@ -59,6 +63,8 @@ export default function MultiBranchManagementPage() {
         : branchData[0]?.id || '';
       setBranches(branchData);
       setBranchProducts(productData);
+      setCanUpdateBranch(scope.canUpdateBranch);
+      setCanUpdateBranchProducts(scope.canUpdateBranchProducts);
       setSelectedBranchId(nextSelectedBranchId);
       setCapacityDraft(
         String(
@@ -87,12 +93,15 @@ export default function MultiBranchManagementPage() {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([getBranches(), getBranchProducts()])
-      .then(([branchData, productData]) => {
+    void Promise.all([getOperationalBranchScope(), getBranchProducts()])
+      .then(([scope, productData]) => {
         if (!active) return;
+        const branchData = scope.branches;
         const initialBranchId = branchData[0]?.id || '';
         setBranches(branchData);
         setBranchProducts(productData);
+        setCanUpdateBranch(scope.canUpdateBranch);
+        setCanUpdateBranchProducts(scope.canUpdateBranchProducts);
         setSelectedBranchId(initialBranchId);
         setCapacityDraft(
           String(
@@ -200,9 +209,11 @@ export default function MultiBranchManagementPage() {
     setSavingKey(key);
     setError(null);
     try {
-      const updated = await updateBranchProduct(item.branchId, item.productId, {
-        isAvailable: !item.isAvailable,
-      });
+      const updated = await toggleBranchProductAvailability(
+        item.branchId,
+        item.productId,
+        !item.isAvailable
+      );
       replaceBranchProduct(updated);
       setNotice(
         `${updated.product.name} is now ${updated.isAvailable ? 'available' : 'unavailable'} at ${updated.branch.name}.`
@@ -356,11 +367,15 @@ export default function MultiBranchManagementPage() {
                   min={0}
                   value={capacityDraft}
                   onChange={(event) => setCapacityDraft(event.target.value)}
+                  disabled={!canUpdateBranch}
                   className="w-32 rounded-xl border border-border-subtle bg-surface-secondary px-3 py-2 text-sm"
                 />
                 <button
                   type="button"
-                  disabled={savingKey === `branch:${selectedBranch.id}`}
+                  disabled={
+                    !canUpdateBranch ||
+                    savingKey === `branch:${selectedBranch.id}`
+                  }
                   onClick={() => void saveCapacity()}
                   className="primary-cta-motion inline-flex items-center gap-2 rounded-xl bg-brand-coffee px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-40"
                 >
@@ -368,6 +383,12 @@ export default function MultiBranchManagementPage() {
                 </button>
               </div>
             </div>
+            {!canUpdateBranch && (
+              <p className="mt-3 text-xs text-text-muted">
+                Your role can inspect this capacity but cannot modify branch
+                metadata.
+              </p>
+            )}
           </section>
         )}
 
@@ -454,6 +475,7 @@ export default function MultiBranchManagementPage() {
                                   min={0}
                                   placeholder={String(row.basePrice)}
                                   value={priceDrafts[item.id] ?? ''}
+                                  disabled={!canUpdateBranchProducts}
                                   onChange={(event) =>
                                     setPriceDrafts((current) => ({
                                       ...current,
@@ -465,7 +487,10 @@ export default function MultiBranchManagementPage() {
                                 <button
                                   type="button"
                                   aria-label={`Save ${row.name} price at ${branch.name}`}
-                                  disabled={savingKey === `price:${item.id}`}
+                                  disabled={
+                                    !canUpdateBranchProducts ||
+                                    savingKey === `price:${item.id}`
+                                  }
                                   onClick={() => void savePrice(item)}
                                   className="rounded-lg border border-primary/30 p-1.5 text-primary disabled:opacity-40"
                                 >

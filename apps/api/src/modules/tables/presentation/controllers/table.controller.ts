@@ -40,6 +40,26 @@ export class TableController {
     return { data: table };
   }
 
+  @Get('public/:id')
+  @Public()
+  @ApiOperation({ summary: 'Get safe public metadata for an active table' })
+  async getPublicTable(@Param('id') id: string) {
+    const table = await this.tableService.getTableById(id);
+    if (!table || !table.isActive) {
+      throw new NotFoundException('Table not found or inactive');
+    }
+
+    return {
+      data: {
+        id: table.id,
+        branchId: table.branchId,
+        number: table.number,
+        capacity: table.capacity,
+        status: table.status,
+      },
+    };
+  }
+
   @Get('branch/:branchId')
   @Roles('STAFF', 'CASHIER', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN')
   @ApiBearerAuth('JWT')
@@ -57,6 +77,46 @@ export class TableController {
     }
     const tables = await this.tableService.getTablesByBranch(branchId);
     return { data: tables };
+  }
+
+  @Get('branch/:branchId/calls')
+  @Roles('STAFF', 'CASHIER', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'List pending waiter calls for a branch' })
+  async getPendingCalls(
+    @Param('branchId') branchId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    if (!GLOBAL_TABLE_ROLES.includes(user.role) && user.branchId !== branchId) {
+      throw new ForbiddenException(
+        'You can only access calls from your own branch',
+      );
+    }
+    return { data: await this.tableService.listPendingWaiterCalls(branchId) };
+  }
+
+  @Patch('calls/:id/resolve')
+  @Roles('STAFF', 'CASHIER', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Resolve a persisted waiter call' })
+  async resolveCall(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    const call = await this.tableService.getWaiterCallById(id);
+    if (!call) throw new NotFoundException('Waiter call not found');
+    if (
+      !GLOBAL_TABLE_ROLES.includes(user.role) &&
+      call.table.branchId !== user.branchId
+    ) {
+      throw new ForbiddenException(
+        'You can only resolve calls from your own branch',
+      );
+    }
+    return {
+      data: await this.tableService.resolveWaiterCall(id),
+      message: 'Waiter call resolved',
+    };
   }
 
   @Patch(':id/status')

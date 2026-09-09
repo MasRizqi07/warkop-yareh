@@ -100,7 +100,7 @@ TanStack Query (`@tanstack/react-query`) is used for all REST API mutations and 
 Zustand is used for lightweight client-side state:
 - `useCartStore` — Manages customer food orders in the shopping cart.
 - `useBranchStore` — Manages selected active branch context (`x-branch-id`).
-- `useUserStore` — Holds basic credentials for local sessions.
+- `auth.store` — Keeps the in-memory access token and non-sensitive user snapshot; refresh credentials remain in an HttpOnly cookie managed by the API.
 
 ---
 

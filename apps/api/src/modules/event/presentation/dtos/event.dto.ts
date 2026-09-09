@@ -11,8 +11,12 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EventCategory } from '@warkop-yareh/database';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import {
+  EventCategory,
+  EventRegistrationStatus,
+  EventStatus,
+} from '@warkop-yareh/database';
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -66,7 +70,9 @@ export class CreateEventDto {
   @Type(() => Number)
   @IsInt()
   @Min(0)
-  @Max(1_000_000_000)
+  @Max(0, {
+    message: 'Paid events are unavailable until event payment is configured',
+  })
   price?: number;
 
   @ApiPropertyOptional({ enum: EventCategory })
@@ -99,4 +105,17 @@ export class ListEventsQueryDto {
   @Min(1)
   @Max(100)
   limit = 10;
+}
+
+export class UpdateEventDto extends PartialType(CreateEventDto) {
+  @ApiPropertyOptional({ enum: EventStatus })
+  @IsOptional()
+  @IsEnum(EventStatus)
+  status?: EventStatus;
+}
+
+export class UpdateEventRegistrationDto {
+  @ApiPropertyOptional({ enum: EventRegistrationStatus })
+  @IsEnum(EventRegistrationStatus)
+  status!: EventRegistrationStatus;
 }

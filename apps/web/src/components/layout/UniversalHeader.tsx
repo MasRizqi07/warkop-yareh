@@ -13,6 +13,7 @@ import {
 import { useActiveBranch } from '@/features/catalog/catalog.hooks';
 import { useAuthStore } from '@/stores/auth.store';
 import { useBranchStore, useCartStore } from '@/stores';
+import { getAdminUrl } from '@/lib/admin-url';
 
 export function UniversalHeader() {
   const pathname = usePathname();
@@ -173,7 +174,7 @@ export function UniversalHeader() {
               Customer
             </Link>
             <Link
-              href="/ops/pos"
+              href={getAdminUrl('/pos')}
               className={`px-3 py-1 rounded-full transition-colors ${
                 pathname.startsWith('/ops/pos')
                   ? 'bg-[var(--green-500)] text-on-primary'
@@ -183,7 +184,7 @@ export function UniversalHeader() {
               POS Kasir
             </Link>
             <Link
-              href="/ops/kds"
+              href={getAdminUrl('/kitchen')}
               className={`px-3 py-1 rounded-full transition-colors ${
                 pathname.startsWith('/ops/kds')
                   ? 'bg-accent-amber text-on-secondary'

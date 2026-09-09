@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
@@ -93,51 +92,20 @@ export const metadata: Metadata = {
 };
 
 // JSON-LD Structured Data
+const socialProfiles = Object.values(SITE.social).filter(Boolean);
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CafeOrCoffeeShop',
   name: SITE.name,
   description: SITE.description,
   url: SITE.url,
-  telephone: SITE.phone,
-  email: SITE.email,
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'Jl. Raya Wonokromo No. 42',
-    addressLocality: 'Surabaya',
-    addressRegion: 'Jawa Timur',
-    postalCode: '60243',
-    addressCountry: 'ID',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: SITE.coordinates.lat,
-    longitude: SITE.coordinates.lng,
-  },
-  openingHoursSpecification: [
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-      opens: '07:00',
-      closes: '02:00',
-    },
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Saturday', 'Sunday'],
-      opens: '07:00',
-      closes: '03:00',
-    },
-  ],
+  ...(SITE.phone ? { telephone: SITE.phone } : {}),
+  ...(SITE.email ? { email: SITE.email } : {}),
   priceRange: '$$',
   servesCuisine: ['Coffee', 'Indonesian Food', 'Pastry'],
   hasMenu: `${SITE.url}/menu`,
   acceptsReservations: true,
-  sameAs: [
-    SITE.social.instagram,
-    SITE.social.tiktok,
-    SITE.social.twitter,
-    SITE.social.youtube,
-  ],
+  ...(socialProfiles.length ? { sameAs: socialProfiles } : {}),
 };
 
 export default function RootLayout({
@@ -154,16 +122,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin=""
-        />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -10,7 +10,7 @@ This document describes the onboarding, setup, and testing procedures for develo
 
 Before beginning local setup, verify you have installed:
 
-1. **Node.js**: `v20.x` or higher
+1. **Node.js**: `v24.x` (use the exact baseline in `.node-version`)
 2. **pnpm**: `v9.0.0` or higher
 3. **Docker Engine / Desktop**: For running local databases
 4. **Git**: Core version control
@@ -72,7 +72,7 @@ CORS_ALLOWED_ORIGIN="http://localhost:3000"
 Push the Prisma schemas directly to your local database container and populate initial configurations:
 
 ```bash
-pnpm --filter @warkop-yareh/database db:push
+pnpm --filter @warkop-yareh/database db:migrate:deploy
 pnpm --filter @warkop-yareh/database db:seed
 ```
 
@@ -189,7 +189,7 @@ We utilize GitHub Actions to build, test, and deploy applications in the monorep
 #### Q2: Prisma database client schema drift
 
 - **Cause**: Your local database schema is out of sync with Prisma models after pulling git changes.
-- **Fix**: Execute `pnpm --filter @warkop-yareh/database db:push` to sync schemas without erasing existing tables.
+- **Fix**: Create a reviewed Prisma migration for schema changes, then execute `pnpm --filter @warkop-yareh/database db:migrate:deploy`. Reserve `db:push` for disposable local prototypes because it bypasses the reviewed migration history.
 
 #### Q3: PNPM workspace dependency resolution errors
 

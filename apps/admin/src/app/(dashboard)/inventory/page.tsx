@@ -12,8 +12,8 @@ import {
   X,
 } from 'lucide-react';
 import {
-  getBranches,
   getBranchProducts,
+  getOperationalBranchScope,
   updateBranchProduct,
   type BranchProductRecord,
   type BranchRecord,
@@ -78,6 +78,7 @@ export default function EnterpriseInventoryPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [editing, setEditing] = useState<BranchProductRecord | null>(null);
   const [form, setForm] = useState<InventoryForm | null>(null);
+  const [canUpdateInventory, setCanUpdateInventory] = useState(false);
 
   const loadItems = useCallback(async (branchId: string) => {
     setLoading(true);
@@ -97,10 +98,12 @@ export default function EnterpriseInventoryPage() {
 
   useEffect(() => {
     let active = true;
-    void getBranches()
-      .then(async (records) => {
+    void getOperationalBranchScope()
+      .then(async (scope) => {
         if (!active) return;
+        const records = scope.branches;
         setBranches(records);
+        setCanUpdateInventory(scope.canUpdateBranchProducts);
         const initialBranchId = records[0]?.id || '';
         setSelectedBranchId(initialBranchId);
         if (!initialBranchId) return;
@@ -155,6 +158,10 @@ export default function EnterpriseInventoryPage() {
 
   const saveInventory = async () => {
     if (!editing || !form) return;
+    if (!canUpdateInventory) {
+      setError('Your role has read-only inventory access');
+      return;
+    }
     const capacity = numberOrNull(form.stockCapacity);
     const threshold = numberOrNull(form.stockThreshold);
     if (capacity !== null && capacity <= 0) {
@@ -254,6 +261,13 @@ export default function EnterpriseInventoryPage() {
           >
             {error ?? notice}
           </div>
+        )}
+
+        {!canUpdateInventory && !loading && (
+          <p className="rounded-xl border border-border-subtle bg-surface-card px-4 py-3 text-sm text-text-muted">
+            Inventory is read-only for your role. A manager, owner, or admin is
+            required to persist telemetry changes.
+          </p>
         )}
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -402,8 +416,9 @@ export default function EnterpriseInventoryPage() {
                         <td className="p-4 text-right">
                           <button
                             type="button"
+                            disabled={!canUpdateInventory}
                             onClick={() => openEditor(item)}
-                            className="primary-cta-motion inline-flex items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-xs font-semibold text-primary"
+                            className="primary-cta-motion inline-flex items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-xs font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Edit3 className="h-4 w-4" /> Adjust
                           </button>

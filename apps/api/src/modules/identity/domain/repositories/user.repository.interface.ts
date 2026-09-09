@@ -30,5 +30,6 @@ export interface IUserRepository {
     limit: number;
     role?: Role;
     branchId?: string;
+    search?: string;
   }): Promise<{ data: SafeUser[]; total: number }>;
 }

@@ -126,6 +126,11 @@ export class PrismaOrderingRepository implements IOrderingRepository {
         });
 
         if (quote.loyaltyPointsUsed > 0) {
+          if (!data.userId) {
+            throw new BadRequestException(
+              'Guest orders cannot redeem loyalty points',
+            );
+          }
           const deducted = await tx.user.updateMany({
             where: {
               id: data.userId,
@@ -148,6 +153,9 @@ export class PrismaOrderingRepository implements IOrderingRepository {
           });
         }
         if (voucherCode) {
+          if (!data.userId) {
+            throw new BadRequestException('Guest orders cannot use vouchers');
+          }
           await tx.voucherRedemption.create({
             data: { userId: data.userId, orderId: order.id, voucherCode },
           });
@@ -202,13 +210,24 @@ export class PrismaOrderingRepository implements IOrderingRepository {
     tx: Prisma.TransactionClient,
     data: CreateOrderData,
   ) {
-    const user = await tx.user.findFirst({
-      where: { id: data.userId, deletedAt: null },
-      select: { loyaltyPoints: true },
-    });
-    if (!user) throw new NotFoundException('User not found');
+    const userId = data.userId;
+    const user = userId
+      ? await tx.user.findFirst({
+          where: { id: userId, deletedAt: null },
+          select: { loyaltyPoints: true },
+        })
+      : null;
+    if (userId && !user) throw new NotFoundException('User not found');
+    if (!userId && (data.voucherCode || (data.loyaltyPointsUsed ?? 0) > 0)) {
+      throw new BadRequestException(
+        'Guest orders cannot use vouchers or loyalty points',
+      );
+    }
     let voucherDiscount = 0;
     if (data.voucherCode) {
+      if (!userId) {
+        throw new BadRequestException('Guest orders cannot use vouchers');
+      }
       const voucher = await tx.voucher.findUnique({
         where: { code: data.voucherCode },
       });
@@ -229,7 +248,7 @@ export class PrismaOrderingRepository implements IOrderingRepository {
         where: {
           voucherCode_userId: {
             voucherCode: voucher.code,
-            userId: data.userId,
+            userId,
           },
         },
       });
@@ -243,7 +262,7 @@ export class PrismaOrderingRepository implements IOrderingRepository {
       data.subtotal,
       voucherDiscount,
       data.loyaltyPointsUsed ?? 0,
-      user.loyaltyPoints,
+      user?.loyaltyPoints ?? 0,
     );
   }
 

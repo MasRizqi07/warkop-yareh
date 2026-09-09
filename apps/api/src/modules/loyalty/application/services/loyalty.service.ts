@@ -229,6 +229,84 @@ export class LoyaltyService {
     });
   }
 
+  async listRewardsForManagement() {
+    return this.prisma.reward.findMany({
+      orderBy: [{ isAvailable: 'desc' }, { pointsCost: 'asc' }],
+    });
+  }
+
+  async createReward(data: {
+    name: string;
+    description: string;
+    image?: string;
+    pointsCost: number;
+    category: string;
+    tier?: MembershipTier;
+    isAvailable?: boolean;
+    expiresAt?: string | null;
+  }) {
+    return this.prisma.reward.create({
+      data: {
+        name: data.name.trim(),
+        description: data.description.trim(),
+        image: data.image?.trim() || null,
+        pointsCost: data.pointsCost,
+        category: data.category.trim(),
+        tier: data.tier ?? MembershipTier.BRONZE,
+        isAvailable: data.isAvailable ?? true,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+      },
+    });
+  }
+
+  async updateReward(
+    rewardId: string,
+    data: {
+      name?: string;
+      description?: string;
+      image?: string;
+      pointsCost?: number;
+      category?: string;
+      tier?: MembershipTier;
+      isAvailable?: boolean;
+      expiresAt?: string | null;
+    },
+  ) {
+    const existing = await this.prisma.reward.findUnique({
+      where: { id: rewardId },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundException('Reward not found');
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException('At least one reward field is required');
+    }
+    return this.prisma.reward.update({
+      where: { id: rewardId },
+      data: {
+        ...(data.name !== undefined ? { name: data.name.trim() } : {}),
+        ...(data.description !== undefined
+          ? { description: data.description.trim() }
+          : {}),
+        ...(data.image !== undefined
+          ? { image: data.image.trim() || null }
+          : {}),
+        ...(data.pointsCost !== undefined
+          ? { pointsCost: data.pointsCost }
+          : {}),
+        ...(data.category !== undefined
+          ? { category: data.category.trim() }
+          : {}),
+        ...(data.tier !== undefined ? { tier: data.tier } : {}),
+        ...(data.isAvailable !== undefined
+          ? { isAvailable: data.isAvailable }
+          : {}),
+        ...(data.expiresAt !== undefined
+          ? { expiresAt: data.expiresAt ? new Date(data.expiresAt) : null }
+          : {}),
+      },
+    });
+  }
+
   private calculateTier(
     points: number,
     currentTier: MembershipTier,

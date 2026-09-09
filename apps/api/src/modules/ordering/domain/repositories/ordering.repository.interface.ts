@@ -34,7 +34,7 @@ export interface OrderItemInput {
 export interface CreateOrderData {
   expectedTotal?: number;
   orderNumber: string;
-  userId: string;
+  userId?: string;
   branchId: string;
   tableId?: string;
   type: OrderType;

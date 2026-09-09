@@ -67,12 +67,22 @@ export class PrismaUserRepository implements IUserRepository {
     limit: number;
     role?: import('@warkop-yareh/database').Role;
     branchId?: string;
+    search?: string;
   }) {
-    const { page, limit, role, branchId } = params;
+    const { page, limit, role, branchId, search } = params;
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
       ...(role ? { role } : {}),
       ...(branchId ? { branchId } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
     const [data, total] = await Promise.all([
       this.prisma.user.findMany({

@@ -1,130 +1,142 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Search, Plus, Edit, Check, X } from "lucide-react";
-import { StatusBadge } from "@/components/ui/StatusBadge";
+import { FormEvent, useMemo, useState } from 'react';
+import { Pencil, Plus, Search } from 'lucide-react';
+import {
+  DataPanel,
+  Notice,
+  PageHeading,
+  fieldClass,
+  formatRupiah,
+  primaryButtonClass,
+  secondaryButtonClass,
+  useAsyncResource,
+} from '@/components/management/page-kit';
+import {
+  createProduct,
+  getCategories,
+  getProducts,
+  updateProduct,
+  type ProductRecord,
+} from '@/lib/management-api';
+import { getAdminProfile } from '@/lib/operations-api';
 
-interface Product {
-  id: string;
-  name: string;
-  category: "COFFEE" | "NON-COFFEE" | "FOOD" | "SNACKS";
-  price: string;
-  stockStatus: "AVAILABLE" | "OUT_OF_STOCK" | "LOW_STOCK";
-  popularity: "HIGH" | "MEDIUM" | "LOW";
+const EMPTY_FORM = { name: '', description: '', price: '', categoryId: '' };
+
+async function loadProducts() {
+  const [products, categories, user] = await Promise.all([
+    getProducts(),
+    getCategories(),
+    getAdminProfile(),
+  ]);
+  return { products: products.data, categories, user };
 }
 
 export default function ProductsPage() {
-  const [filter, setFilter] = useState<string>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const resource = useAsyncResource(loadProducts);
+  const [search, setSearch] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [editing, setEditing] = useState<ProductRecord | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+  const canEdit = ['ADMIN', 'SUPERADMIN'].includes(resource.data?.user.role ?? '');
 
-  const products: Product[] = [
-    { id: "PROD-001", name: "Toraja Arabica Drip", category: "COFFEE", price: "Rp 32,000", stockStatus: "AVAILABLE", popularity: "HIGH" },
-    { id: "PROD-002", name: "Es Kopi Susu Aren", category: "COFFEE", price: "Rp 24,000", stockStatus: "AVAILABLE", popularity: "HIGH" },
-    { id: "PROD-003", name: "Premium Matcha Latte", category: "NON-COFFEE", price: "Rp 28,000", stockStatus: "AVAILABLE", popularity: "MEDIUM" },
-    { id: "PROD-004", name: "Tahu Walik Crispy", category: "SNACKS", price: "Rp 18,000", stockStatus: "LOW_STOCK", popularity: "MEDIUM" },
-    { id: "PROD-005", name: "Nasi Goreng Ya'reh", category: "FOOD", price: "Rp 38,000", stockStatus: "OUT_OF_STOCK", popularity: "HIGH" },
-  ];
+  const filtered = useMemo(() => {
+    const needle = search.trim().toLocaleLowerCase('id-ID');
+    return (resource.data?.products ?? []).filter(
+      (product) =>
+        (!categoryId || product.categoryId === categoryId) &&
+        (!needle ||
+          product.name.toLocaleLowerCase('id-ID').includes(needle) ||
+          product.slug.toLocaleLowerCase('id-ID').includes(needle)),
+    );
+  }, [categoryId, resource.data?.products, search]);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesFilter = filter === "ALL" || product.category === filter;
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.id.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  function openCreate() {
+    setEditing(null);
+    setForm({ ...EMPTY_FORM, categoryId: resource.data?.categories[0]?.id ?? '' });
+    setNotice(null);
+    setShowForm(true);
+  }
+
+  function openEdit(product: ProductRecord) {
+    setEditing(product);
+    setForm({
+      name: product.name,
+      description: product.description,
+      price: String(product.price),
+      categoryId: product.categoryId,
+    });
+    setNotice(null);
+    setShowForm(true);
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const price = Number(form.price);
+    if (!Number.isSafeInteger(price) || price < 0) {
+      setNotice({ tone: 'error', text: 'Harga harus berupa bilangan bulat non-negatif.' });
+      return;
+    }
+    setSaving(true);
+    setNotice(null);
+    try {
+      const payload = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        price,
+        categoryId: form.categoryId,
+      };
+      if (editing) await updateProduct(editing.id, payload);
+      else await createProduct(payload);
+      setShowForm(false);
+      setNotice({ tone: 'success', text: editing ? 'Produk berhasil diperbarui.' : 'Produk berhasil dibuat.' });
+      await resource.reload();
+    } catch (reason) {
+      setNotice({ tone: 'error', text: reason instanceof Error ? reason.message : 'Produk gagal disimpan.' });
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-[var(--text-primary)]">Menu & Catalog</h1>
-          <p className="font-sans text-xs text-[var(--text-secondary)] mt-0.5">Manage products, pricing overrides, and instant roaster availability</p>
+    <div className="mx-auto max-w-7xl space-y-7 p-5 sm:p-8">
+      <PageHeading
+        eyebrow="Catalog"
+        title="Menu & produk"
+        description="Kelola data produk global. Harga, stok, dan ketersediaan per cabang tetap dikelola dari halaman Inventory agar cakupan mutasi jelas."
+        actions={canEdit ? <button type="button" onClick={openCreate} className={primaryButtonClass}><Plus className="mr-2 h-4 w-4" />Tambah produk</button> : undefined}
+      />
+
+      {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
+      {showForm ? (
+        <form onSubmit={submit} className="grid gap-4 rounded-2xl border border-border-subtle bg-surface-card p-5 sm:grid-cols-2" aria-label={editing ? 'Edit produk' : 'Tambah produk'}>
+          <label className="text-sm font-semibold">Nama<input required minLength={2} maxLength={160} className={`${fieldClass} mt-2`} value={form.name} onChange={(event) => setForm((value) => ({ ...value, name: event.target.value }))} /></label>
+          <label className="text-sm font-semibold">Kategori<select required className={`${fieldClass} mt-2`} value={form.categoryId} onChange={(event) => setForm((value) => ({ ...value, categoryId: event.target.value }))}>{resource.data?.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
+          <label className="text-sm font-semibold">Harga (rupiah)<input required min={0} max={1_000_000_000} step={1} type="number" className={`${fieldClass} mt-2`} value={form.price} onChange={(event) => setForm((value) => ({ ...value, price: event.target.value }))} /></label>
+          <label className="text-sm font-semibold sm:col-span-2">Deskripsi<textarea maxLength={5000} rows={4} className={`${fieldClass} mt-2`} value={form.description} onChange={(event) => setForm((value) => ({ ...value, description: event.target.value }))} /></label>
+          <div className="flex gap-3 sm:col-span-2"><button disabled={saving} className={primaryButtonClass}>{saving ? 'Menyimpan…' : 'Simpan'}</button><button type="button" onClick={() => setShowForm(false)} className={secondaryButtonClass}>Batal</button></div>
+        </form>
+      ) : null}
+
+      <div className="grid gap-3 sm:grid-cols-[1fr_260px]">
+        <label className="relative"><span className="sr-only">Cari produk</span><Search className="absolute left-3 top-3.5 h-4 w-4 text-text-secondary" /><input className={`${fieldClass} pl-10`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama atau slug…" /></label>
+        <label><span className="sr-only">Filter kategori</span><select className={fieldClass} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">Semua kategori</option>{resource.data?.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
+      </div>
+
+      <DataPanel loading={resource.loading} error={resource.error} empty={filtered.length === 0} onRetry={() => void resource.reload()}>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((product) => (
+            <article key={product.id} className="rounded-2xl border border-border-subtle bg-surface-card p-5">
+              <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-wider text-accent">{product.category.name}</p><h2 className="mt-2 text-lg font-bold">{product.name}</h2></div>{canEdit ? <button type="button" onClick={() => openEdit(product)} className={secondaryButtonClass} aria-label={`Edit ${product.name}`}><Pencil className="h-4 w-4" /></button> : null}</div>
+              <p className="mt-3 line-clamp-3 min-h-15 text-sm leading-5 text-text-secondary">{product.description || 'Belum ada deskripsi.'}</p>
+              <div className="mt-5 border-t border-border-subtle pt-4"><p className="text-xs text-text-secondary">Harga dasar</p><p className="text-xl font-bold">{formatRupiah(product.price)}</p></div>
+            </article>
+          ))}
         </div>
-        <div className="flex gap-3 shrink-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)]" />
-            <input
-              aria-label="Search products"
-              type="text"
-              placeholder="Search product..."
-              className="bg-[var(--surface-tertiary)] border border-[var(--border-default)] rounded-xl pl-10 pr-4 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] w-60 transition-all"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button 
-            onClick={() => alert("Add product modal")}
-            className="bg-[var(--interactive-primary)] text-white hover:bg-[var(--interactive-primary-hover)] font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md hover:shadow-lg active:scale-95 shrink-0"
-          >
-            <Plus className="w-4 h-4" /> ADD ITEM
-          </button>
-        </div>
-      </div>
-
-      {/* Categories Tabs */}
-      <div className="flex gap-2 border-b border-[var(--border-default)] overflow-x-auto pb-px">
-        {["ALL", "COFFEE", "NON-COFFEE", "FOOD", "SNACKS"].map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors border-b-2 shrink-0 ${
-              filter === cat
-                ? "border-[var(--color-primary)] text-[var(--text-brand)] font-bold"
-                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Catalog Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((p) => (
-          <div key={p.id} className="relative overflow-hidden rounded-2xl bg-[var(--surface-tertiary)] border border-[var(--border-default)] p-6 hover:shadow-xl transition-all duration-300 group">
-            {/* Header row */}
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-semibold">{p.id}</span>
-              <StatusBadge status={p.stockStatus} />
-            </div>
-
-            {/* Title & Category */}
-            <h3 className="font-heading text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--text-brand)] transition-colors">{p.name}</h3>
-            <p className="font-sans text-xs text-[var(--text-secondary)] mt-0.5 capitalize">{p.category.toLowerCase().replace("-", " ")}</p>
-
-            {/* Pricing Details */}
-            <div className="mt-6 flex justify-between items-baseline border-t border-[var(--border-default)]/50 pt-4">
-              <div>
-                <p className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase font-semibold">Base Price</p>
-                <p className="font-mono text-lg font-bold text-[var(--text-primary)] mt-0.5">{p.price}</p>
-              </div>
-              <div className="flex gap-2">
-                <button 
-                  title={`Edit product ${p.name}`}
-                  aria-label={`Edit product ${p.name}`}
-                  onClick={() => alert(`Edit product ${p.name}`)}
-                  className="p-2 border border-[var(--border-default)] hover:bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg transition-colors"
-                >
-                  <Edit className="w-3.5 h-3.5" />
-                </button>
-                <button 
-                  title={`Toggle status for ${p.name}`}
-                  aria-label={`Toggle status for ${p.name}`}
-                  onClick={() => alert(`Toggle status for ${p.name}`)}
-                  className={`p-2 border rounded-lg transition-colors flex items-center justify-center ${
-                    p.stockStatus === "AVAILABLE"
-                      ? "border-[var(--success-500)]/30 bg-[var(--success-500)]/10 text-[var(--success-500)] hover:bg-[var(--success-500)]/20"
-                      : "border-[var(--error-500)]/30 bg-[var(--error-500)]/10 text-[var(--error-500)] hover:bg-[var(--error-500)]/20"
-                  }`}
-                >
-                  {p.stockStatus === "AVAILABLE" ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      </DataPanel>
     </div>
   );
 }

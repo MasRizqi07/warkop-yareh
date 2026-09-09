@@ -33,6 +33,15 @@ export interface BranchRecord {
   weekendHours: string;
 }
 
+export interface OperationalBranchScope {
+  user: AdminUser;
+  branches: BranchRecord[];
+  canViewAllBranches: boolean;
+  canUpdateBranch: boolean;
+  canUpdateBranchProducts: boolean;
+  canAccessManagement: boolean;
+}
+
 export interface BranchProductRecord {
   id: string;
   branchId: string;
@@ -133,6 +142,53 @@ export async function getAdminProfile(): Promise<AdminUser> {
   return (await apiFetch<Envelope<AdminUser>>('/auth/me')).data;
 }
 
+const GLOBAL_BRANCH_ROLES = new Set(['ADMIN', 'SUPERADMIN']);
+const BRANCH_UPDATE_ROLES = new Set(['ADMIN', 'OWNER', 'SUPERADMIN']);
+const MANAGEMENT_ROLES = new Set([
+  'MANAGER',
+  'ADMIN',
+  'OWNER',
+  'SUPERADMIN',
+]);
+
+export function resolveOperationalBranchScope(
+  user: AdminUser,
+  allBranches: BranchRecord[]
+): OperationalBranchScope {
+  const canViewAllBranches = GLOBAL_BRANCH_ROLES.has(user.role);
+
+  if (!canViewAllBranches && !user.branchId) {
+    throw new Error(
+      'This account needs a branch assignment before operations can be opened'
+    );
+  }
+
+  const branches = canViewAllBranches
+    ? allBranches
+    : allBranches.filter((branch) => branch.id === user.branchId);
+
+  if (!canViewAllBranches && branches.length === 0) {
+    throw new Error('The assigned branch is no longer available');
+  }
+
+  return {
+    user,
+    branches,
+    canViewAllBranches,
+    canUpdateBranch: BRANCH_UPDATE_ROLES.has(user.role),
+    canUpdateBranchProducts: MANAGEMENT_ROLES.has(user.role),
+    canAccessManagement: MANAGEMENT_ROLES.has(user.role),
+  };
+}
+
+export async function getOperationalBranchScope(): Promise<OperationalBranchScope> {
+  const [user, allBranches] = await Promise.all([
+    getAdminProfile(),
+    getBranches(),
+  ]);
+  return resolveOperationalBranchScope(user, allBranches);
+}
+
 export async function getRevenueAnalytics(
   branchId?: string
 ): Promise<RevenueAnalytics> {
@@ -213,6 +269,19 @@ export async function updateBranchProduct(
     await apiFetch<Envelope<BranchProductRecord>>(
       `/branches/${branchId}/products/${productId}`,
       { method: 'PATCH', body: JSON.stringify(data) }
+    )
+  ).data;
+}
+
+export async function toggleBranchProductAvailability(
+  branchId: string,
+  productId: string,
+  isAvailable: boolean
+): Promise<BranchProductRecord> {
+  return (
+    await apiFetch<Envelope<BranchProductRecord>>(
+      `/branches/${branchId}/products/${productId}/availability`,
+      { method: 'PATCH', body: JSON.stringify({ isAvailable }) }
     )
   ).data;
 }

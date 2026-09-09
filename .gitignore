@@ -29,6 +29,7 @@ out/
 .cache/
 .turbo/
 coverage/
+packages/database/generated/
 
 # IDE / Editor
 .idea/

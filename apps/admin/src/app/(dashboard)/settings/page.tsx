@@ -1,90 +1,12 @@
-"use client";
-
-import React, { useState } from "react";
-import { Save, Percent, Info } from "lucide-react";
+import Link from 'next/link';
 
 export default function SettingsPage() {
-  const [taxRate, setTaxRate] = useState("11");
-  const [brandName, setBrandName] = useState("Warkop Ya'reh");
-  const [currency, setCurrency] = useState("IDR");
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert("Settings saved successfully!");
-  };
-
+  const apiConfigured = Boolean(process.env.NEXT_PUBLIC_API_URL);
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-4xl mx-auto text-[var(--text-primary)]">
-      {/* Page Header */}
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-[var(--text-primary)]">System Settings</h1>
-        <p className="font-sans text-xs text-[var(--text-secondary)] mt-0.5">Configure franchise rules, billing variables, and notification keys</p>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* Brand details card */}
-        <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-tertiary)] p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-[var(--border-default)]/50 pb-3">
-            <Info className="w-5 h-5 text-[var(--color-primary)]" />
-            <h2 className="font-heading text-base font-bold text-[var(--text-primary)]">General Identity</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="brand-name" className="text-xs font-semibold text-[var(--text-secondary)]">Brand Name</label>
-              <input
-                id="brand-name"
-                type="text"
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="currency-symbol" className="text-xs font-semibold text-[var(--text-secondary)]">Currency Symbol</label>
-              <input
-                id="currency-symbol"
-                type="text"
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Tax details card */}
-        <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-tertiary)] p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-[var(--border-default)]/50 pb-3">
-            <Percent className="w-5 h-5 text-[var(--color-primary)]" />
-            <h2 className="font-heading text-base font-bold text-[var(--text-primary)]">Tax & Charges</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="tax-rate" className="text-xs font-semibold text-[var(--text-secondary)]">PPN Tax Rate (%)</label>
-              <input
-                id="tax-rate"
-                type="number"
-                className="w-full bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
-                value={taxRate}
-                onChange={(e) => setTaxRate(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4">
-          <button 
-            type="submit"
-            className="bg-[var(--interactive-primary)] text-white hover:bg-[var(--interactive-primary-hover)] font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 shrink-0"
-          >
-            <Save className="w-4 h-4" /> SAVE CHANGES
-          </button>
-        </div>
-      </form>
+    <div className="mx-auto max-w-5xl space-y-7 p-5 sm:p-8">
+      <header className="border-b border-border-subtle pb-7"><p className="text-xs font-bold uppercase tracking-[0.22em] text-accent">Configuration boundary</p><h1 className="mt-2 text-3xl font-bold">Pengaturan sistem</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">Pengaturan operasional disimpan pada resource yang memilikinya. Rahasia provider dan URL layanan dikelola melalui environment deployment, bukan dikirim dari browser.</p></header>
+      <div className="grid gap-5 md:grid-cols-2"><section className="rounded-2xl border border-border-subtle bg-surface-card p-5"><h2 className="font-bold">Cabang, jam, dan kontak</h2><p className="mt-2 text-sm leading-6 text-text-secondary">Nama, alamat, kapasitas, fitur, serta jam operasional dapat diperbarui melalui konfigurasi cabang.</p><Link href="/branches" className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 text-sm font-bold text-white">Kelola cabang</Link></section><section className="rounded-2xl border border-border-subtle bg-surface-card p-5"><h2 className="font-bold">Koneksi API</h2><p className="mt-2 text-sm leading-6 text-text-secondary">{apiConfigured ? 'NEXT_PUBLIC_API_URL dikonfigurasi untuk build ini.' : 'Build ini memakai fallback lokal http://localhost:4000/api/v1.'}</p><p className="mt-3 text-xs text-text-secondary">Nilai rahasia tidak pernah ditampilkan pada halaman ini.</p></section></div>
+      <section className="rounded-2xl border border-border-subtle bg-surface-card p-5"><h2 className="font-bold">Provider eksternal</h2><p className="mt-2 text-sm leading-6 text-text-secondary">Midtrans, WhatsApp, email, database, dan Redis harus diverifikasi di environment tujuan. UI tidak menampilkan status “terhubung” tanpa health check atau respons provider yang nyata.</p><div className="mt-5 flex flex-wrap gap-3"><Link href="/marketing" className="rounded-xl border border-border-subtle px-4 py-2 text-sm font-semibold">Status WhatsApp</Link><Link href="/analytics" className="rounded-xl border border-border-subtle px-4 py-2 text-sm font-semibold">Telemetry</Link></div></section>
     </div>
   );
 }

@@ -75,4 +75,31 @@ export class PrismaTableRepository implements ITableRepository {
       },
     });
   }
+
+  async listPendingWaiterCalls(branchId: string) {
+    return this.prisma.waiterCall.findMany({
+      where: { status: 'PENDING', table: { branchId, isActive: true } },
+      include: { table: true },
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+    });
+  }
+
+  async getWaiterCallById(id: string) {
+    return this.prisma.waiterCall.findUnique({
+      where: { id },
+      include: { table: true },
+    });
+  }
+
+  async resolveWaiterCall(id: string) {
+    await this.prisma.waiterCall.updateMany({
+      where: { id, status: 'PENDING' },
+      data: { status: 'RESOLVED', resolvedAt: new Date() },
+    });
+    return this.prisma.waiterCall.findUniqueOrThrow({
+      where: { id },
+      include: { table: true },
+    });
+  }
 }

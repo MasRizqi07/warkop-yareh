@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@warkop-yareh/types';
+import { getPersistStorage } from './persist-storage';
 
 interface AuthState {
   user: User | null;
@@ -12,6 +13,8 @@ interface AuthState {
   setInitialized: (initialized: boolean) => void;
   logout: () => void;
 }
+
+type PersistedAuthState = Pick<AuthState, 'user'>;
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -35,17 +38,18 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'coldnbrew-auth',
       version: 2,
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? window.localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-            }
-      ),
-      migrate: (persistedState: any) => {
-        return persistedState || { user: null };
+      storage: createJSONStorage<PersistedAuthState>(getPersistStorage),
+      migrate: (persistedState): PersistedAuthState => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return { user: null };
+        }
+        const candidate = persistedState as { user?: unknown };
+        return {
+          user:
+            candidate.user === null || typeof candidate.user === 'object'
+              ? (candidate.user as User | null)
+              : null,
+        };
       },
       // We purposefully DO NOT persist the access token in localStorage for security (XSS prevention)
       // The httpOnly refresh cookie will handle getting a new access token on reload

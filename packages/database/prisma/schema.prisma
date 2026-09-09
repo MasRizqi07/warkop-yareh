@@ -48,6 +48,9 @@ model User {
   createdMarketingCampaigns  MarketingCampaign[]   @relation("CampaignCreator")
   targetedMarketingCampaigns MarketingCampaign[]   @relation("CampaignTarget")
   marketingDeliveries        MarketingDelivery[]
+  openedCashierShifts        CashierShift[]        @relation("CashierShiftOpenedBy")
+  closedCashierShifts        CashierShift[]        @relation("CashierShiftClosedBy")
+  cashDrawerMovements        CashDrawerMovement[]  @relation("CashDrawerMovementCreatedBy")
 
   @@index([email])
   @@index([phone])
@@ -120,6 +123,7 @@ model Branch {
   tables             Table[]
   events             Event[]
   marketingCampaigns MarketingCampaign[]
+  cashierShifts      CashierShift[]
 
   @@index([city])
   @@index([isActive])
@@ -493,7 +497,7 @@ model EventRegistration {
   createdAt  DateTime                @default(now())
 
   @@unique([eventId, userId])
-  @@index([eventId])
+  @@index([eventId, status])
   @@index([userId])
   @@map("event_registrations")
 }
@@ -900,6 +904,60 @@ enum WaiterCallType {
 enum CallStatus {
   PENDING
   RESOLVED
+}
+
+model CashierShift {
+  id           String             @id @default(cuid())
+  branchId     String
+  branch       Branch             @relation(fields: [branchId], references: [id])
+  openedById   String
+  openedBy     User               @relation("CashierShiftOpenedBy", fields: [openedById], references: [id])
+  closedById   String?
+  closedBy     User?              @relation("CashierShiftClosedBy", fields: [closedById], references: [id])
+  status       CashierShiftStatus @default(OPEN)
+  openingFloat Int
+  closingCash  Int?
+  expectedCash Int?
+  variance     Int?
+  notes        String?
+  openedAt     DateTime           @default(now())
+  closedAt     DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  movements CashDrawerMovement[]
+
+  @@index([branchId, status])
+  @@index([branchId, openedAt])
+  @@index([openedById])
+  @@index([closedById])
+  @@map("cashier_shifts")
+}
+
+enum CashierShiftStatus {
+  OPEN
+  CLOSED
+}
+
+model CashDrawerMovement {
+  id          String           @id @default(cuid())
+  shiftId     String
+  shift       CashierShift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  type        CashMovementType
+  amount      Int
+  reason      String
+  createdById String
+  createdBy   User             @relation("CashDrawerMovementCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime         @default(now())
+
+  @@index([shiftId, createdAt])
+  @@index([createdById])
+  @@map("cash_drawer_movements")
+}
+
+enum CashMovementType {
+  CASH_IN
+  CASH_OUT
 }
 
 model OrderFeedback {
