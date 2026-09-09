@@ -1,26 +1,52 @@
 name: CD — Database Migrations
 
-# Railway's native GitHub integration handles deploy (auto-build on push to main).
-# This workflow handles only what Railway can't: database migrations.
-# It runs AFTER CI passes, gated by workflow_run.
+# Production schema changes are intentionally manual. Application delivery and
+# database mutation are separate approvals so a passing CI run cannot mutate a
+# production database by itself.
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Exact, reviewed commit SHA to migrate'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type MIGRATE_PRODUCTION'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-database-migrations
+  cancel-in-progress: false
 
 jobs:
   migrate:
     name: Run Database Migrations
     runs-on: ubuntu-latest
-    # Only run if CI passed (or manual dispatch)
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 15
+    environment: production
+    if: ${{ inputs.confirmation == 'MIGRATE_PRODUCTION' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+
+      - name: Verify reviewed commit and release switch
+        env:
+          EXPECTED_COMMIT: ${{ inputs.commit_sha }}
+          PRODUCTION_MIGRATION_ENABLED: ${{ vars.PRODUCTION_MIGRATION_ENABLED }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_COMMIT"
+          test "$PRODUCTION_MIGRATION_ENABLED" = "true" || {
+            echo "Production migration is frozen. Set the protected environment variable PRODUCTION_MIGRATION_ENABLED=true after approval."
+            exit 1
+          }
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -38,6 +64,11 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm --filter @warkop-yareh/database run db:generate
+
+      - name: Validate production database target
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/validate-database-target.mjs production
 
       - name: Run Database Migrations (production)
         env:
