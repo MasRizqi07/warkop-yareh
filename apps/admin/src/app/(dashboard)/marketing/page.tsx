@@ -169,7 +169,8 @@ export default function MarketingCampaignStudioPage() {
     setNotice(null);
     try {
       const campaign = await persistDraft();
-      setNotice(`Draft ${campaign.id} persisted. Reload to verify it remains.`);
+      await loadData();
+      setNotice(`Draft ${campaign.id} persisted and reloaded from the API.`);
     } catch (saveError: unknown) {
       setError(
         saveError instanceof Error
@@ -188,6 +189,7 @@ export default function MarketingCampaignStudioPage() {
     try {
       const campaign = await persistDraft();
       const result = await testCampaign(campaign.id, testPhone);
+      await loadData();
       setNotice(`Provider accepted test message ${result.providerMessageId}.`);
     } catch (sendError: unknown) {
       setError(
@@ -207,10 +209,7 @@ export default function MarketingCampaignStudioPage() {
     try {
       const campaign = await persistDraft();
       const dispatched = await dispatchCampaign(campaign.id);
-      setCampaigns((current) => [
-        dispatched,
-        ...current.filter((item) => item.id !== dispatched.id),
-      ]);
+      await loadData();
       if (dispatched.status === 'DISPATCHING') {
         setNotice(
           'Campaign queued for background delivery. Refresh the list to inspect the final provider-confirmed count.'

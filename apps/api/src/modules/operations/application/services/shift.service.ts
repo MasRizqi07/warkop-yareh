@@ -27,6 +27,15 @@ type ShiftRecord = Prisma.CashierShiftGetPayload<{
   include: typeof shiftInclude;
 }>;
 
+function isTransactionConflict(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
+
+  if (error.code === 'P2034') return true;
+
+  const databaseCode = error.meta?.code;
+  return error.code === 'P2010' && databaseCode === '40001';
+}
+
 @Injectable()
 export class ShiftService {
   constructor(private readonly prisma: DatabaseService) {}
@@ -114,8 +123,9 @@ export class ShiftService {
       return this.withSummary(shift);
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
+        (error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002') ||
+        isTransactionConflict(error)
       ) {
         throw new ConflictException('This branch already has an open shift');
       }
@@ -168,51 +178,58 @@ export class ShiftService {
     closingCash: number,
     notes?: string,
   ) {
-    const closed = await this.prisma.withTenantTransaction(
-      async (tx) => {
-        await tx.$queryRaw`SELECT "id" FROM "cashier_shifts" WHERE "id" = ${shiftId} FOR UPDATE`;
-        const shift = await tx.cashierShift.findUnique({
-          where: { id: shiftId },
-          include: shiftInclude,
-        });
-        if (!shift) throw new NotFoundException('Cashier shift not found');
-        if (shift.status !== CashierShiftStatus.OPEN) {
-          throw new ConflictException('Cashier shift is already closed');
-        }
-        const summary = await this.calculateSummary(tx, shift);
-        const closedAt = new Date();
-        const updated = await tx.cashierShift.update({
-          where: { id: shiftId },
-          data: {
-            status: CashierShiftStatus.CLOSED,
-            closingCash,
-            expectedCash: summary.expectedCash,
-            variance: closingCash - summary.expectedCash,
-            closedById,
-            closedAt,
-            notes: notes?.trim() || null,
-          },
-          include: shiftInclude,
-        });
-        await tx.outboxEvent.create({
-          data: {
-            aggregateType: 'CashierShift',
-            aggregateId: shiftId,
-            eventType: 'CashierShiftClosed',
-            payload: {
-              shiftId,
-              branchId: shift.branchId,
-              expectedCash: summary.expectedCash,
+    try {
+      const closed = await this.prisma.withTenantTransaction(
+        async (tx) => {
+          await tx.$queryRaw`SELECT "id" FROM "cashier_shifts" WHERE "id" = ${shiftId} FOR UPDATE`;
+          const shift = await tx.cashierShift.findUnique({
+            where: { id: shiftId },
+            include: shiftInclude,
+          });
+          if (!shift) throw new NotFoundException('Cashier shift not found');
+          if (shift.status !== CashierShiftStatus.OPEN) {
+            throw new ConflictException('Cashier shift is already closed');
+          }
+          const summary = await this.calculateSummary(tx, shift);
+          const closedAt = new Date();
+          const updated = await tx.cashierShift.update({
+            where: { id: shiftId },
+            data: {
+              status: CashierShiftStatus.CLOSED,
               closingCash,
+              expectedCash: summary.expectedCash,
               variance: closingCash - summary.expectedCash,
+              closedById,
+              closedAt,
+              notes: notes?.trim() || null,
             },
-          },
-        });
-        return { updated, summary };
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    );
-    return { ...closed.updated, summary: closed.summary };
+            include: shiftInclude,
+          });
+          await tx.outboxEvent.create({
+            data: {
+              aggregateType: 'CashierShift',
+              aggregateId: shiftId,
+              eventType: 'CashierShiftClosed',
+              payload: {
+                shiftId,
+                branchId: shift.branchId,
+                expectedCash: summary.expectedCash,
+                closingCash,
+                variance: closingCash - summary.expectedCash,
+              },
+            },
+          });
+          return { updated, summary };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+      return { ...closed.updated, summary: closed.summary };
+    } catch (error) {
+      if (isTransactionConflict(error)) {
+        throw new ConflictException('Cashier shift is already closed');
+      }
+      throw error;
+    }
   }
 
   private async withSummary(shift: ShiftRecord) {

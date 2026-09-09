@@ -3,12 +3,16 @@ import { resolve } from 'node:path';
 
 // Local, disposable fixtures only. CI supplies DATABASE_URL and REDIS_URL.
 const webUrl = process.env.E2E_WEB_URL ?? 'http://127.0.0.1:3006';
+const adminUrl = process.env.E2E_ADMIN_URL ?? 'http://127.0.0.1:3007';
 const apiUrl = process.env.E2E_API_URL ?? 'http://127.0.0.1:4006';
 Object.assign(process.env, {
   E2E_WEB_URL: webUrl,
+  E2E_ADMIN_URL: adminUrl,
   E2E_API_URL: apiUrl,
   E2E_CUSTOMER_EMAIL: 'browser-customer@example.test',
   E2E_CUSTOMER_PASSWORD: 'Browser-fixture-password-2026',
+  E2E_ADMIN_EMAIL: 'browser-admin@example.test',
+  E2E_ADMIN_PASSWORD: 'Browser-admin-password-2026',
   E2E_PROVIDER_OUTBOX: resolve('test-results/browser-provider-outbox.jsonl'),
 });
 
@@ -53,6 +57,12 @@ export default defineConfig({
     {
       command: `pnpm --filter @warkop-yareh/web exec next start --hostname 127.0.0.1 --port ${new URL(webUrl).port}`,
       url: `${webUrl}/login`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+    },
+    {
+      command: `pnpm --filter @warkop-yareh/admin exec next start --hostname 127.0.0.1 --port ${new URL(adminUrl).port}`,
+      url: `${adminUrl}/login`,
       reuseExistingServer: false,
       timeout: 60_000,
     },

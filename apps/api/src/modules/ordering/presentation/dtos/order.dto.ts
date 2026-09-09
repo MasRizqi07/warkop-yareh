@@ -15,7 +15,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { OrderStatus, OrderType } from '@warkop-yareh/database';
 
 export class OrderItemDto {
@@ -112,6 +112,14 @@ export class CreateOrderDto {
   @Length(8, 128)
   idempotencyKey?: string;
 }
+
+export class GuestOrderQuoteDto extends OmitType(CreateOrderDto, [
+  'expectedTotal',
+  'voucherCode',
+  'loyaltyPointsUsed',
+  'userId',
+  'idempotencyKey',
+] as const) {}
 
 export class UpdateOrderStatusDto {
   @ApiProperty({ enum: OrderStatus, example: OrderStatus.PREPARING })

@@ -22,6 +22,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:checkout": "jest --config ./test/jest-checkout.json",
+    "test:operations": "jest --config ./test/jest-operations.json",
+    "test:persistence": "pnpm run test:checkout && pnpm run test:operations",
     "test:browser-server": "ts-node test/browser-server.ts"
   },
   "dependencies": {

@@ -61,10 +61,7 @@ export class OrderingService {
   }
 
   async quoteOrder(data: Omit<CreateOrderInput, 'idempotencyKey'>) {
-    return this.prepareOrder(
-      { ...data, idempotencyKey: 'quote-request' },
-      true,
-    );
+    return this.prepareOrder({ ...data, idempotencyKey: '' }, true);
   }
 
   private async prepareOrder(
@@ -76,13 +73,6 @@ export class OrderingService {
     quoteOnly: true,
   ): Promise<import('../../domain/checkout-pricing').OrderQuote>;
   private async prepareOrder(data: CreateOrderInput, quoteOnly: boolean) {
-    const idempotencyKey = data.idempotencyKey.trim();
-    if (idempotencyKey.length < 8 || idempotencyKey.length > 128) {
-      throw new BadRequestException(
-        'Idempotency-Key must contain between 8 and 128 characters',
-      );
-    }
-
     const type = data.type ?? OrderType.DINE_IN;
     if (type !== OrderType.DINE_IN && data.tableId) {
       throw new BadRequestException(
@@ -107,32 +97,49 @@ export class OrderingService {
       notes: item.notes?.trim() || undefined,
       customizations: this.normalizeCustomizations(item.customizations),
     }));
-    const idempotencyOwnerId = data.actorId ?? data.userId;
-    if (!idempotencyOwnerId) {
-      throw new BadRequestException('An authenticated order actor is required');
-    }
-    const requestFingerprint = this.sha256(
-      this.stableStringify({
-        userId: data.userId,
-        branchId: data.branchId,
-        type,
-        tableId: data.tableId,
-        notes: data.notes?.trim() || undefined,
-        items: normalizedItems,
-        voucherCode: data.voucherCode?.trim().toUpperCase() || undefined,
-        loyaltyPointsUsed: data.loyaltyPointsUsed || undefined,
-        expectedTotal: data.expectedTotal,
-      }),
-    );
-    const idempotencyKeyHash = this.sha256(
-      `${idempotencyOwnerId}\u0000${idempotencyKey}`,
-    );
+    let requestFingerprint: string | undefined;
+    let idempotencyKeyHash: string | undefined;
+    if (!quoteOnly) {
+      const idempotencyKey = data.idempotencyKey.trim();
+      if (idempotencyKey.length < 8 || idempotencyKey.length > 128) {
+        throw new BadRequestException(
+          'Idempotency-Key must contain between 8 and 128 characters',
+        );
+      }
 
-    const existing = quoteOnly
-      ? null
-      : await this.orderingRepo.findByIdempotencyKeyHash(idempotencyKeyHash);
-    if (existing) {
-      return this.replayIdempotentOrder(existing, requestFingerprint);
+      const idempotencyOwnerId = data.actorId ?? data.userId;
+      if (!idempotencyOwnerId) {
+        throw new BadRequestException(
+          'An authenticated order actor is required',
+        );
+      }
+      requestFingerprint = this.sha256(
+        this.stableStringify({
+          userId: data.userId,
+          branchId: data.branchId,
+          type,
+          tableId: data.tableId,
+          notes: data.notes?.trim() || undefined,
+          items: normalizedItems,
+          voucherCode: data.voucherCode?.trim().toUpperCase() || undefined,
+          loyaltyPointsUsed: data.loyaltyPointsUsed || undefined,
+          expectedTotal: data.expectedTotal,
+        }),
+      );
+      idempotencyKeyHash = this.sha256(
+        `${idempotencyOwnerId}\u0000${idempotencyKey}`,
+      );
+    }
+
+    if (!quoteOnly) {
+      if (!idempotencyKeyHash || !requestFingerprint) {
+        throw new Error('Order persistence metadata was not generated');
+      }
+      const existing =
+        await this.orderingRepo.findByIdempotencyKeyHash(idempotencyKeyHash);
+      if (existing) {
+        return this.replayIdempotentOrder(existing, requestFingerprint);
+      }
     }
 
     const productIds = [
@@ -198,11 +205,15 @@ export class OrderingService {
         ? { loyaltyPointsUsed: data.loyaltyPointsUsed }
         : {}),
       ...(data.notes?.trim() ? { notes: data.notes.trim() } : {}),
-      idempotencyKeyHash,
-      requestFingerprint,
+      ...(idempotencyKeyHash ? { idempotencyKeyHash } : {}),
+      ...(requestFingerprint ? { requestFingerprint } : {}),
     };
 
     if (quoteOnly) return this.orderingRepo.quoteOrder(orderData);
+
+    if (!idempotencyKeyHash || !requestFingerprint) {
+      throw new Error('Order persistence metadata was not generated');
+    }
 
     try {
       const order = await this.orderingRepo.createOrder(orderData, orderItems, {

@@ -1,97 +1,83 @@
+# Warkop Ya'reh delivery roadmap
 
-Last audit: 2026-09-09. Audited implementation commit: b93cf7900b8ce560dc1dc8eb3d1cb23da06aa31e (Phase 5 validation pending).
+Last audit: 2026-09-09. Source baseline audited: `3303f1c1837adbd7d69dd5bcc36f3293f71f92dc`.
+Detailed evidence and remaining gates: [Phase 6 roadmap audit](phase6-remediation/ROADMAP_AUDIT.md).
 
-## Project: Warkop Ya'reh Digital Platform
+## Status model
 
-This document describes the 4-Phase rollout plan to scale the Warkop Ya'reh platform from initial local cafe operations to a national franchise brand.
+Roadmap state and release acceptance are separate:
 
----
+- `IMPLEMENTED_LOCAL`: the capability exists and has current local automated evidence.
+- `PARTIAL`: part of the named capability exists, but required behavior is absent.
+- `NOT_IMPLEMENTED`: the named capability was not found.
+- `RELEASE_VERIFIED`: implementation, quality, coverage, staging E2E, and QA acceptance all passed.
 
-## 1. Definition of Done (DoD) (Audited)
+No item in this document is currently `RELEASE_VERIFIED`. Local/CI evidence never
+substitutes for staging, provider, or production evidence.
 
-An item or feature in this roadmap is only marked as complete `[x]` when it satisfies the following criteria:
+## Definition of Done
 
-1. **Implementation**: Code meets the functional specs defined in the PRD.
-2. **Code Quality**: Passes all static code analysis (`pnpm lint` and `pnpm format`) with zero warnings.
-3. **Automated Testing**: Coverages exceed **80%** threshold in unit and integration test blocks.
-4. **Environment Verification**: Deployed successfully to staging and passes automated E2E smoke tests.
-5. **QA Review**: Verified against explicit acceptance criteria by the QA team.
+A deliverable becomes `RELEASE_VERIFIED` only when all of these are satisfied:
 
----
+1. Implementation meets the product contract.
+2. Lint, formatting, typecheck, tests, and build pass at the exact commit.
+3. The applicable unit/integration coverage gate is at least 80%.
+4. The exact commit is deployed to staging and passes automated E2E smoke tests.
+5. QA accepts explicit acceptance criteria.
 
-## 2. Roadmap Overview
+## Roadmap overview
 
-```
-📅 2026 Q3               📅 2026 Q4               📅 2027 H1               📅 2027 H2
-┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
-│ Phase 1: Local Cafe  │  │ Phase 2: Multi-Branch│  │ Phase 3: Regional    │  │ Phase 4: Franchise   │
-│ - Core ordering      │  │ - Price overrides    │  │ - Multi-region caching│ │ - Tenant isolation   │
-│ - Table reservations │  │ - Points & loyalty   │  │ - AI concierge       │  │ - BI analytics       │
-└──────────────────────┘  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘
-```
+| Window  | Phase        | Goal                                                       |
+| ------- | ------------ | ---------------------------------------------------------- |
+| 2026 Q3 | Local cafe   | Ordering, reservation, and checkout for flagship branches  |
+| 2026 Q4 | Multi-branch | Branch operations, loyalty, and real-time tracking         |
+| 2027 H1 | Regional     | Edge delivery, community, AI concierge, multi-region reads |
+| 2027 H2 | Franchise    | Tenant isolation, provisioning, BI, and billing            |
 
----
+## Phase 1: Local cafe operations
 
-## 3. Detailed Phases
+Target: Q3 2026. Product targets remain unmeasured until production telemetry
+exists: order p95 under 2 seconds at 50 concurrent users, mobile LCP under 2
+seconds, INP under 200 ms, and 99.5% uptime.
 
-### 📍 Phase 1: Local Cafe Operations (1-2 Branches)
+| Deliverable                                    | Implementation state | Release gate                                          |
+| ---------------------------------------------- | -------------------- | ----------------------------------------------------- |
+| Next.js customer portal                        | `IMPLEMENTED_LOCAL`  | Exact-commit CI, staging E2E, coverage, QA            |
+| NestJS menu, order tracking, and table booking | `IMPLEMENTED_LOCAL`  | Exact-commit CI, staging E2E, coverage, QA            |
+| Midtrans local e-wallet integration            | `IMPLEMENTED_LOCAL`  | Live sandbox/provider callbacks, staging, QA          |
+| Local Docker database settings                 | `IMPLEMENTED_LOCAL`  | Full Compose smoke and documented operator acceptance |
 
-- **Goal**: Launch the digital menu, table reservation engine, and checkout system at our Surabaya flagship locations (Darmo, Dharmahusada).
-- **Target Timeline**: Q3 2026
-- **Success Metrics & Service Level Objectives (SLOs)**:
-  - **Order Endpoint Performance**: `POST /api/v1/orders` p95 response latency < 2.0s under 50 concurrent users.
-  - **Menu Page Load**: LCP < 2.0s, INP < 200ms on mobile 3G networks.
-  - **System Reliability**: 99.5% uptime.
-- **Key Deliverables**:
-  - [ ] Next.js Web App customer portal.
-  - [ ] NestJS API Server with basic menu, order tracking, and table booking.
-  - [ ] Midtrans integration for local e-wallets.
-  - [ ] Local Docker database settings.
+## Phase 2: Multi-branch and real-time tracking
 
----
+Target: Q4 2026. MAU, conversion, and uptime values remain targets, not reported
+measurements.
 
-### 🏢 Phase 2: Multi-Branch & Real-time Tracking (10+ Branches)
+| Deliverable                                         | Implementation state | Release gate                                    |
+| --------------------------------------------------- | -------------------- | ----------------------------------------------- |
+| Authenticated Socket.IO order tracking              | `IMPLEMENTED_LOCAL`  | Deployed socket behavior, staging E2E, QA       |
+| Branch price overrides and availability             | `IMPLEMENTED_LOCAL`  | Exact-commit CI, staging mutation/readback, QA  |
+| Points ledger and Bronze/Silver/Gold/Platinum tiers | `IMPLEMENTED_LOCAL`  | Exact-commit CI, staging concurrency, QA        |
+| Automated email and WhatsApp check-in confirmations | `PARTIAL`            | Reservation check-in automation is still absent |
 
-- **Goal**: Expand operations across East Java, introducing loyalty rewards, referral programs, price overrides, and real-time status updates.
-- **Target Timeline**: Q4 2026
-- **Success Metrics**:
-  - Active Users: 20,000+ MAU.
-  - Loyalty Conversion: 35% signup rate.
-  - System Reliability: 99.9% uptime.
-- **Key Deliverables**:
-  - [ ] Real-time order status tracking via WebSockets (Socket.IO).
-  - [ ] Branch-specific price overrides and product availability controls.
-  - [ ] Points ledger and loyalty tier tracking (Bronze, Silver, Gold, Platinum).
-  - [ ] Automated email and WhatsApp check-in confirmations.
+## Phase 3: Regional expansion and edge optimization
 
----
+Target: H1 2027. Regional MAU, page speed, and uptime values remain targets.
 
-### 🌐 Phase 3: Regional Expansion & Edge Optimizations (25+ Branches)
+| Deliverable                         | Implementation state | Release gate                                                 |
+| ----------------------------------- | -------------------- | ------------------------------------------------------------ |
+| Cloudflare Workers menu edge cache  | `NOT_IMPLEMENTED`    | Worker architecture, implementation, tests, deployment       |
+| Community domain                    | `PARTIAL`            | Threading, GitHub profiles, interest tags, branch networking |
+| Gemini AI concierge                 | `NOT_IMPLEMENTED`    | Gemini-backed implementation and provider evaluation         |
+| Multi-region database read replicas | `NOT_IMPLEMENTED`    | Replica provisioning, routing, consistency tests             |
 
-- **Goal**: Deploy the platform across Java and Bali. Optimize performance at the edge, introduce AI assistants, and integrate community forums.
-- **Target Timeline**: H1 2027
-- **Success Metrics**:
-  - Active Users: 60,000+ MAU.
-  - Edge Page Speeds: LCP < 2.0s.
-  - System Reliability: 99.9% uptime.
-- **Key Deliverables**:
-  - [ ] Edge caching of menu structures using Cloudflare Workers.
-  - [ ] **Community Domain launch**: Threaded discussion boards, user profiles with GitHub integration, local interest tags, and branch-specific networking systems. *(partial: group creation, memberships, and posts done; GitHub integration, interest tags, and branch networking pending)*
-  - [ ] **AI Concierge launch**: Google Gemini integration for conversational menu selections and up-selling recommendations.
-  - [ ] Multi-region database read-replicas.
+## Phase 4: Franchise licensing and BI
 
----
+Target: H2 2027. National MAU, provisioning time, and uptime values remain
+targets.
 
-### 🏆 Phase 4: Franchise Licensing & BI (50+ Branches, National Scale)
-
-- **Goal**: Position the platform to support national franchise expansions, providing operators with database tenant isolation, analytics, and billing modules.
-- **Target Timeline**: H2 2027
-- **Success Metrics**:
-  - Active Users: 100,000+ MAU.
-  - Provisioning Time: < 4 hours per branch.
-  - System Reliability: 99.9% uptime.
-- **Key Deliverables**:
-  - [ ] **RLS Global Activation**: Row-level tenant isolation schemas forced globally in production database instances.
-  - [ ] Automated franchise provisioning tools. *(partial: manual agreement creation exists, automated infra provisioning pending)*
-  - [ ] Business Intelligence (BI) gross sales reports. *(partial: basic revenue stats & category performance done, full BI suite pending)*
-  - [ ] Multi-tenant billing and agreement tracking.
+| Deliverable                                 | Implementation state | Release gate                                             |
+| ------------------------------------------- | -------------------- | -------------------------------------------------------- |
+| Forced row-level tenant isolation           | `IMPLEMENTED_LOCAL`  | Production policy introspection and staging tenant tests |
+| Automated franchise provisioning            | `PARTIAL`            | Infrastructure provisioning/orchestration                |
+| Full BI gross-sales reports                 | `PARTIAL`            | Reporting scope, exports, reconciliation, QA             |
+| Multi-tenant billing and agreement tracking | `IMPLEMENTED_LOCAL`  | Exact-commit CI, staging billing reconciliation, QA      |

@@ -160,17 +160,6 @@ export default function MultiBranchManagementPage() {
     );
   }, [branchProducts, search]);
 
-  const replaceBranchProduct = (updated: BranchProductRecord) => {
-    setBranchProducts((current) =>
-      current.map((item) => (item.id === updated.id ? updated : item))
-    );
-    setPriceDrafts((current) => ({
-      ...current,
-      [updated.id]:
-        updated.priceOverride === null ? '' : String(updated.priceOverride),
-    }));
-  };
-
   const savePrice = async (item: BranchProductRecord) => {
     const key = `price:${item.id}`;
     const raw = priceDrafts[item.id] ?? '';
@@ -185,11 +174,10 @@ export default function MultiBranchManagementPage() {
     setSavingKey(key);
     setError(null);
     try {
-      replaceBranchProduct(
-        await updateBranchProduct(item.branchId, item.productId, {
-          priceOverride,
-        })
-      );
+      await updateBranchProduct(item.branchId, item.productId, {
+        priceOverride,
+      });
+      await loadData();
       setNotice(
         `${item.product.name} price persisted for ${item.branch.name}.`
       );
@@ -214,7 +202,7 @@ export default function MultiBranchManagementPage() {
         item.productId,
         !item.isAvailable
       );
-      replaceBranchProduct(updated);
+      await loadData();
       setNotice(
         `${updated.product.name} is now ${updated.isAvailable ? 'available' : 'unavailable'} at ${updated.branch.name}.`
       );
@@ -241,9 +229,7 @@ export default function MultiBranchManagementPage() {
     setError(null);
     try {
       const updated = await updateBranch(selectedBranch.id, { capacity });
-      setBranches((current) =>
-        current.map((branch) => (branch.id === updated.id ? updated : branch))
-      );
+      await loadData();
       setNotice(`${updated.name} capacity persisted.`);
     } catch (saveError: unknown) {
       setError(

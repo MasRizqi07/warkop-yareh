@@ -4,7 +4,7 @@ import { mkdirSync, appendFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { PrismaClient } from '@warkop-yareh/database';
+import { PrismaClient, Role } from '@warkop-yareh/database';
 import * as bcrypt from 'bcrypt';
 import * as midtrans from 'midtrans-client';
 import cookieParser from 'cookie-parser';
@@ -18,13 +18,17 @@ async function bootstrap() {
   const outbox = process.env.E2E_PROVIDER_OUTBOX;
   const email = process.env.E2E_CUSTOMER_EMAIL;
   const password = process.env.E2E_CUSTOMER_PASSWORD;
+  const adminEmail = process.env.E2E_ADMIN_EMAIL;
+  const adminPassword = process.env.E2E_ADMIN_PASSWORD;
   if (
     process.env.NODE_ENV !== 'test' ||
     databaseUrl.pathname !== '/warkop_audit' ||
     apiUrl.hostname !== '127.0.0.1' ||
     !outbox ||
     !email ||
-    !password
+    !password ||
+    !adminEmail ||
+    !adminPassword
   ) {
     throw new Error(
       'Browser fixtures require NODE_ENV=test, warkop_audit, a loopback API and explicit fixture configuration',
@@ -82,7 +86,7 @@ async function bootstrap() {
   const productId = 'browser-coffee';
   await prisma.branch.upsert({
     where: { id: branchId },
-    update: {},
+    update: { capacity: 40 },
     create: {
       id: branchId,
       slug: branchId,
@@ -91,6 +95,7 @@ async function bootstrap() {
       city: 'Surabaya',
       province: 'Jawa Timur',
       isMainBranch: true,
+      capacity: 40,
     },
   });
   await prisma.category.upsert({
@@ -117,8 +122,30 @@ async function bootstrap() {
   });
   await prisma.branchProduct.upsert({
     where: { branchId_productId: { branchId, productId } },
-    update: { priceOverride: 12000, isAvailable: true },
-    create: { branchId, productId, priceOverride: 12000, isAvailable: true },
+    update: {
+      priceOverride: 12000,
+      isAvailable: true,
+      stockQuantity: 50,
+      stockCapacity: 100,
+      stockThreshold: 10,
+      stockUnit: 'kg',
+      supplier: 'Browser Supplier',
+      leadTimeHours: 24,
+      burnRatePerDay: 5,
+    },
+    create: {
+      branchId,
+      productId,
+      priceOverride: 12000,
+      isAvailable: true,
+      stockQuantity: 50,
+      stockCapacity: 100,
+      stockThreshold: 10,
+      stockUnit: 'kg',
+      supplier: 'Browser Supplier',
+      leadTimeHours: 24,
+      burnRatePerDay: 5,
+    },
   });
   await prisma.table.upsert({
     where: { id: 'browser-table' },
@@ -141,14 +168,40 @@ async function bootstrap() {
       passwordHash: await bcrypt.hash(password, 12),
     },
   });
+  await prisma.cashierShift.deleteMany({ where: { branchId } });
+  await prisma.marketingCampaign.deleteMany({
+    where: { createdById: 'browser-admin' },
+  });
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      name: 'Browser Admin',
+      passwordHash: await bcrypt.hash(adminPassword, 12),
+      role: Role.ADMIN,
+      branchId,
+      deletedAt: null,
+    },
+    create: {
+      id: 'browser-admin',
+      email: adminEmail,
+      name: 'Browser Admin',
+      passwordHash: await bcrypt.hash(adminPassword, 12),
+      role: Role.ADMIN,
+      branchId,
+    },
+  });
   await prisma.$disconnect();
 
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn'],
   });
   app.use(cookieParser());
+  const allowedOrigins = [
+    process.env.E2E_WEB_URL,
+    process.env.E2E_ADMIN_URL,
+  ].filter((origin): origin is string => Boolean(origin));
   app.enableCors({
-    origin: process.env.E2E_WEB_URL,
+    origin: allowedOrigins,
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
   });

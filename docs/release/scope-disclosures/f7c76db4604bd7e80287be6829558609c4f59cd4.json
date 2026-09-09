@@ -1,0 +1,1442 @@
+{
+  "schemaVersion": 1,
+  "sourceMerge": "90c4366792b6408cfdf8660981f13c45f3a355d1",
+  "firstParent": "0b3efd9e3b97ad8711e1f77ecbc22d4eebcf91d3",
+  "importedParent": "f7c76db4604bd7e80287be6829558609c4f59cd4",
+  "approvedOn": "2026-09-09",
+  "decision": "Retain the imported implementation in main, review it as a separate scope, and keep production release frozen until its named gates pass.",
+  "summary": {
+    "changedFiles": 235,
+    "insertions": 8815,
+    "deletions": 81176,
+    "areaCounts": {
+      "platform-and-release": 10,
+      "admin-operations": 27,
+      "repository-cleanup": 102,
+      "backend-operations": 40,
+      "cashier-shift-operations": 5,
+      "customer-experience": 45,
+      "documentation": 3,
+      "database-contracts": 3
+    }
+  },
+  "evidence": [
+    "docs/release/SCOPE_INTEGRITY_REMEDIATION.md",
+    "docs/release/ADMIN_REVIEW_MATRIX.md",
+    "apps/api/test/operations.e2e-spec.ts",
+    "pnpm audit:scope",
+    "pnpm verify"
+  ],
+  "files": [
+    {
+      "status": "M",
+      "path": ".env.example",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/cd.yml",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": ".github/workflows/ci.yml",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": ".gitignore",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": ".node-version",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "README.md",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/package.json",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/analytics/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/branches/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/community/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/crm/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/events/[id]/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/events/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/inventory/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/loyalty/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/marketing/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/orders/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/products/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/reservations/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/settings/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/shifts/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/(dashboard)/users/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/kitchen/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/pos/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/pos/shifts/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/app/tables/page.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/DashboardHeader.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/InventoryAlert.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/LoyaltyTierStats.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/QuickActions.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/RecentOrders.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/RevenueChart.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/StatCard.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/StatsRow.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/dashboard/UpcomingEvents.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/components/layout/Header.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/components/layout/Sidebar.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/admin/src/components/management/page-kit.tsx",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/components/ui/StatusBadge.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "A",
+      "path": "apps/admin/src/lib/management-api.ts",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/admin/src/lib/operations-api.test.ts",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/admin/src/lib/operations-api.ts",
+      "area": "admin-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/lib/order-logic.test.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/admin/src/lib/order-logic.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/app.module.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/infrastructure/payment/cash-payment.controller.spec.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/infrastructure/payment/cash-payment.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/infrastructure/payment/payment.dto.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/infrastructure/payment/payment.module.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/infrastructure/payment/payment.service.spec.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/infrastructure/payment/payment.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/community/application/services/community.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/community/presentation/controllers/community.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/content/application/services/content.service.spec.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/content/application/services/content.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/content/content.module.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/content/presentation/controllers/content.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/content/presentation/dtos/content.dto.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/event/application/services/event.service.spec.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/event/application/services/event.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/event/presentation/controllers/event.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/event/presentation/dtos/event.dto.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/identity/application/services/identity.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/identity/domain/repositories/user.repository.interface.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/identity/infrastructure/repositories/prisma-user.repository.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/identity/presentation/controllers/users.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/identity/presentation/dtos/auth.dto.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/identity/presentation/dtos/user.dto.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/loyalty/application/services/loyalty.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/loyalty/presentation/controllers/loyalty.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/loyalty/presentation/dtos/loyalty.dto.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/operations/application/services/shift.service.spec.ts",
+      "area": "cashier-shift-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/operations/application/services/shift.service.ts",
+      "area": "cashier-shift-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/operations/operations.module.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/operations/presentation/controllers/shift.controller.ts",
+      "area": "cashier-shift-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/src/modules/operations/presentation/dtos/shift.dto.ts",
+      "area": "cashier-shift-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/ordering/application/services/ordering.service.spec.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/ordering/application/services/ordering.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/ordering/domain/repositories/ordering.repository.interface.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/ordering/infrastructure/repositories/prisma-ordering.repository.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/ordering/presentation/controllers/orders.controller.spec.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/ordering/presentation/controllers/orders.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/tables/application/services/table.service.spec.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/tables/application/services/table.service.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/tables/domain/repositories/table.repository.interface.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/tables/infrastructure/repositories/prisma-table.repository.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/tables/presentation/controllers/table.controller.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/src/modules/websockets/events.gateway.ts",
+      "area": "backend-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/.env.example",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/package.json",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/postcss.config.mjs.bak",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/postcss.config.mjs.bak2",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/about/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/app/(marketing)/blog/[slug]/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/blog/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/community/groups/[id]/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/community/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/contact/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/app/(marketing)/events/[id]/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/events/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/menu/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/(marketing)/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/cart/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/checkout/status/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/globals.css",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/layout.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/ops/kds/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/ops/pos/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/ops/shift/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/orders/[id]/thankyou/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/payment/status/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/qr/[code]/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/app/table/[tableId]/page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/app/test-ds/page.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/components/ai/barista-concierge-modal.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/components/layout/UniversalHeader.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/components/layout/footer.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/components/navigation/PwaBottomDock.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/sections/cta-section.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/sections/events-section.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/sections/featured-products.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/sections/hero-section.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/sections/membership-card.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/sections/stats-section.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/sections/testimonials-section.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/shared/community-card.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/shared/event-card.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/components/shared/product-card.tsx",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/data/mock.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/account/account-page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/catalog/product-customizer.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/loyalty/loyalty-page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/orders/order-tracking-page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/public/public.api.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/reservations/booking-page.tsx",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/lib/admin-url.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/lib/audioAlerts.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/lib/client-checkout-estimate.test.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/lib/client-checkout-estimate.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/lib/constants.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/lib/mockData.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/lib/utils.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/store/useAppStore.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/stores/auth.store.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/stores/branch.store.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/stores/checkout.store.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/stores/index.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/stores/persist-storage.test.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/stores/persist-storage.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/stores/useAppStore.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/stores/useReservationStore.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "apps/web/src/stores/useUserStore.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/vitest.config.ts",
+      "area": "customer-experience",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "capture-authenticated-evidence.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "check-db.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "check_super.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "create-role.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "docs/DEVELOPMENT_GUIDE.md",
+      "area": "documentation",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "docs/PHASE_2_6_EXECUTION.md",
+      "area": "documentation",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "docs/architecture/frontend_architecture.md",
+      "area": "documentation",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "nextjs-nodejs/Config/config.json",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "package.json",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "packages/analytics/package.json",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/config/package.json",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/config/tsconfig.json",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/default.d.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/default.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/edge.d.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/edge.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/index-browser.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/index.d.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/index.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/libquery_engine-debian-openssl-3.0.x.so.node",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/libquery_engine-linux-musl-openssl-3.0.x.so.node",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/package.json",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/query_engine-windows.dll.node",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/query_engine-windows.dll.node.tmp11228",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/query_engine-windows.dll.node.tmp16016",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/query_engine-windows.dll.node.tmp5824",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/query_engine-windows.dll.node.tmp8520",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/query_engine-windows.dll.node.tmp8704",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/query_engine-windows.dll.node.tmp9824",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/edge-esm.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/edge.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/index-browser.d.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/index-browser.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/library.d.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/library.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/react-native.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/runtime/wasm.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/schema.prisma",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/wasm.d.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/database/generated/client/wasm.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "A",
+      "path": "packages/database/prisma/migrations/20260908130000_cashier_shift_operations/migration.sql",
+      "area": "cashier-shift-operations",
+      "decision": "retain"
+    },
+    {
+      "status": "A",
+      "path": "packages/database/prisma/migrations/20260908143000_event_registration_status_index/migration.sql",
+      "area": "database-contracts",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "packages/database/prisma/schema.prisma",
+      "area": "database-contracts",
+      "decision": "retain"
+    },
+    {
+      "status": "M",
+      "path": "packages/database/prisma/seed.ts",
+      "area": "database-contracts",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "packages/shared/package.json",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/validation/index.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "packages/validation/package.json",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "pnpm-lock.yaml",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "provision-test-role.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "query-all-users.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "query-seeded.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "query-users.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "A",
+      "path": "scripts/clean.mjs",
+      "area": "platform-and-release",
+      "decision": "retain"
+    },
+    {
+      "status": "D",
+      "path": "setup_rls.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "take-all-screenshots.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-a1.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-a3.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-api-admin.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-api-rls.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-api.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-b.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-c.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-cart-logic.ts",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-db-passwords.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-e2e-payment.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-e2e-setup.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-e2e-spoofing.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-grant.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-grep.sh",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-midtrans-500.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-policies.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-read-users-su.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-read-users.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-rls.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-role-set.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-seed.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-snap.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test-ws.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test.js",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "D",
+      "path": "test.ps1",
+      "area": "repository-cleanup",
+      "decision": "retain-removal"
+    },
+    {
+      "status": "M",
+      "path": "turbo.json",
+      "area": "platform-and-release",
+      "decision": "retain"
+    }
+  ]
+}

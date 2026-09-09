@@ -1,24 +1,30 @@
-# Phase 6 - complete roadmap checklist audit
+# Roadmap evidence audit
 
-All 16 deliverable checkboxes were inspected. The roadmap's Definition of Done requires measured coverage above 80%, staging E2E, and explicit QA acceptance. Source implementation and passing local tests do not satisfy those release conditions. No current staging or coverage evidence was available during this audit, so nine previously checked items become unchecked while their implemented capabilities remain documented. None of the seven open items has enough evidence to become checked.
+Audit date: 2026-09-09. Source baseline: `3303f1c1837adbd7d69dd5bcc36f3293f71f92dc`.
 
-| Roadmap item | Old | New | Direct source evidence and remaining requirement |
-| --- | --- | --- | --- |
-| Customer Next.js portal | `[x]` | `[ ]` | `apps/web/src/app`, `apps/web/src/features/orders/checkout-page.tsx`, `apps/web/src/features/reservations/booking-page.tsx`: real portal and checkout/reservation routes. Local build/browser results are in the remediation report. Coverage/staging/QA DoD remains unverified. |
-| NestJS menu, tracking and table booking | `[x]` | `[ ]` | `apps/api/src/app.module.ts`; catalog and ordering modules; `apps/api/src/modules/reservation/application/services/booking.service.ts`; `apps/api/test/checkout.e2e-spec.ts`. Local application and persisted booking tests exist; release DoD unverified. |
-| Midtrans e-wallet integration | `[x]` | `[ ]` | `apps/api/src/infrastructure/payment/midtrans.service.ts`, `payment.service.ts`, and their specs; web `features/orders/orders.api.ts`. SDK boundary is mocked in browser tests. Live provider, callbacks and staging acceptance remain unverified. |
-| Local Docker database settings | `[x]` | `[ ]` | `infra/docker/docker-compose.yml` defines Postgres 16/Redis. `.github/workflows/ci.yml` provisions disposable services; migrations and checkout/RLS passed locally on Postgres 16. This proves the local test database, not the full Compose application or the roadmap's complete acceptance criteria. |
-| Real-time Socket.IO tracking | `[x]` | `[ ]` | `apps/api/src/modules/websockets/events.gateway.ts`: verified JWT connection, scoped room handlers and broadcasts; web `features/orders/order-tracking-page.tsx` subscribes to status. Coverage/staging/QA and deployed socket behavior unverified. |
-| Branch price overrides/availability | `[x]` | `[ ]` | `apps/api/src/modules/catalog/infrastructure/repositories/prisma-catalog.repository.ts`, ordering `prisma-ordering.repository.ts`, schema `BranchProduct`; admin inventory/products routes. Browser fixture uses a branch price override of 12000 over base price 10000. Release DoD unverified. |
-| Points ledger and four tiers | `[x]` | `[ ]` | `apps/api/src/modules/loyalty/application/services/loyalty.service.ts`: transactional ledger and tier progression; ordering repository applies checkout redemption/refund; checkout persistence suite tests concurrency and reversal. Release DoD unverified. |
-| Email/WhatsApp check-in confirmations | `[ ]` | `[ ]` | Identity `auth.service.ts` sends OTP email; marketing `marketing.service.ts` and `infrastructure/whatsapp-cloud.service.ts` dispatch campaigns. These are implemented provider flows, but neither implements automated reservation check-in confirmations. |
-| Cloudflare Workers menu edge caching | `[ ]` | `[ ]` | `infra/terraform/main.tf` provisions R2 and a Neon project, not a Workers menu-cache deployment. No Worker handler/config found in `infra` or application source. |
-| Full Community Domain launch | `[ ]` | `[ ]` | `apps/api/src/modules/community/application/services/community.service.ts` implements groups, memberships and posts; schema has no threaded reply relationship or GitHub profile integration. Interest tags and branch networking are absent. Existing categories are not equivalent to interest tags. |
-| Gemini AI concierge | `[ ]` | `[ ]` | `apps/api/src/modules/ai/ai.service.ts` ranks catalog products using `PROFILE_KEYWORDS`/flavor matrix and returns templated chat replies. Current catalog recommendations exist; there is no Gemini integration. |
-| Multi-region read replicas | `[ ]` | `[ ]` | `infra/terraform/main.tf` declares one Neon project in `aws-ap-southeast-1`; `packages/database/prisma/schema.prisma` uses one `DATABASE_URL`; no read-replica routing/provisioning found. |
-| Global production RLS activation | `[x]` | `[ ]` | `packages/database/prisma/migrations/20260709032553_enable_rls`, `20260712011030_force_rls` and later migrations; `apps/api/src/infrastructure/database/database.service.ts` sets the tenant role/context. Isolated Postgres RLS regression passed. No production instance introspection is available, so the original production claim cannot be retained. |
-| Automated franchise provisioning | `[ ]` | `[ ]` | `apps/api/src/modules/franchise/application/services/franchise.service.ts` creates agreements against an existing active branch; no automatic tenant infrastructure provisioning/orchestrator. |
-| Full BI gross sales reports | `[ ]` | `[ ]` | `apps/api/src/modules/analytics/application/services/analytics.service.ts` aggregates completed orders and category/customer insights; `apps/admin/src/app/(dashboard)/analytics/page.tsx` displays these. A full BI reporting suite remains absent. |
-| Multi-tenant billing/agreements | `[x]` | `[ ]` | Franchise `franchise.service.ts` validates term/period, aggregates branch revenue and creates unique period billing. Schema `FranchiseAgreement`/`FranchiseBilling`, controller RBAC and specs exist. Coverage/staging/QA DoD remains unverified. |
+The audit uses four explicit states defined in `docs/ROADMAP.md`. This avoids both
+overclaiming release completion and underclaiming capabilities that already
+exist. No current staging, production-provider, measured coverage, or QA
+acceptance evidence was found, so no item is `RELEASE_VERIFIED`.
 
-The implementation commit/date are stamped at the top of `docs/ROADMAP.md`. Business targets (MAU, uptime, latency, LCP and conversion) remain targets; this audit does not invent measured results.
+| Roadmap item                   | State               | Direct source evidence                                                                 | Missing release or implementation evidence                                     |
+| ------------------------------ | ------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Customer Next.js portal        | `IMPLEMENTED_LOCAL` | `apps/web/src/app`, checkout and reservation features, browser E2E                     | Exact-commit CI for remediation, staging, coverage, QA                         |
+| NestJS menu, tracking, booking | `IMPLEMENTED_LOCAL` | `apps/api/src/app.module.ts`, catalog, ordering, reservation, persisted checkout suite | Exact-commit CI for remediation, staging, coverage, QA                         |
+| Midtrans e-wallet              | `IMPLEMENTED_LOCAL` | payment services/specs, browser contract/itemization test                              | Live sandbox callback and staging acceptance                                   |
+| Local Docker database          | `IMPLEMENTED_LOCAL` | `infra/docker/docker-compose.yml`; isolated PostgreSQL/Redis CI services               | Full Compose application smoke                                                 |
+| Socket.IO tracking             | `IMPLEMENTED_LOCAL` | authenticated gateway and web/admin subscribers                                        | Deployed socket E2E                                                            |
+| Branch prices/availability     | `IMPLEMENTED_LOCAL` | catalog repository, admin branch/inventory pages, browser readback                     | Staging mutation/readback and QA                                               |
+| Loyalty ledger/four tiers      | `IMPLEMENTED_LOCAL` | transactional loyalty service and persisted concurrency/reversal tests                 | Staging concurrency and QA                                                     |
+| Email/WhatsApp check-in        | `PARTIAL`           | OTP email and WhatsApp campaign flows exist                                            | Automated reservation check-in confirmation does not                           |
+| Workers menu cache             | `NOT_IMPLEMENTED`   | No Worker handler/config found                                                         | Full capability                                                                |
+| Community domain               | `PARTIAL`           | groups, memberships, posts                                                             | Threaded replies, GitHub profile integration, interest tags, branch networking |
+| Gemini concierge               | `NOT_IMPLEMENTED`   | Existing AI service is deterministic catalog ranking                                   | Gemini integration and provider evaluation                                     |
+| Read replicas                  | `NOT_IMPLEMENTED`   | One datasource and one declared Neon region                                            | Multi-region provisioning and routing                                          |
+| Forced RLS                     | `IMPLEMENTED_LOCAL` | FORCE RLS migrations, tenant context, isolated Postgres regression                     | Production policy introspection and staging proof                              |
+| Franchise provisioning         | `PARTIAL`           | Agreements can be created for existing branches                                        | Automated tenant infrastructure provisioning                                   |
+| BI gross-sales suite           | `PARTIAL`           | Revenue/category/customer aggregates and admin analytics UI                            | Full reporting, exports, reconciliation                                        |
+| Billing/agreements             | `IMPLEMENTED_LOCAL` | franchise service/schema/controller/specs                                              | Staging billing reconciliation and QA                                          |
+
+Business metrics in the roadmap remain targets. They are not claimed as actuals
+until traceable telemetry exists.
