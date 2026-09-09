@@ -87,3 +87,4 @@ In all mutating actions:
 - **Server RBAC**: PASS (All sensitive mutations guarded on backend; least-privilege role matrix enforced).
 - **Tenant & Branch Scoping**: PASS (PostgreSQL forced RLS + service-level branch validation).
 - **Mutation Integrity**: ACCEPT_WITH_FIX (Implemented authoritative server reload on branches, inventory, and marketing pages).
+

@@ -80,3 +80,4 @@ CREATE INDEX "event_registrations_eventId_status_idx" ON "event_registrations"("
 1. **Safety Verdict**: Non-destructive. All migrations are forward-compatible and safe for deployment.
 2. **Preflight Guard**: Deploy the hardened `cd.yml` workflow with `scripts/validate-database-target.mjs` before executing migrations.
 3. **Execution Mode**: Production migration must ALWAYS use `prisma migrate deploy` triggered manually via GitHub Actions workflow dispatch with commit SHA confirmation. NEVER use `prisma migrate dev` or destructive reset commands.
+
