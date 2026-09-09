@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Users, Heart, Target, Lightbulb, Globe, Award } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@warkop-yareh/ui';
 import { SectionHeader } from '@/components/shared/section-header';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 

@@ -1,6 +1,6 @@
 import { Footer } from "@/components/layout/footer";
-import { ScrollProgress } from "@/components/ui/scroll-progress";
-import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { ScrollProgress } from "@warkop-yareh/ui";
+import { ScrollToTop } from "@warkop-yareh/ui";
 
 export default function MarketingLayout({
   children,

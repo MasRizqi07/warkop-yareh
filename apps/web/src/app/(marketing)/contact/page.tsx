@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@warkop-yareh/ui';
+import { Input } from '@warkop-yareh/ui';
 import { SectionHeader } from '@/components/shared/section-header';
 import { DataState, LoadingState } from '@/components/data-state';
 import { getBranches } from '@/features/catalog/catalog.api';

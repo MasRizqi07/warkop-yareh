@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@warkop-yareh/ui';
+import { Input } from '@warkop-yareh/ui';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { Coffee, Mail, KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react';

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@warkop-yareh/ui';
+import { Input } from '@warkop-yareh/ui';
 import { useAuthStore } from '@/stores/auth.store';
 import { api } from '@/lib/api';
 import { Coffee, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
