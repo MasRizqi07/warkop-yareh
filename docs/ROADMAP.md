@@ -1,4 +1,5 @@
-# 🗺️ Product & Tech Roadmap
+
+Last audit: 2026-09-09. Audited implementation commit: b93cf7900b8ce560dc1dc8eb3d1cb23da06aa31e (Phase 5 validation pending).
 
 ## Project: Warkop Ya'reh Digital Platform
 
@@ -42,10 +43,10 @@ An item or feature in this roadmap is only marked as complete `[x]` when it sati
   - **Menu Page Load**: LCP < 2.0s, INP < 200ms on mobile 3G networks.
   - **System Reliability**: 99.5% uptime.
 - **Key Deliverables**:
-  - [x] Next.js Web App customer portal.
-  - [x] NestJS API Server with basic menu, order tracking, and table booking.
-  - [x] Midtrans integration for local e-wallets.
-  - [x] Local Docker database settings.
+  - [ ] Next.js Web App customer portal.
+  - [ ] NestJS API Server with basic menu, order tracking, and table booking.
+  - [ ] Midtrans integration for local e-wallets.
+  - [ ] Local Docker database settings.
 
 ---
 
@@ -58,9 +59,9 @@ An item or feature in this roadmap is only marked as complete `[x]` when it sati
   - Loyalty Conversion: 35% signup rate.
   - System Reliability: 99.9% uptime.
 - **Key Deliverables**:
-  - [x] Real-time order status tracking via WebSockets (Socket.IO).
-  - [x] Branch-specific price overrides and product availability controls.
-  - [x] Points ledger and loyalty tier tracking (Bronze, Silver, Gold, Platinum).
+  - [ ] Real-time order status tracking via WebSockets (Socket.IO).
+  - [ ] Branch-specific price overrides and product availability controls.
+  - [ ] Points ledger and loyalty tier tracking (Bronze, Silver, Gold, Platinum).
   - [ ] Automated email and WhatsApp check-in confirmations.
 
 ---
@@ -90,7 +91,7 @@ An item or feature in this roadmap is only marked as complete `[x]` when it sati
   - Provisioning Time: < 4 hours per branch.
   - System Reliability: 99.9% uptime.
 - **Key Deliverables**:
-  - [x] **RLS Global Activation**: Row-level tenant isolation schemas forced globally in production database instances.
+  - [ ] **RLS Global Activation**: Row-level tenant isolation schemas forced globally in production database instances.
   - [ ] Automated franchise provisioning tools. *(partial: manual agreement creation exists, automated infra provisioning pending)*
   - [ ] Business Intelligence (BI) gross sales reports. *(partial: basic revenue stats & category performance done, full BI suite pending)*
-  - [x] Multi-tenant billing and agreement tracking.
+  - [ ] Multi-tenant billing and agreement tracking.

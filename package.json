@@ -9,6 +9,7 @@
     "typecheck": "turbo run typecheck",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "test:ui": "node scripts/ui-audit.mjs",
+    "test:e2e": "playwright test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "clean": "node scripts/clean.mjs",
     "test": "turbo run test"

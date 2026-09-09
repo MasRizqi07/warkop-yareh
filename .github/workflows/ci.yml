@@ -33,6 +33,8 @@ jobs:
       JWT_SECRET: ci-placeholder-secret-not-for-real-use-min-32-chars
       JWT_REFRESH_SECRET: ci-placeholder-refresh-secret-not-for-real-use
       MIDTRANS_SERVER_KEY: ci-placeholder-midtrans-key
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:4006/api/v1
+      NEXT_PUBLIC_WS_URL: http://127.0.0.1:4006
 
     steps:
       - name: Checkout
@@ -79,3 +81,20 @@ jobs:
         run: pnpm --filter @warkop-yareh/api run test:e2e
         env:
           NODE_ENV: test
+
+      - name: Install Chromium for checkout and auth E2E
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser checkout and authentication E2E
+        run: pnpm test:e2e
+
+      - name: Upload browser test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-e2e-evidence
+          path: |
+            test-results/browser
+            test-results/playwright-report
+            test-results/playwright-results.json
+          if-no-files-found: warn
