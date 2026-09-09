@@ -12,6 +12,13 @@ const quoteResponse = (page: Page) =>
       response.request().method() === 'POST' &&
       response.ok()
   );
+const guestQuoteResponse = (page: Page) =>
+  page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/orders/quote/guest') &&
+      response.request().method() === 'POST' &&
+      response.ok()
+  );
 
 async function addCoffee(page: Page) {
   await page.goto('/menu');
@@ -54,6 +61,39 @@ async function expectCartPrice(page: Page, total = '13.920') {
   ).toContainText(total);
 }
 
+test('guest quote is public, server-authoritative, and rejects personal discounts', async ({
+  page,
+}) => {
+  const payload = {
+    branchId: 'browser-branch',
+    type: 'TAKE_AWAY',
+    items: [{ productId: 'browser-coffee', quantity: 1 }],
+  };
+  const response = await page.request.post(`${apiUrl}/orders/quote/guest`, {
+    data: payload,
+  });
+  expect(response.status()).toBe(200);
+  expect((await response.json()).data).toMatchObject({
+    subtotal: 12_000,
+    tax: 1_320,
+    serviceFee: 600,
+    voucherDiscount: 0,
+    pointsDiscount: 0,
+    total: 13_920,
+  });
+
+  for (const forbidden of [
+    { userId: 'browser-customer' },
+    { voucherCode: 'PRIVATE' },
+    { loyaltyPointsUsed: 10 },
+  ]) {
+    const rejected = await page.request.post(`${apiUrl}/orders/quote/guest`, {
+      data: { ...payload, ...forbidden },
+    });
+    expect(rejected.status()).toBe(400);
+  }
+});
+
 for (const mode of ['dine-in', 'delivery'] as const) {
   test(`guest cart -> authenticated ${mode} -> server quote -> persisted order -> payment`, async ({
     page,
@@ -65,9 +105,17 @@ for (const mode of ['dine-in', 'delivery'] as const) {
         body: '<h1>Test payment provider</h1>',
       })
     );
+    const publicQuote = guestQuoteResponse(page);
     await addCoffee(page);
+    expect((await (await publicQuote).json()).data).toMatchObject({
+      subtotal: 12_000,
+      tax: 1_320,
+      serviceFee: 600,
+      total: 13_920,
+    });
+    await expectCartPrice(page);
     await expect(
-      page.getByRole('heading', { name: 'Masuk untuk melihat estimasi harga' })
+      page.getByText('Masuk saat checkout untuk menerapkan voucher dan poin.')
     ).toBeVisible();
     await page
       .getByRole('button', {
@@ -212,7 +260,7 @@ test('cart hides stale totals while loading, reports quote errors, and retries w
   page,
 }) => {
   await addCoffee(page);
-  await page.getByRole('link', { name: 'Masuk ke akun' }).click();
+  await page.goto('/login?returnTo=/cart');
   await login(page);
   await expectCartPrice(page);
   let release!: () => void;
