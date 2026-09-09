@@ -9,7 +9,30 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: warkop_audit
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d warkop_audit"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/warkop_audit
+      REDIS_URL: redis://127.0.0.1:6379
+      JWT_SECRET: ci-placeholder-secret-not-for-real-use-min-32-chars
+      JWT_REFRESH_SECRET: ci-placeholder-refresh-secret-not-for-real-use
+      MIDTRANS_SERVER_KEY: ci-placeholder-midtrans-key
 
     steps:
       - name: Checkout
@@ -34,6 +57,9 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter @warkop-yareh/database run db:generate
 
+      - name: Migrate isolated integration database
+        run: pnpm --filter @warkop-yareh/database run db:migrate:deploy
+
       - name: Typecheck
         run: pnpm turbo run typecheck
 
@@ -43,15 +69,13 @@ jobs:
       - name: Build
         run: pnpm turbo run build
 
-      - name: Test
+      # api#test depends on uncached test:checkout (one worker) in turbo.json.
+      - name: Unit tests and checkout persistence / concurrency / RLS
         run: pnpm turbo run test
         env:
-          # Dummy values only — no real DB/Redis container here because every
-          # spec Claude inspected mocks PrismaService directly. If a real
-          # integration/e2e suite against a live Postgres gets added later,
-          # add a `services: postgres:` block then — not before (YAGNI).
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci_placeholder
-          JWT_SECRET: ci-placeholder-secret-not-for-real-use-min-32-chars
-          JWT_REFRESH_SECRET: ci-placeholder-refresh-secret-not-for-real-use
-          MIDTRANS_SERVER_KEY: ci-placeholder-midtrans-key
+          NODE_ENV: test
+
+      - name: API application E2E
+        run: pnpm --filter @warkop-yareh/api run test:e2e
+        env:
           NODE_ENV: test

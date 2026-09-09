@@ -24,7 +24,6 @@ import type {
 import { EventsGateway } from '../../../websockets/events.gateway';
 import { Order } from '../../domain/entities/order.entity';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
-import { calculateCheckout } from '../../domain/checkout-pricing';
 
 export interface CreateOrderInput {
   expectedTotal?: number;
@@ -183,7 +182,6 @@ export class OrderingService {
       OrderStatus.PENDING,
       orderItems,
     ).calculateTotal();
-    const { tax, serviceFee, total } = calculateCheckout(subtotal);
     const orderNumber = this.createOrderNumber();
     const orderData = {
       expectedTotal: data.expectedTotal,
@@ -193,9 +191,6 @@ export class OrderingService {
       ...(data.tableId ? { tableId: data.tableId } : {}),
       type,
       subtotal,
-      tax,
-      serviceFee,
-      total,
       ...(data.voucherCode?.trim()
         ? { voucherCode: data.voucherCode.trim().toUpperCase() }
         : {}),
@@ -213,7 +208,6 @@ export class OrderingService {
       const order = await this.orderingRepo.createOrder(orderData, orderItems, {
         ...(data.userId ? { userId: data.userId } : {}),
         branchId: data.branchId,
-        total,
         itemCount: normalizedItems.length,
         type,
       });

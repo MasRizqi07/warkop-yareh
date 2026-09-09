@@ -9,6 +9,7 @@ import {
   OrderDetails,
 } from '../../domain/repositories/ordering.repository.interface';
 import { MidtransService } from '../../../../infrastructure/payment/midtrans.service';
+import * as checkoutPricing from '../../domain/checkout-pricing';
 
 const makeOrder = (overrides: Partial<OrderDetails> = {}): OrderDetails =>
   ({
@@ -97,7 +98,7 @@ describe('OrderingService', () => {
     service = module.get(OrderingService);
   });
 
-  it('uses authoritative branch prices and calculates tax server-side', async () => {
+  it('prepares the subtotal from authoritative branch prices', async () => {
     repository.getAvailableProductsByIds.mockResolvedValue([
       {
         id: 'prod-1',
@@ -132,9 +133,6 @@ describe('OrderingService', () => {
       expect.objectContaining({
         type: OrderType.DINE_IN,
         subtotal: 52_000,
-        tax: 5_720,
-        serviceFee: 2_600,
-        total: 60_320,
         idempotencyKeyHash: expect.stringMatching(/^[a-f0-9]{64}$/),
         requestFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
       }),
@@ -142,6 +140,62 @@ describe('OrderingService', () => {
       expect.any(Object),
     );
   });
+
+  it.each(['createOrder', 'quoteOrder'] as const)(
+    '%s leaves voucher and point pricing to the repository',
+    async (operation) => {
+      const calculate = jest.spyOn(checkoutPricing, 'calculateCheckout');
+      repository.getAvailableProductsByIds.mockResolvedValue([
+        { id: 'prod-1', name: 'Latte', unitPrice: 20_000, customizations: [] },
+      ]);
+      repository.createOrder.mockResolvedValue(makeOrder());
+      repository.quoteOrder.mockResolvedValue({
+        subtotal: 20_000,
+        tax: 2_200,
+        serviceFee: 1_000,
+        voucherDiscount: 1_000,
+        pointsDiscount: 2_000,
+        discount: 3_000,
+        loyaltyPointsUsed: 20,
+        maxRedeemablePoints: 190,
+        total: 20_200,
+      });
+      try {
+        for (const discounts of [
+          {},
+          { voucherCode: ' save ', loyaltyPointsUsed: 20 },
+        ]) {
+          await service[operation]({
+            userId: 'user-1',
+            branchId: 'branch-1',
+            idempotencyKey: 'pricing-boundary-test',
+            items: [{ productId: 'prod-1', quantity: 1 }],
+            ...discounts,
+          });
+        }
+        const calls =
+          operation === 'createOrder'
+            ? repository.createOrder.mock.calls
+            : repository.quoteOrder.mock.calls;
+        expect(calls.map(([data]) => data.subtotal)).toEqual([20_000, 20_000]);
+        expect(calls[1][0]).toMatchObject({
+          voucherCode: 'SAVE',
+          loyaltyPointsUsed: 20,
+        });
+        for (const [data] of calls) {
+          expect(data).not.toHaveProperty('tax');
+          expect(data).not.toHaveProperty('serviceFee');
+          expect(data).not.toHaveProperty('total');
+        }
+        expect(calculate).not.toHaveBeenCalled();
+        for (const [, , outbox] of repository.createOrder.mock.calls) {
+          expect(outbox).not.toHaveProperty('total');
+        }
+      } finally {
+        calculate.mockRestore();
+      }
+    },
+  );
 
   it('rejects missing or unavailable products instead of creating zero-price items', async () => {
     repository.getAvailableProductsByIds.mockResolvedValue([]);

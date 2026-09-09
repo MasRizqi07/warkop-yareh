@@ -39,9 +39,10 @@ export interface CreateOrderData {
   tableId?: string;
   type: OrderType;
   subtotal: number;
-  tax: number;
-  serviceFee: number;
-  total: number;
+  // Final amounts are assigned by calculateQuote in the repository transaction.
+  tax?: number;
+  serviceFee?: number;
+  total?: number;
   voucherCode?: string;
   loyaltyPointsUsed?: number;
   notes?: string;

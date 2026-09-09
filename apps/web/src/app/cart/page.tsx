@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -18,6 +19,14 @@ import {
 } from 'lucide-react';
 import { useActiveBranch } from '@/features/catalog/catalog.hooks';
 import { type FulfillmentType, useCartStore, useCheckoutStore } from '@/stores';
+import { useAuthStore } from '@/stores/auth.store';
+import { quoteOrder, type CreateOrderRequest } from '@/features/orders/orders.api';
+import { DataState, LoadingState } from '@/components/data-state';
+import { getApiErrorMessage } from '@/lib/api-error';
+
+const ORDER_TYPES: Record<FulfillmentType, CreateOrderRequest['type']> = {
+  'dine-in': 'DINE_IN', pickup: 'TAKE_AWAY', 'drive-thru': 'DRIVE_THRU', delivery: 'DELIVERY',
+};
 
 const FULFILLMENT_OPTIONS: Array<{
   type: FulfillmentType;
@@ -36,7 +45,9 @@ export default function CartPage() {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const clearCart = useCartStore((state) => state.clearCart);
-  const subtotal = useCartStore((state) => state.total());
+  const user = useAuthStore((state) => state.user);
+  const initialized = useAuthStore((state) => state.isInitialized);
+  const authenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     setCartOpen(false);
@@ -46,11 +57,25 @@ export default function CartPage() {
   const splitBillCount = useCheckoutStore((state) => state.splitBillCount);
   const setSplitBillCount = useCheckoutStore((state) => state.setSplitBillCount);
   const tableLabel = useCheckoutStore((state) => state.tableLabel);
-  const { activeBranch } = useActiveBranch();
-  const estimatedTax = Math.round((subtotal * 11) / 100);
-  const estimatedServiceFee = Math.round((subtotal * 5) / 100);
-  const estimatedTotal = subtotal + estimatedTax + estimatedServiceFee;
-  const perPersonShare = Math.ceil(estimatedTotal / splitBillCount);
+  const tableId = useCheckoutStore((state) => state.tableId);
+  const branches = useActiveBranch();
+  const { activeBranch } = branches;
+  const request = useMemo<CreateOrderRequest>(() => ({
+    branchId: activeBranch?.id ?? '',
+    type: ORDER_TYPES[fulfillmentType],
+    ...(fulfillmentType === 'dine-in' && tableId ? { tableId } : {}),
+    notes: '',
+    items: items.map((item) => ({ productId: item.product.id, quantity: item.quantity, customizations: item.customizations, notes: item.notes })),
+  }), [activeBranch?.id, fulfillmentType, tableId, items]);
+  const quote = useQuery({
+    queryKey: ['checkout-quote', user?.id, request],
+    queryFn: () => quoteOrder(request),
+    enabled: initialized && authenticated && Boolean(activeBranch) && items.length > 0,
+    retry: false,
+    staleTime: 0,
+  });
+  const confirmedQuote = authenticated && !branches.isError && !quote.isFetching && !quote.isError ? quote.data : undefined;
+  const perPersonShare = confirmedQuote ? Math.ceil(confirmedQuote.total / splitBillCount) : undefined;
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl bg-canvas-obsidian px-4 pb-32 pt-8 text-text-primary transition-colors sm:px-6 sm:pt-10 lg:px-8">
@@ -292,7 +317,7 @@ export default function CartPage() {
               <div className="flex items-center justify-between rounded-2xl border border-accent-amber/20 bg-surface-secondary p-3.5 text-xs">
                 <span className="text-text-muted">Estimasi per orang:</span>
                 <span className="font-mono text-sm font-bold text-accent-amber">
-                  Rp {perPersonShare.toLocaleString('id-ID')}
+                  {perPersonShare === undefined ? 'Belum tersedia' : `Rp ${perPersonShare.toLocaleString('id-ID')}`}
                 </span>
               </div>
             </div>
@@ -302,23 +327,31 @@ export default function CartPage() {
               <h2 className="font-heading text-base font-bold text-text-primary">
                 Ringkasan Estimasi
               </h2>
-              <div className="space-y-2.5 border-t border-border-subtle pt-4 text-xs text-text-muted">
+              {!initialized ? <LoadingState label="Memulihkan sesi..." /> : !authenticated ? (
+                <DataState title="Masuk untuk melihat estimasi harga" detail="Keranjang Anda tetap tersimpan." loginPath="/cart" />
+              ) : branches.isError ? (
+                <DataState title="Cabang belum dapat dimuat" retry={() => void branches.refetch()} />
+              ) : !activeBranch || quote.isPending || quote.isFetching ? (
+                <LoadingState label="Memperbarui harga..." />
+              ) : quote.isError ? (
+                <DataState title="Harga belum dapat dikonfirmasi" detail={getApiErrorMessage(quote.error)} retry={() => void quote.refetch()} />
+              ) : confirmedQuote && <div className="space-y-2.5 border-t border-border-subtle pt-4 text-xs text-text-muted">
                 <div className="flex justify-between">
                   <span>Subtotal Pesanan</span>
                   <span className="font-mono font-bold text-text-primary">
-                    Rp {subtotal.toLocaleString('id-ID')}
+                    Rp {confirmedQuote.subtotal.toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Pajak Restoran (11%)</span>
                   <span className="font-mono font-bold text-text-primary">
-                    Rp {estimatedTax.toLocaleString('id-ID')}
+                    Rp {confirmedQuote.tax.toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Service Fee (5%)</span>
                   <span className="font-mono font-bold text-text-primary">
-                    Rp {estimatedServiceFee.toLocaleString('id-ID')}
+                    Rp {confirmedQuote.serviceFee.toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div className="flex items-baseline justify-between border-t border-border-subtle pt-3.5">
@@ -326,12 +359,12 @@ export default function CartPage() {
                     Estimasi Total
                   </span>
                   <span className="font-mono text-2xl font-extrabold text-accent-amber">
-                    Rp {estimatedTotal.toLocaleString('id-ID')}
+                    Rp {confirmedQuote.total.toLocaleString('id-ID')}
                   </span>
                 </div>
-              </div>
+              </div>}
               <p className="text-[11px] leading-relaxed text-text-muted">
-                Server warkop akan memvalidasi ketersediaan stok, opsi kustomisasi, dan pajak final pada langkah checkout.
+                Estimasi berasal dari server. Voucher dan poin dapat diterapkan pada langkah checkout.
               </p>
               <Link
                 href="/checkout"

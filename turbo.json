@@ -18,6 +18,15 @@
       "cache": false,
       "persistent": true
     },
+    "@warkop-yareh/api#test": {
+      "dependsOn": ["^build", "test:checkout"],
+      "outputs": [],
+      "passThroughEnv": ["DATABASE_URL", "JWT_SECRET", "JWT_REFRESH_SECRET", "MIDTRANS_SERVER_KEY", "NODE_ENV"]
+    },
+    "test:checkout": {
+      "cache": false,
+      "passThroughEnv": ["DATABASE_URL"]
+    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": [],
