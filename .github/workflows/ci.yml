@@ -39,6 +39,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -53,6 +55,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Scope and merge disclosure audit
+        env:
+          SCOPE_BASE_SHA: ${{ github.event.before || github.event.pull_request.base.sha }}
+          SCOPE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: pnpm audit:scope
 
       # Prisma output is intentionally gitignored and must be generated for
       # the runner platform before typechecking or building.
@@ -71,8 +79,9 @@ jobs:
       - name: Build
         run: pnpm turbo run build
 
-      # api#test depends on uncached test:checkout (one worker) in turbo.json.
-      - name: Unit tests and checkout persistence / concurrency / RLS
+      # api#test depends on the uncached, serial checkout and operations
+      # persistence suites in turbo.json.
+      - name: Unit tests and persistence / concurrency / RLS
         run: pnpm turbo run test
         env:
           NODE_ENV: test
@@ -85,7 +94,7 @@ jobs:
       - name: Install Chromium for checkout and auth E2E
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Browser checkout and authentication E2E
+      - name: Browser checkout, authentication, and admin persistence E2E
         run: pnpm test:e2e
 
       - name: Upload browser test evidence

@@ -197,6 +197,45 @@ describe('OrderingService', () => {
     },
   );
 
+  it('creates a read-only guest quote without inventing an authenticated actor', async () => {
+    repository.getAvailableProductsByIds.mockResolvedValue([
+      {
+        id: 'prod-1',
+        name: 'Latte',
+        unitPrice: 12_000,
+        customizations: [],
+      },
+    ]);
+    repository.quoteOrder.mockResolvedValue({
+      subtotal: 12_000,
+      tax: 1_320,
+      serviceFee: 600,
+      voucherDiscount: 0,
+      pointsDiscount: 0,
+      discount: 0,
+      loyaltyPointsUsed: 0,
+      maxRedeemablePoints: 0,
+      total: 13_920,
+    });
+
+    const quote = await service.quoteOrder({
+      branchId: 'branch-1',
+      items: [{ productId: 'prod-1', quantity: 1 }],
+    });
+
+    expect(quote.total).toBe(13_920);
+    expect(repository.quoteOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        branchId: 'branch-1',
+        subtotal: 12_000,
+      }),
+    );
+    const [prepared] = repository.quoteOrder.mock.calls[0];
+    expect(prepared.userId).toBeUndefined();
+    expect(prepared.idempotencyKeyHash).toBeUndefined();
+    expect(prepared.requestFingerprint).toBeUndefined();
+  });
+
   it('rejects missing or unavailable products instead of creating zero-price items', async () => {
     repository.getAvailableProductsByIds.mockResolvedValue([]);
 

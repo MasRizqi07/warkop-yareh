@@ -17,6 +17,13 @@ const PACKAGES = [
 ] as const;
 const ADDONS = ['booking-cold-brew', 'booking-brew-flight', 'booking-monitor'];
 
+function isReservationOverlap(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientUnknownRequestError &&
+    error.message.includes('reservations_table_no_overlap')
+  );
+}
+
 export interface BookingInput {
   branchId: string;
   tableId: string;
@@ -84,7 +91,7 @@ export class BookingService {
     return this.prisma.withTenantTransaction(async (tx) => {
       const available = await tx.$queryRaw<
         Array<{ id: string }>
-      >`SELECT id FROM public.available_booking_tables(${branchId}, ${startAt}::timestamp, ${endAt}::timestamp)`;
+      >`SELECT id FROM public.available_booking_tables(${branchId}, (${startAt}::timestamptz AT TIME ZONE 'UTC'), (${endAt}::timestamptz AT TIME ZONE 'UTC'))`;
       const tables = await tx.table.findMany({
         where: { branchId, isActive: true },
         select: {
@@ -121,100 +128,115 @@ export class BookingService {
     const keyHash = createHash('sha256')
       .update(`booking\0${userId}\0${key.trim()}`)
       .digest('hex');
-    return this.prisma.withTenantTransaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${keyHash}))`;
-      const existing = await tx.order.findUnique({
-        where: { idempotencyKeyHash: keyHash },
-        include: { reservation: true },
-      });
-      if (existing) {
-        if (existing.requestFingerprint !== fingerprint)
+    try {
+      return await this.prisma.withTenantTransaction(async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${keyHash}))`;
+        const existing = await tx.order.findUnique({
+          where: { idempotencyKeyHash: keyHash },
+          include: { reservation: true },
+        });
+        if (existing) {
+          if (existing.requestFingerprint !== fingerprint)
+            throw new ConflictException(
+              'Idempotency key was used for a different booking',
+            );
+          return {
+            reservation: existing.reservation,
+            orderId: existing.id,
+            total: existing.total,
+          };
+        }
+        const interval = bookingInterval(input.packageId, input.date);
+        await tx.$queryRaw`SELECT id FROM tables WHERE id = ${input.tableId} FOR UPDATE`;
+        const table = await tx.table.findFirst({
+          where: {
+            id: input.tableId,
+            branchId: input.branchId,
+            isActive: true,
+            branch: { isActive: true, deletedAt: null },
+          },
+        });
+        if (!table)
+          throw new NotFoundException('Table is not available at this branch');
+        if (input.guestCount > table.capacity)
+          throw new BadRequestException('Guest count exceeds table capacity');
+        const available = await tx.$queryRaw<
+          Array<{ id: string }>
+        >`SELECT id FROM public.available_booking_tables(${input.branchId}, (${interval.startAt}::timestamptz AT TIME ZONE 'UTC'), (${interval.endAt}::timestamptz AT TIME ZONE 'UTC'))`;
+        if (!available.some((item) => item.id === table.id))
           throw new ConflictException(
-            'Idempotency key was used for a different booking',
+            'Table is already reserved for this time slot',
           );
-        return {
-          reservation: existing.reservation,
-          orderId: existing.id,
-          total: existing.total,
-        };
-      }
-      const interval = bookingInterval(input.packageId, input.date);
-      await tx.$queryRaw`SELECT id FROM tables WHERE id = ${input.tableId} FOR UPDATE`;
-      const table = await tx.table.findFirst({
-        where: {
-          id: input.tableId,
-          branchId: input.branchId,
-          isActive: true,
-          branch: { isActive: true, deletedAt: null },
-        },
+        const quote = await this.price(
+          tx,
+          input.packageId,
+          normalized.addonIds,
+        );
+        if (quote.total !== input.expectedTotal)
+          throw new ConflictException(
+            'Booking price changed; refresh the quote',
+          );
+        const order = await tx.order.create({
+          data: {
+            orderNumber: `WY-BOOK-${randomUUID().toUpperCase()}`,
+            userId,
+            branchId: input.branchId,
+            type: OrderType.DINE_IN,
+            tableId: table.id,
+            subtotal: quote.subtotal,
+            tax: quote.tax,
+            serviceFee: quote.serviceFee,
+            total: quote.total,
+            notes: normalized.specialRequests,
+            idempotencyKeyHash: keyHash,
+            requestFingerprint: fingerprint,
+            items: {
+              create: quote.items.map((item) => ({
+                productId: item.id,
+                quantity: 1,
+                unitPrice: item.price,
+                totalPrice: item.price,
+                snapshotName: item.name,
+                snapshotPrice: item.price,
+                snapshotTax: 0,
+              })),
+            },
+          },
+        });
+        const reservation = await tx.reservation.create({
+          data: {
+            userId,
+            branchId: input.branchId,
+            tableId: table.id,
+            ...interval,
+            guestCount: input.guestCount,
+            specialRequests: normalized.specialRequests,
+            orderId: order.id,
+          },
+        });
+        await tx.outboxEvent.create({
+          data: {
+            aggregateType: 'Reservation',
+            aggregateId: reservation.id,
+            eventType: 'ReservationCreated',
+            payload: {
+              reservationId: reservation.id,
+              orderId: order.id,
+              userId,
+              branchId: input.branchId,
+            },
+          },
+        });
+        return { reservation, orderId: order.id, total: order.total };
       });
-      if (!table)
-        throw new NotFoundException('Table is not available at this branch');
-      if (input.guestCount > table.capacity)
-        throw new BadRequestException('Guest count exceeds table capacity');
-      const available = await tx.$queryRaw<
-        Array<{ id: string }>
-      >`SELECT id FROM public.available_booking_tables(${input.branchId}, ${interval.startAt}::timestamp, ${interval.endAt}::timestamp)`;
-      if (!available.some((item) => item.id === table.id))
+    } catch (error) {
+      if (isReservationOverlap(error)) {
         throw new ConflictException(
           'Table is already reserved for this time slot',
         );
-      const quote = await this.price(tx, input.packageId, normalized.addonIds);
-      if (quote.total !== input.expectedTotal)
-        throw new ConflictException('Booking price changed; refresh the quote');
-      const order = await tx.order.create({
-        data: {
-          orderNumber: `WY-BOOK-${randomUUID().toUpperCase()}`,
-          userId,
-          branchId: input.branchId,
-          type: OrderType.DINE_IN,
-          tableId: table.id,
-          subtotal: quote.subtotal,
-          tax: quote.tax,
-          serviceFee: quote.serviceFee,
-          total: quote.total,
-          notes: normalized.specialRequests,
-          idempotencyKeyHash: keyHash,
-          requestFingerprint: fingerprint,
-          items: {
-            create: quote.items.map((item) => ({
-              productId: item.id,
-              quantity: 1,
-              unitPrice: item.price,
-              totalPrice: item.price,
-              snapshotName: item.name,
-              snapshotPrice: item.price,
-              snapshotTax: 0,
-            })),
-          },
-        },
-      });
-      const reservation = await tx.reservation.create({
-        data: {
-          userId,
-          branchId: input.branchId,
-          tableId: table.id,
-          ...interval,
-          guestCount: input.guestCount,
-          specialRequests: normalized.specialRequests,
-          orderId: order.id,
-        },
-      });
-      await tx.outboxEvent.create({
-        data: {
-          aggregateType: 'Reservation',
-          aggregateId: reservation.id,
-          eventType: 'ReservationCreated',
-          payload: {
-            reservationId: reservation.id,
-            orderId: order.id,
-            userId,
-            branchId: input.branchId,
-          },
-        },
-      });
-      return { reservation, orderId: order.id, total: order.total };
-    });
+      }
+      throw error;
+    }
   }
 
   private async price(
