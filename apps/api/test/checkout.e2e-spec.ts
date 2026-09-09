@@ -300,6 +300,13 @@ describe('Checkout persistence, concurrency and RLS', () => {
     await expect(
       asOther(() => booking.create(secondUserId, input, randomUUID())),
     ).rejects.toThrow(ConflictException);
+    const persistedReservation = await admin.reservation.findUniqueOrThrow({
+      where: { id: first.reservation!.id },
+    });
+    expect(persistedReservation).toMatchObject({
+      status: 'PENDING',
+      tableId,
+    });
     const otherView = await asOther(() =>
       booking.availability(branchId, input.packageId, date),
     );
