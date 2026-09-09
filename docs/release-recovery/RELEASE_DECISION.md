@@ -50,3 +50,4 @@ According to Section 23 of the Release Gating Policy:
 # **NO-GO**
 
 *(The codebase, architecture, and automated test suite are certified and hardened on recovery branch `codex/release-recovery`. However, the physical release to production is strictly gated **NO-GO** until live staging migration, staging smoke tests, and verified injection of the protected `DATABASE_URL` secret are performed by authorized operators).*
+

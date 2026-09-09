@@ -104,3 +104,4 @@ To enforce these guarantees, a standalone validator script (`scripts/validate-da
 4. **Environment Binding**: Job explicitly binds `environment: production`.
 5. **Preflight Step**: Runs `node scripts/validate-database-target.mjs production`.
 6. **Concurrency Guard**: `group: production-database-migrations`, `cancel-in-progress: false` to eliminate race conditions.
+

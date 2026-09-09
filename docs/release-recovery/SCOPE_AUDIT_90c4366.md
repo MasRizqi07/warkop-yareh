@@ -140,3 +140,4 @@ The imported changes from `90c4366` represent a substantial functional advanceme
 2. The elimination of 53,000+ lines of generated Prisma client and obsolete scripts drastically improved repository hygiene.
 3. The additions in POS cashier shifts and cash management enforce rigorous database constraints, advisory locks, and row-level security.
 4. With appropriate hardening (guest public quote endpoint, CD workflow fail-fast preflight guard, and admin state reload fixes), retaining the merge payload is technically sound and significantly preferable to destructive git history reconstruction.
+

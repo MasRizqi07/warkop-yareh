@@ -94,3 +94,4 @@ Between commit `7e64d4e`, `b93cf79`, and baseline `3303f1c`, the checkout quotin
   - Confirms standard valid guest payload receives HTTP 200 with accurate tax and service fee calculations.
   - Confirms extra account fields (`voucherCode`, `loyaltyPointsUsed`, `userId`, `expectedTotal`) are rejected with HTTP 400.
 - **E2E Commerce Tests**: `apps/web/e2e/commerce.e2e.ts` verifies guest cart loads server quote without requiring login.
+
