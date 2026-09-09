@@ -15,6 +15,25 @@ Roadmap state and release acceptance are separate:
 No item in this document is currently `RELEASE_VERIFIED`. Local/CI evidence never
 substitutes for staging, provider, or production evidence.
 
+### Phase Evidence Maturity Matrix
+
+| Phase | Implemented | Local | CI | Staging | Production |
+| --- | --- | --- | --- | --- | --- |
+| **Phase 1: Local Cafe Operations** | PASS | PASS | PASS | NOT VERIFIED | NOT VERIFIED |
+| **Phase 2: Multi-Branch & Operations** | PASS | PASS | PASS | NOT VERIFIED | NOT VERIFIED |
+| **Phase 3: Regional & Edge** | PARTIAL | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED |
+| **Phase 4: Franchise & Multi-Tenant** | PASS | PASS | PASS | NOT VERIFIED | NOT VERIFIED |
+| **Release Recovery & DB Migration** | PASS | PASS | PASS | NOT VERIFIED | BLOCKED |
+
+See canonical audit and verification indexes:
+
+- Canonical Release Evidence: [Release Evidence Index](release-recovery/RELEASE_EVIDENCE.md)
+- Merge 90c4366 Scope Audit: [Scope Audit 90c4366](release-recovery/SCOPE_AUDIT_90c4366.md)
+- Database Migration Audit: [Migration Audit](release-recovery/MIGRATION_AUDIT.md)
+- CI/CD Contract Audit: [CI/CD Audit](release-recovery/CI_CD_AUDIT.md)
+- Admin Security Audit: [Admin Security Audit](release-recovery/ADMIN_SECURITY_AUDIT.md)
+- Guest Cart/Quote Decision: [Guest Quote Decision](release-recovery/GUEST_QUOTE_DECISION.md)
+
 ## Definition of Done
 
 A deliverable becomes `RELEASE_VERIFIED` only when all of these are satisfied:
