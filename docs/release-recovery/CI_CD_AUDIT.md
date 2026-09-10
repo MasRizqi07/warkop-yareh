@@ -10,16 +10,24 @@ This audit investigates the root cause of the failing production database migrat
 
 The repository defines two GitHub Actions workflow files under `.github/workflows/`:
 
+<<<<<<< HEAD
 | Workflow File              | Name                       | Trigger                                                                                             | Target Environment                                                | Current Status         |
 | -------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------- |
 | `.github/workflows/ci.yml` | `CI`                       | `pull_request` (branches: `main`), `push` (branches: `main`)                                        | Ephemeral CI container services (`postgres:16`, `redis:7-alpine`) | **GREEN** on `3303f1c` |
 | `.github/workflows/cd.yml` | `CD — Database Migrations` | `workflow_run` (workflows: `["CI"]`, types: `[completed]`, branches: `[main]`), `workflow_dispatch` | Production Railway Database                                       | **FAILING** (Blocked)  |
+=======
+| Workflow File | Name | Trigger | Target Environment | Current Status |
+|---|---|---|---|---|
+| `.github/workflows/ci.yml` | `CI` | `pull_request` (branches: `main`), `push` (branches: `main`) | Ephemeral CI container services (`postgres:16`, `redis:7-alpine`) | **GREEN** on `3303f1c` |
+| `.github/workflows/cd.yml` | `CD — Database Migrations` | `workflow_run` (workflows: `["CI"]`, types: `[completed]`, branches: `[main]`), `workflow_dispatch` | Production Railway Database | **FAILING** (Blocked) |
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 
 ---
 
 ## 3. Investigation: Production Migration Failure Root Cause
 
 ### 3.1 Observed Failure Symptom
+<<<<<<< HEAD
 
 In GitHub Actions runs following push to `main`, the `CD — Database Migrations` workflow failed during step:
 
@@ -29,6 +37,13 @@ pnpm --filter @warkop-yareh/database run db:migrate:deploy
 
 with error:
 
+=======
+In GitHub Actions runs following push to `main`, the `CD — Database Migrations` workflow failed during step:
+```bash
+pnpm --filter @warkop-yareh/database run db:migrate:deploy
+```
+with error:
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 ```text
 PrismaClientInitializationError / P1012: Environment variable not found: DATABASE_URL
 (or empty connection string provided)
@@ -67,7 +82,10 @@ PrismaClientInitializationError / P1012: Environment variable not found: DATABAS
 To ensure clear observability and reliable incident triage, CI/CD must explicitly separate:
 
 ### Category 1: Configuration Failure (Preflight Gate)
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - Missing or empty `DATABASE_URL` secret.
 - Failure to bind the correct GitHub Environment (`production`).
 - Invalid URI scheme (non-PostgreSQL).
@@ -75,10 +93,16 @@ To ensure clear observability and reliable incident triage, CI/CD must explicitl
 - Target database pointing to disposable/test database names (`warkop_audit`, `test`, `postgres`).
 - Missing release enablement switch (`PRODUCTION_MIGRATION_ENABLED != true`).
 
+<<<<<<< HEAD
 **Behavior**: The workflow must fail immediately in a preflight step before Prisma is invoked, outputting clear diagnostic error messages _without_ logging credentials.
 
 ### Category 2: Migration Execution Failure (Prisma Engine / Database Layer)
 
+=======
+**Behavior**: The workflow must fail immediately in a preflight step before Prisma is invoked, outputting clear diagnostic error messages *without* logging credentials.
+
+### Category 2: Migration Execution Failure (Prisma Engine / Database Layer)
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - Network unreachable / timeout reaching production database host.
 - Database authentication failure (invalid password / user).
 - Schema drift / P3009 (unapplied or partially applied migrations).
@@ -104,10 +128,17 @@ To enforce these guarantees, a standalone validator script (`scripts/validate-da
 ```
 
 ### Hardened CD Workflow Architecture
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 1. **Manual Dispatch Only**: Remove automatic `workflow_run` trigger. Production database migrations must be explicitly triggered via `workflow_dispatch`.
 2. **Commit SHA Verification**: The workflow requires `commit_sha` input and validates `test "$(git rev-parse HEAD)" = "$EXPECTED_COMMIT"`.
 3. **Confirmation Token**: Requires manual input `confirmation: "MIGRATE_PRODUCTION"`.
 4. **Environment Binding**: Job explicitly binds `environment: production`.
 5. **Preflight Step**: Runs `node scripts/validate-database-target.mjs production`.
 6. **Concurrency Guard**: `group: production-database-migrations`, `cancel-in-progress: false` to eliminate race conditions.
+<<<<<<< HEAD
+=======
+
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3

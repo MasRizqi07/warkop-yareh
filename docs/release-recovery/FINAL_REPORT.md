@@ -7,11 +7,17 @@
 - **Current Release Verdict**: **`NO-GO`**
 
 ### Summary of Audit Outcome:
+<<<<<<< HEAD
 
 The repository has undergone a rigorous, conservative, and evidence-backed Release Recovery and Scope Integrity Audit. The codebase, database schema, CI/CD pipeline, and automated test suite have been brought to an auditable, hardened state.
 
 All local and CI-level quality gates pass:
 
+=======
+The repository has undergone a rigorous, conservative, and evidence-backed Release Recovery and Scope Integrity Audit. The codebase, database schema, CI/CD pipeline, and automated test suite have been brought to an auditable, hardened state. 
+
+All local and CI-level quality gates pass:
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - Typecheck: 4/4 packages pass with 0 errors.
 - ESLint: 3/3 packages pass with 0 errors.
 - Monorepo Production Build: All packages (`web`, `admin`, `api`, `ui`) compile cleanly in 18.18s.
@@ -122,7 +128,11 @@ Every code and configuration modification maps directly to an approved recovery 
 
 ## 9. Regression Results
 
+<<<<<<< HEAD
 _All test counts are taken from direct test runner execution:_
+=======
+*All test counts are taken from direct test runner execution:*
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 
 - **Monorepo Typecheck**: `4 successful, 4 total` (0 errors)
 - **Monorepo ESLint**: `3 successful, 3 total` (0 errors)
@@ -152,12 +162,21 @@ _All test counts are taken from direct test runner execution:_
 
 ## 12. Remaining Risks
 
+<<<<<<< HEAD
 | Severity | Risk Description                                                      | Mitigation / Action Required                                                                                                                         |
 | -------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **P0**   | Production database credentials missing in GitHub Actions Environment | Repository admin must configure `DATABASE_URL` under GitHub Environment `production` and set `PRODUCTION_MIGRATION_ENABLED=true`.                    |
 | **P1**   | Staging runtime behavior unverified against live cloud cluster        | Deploy `codex/release-recovery` to staging and execute end-to-end smoke verification before scheduling production rollout.                           |
 | **P2**   | Local Docker daemon inactive on audit workstation                     | Integration and migration tests relied on GitHub Actions container runners; local Compose environment should be started for local offline debugging. |
 | **P3**   | Long-term roadmap features (multi-region read replicas, AI concierge) | Accurately designated as `NOT_IMPLEMENTED` or `PARTIAL` in `docs/ROADMAP.md`.                                                                        |
+=======
+| Severity | Risk Description | Mitigation / Action Required |
+|---|---|---|
+| **P0** | Production database credentials missing in GitHub Actions Environment | Repository admin must configure `DATABASE_URL` under GitHub Environment `production` and set `PRODUCTION_MIGRATION_ENABLED=true`. |
+| **P1** | Staging runtime behavior unverified against live cloud cluster | Deploy `codex/release-recovery` to staging and execute end-to-end smoke verification before scheduling production rollout. |
+| **P2** | Local Docker daemon inactive on audit workstation | Integration and migration tests relied on GitHub Actions container runners; local Compose environment should be started for local offline debugging. |
+| **P3** | Long-term roadmap features (multi-region read replicas, AI concierge) | Accurately designated as `NOT_IMPLEMENTED` or `PARTIAL` in `docs/ROADMAP.md`. |
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 
 ---
 
@@ -166,9 +185,13 @@ _All test counts are taken from direct test runner execution:_
 ### Verdict: **`NO-GO`**
 
 ### Justification:
+<<<<<<< HEAD
 
 While the repository source code, database migration chain, and automated test suite on branch `codex/release-recovery` are verified, secure, and ready for release, physical production rollout cannot proceed until:
 
+=======
+While the repository source code, database migration chain, and automated test suite on branch `codex/release-recovery` are verified, secure, and ready for release, physical production rollout cannot proceed until:
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 1. The GitHub Environment `production` is configured with a valid `DATABASE_URL`.
 2. Staging deployment and live runtime smoke testing are successfully conducted and signed off.
 
@@ -191,3 +214,7 @@ While the repository source code, database migration chain, and automated test s
 - **Total Changes Against Baseline `3303f1c`**:
   - 45 files changed
   - 3,886 insertions(+), 407 deletions(-)
+<<<<<<< HEAD
+=======
+
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3

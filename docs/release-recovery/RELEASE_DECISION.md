@@ -7,7 +7,10 @@ After completing the comprehensive scope integrity audit of merge `90c4366792b64
 ### **ACCEPT CURRENT TREE**
 
 ### Rationale:
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 1. **Migration Safety**:
    - The database migration delta introduced by `90c4366` comprises two migrations: `20260908130000_cashier_shift_operations` (new tables with strict check constraints and forced RLS) and `20260908143000_event_registration_status_index` (composite index optimization).
    - Zero existing tables or columns were dropped; zero data was truncated or deleted.
@@ -30,9 +33,13 @@ After completing the comprehensive scope integrity audit of merge `90c4366792b64
 ## 2. Release Gating Policy & Verdict
 
 According to Section 23 of the Release Gating Policy:
+<<<<<<< HEAD
 
 > The release must remain blocked if any of the following is true:
 >
+=======
+> The release must remain blocked if any of the following is true:
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 > - production DB secret missing
 > - migration status unknown
 > - migration chain unsafe
@@ -45,13 +52,23 @@ According to Section 23 of the Release Gating Policy:
 > - production runtime unverified
 
 ### Current Status Against Blocking Conditions:
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - [x] **Production DB Secret**: Uninjected in GitHub Actions (CD workflow currently disabled/guarded).
 - [x] **Staging Environment**: NOT VERIFIED (No staging cluster or deployment logs provided).
 - [x] **Production Runtime**: NOT VERIFIED (Production deployment intentionally frozen).
 
 ### Final Release Verdict:
+<<<<<<< HEAD
 
 # **NO-GO**
 
 _(The codebase, architecture, and automated test suite are certified and hardened on recovery branch `codex/release-recovery`. However, the physical release to production is strictly gated **NO-GO** until live staging migration, staging smoke tests, and verified injection of the protected `DATABASE_URL` secret are performed by authorized operators)._
+=======
+# **NO-GO**
+
+*(The codebase, architecture, and automated test suite are certified and hardened on recovery branch `codex/release-recovery`. However, the physical release to production is strictly gated **NO-GO** until live staging migration, staging smoke tests, and verified injection of the protected `DATABASE_URL` secret are performed by authorized operators).*
+
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3

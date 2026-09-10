@@ -20,6 +20,7 @@
 
 Every file modified in `90c4366^1..90c4366` has been reviewed and classified under one of the 7 required categories:
 
+<<<<<<< HEAD
 | Category Code | Category Name                 | File Count | Description                                                                                      |
 | ------------- | ----------------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
 | **A**         | `REQUIRED_REMEDIATION`        | 18         | Direct remediation items required for correctness, idempotency, and security.                    |
@@ -29,13 +30,27 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 | **E**         | `PRODUCT_BEHAVIOR_CHANGE`     | 15         | Alterations to end-user or operational behavior (guest cart estimates, booking intervals).       |
 | **F**         | `INFRASTRUCTURE_OR_TOOLCHAIN` | 10         | CI/CD workflows, build scripts, package locks, engine constraints.                               |
 | **G**         | `UNKNOWN_REQUIRES_REVIEW`     | 0          | All paths have been inspected and classified.                                                    |
+=======
+| Category Code | Category Name | File Count | Description |
+|---|---|---|---|
+| **A** | `REQUIRED_REMEDIATION` | 18 | Direct remediation items required for correctness, idempotency, and security. |
+| **B** | `REQUIRED_DEPENDENCY` | 22 | Supporting services, repositories, and DTOs necessary for remediation items. |
+| **C** | `CLEANUP` | 102 | Repository cleanup, deletion of generated artifacts and unmaintained scripts. |
+| **D** | `OUT_OF_SCOPE_FEATURE` | 68 | Features outside the approved remediation scope (cashier shifts, content module, admin rewrite). |
+| **E** | `PRODUCT_BEHAVIOR_CHANGE` | 15 | Alterations to end-user or operational behavior (guest cart estimates, booking intervals). |
+| **F** | `INFRASTRUCTURE_OR_TOOLCHAIN` | 10 | CI/CD workflows, build scripts, package locks, engine constraints. |
+| **G** | `UNKNOWN_REQUIRES_REVIEW` | 0 | All paths have been inspected and classified. |
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 
 ---
 
 ## 3. Detailed Area-by-Area Audit & Recommendations
 
 ### 3.1 Repository Cleanup & Generated Artifact Removal
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Paths**: `packages/database/generated/client/**` (18 files, 53,000+ lines), 35+ root test scripts (`test-*.js`, `query-*.js`, `create-role.js`), dead web sections (`apps/web/src/components/sections/*`).
 - **Category**: `C. CLEANUP`
 - **Commit Origin**: `6c89899`
@@ -48,7 +63,10 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 ---
 
 ### 3.2 Cashier Shifts & Cash Drawer Operations
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Paths**:
   - `packages/database/prisma/migrations/20260908130000_cashier_shift_operations/migration.sql`
   - `packages/database/prisma/schema.prisma` (`CashierShift`, `CashDrawerMovement`)
@@ -68,7 +86,10 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 ---
 
 ### 3.3 Cash Payment Handling at POS
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Paths**:
   - `apps/api/src/infrastructure/payment/cash-payment.controller.ts`
   - `apps/api/src/infrastructure/payment/payment.service.ts`
@@ -86,7 +107,10 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 ---
 
 ### 3.4 Public Content & Blog System
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Paths**:
   - `apps/api/src/modules/content/**`
   - `apps/web/src/app/(marketing)/blog/**`
@@ -101,7 +125,10 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 ---
 
 ### 3.5 Event Registration Composite Index
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Paths**:
   - `packages/database/prisma/migrations/20260908143000_event_registration_status_index/migration.sql`
 - **Category**: `A. REQUIRED_REMEDIATION`
@@ -115,7 +142,10 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 ---
 
 ### 3.6 Guest Cart & Quote Behavior
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Paths**:
   - `apps/api/src/modules/ordering/presentation/controllers/orders.controller.ts`
   - `apps/web/src/app/cart/page.tsx`
@@ -130,7 +160,10 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 ---
 
 ### 3.7 Admin Portal Management Pages
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Paths**: `apps/admin/src/app/(dashboard)/**` (14 pages: `analytics`, `branches`, `community`, `crm`, `events`, `inventory`, `loyalty`, `marketing`, `orders`, `products`, `reservations`, `settings`, `shifts`, `users`).
 - **Category**: `D. OUT_OF_SCOPE_FEATURE`
 - **Commit Origin**: `f7c76db`
@@ -143,8 +176,15 @@ Every file modified in `90c4366^1..90c4366` has been reviewed and classified und
 ## 4. Synthesis of Merge 90c4366 Scope Audit
 
 The imported changes from `90c4366` represent a substantial functional advancement for the application rather than malicious or destabilizing code:
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 1. All database migrations are strictly additive and non-destructive.
 2. The elimination of 53,000+ lines of generated Prisma client and obsolete scripts drastically improved repository hygiene.
 3. The additions in POS cashier shifts and cash management enforce rigorous database constraints, advisory locks, and row-level security.
 4. With appropriate hardening (guest public quote endpoint, CD workflow fail-fast preflight guard, and admin state reload fixes), retaining the merge payload is technically sound and significantly preferable to destructive git history reconstruction.
+<<<<<<< HEAD
+=======
+
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3

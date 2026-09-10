@@ -18,7 +18,10 @@ Between commit `7e64d4e`, `b93cf79`, and baseline `3303f1c`, the checkout quotin
 ## 2. Evaluation of Supported Approaches
 
 ### Option A: Retain Strict Authentication Requirement
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Concept**: Guests may add products to their cart, but order price totals (tax, service fee, total) are only displayed after logging in.
 - **Pros**:
   - Zero exposure of unauthenticated order calculation endpoints.
@@ -28,7 +31,10 @@ Between commit `7e64d4e`, `b93cf79`, and baseline `3303f1c`, the checkout quotin
   - High bounce rate for quick-service warkop customers expecting instant totals.
 
 ### Option B: Dedicated Public Safe Server Quote Endpoint (Selected & Implemented)
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Concept**: Provide an explicitly unauthenticated, public endpoint `POST /api/v1/orders/quote/guest` for calculating base items, branch price overrides, tax (11%), and service fee (5%).
 - **Security Boundaries**:
   - **No Personal Entitlements**: Guest DTO (`GuestOrderQuoteDto`) strictly excludes `userId`, `voucherCode`, and `loyaltyPointsUsed`.
@@ -46,11 +52,17 @@ Between commit `7e64d4e`, `b93cf79`, and baseline `3303f1c`, the checkout quotin
 ## 3. API Contract Specification (Option B)
 
 ### 3.1 Endpoint
+<<<<<<< HEAD
 
 `POST /api/v1/orders/quote/guest`
 
 ### 3.2 Request Body (`GuestOrderQuoteDto`)
 
+=======
+`POST /api/v1/orders/quote/guest`
+
+### 3.2 Request Body (`GuestOrderQuoteDto`)
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 ```json
 {
   "branchId": "cly1234567890abcdef",
@@ -68,14 +80,20 @@ Between commit `7e64d4e`, `b93cf79`, and baseline `3303f1c`, the checkout quotin
 ```
 
 ### 3.3 Forbidden Fields in Guest Request
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - `userId` (HTTP 400 if supplied)
 - `voucherCode` (HTTP 400 if supplied)
 - `loyaltyPointsUsed` (HTTP 400 if supplied)
 - `expectedTotal` (HTTP 400 if supplied)
 
 ### 3.4 Response Body (`OrderQuote`)
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 ```json
 {
   "data": {
@@ -95,9 +113,16 @@ Between commit `7e64d4e`, `b93cf79`, and baseline `3303f1c`, the checkout quotin
 ---
 
 ## 4. Test Verification
+<<<<<<< HEAD
 
+=======
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
 - **Unit & Controller Tests**: `apps/api/src/modules/ordering/presentation/controllers/guest-order-quotes.controller.spec.ts`
   - Confirms `@Public()` metadata is present.
   - Confirms standard valid guest payload receives HTTP 200 with accurate tax and service fee calculations.
   - Confirms extra account fields (`voucherCode`, `loyaltyPointsUsed`, `userId`, `expectedTotal`) are rejected with HTTP 400.
 - **E2E Commerce Tests**: `apps/web/e2e/commerce.e2e.ts` verifies guest cart loads server quote without requiring login.
+<<<<<<< HEAD
+=======
+
+>>>>>>> ab6d338ad275b2d1f3f9673b92666d386e6163d3
