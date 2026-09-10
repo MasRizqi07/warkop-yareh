@@ -8,9 +8,9 @@
 
 ### Summary of Audit Outcome:
 
-The repository has undergone a rigorous, conservative, and evidence-backed Release Recovery and Scope Integrity Audit. The codebase, database schema, CI/CD pipeline, and automated test suite have been brought to an auditable, hardened state.
+The repository has undergone a conservative, evidence-backed Release Recovery and Scope Integrity Audit. The recorded recovery tree passes its local gates and has supporting CI-container evidence, but it has not yet been verified by an exact-commit remote CI run or in a deployed environment.
 
-All local and CI-level quality gates pass:
+The following local and CI-container results were recorded for the audited commits; they do not establish exact-commit remote CI or staging acceptance for the current recovery branch:
 
 - Typecheck: 4/4 packages pass with 0 errors.
 - ESLint: 3/3 packages pass with 0 errors.
@@ -100,7 +100,7 @@ Every code and configuration modification maps directly to an approved recovery 
   - `E. PRODUCT_BEHAVIOR_CHANGE`: 15 files (checkout estimation, guest quotes, booking intervals)
   - `F. INFRASTRUCTURE_OR_TOOLCHAIN`: 10 files
   - `G. UNKNOWN_REQUIRES_REVIEW`: 0 files
-- **Audit Recommendation**: **ACCEPT CURRENT TREE**. The payload is structurally sound, clean, non-destructive, and has been properly hardened and tested. Reconstruction from `0b3efd9` is unnecessary and counterproductive.
+- **Audit Recommendation**: **ACCEPT THE AUDITED TREE FOR CONTINUED VERIFICATION**. The recorded payload is structurally sound and non-destructive under the listed local and CI-container checks. Exact-commit remote CI and deployed-environment verification remain required.
 
 ---
 
@@ -167,27 +167,17 @@ _All test counts are taken from direct test runner execution:_
 
 ### Justification:
 
-While the repository source code, database migration chain, and automated test suite on branch `codex/release-recovery` are verified, secure, and ready for release, physical production rollout cannot proceed until:
+The repository source code, database migration chain, and automated test suite have passed the recorded local and CI-container checks. They are not yet release-verified because exact-commit remote CI and deployed staging evidence are still missing. Physical production rollout cannot proceed until:
 
 1. The GitHub Environment `production` is configured with a valid `DATABASE_URL`.
 2. Staging deployment and live runtime smoke testing are successfully conducted and signed off.
 
 ---
 
-## 14. Exact Git Evidence
+## 14. Git Evidence Boundary
 
-- **Starting SHA**: `3303f1c1837adbd7d69dd5bcc36f3293f71f92dc`
-- **Base Main Commit Message**: `chore: ignore local kube directory`
-- **Recovery Branch**: `codex/release-recovery`
-- **Commits Created**:
-  1. `54999f6` — `chore(ci): fail fast when production database URL is missing`
-  2. `61a096c` — `docs(audit): record release recovery baseline and CD findings`
-  3. `0d28a50` — `docs(audit): classify merge 90c4366 scope`
-  4. `1187804` — `fix(auth): correct verified authorization regression`
-  5. `798243b` — `fix(checkout): resolve approved quote behavior issue`
-  6. `0d0b918` — `test(database): strengthen migration verification`
-  7. `f3e4298` — `docs(roadmap): update evidence maturity table and audit links`
-  8. `fd2c09f` — `docs(release): add evidence matrix and release decision`
-- **Total Changes Against Baseline `3303f1c`**:
-  - 45 files changed
-  - 3,886 insertions(+), 407 deletions(-)
+- **Reviewed main baseline**: `6184a17bb48cf1bc422cbfaa4bc60702f647d32e`
+- **Clean reconciled recovery parent**: `c91d76eaf2c8552258ef9449b62498c2f2d5ec95`
+- **Recovery branch**: `codex/release-recovery-v2`
+- The pre-rebase commit IDs `1187804`, `798243b`, and `0d0b918` are superseded history and are not part of the clean branch ancestry. Their relevant patches were already present on `main` through a different lineage before reconciliation.
+- Use `git log origin/main..HEAD` and `git diff origin/main...HEAD` at review time as the authoritative current history and payload. Do not infer current evidence from the historical commit list in earlier recovery reports.
