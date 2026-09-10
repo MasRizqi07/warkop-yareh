@@ -21,6 +21,7 @@
 ## 3. Workflow & Pipeline Status (Baseline)
 
 ### CI (`.github/workflows/ci.yml`)
+
 - **Status**: GREEN on exact commit `3303f1c1837adbd7d69dd5bcc36f3293f71f92dc`.
 - **Pipeline Components**:
   - `pnpm install --frozen-lockfile` (Succeeds)
@@ -34,6 +35,7 @@
   - `pnpm test:e2e` (Playwright Chromium) (Succeeds)
 
 ### CD (`.github/workflows/cd.yml`)
+
 - **Status**: FAILING (Blocked)
 - **Failure Point**: `pnpm --filter @warkop-yareh/database run db:migrate:deploy` in step `Run Database Migrations (production)`
 - **Observed Error**: Prisma `P1012: Environment variable not found: DATABASE_URL` (or invalid/empty URL)
@@ -48,4 +50,3 @@
 - **Scope Integrity**: AUDIT REQUIRED (Merge commit `90c4366792b6408cfdf8660981f13c45f3a355d1` contains unreviewed payload including `7e64d4e`, `6c89899`, and `f7c76db`).
 - **Staging Verification**: NOT VERIFIED (No verified staging deployment/migration logs).
 - **Production Runtime Verification**: NOT VERIFIED (Migration blocked; production deployment unverified).
-

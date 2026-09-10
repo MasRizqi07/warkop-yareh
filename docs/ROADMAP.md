@@ -1,6 +1,6 @@
 # Warkop Ya'reh delivery roadmap
 
-Last audit: 2026-09-09. Source baseline audited: `3303f1c1837adbd7d69dd5bcc36f3293f71f92dc`.
+Last audit: 2026-09-10. Source baseline audited: `68d7d5ca4c9a4816ccf15b7a52f82c90368717b4`.
 Detailed evidence and remaining gates: [Phase 6 roadmap audit](phase6-remediation/ROADMAP_AUDIT.md).
 
 ## Status model
@@ -17,13 +17,17 @@ substitutes for staging, provider, or production evidence.
 
 ### Phase Evidence Maturity Matrix
 
-| Phase | Implemented | Local | CI | Staging | Production |
-| --- | --- | --- | --- | --- | --- |
-| **Phase 1: Local Cafe Operations** | PASS | PASS | PASS | NOT VERIFIED | NOT VERIFIED |
-| **Phase 2: Multi-Branch & Operations** | PASS | PASS | PASS | NOT VERIFIED | NOT VERIFIED |
-| **Phase 3: Regional & Edge** | PARTIAL | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED |
-| **Phase 4: Franchise & Multi-Tenant** | PASS | PASS | PASS | NOT VERIFIED | NOT VERIFIED |
-| **Release Recovery & DB Migration** | PASS | PASS | PASS | NOT VERIFIED | BLOCKED |
+| Phase                                  | Implemented | Local | CI           | Staging      | Production   |
+| -------------------------------------- | ----------- | ----- | ------------ | ------------ | ------------ |
+| **Phase 1: Local Cafe Operations**     | PASS        | PASS  | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED |
+| **Phase 2: Multi-Branch & Operations** | PASS        | PASS  | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED |
+| **Phase 3: Regional & Edge**           | PARTIAL     | PASS  | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED |
+| **Phase 4: Franchise & Multi-Tenant**  | PARTIAL     | PASS  | NOT VERIFIED | NOT VERIFIED | NOT VERIFIED |
+| **Release Recovery & DB Migration**    | PASS        | PASS  | NOT VERIFIED | NOT VERIFIED | BLOCKED      |
+
+`Local: PASS` records the forced aggregate gates on the source baseline above. It
+does not upgrade a `PARTIAL` implementation, establish remote CI for the rebased
+commit, or substitute for staging and production evidence.
 
 See canonical audit and verification indexes:
 
