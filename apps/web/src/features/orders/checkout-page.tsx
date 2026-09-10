@@ -36,20 +36,24 @@ export default function CheckoutPage() {
   const [method, setMethod] = useState<ApiPaymentMethod>('QRIS');
   const [pendingOrder, setPendingOrder] = useState<string | null>(null);
   const attempt = useRef<{ fingerprint: string; key: string } | null>(null);
-  const request = useMemo<CreateOrderRequest>(() => ({
+  const quoteRequest = useMemo<CreateOrderRequest>(() => ({
     branchId: branches.activeBranch?.id ?? '', type: TYPES[checkout.fulfillmentType],
     ...(checkout.fulfillmentType === 'dine-in' && checkout.tableId ? { tableId: checkout.tableId } : {}),
-    notes: [notes.trim(), checkout.fulfillmentType === 'delivery' ? `Alamat: ${checkout.deliveryAddress.trim()}` : '', checkout.fulfillmentType === 'drive-thru' ? `Kendaraan: ${plate.trim().toUpperCase()}` : ''].filter(Boolean).join('\n'),
+    notes: '',
     ...(voucherCode ? { voucherCode } : {}), ...(points > 0 ? { loyaltyPointsUsed: points } : {}),
     items: items.map((item) => ({ productId: item.product.id, quantity: item.quantity, customizations: item.customizations, notes: item.notes })),
-  }), [branches.activeBranch?.id, checkout.fulfillmentType, checkout.tableId, checkout.deliveryAddress, items, notes, plate, points, voucherCode]);
+  }), [branches.activeBranch?.id, checkout.fulfillmentType, checkout.tableId, items, points, voucherCode]);
   const ready = initialized && authenticated && Boolean(branches.activeBranch) && items.length > 0;
-  const quote = useQuery({ queryKey: ['checkout-quote', user?.id, request], queryFn: () => quoteOrder(request), enabled: ready, retry: false, staleTime: 0 });
+  const quote = useQuery({ queryKey: ['checkout-quote', user?.id, quoteRequest], queryFn: () => quoteOrder(quoteRequest), enabled: ready, retry: false, staleTime: 0 });
   const purchase = useMutation({ mutationFn: async () => {
     if (!ready || !quote.data || quote.isFetching || quote.isError) throw new Error('Tunggu ringkasan harga selesai diperbarui.');
     if (checkout.fulfillmentType === 'dine-in' && !checkout.tableId) throw new Error('Pindai QR meja untuk pesanan dine-in.');
     if (checkout.fulfillmentType === 'delivery' && checkout.deliveryAddress.trim().length < 10) throw new Error('Isi alamat lengkap, minimal 10 karakter.');
     if (checkout.fulfillmentType === 'drive-thru' && plate.trim().length < 3) throw new Error('Isi nomor kendaraan untuk drive-thru.');
+    const request: CreateOrderRequest = {
+      ...quoteRequest,
+      notes: [notes.trim(), checkout.fulfillmentType === 'delivery' ? `Alamat: ${checkout.deliveryAddress.trim()}` : '', checkout.fulfillmentType === 'drive-thru' ? `Kendaraan: ${plate.trim().toUpperCase()}` : ''].filter(Boolean).join('\n'),
+    };
     const payload = { ...request, expectedTotal: quote.data.total };
     const fingerprint = JSON.stringify({ userId: user?.id, payload });
     if (!attempt.current) {

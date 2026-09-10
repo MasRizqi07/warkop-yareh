@@ -37,6 +37,7 @@ export default function AdminDashboard() {
   const overview = resource.data;
   const lowStock =
     overview?.inventory.filter((item) => {
+      if (item.stockQuantity === null || item.stockThreshold === null) return false;
       const quantity = Number(item.stockQuantity);
       const threshold = Number(item.stockThreshold);
       return (

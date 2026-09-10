@@ -1,9 +1,14 @@
 {
   "name": "@warkop-yareh/database",
   "version": "0.1.0",
-  "main": "./index.ts",
+  "main": "./dist/index.js",
   "types": "./index.ts",
+  "files": [
+    "dist",
+    "index.ts"
+  ],
   "scripts": {
+    "build": "tsc --project tsconfig.json",
     "db:push": "prisma db push --schema=./prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
     "db:migrate:deploy": "prisma migrate deploy --schema=./prisma/schema.prisma",

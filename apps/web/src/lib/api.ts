@@ -15,7 +15,7 @@ export const api = axios.create({
 // Request Interceptor: Attach Access Token
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
-  if (token && config.headers) {
+  if (token && config.headers && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;

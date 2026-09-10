@@ -87,20 +87,30 @@ export async function adminLogin(email: string, password: string) {
   return user;
 }
 
+let refreshPromise: Promise<string | null> | null = null;
+
 async function refreshAdminToken(): Promise<string | null> {
-  const response = await fetch(`${API_URL}/auth/refresh`, {
-    method: 'POST',
-    credentials: 'include',
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as LoginResponse;
+    const accessToken = data.data?.accessToken;
+    if (!accessToken) return null;
+
+    setAdminToken(accessToken);
+    return accessToken;
+  })().finally(() => {
+    refreshPromise = null;
   });
 
-  if (!response.ok) return null;
-
-  const data = (await response.json()) as LoginResponse;
-  const accessToken = data.data?.accessToken;
-  if (!accessToken) return null;
-
-  setAdminToken(accessToken);
-  return accessToken;
+  return refreshPromise;
 }
 
 function redirectToLogin() {
