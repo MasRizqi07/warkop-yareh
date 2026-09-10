@@ -64,7 +64,7 @@ export interface CartItem {
 }
 
 export type OrderStatus =
-  'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  'PENDING' | 'CONFIRMED' | 'PREPARING' | 'READY' | 'SERVED' | 'COMPLETED' | 'CANCELLED';
 
 export interface Order {
   id: string;
@@ -90,8 +90,8 @@ export interface Reservation {
   date: string;
   timeSlot: string;
   guestCount: number;
-  tableType: 'indoor' | 'outdoor' | 'vip' | 'meeting-room';
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  tableType: 'INDOOR' | 'OUTDOOR' | 'VIP' | 'MEETING_ROOM';
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
   specialRequests?: string;
   createdAt: string;
 }
@@ -104,7 +104,7 @@ export interface TimeSlot {
 
 // ---- Events ----
 export type EventCategory =
-  'workshop' | 'music' | 'community' | 'business' | 'art' | 'tech' | 'food';
+  'WORKSHOP' | 'MUSIC' | 'COMMUNITY' | 'BUSINESS' | 'ART' | 'TECH' | 'FOOD';
 
 export interface Event {
   id: string;
@@ -125,7 +125,7 @@ export interface Event {
   isOnline: boolean;
   speakers?: EventSpeaker[];
   tags: string[];
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  status: 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
 }
 
 export interface EventSpeaker {
@@ -184,7 +184,7 @@ export interface BlogPost {
 export interface LoyaltyTransaction {
   id: string;
   userId: string;
-  type: 'earned' | 'redeemed' | 'expired' | 'bonus';
+  type: 'EARNED' | 'REDEEMED' | 'EXPIRED' | 'BONUS' | 'REFERRAL';
   points: number;
   description: string;
   orderId?: string;
@@ -224,7 +224,7 @@ export interface Notification {
   userId: string;
   title: string;
   message: string;
-  type: 'order' | 'event' | 'loyalty' | 'community' | 'promo' | 'system';
+  type: 'ORDER' | 'EVENT' | 'LOYALTY' | 'COMMUNITY' | 'PROMO' | 'SYSTEM';
   isRead: boolean;
   actionUrl?: string;
   createdAt: string;

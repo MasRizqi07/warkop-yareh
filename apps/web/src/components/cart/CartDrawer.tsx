@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
-import { useCartStore } from "@/stores";
+import { useCartStore, getCartItemId } from "@/stores";
 
 export function CartDrawer() {
   const router = useRouter();
@@ -106,7 +106,7 @@ export function CartDrawer() {
               ) : (
                 items.map((item) => (
                   <article
-                    key={`${item.product.id}-${JSON.stringify(item.customizations)}-${item.notes ?? ""}`}
+                    key={getCartItemId(item.product.id, item.customizations, item.notes)}
                     className="flex gap-3.5 rounded-2xl border border-border-subtle bg-surface-secondary p-3.5 hover:border-border-strong transition-all shadow-sm"
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-surface-card border border-border-subtle">
