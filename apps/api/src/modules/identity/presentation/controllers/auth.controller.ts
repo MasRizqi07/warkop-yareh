@@ -22,6 +22,7 @@ import {
 } from '../dtos/auth.dto';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { JwtRefreshAuthGuard } from '../../../../infrastructure/auth/jwt-refresh-auth.guard';
+import { GoogleAuthGuard } from '../../../../infrastructure/auth/google-auth.guard';
 import { Public } from '../../../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
@@ -140,6 +141,36 @@ export class AuthController {
       message: 'OTP verified successfully',
       data: { accessToken },
     };
+  }
+
+  @Public()
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Initiate Google OAuth login' })
+  async googleAuth() {
+    // Passport redirect to Google consent handled automatically by GoogleAuthGuard
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Google OAuth callback handler' })
+  async googleAuthCallback(
+    @Req()
+    req: Request & { user: { email: string; name: string; avatar?: string } },
+    @Res() res: Response,
+  ) {
+    const { accessToken, refreshToken } =
+      await this.authService.validateOrRegisterGoogleUser(req.user);
+    this.setRefreshTokenCookie(res, refreshToken);
+
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      'http://localhost:3000';
+    return res.redirect(
+      `${frontendUrl}/auth/callback?token=${encodeURIComponent(accessToken)}`,
+    );
   }
 
   @Post('logout')

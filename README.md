@@ -242,31 +242,46 @@ pnpm install
 ### Step 2: Spin Up Infrastructure
 
 Run local PostgreSQL and Redis databases using Docker:
+Run local PostgreSQL and Redis databases using Docker in a single command:
 
 ```bash
 cd infra/docker
 docker-compose up -d
+docker compose -f infra/docker/docker-compose.yml up -d postgres redis
 ```
 
 This boots up:
 
 - **PostgreSQL** on `localhost:5432` (User: `postgres`, Password: `password`, DB: `warkop_yareh`)
+- **PostgreSQL** on `localhost:5432` (User: `warkopyareh`, Password: `warkopyareh_pass`, Main DB: `warkopyareh_db`, Test DB: `warkop_audit` initialized via `init-audit.sql`)
 - **Redis** on `localhost:6379`
+
+> [!WARNING]
+> **JANGAN hand-edit port database pada `.env` lokal tanpa menyelaraskannya dengan port di docker-compose (default port 5432).**
+> Nilai default `.env.example` sudah selaras dengan docker-compose (`localhost:5432`). Mengubah port di salah satu sisi tanpa menyelaraskan yang lain akan memutus koneksi database pada runtime aplikasi maupun execution target test persistence (`warkop_audit`).
 
 ### Step 3: Configure Environment Variables
 
 Create `.env` files in:
+Copy `.env.example` into each application and package:
 
 1. `apps/web/.env.local`
 2. `apps/admin/.env.local`
 3. `apps/api/.env`
 4. `packages/database/.env`
+```bash
+cp .env.example apps/web/.env.local
+cp .env.example apps/admin/.env.local
+cp .env.example apps/api/.env
+cp .env.example packages/database/.env
+```
 
 Example environment variables:
 
 ```env
 # Database Settings
 DATABASE_URL="postgresql://postgres:password@localhost:5432/warkop_yareh?schema=public"
+DATABASE_URL="postgresql://warkopyareh:warkopyareh_pass@localhost:5432/warkopyareh_db?schema=public"
 
 # Redis Config
 REDIS_URL="redis://localhost:6379"
@@ -336,6 +351,12 @@ pnpm clean
 For app-specific processes, append the `--filter` option:
 
 ```bash
+# Run test suite across packages (unit tests and persistence)
+DATABASE_URL="postgresql://warkopyareh:warkopyareh_pass@localhost:5432/warkop_audit" pnpm test
+
+# Run isolated persistence and concurrency tests on API
+DATABASE_URL="postgresql://warkopyareh:warkopyareh_pass@localhost:5432/warkop_audit" pnpm --filter @warkop-yareh/api test:persistence
+
 # Run NestJS API in debug mode
 pnpm --filter @warkop-yareh/api start:debug
 

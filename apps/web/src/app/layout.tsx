@@ -6,6 +6,7 @@ import { SITE } from '@/lib/constants';
 import { UniversalHeader } from '@/components/layout/UniversalHeader';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { PwaBottomDock } from '@/components/navigation/PwaBottomDock';
+import { PwaRegister } from '@/components/pwa/PwaRegister';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -89,6 +90,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE.url,
   },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: SITE.name,
+  },
 };
 
 // JSON-LD Structured Data
@@ -132,6 +139,7 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} ${inter.variable} ${jetBrainsMono.variable} min-h-screen bg-canvas-obsidian text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container`}
       >
         <Providers>
+          <PwaRegister />
           <UniversalHeader />
           {children}
           <CartDrawer />

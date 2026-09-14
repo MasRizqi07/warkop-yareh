@@ -8,6 +8,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from '../../application/services/auth.service';
 import { JwtRefreshAuthGuard } from '../../../../infrastructure/auth/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
+import { GoogleAuthGuard } from '../../../../infrastructure/auth/google-auth.guard';
 
 class MockRefreshGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
@@ -25,6 +26,18 @@ class MockJwtGuard implements CanActivate {
   }
 }
 
+class MockGoogleGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const req = context.switchToHttp().getRequest();
+    req.user = {
+      email: 'google-user@example.com',
+      name: 'Google User',
+      avatar: 'https://example.com/photo.jpg',
+    };
+    return true;
+  }
+}
+
 describe('AuthController (E2E / Controller)', () => {
   let app: INestApplication<Server>;
   let authService: jest.Mocked<Partial<AuthService>>;
@@ -38,6 +51,7 @@ describe('AuthController (E2E / Controller)', () => {
       logout: jest.fn(),
       sendOtp: jest.fn(),
       verifyOtp: jest.fn(),
+      validateOrRegisterGoogleUser: jest.fn(),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -50,6 +64,8 @@ describe('AuthController (E2E / Controller)', () => {
       .useClass(MockRefreshGuard)
       .overrideGuard(JwtAuthGuard)
       .useClass(MockJwtGuard)
+      .overrideGuard(GoogleAuthGuard)
+      .useClass(MockGoogleGuard)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -175,5 +191,30 @@ describe('AuthController (E2E / Controller)', () => {
       .expect(401);
 
     expect(res.body.message).toBe('Invalid or revoked refresh token');
+  });
+
+  it('GET /api/v1/auth/google/callback -> validates user, sets refresh cookie, and redirects to frontend', async () => {
+    (authService.validateOrRegisterGoogleUser as jest.Mock).mockResolvedValue({
+      accessToken: 'google-access-jwt',
+      refreshToken: 'google-refresh-jwt',
+      user: {
+        id: 'user-google-1',
+        email: 'google-user@example.com',
+        name: 'Google User',
+        role: 'CUSTOMER',
+      },
+    });
+
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/auth/google/callback')
+      .expect(302);
+
+    expect(res.headers.location).toContain('/auth/callback?token=google-access-jwt');
+    const rawCookies = res.headers['set-cookie'];
+    expect(rawCookies).toBeDefined();
+    const cookieList = Array.isArray(rawCookies) ? rawCookies : [String(rawCookies)];
+    expect(
+      cookieList.some((c: string) => c.includes('refreshToken=google-refresh-jwt')),
+    ).toBe(true);
   });
 });

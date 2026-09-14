@@ -3,6 +3,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtRefreshStrategy } from './jwt-refresh.strategy';
+import { GoogleStrategy } from './google.strategy';
 
 @Module({
   imports: [
@@ -17,7 +18,13 @@ import { JwtRefreshStrategy } from './jwt-refresh.strategy';
       signOptions: { expiresIn: '15m' }, // Access token 15min per PRD
     }),
   ],
-  providers: [JwtStrategy, JwtRefreshStrategy],
-  exports: [PassportModule, JwtModule, JwtStrategy, JwtRefreshStrategy],
+  providers: [JwtStrategy, JwtRefreshStrategy, GoogleStrategy],
+  exports: [
+    PassportModule,
+    JwtModule,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleStrategy,
+  ],
 })
 export class AuthModule {}

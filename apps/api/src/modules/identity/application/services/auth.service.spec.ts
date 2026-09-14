@@ -32,6 +32,7 @@ describe('AuthService', () => {
       getUserByEmail: jest.fn(),
       getUserProfile: jest.fn(),
       createUser: jest.fn(),
+      updateUser: jest.fn(),
     };
 
     mockJwtService = {
@@ -307,6 +308,82 @@ describe('AuthService', () => {
         status: 429,
       });
       expect(mockRedisService.set).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validateOrRegisterGoogleUser', () => {
+    it('creates new user if email not registered and returns tokens', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue(null);
+      mockIdentityService.createUser.mockResolvedValue({
+        id: 'new-google-user',
+        email: 'google@test.com',
+        name: 'Google Person',
+        avatar: 'https://example.com/pic.jpg',
+        role: Role.CUSTOMER,
+      });
+
+      const res = await service.validateOrRegisterGoogleUser({
+        email: 'google@test.com',
+        name: 'Google Person',
+        avatar: 'https://example.com/pic.jpg',
+      });
+
+      expect(mockIdentityService.createUser).toHaveBeenCalledWith({
+        email: 'google@test.com',
+        name: 'Google Person',
+        avatar: 'https://example.com/pic.jpg',
+      });
+      expect(res.user.id).toBe('new-google-user');
+      expect(res.accessToken).toBe('mock-jwt-token');
+      expect(res.refreshToken).toBe('mock-jwt-token');
+    });
+
+    it('returns existing user if already registered', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue({
+        id: 'existing-google-user',
+        email: 'google@test.com',
+        name: 'Existing Person',
+        avatar: 'https://example.com/pic.jpg',
+        role: Role.CUSTOMER,
+      });
+
+      const res = await service.validateOrRegisterGoogleUser({
+        email: 'google@test.com',
+        name: 'Existing Person',
+        avatar: 'https://example.com/pic.jpg',
+      });
+
+      expect(mockIdentityService.createUser).not.toHaveBeenCalled();
+      expect(res.user.id).toBe('existing-google-user');
+    });
+
+    it('updates avatar if existing user has no avatar but google profile provides one', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue({
+        id: 'existing-no-avatar',
+        email: 'noavatar@test.com',
+        name: 'No Avatar Person',
+        avatar: null,
+        role: Role.CUSTOMER,
+      });
+      mockIdentityService.updateUser.mockResolvedValue({
+        id: 'existing-no-avatar',
+        email: 'noavatar@test.com',
+        name: 'No Avatar Person',
+        avatar: 'https://example.com/new-pic.jpg',
+        role: Role.CUSTOMER,
+      });
+
+      const res = await service.validateOrRegisterGoogleUser({
+        email: 'noavatar@test.com',
+        name: 'No Avatar Person',
+        avatar: 'https://example.com/new-pic.jpg',
+      });
+
+      expect(mockIdentityService.updateUser).toHaveBeenCalledWith(
+        'existing-no-avatar',
+        { avatar: 'https://example.com/new-pic.jpg' },
+      );
+      expect(res.user.avatar).toBe('https://example.com/new-pic.jpg');
     });
   });
 });
