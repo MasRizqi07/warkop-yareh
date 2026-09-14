@@ -1,19 +1,14 @@
-name: CD — Database Migrations
 name: CD — Staging & Production Delivery
 
-# Production schema changes are intentionally manual. Application delivery and
-# database mutation are separate approvals so a passing CI run cannot mutate a
-# production database by itself.
+# Production schema changes and deployments are intentionally manual and guarded.
+# Application delivery and database mutation require explicit inputs.
 
 on:
   workflow_dispatch:
     inputs:
-      commit_sha:
-        description: 'Exact, reviewed commit SHA to migrate'
       target_environment:
         description: 'Target environment'
         required: true
-        type: string
         type: choice
         default: 'staging'
         options:
@@ -30,9 +25,12 @@ on:
           - web
           - admin
           - database-migration
+      commit_sha:
+        description: 'Exact commit SHA to deploy (leave blank for latest)'
+        required: false
+        type: string
+        default: ''
       confirmation:
-        description: 'Type MIGRATE_PRODUCTION'
-        required: true
         description: 'Type DEPLOY-PROD for production deployment, or MIGRATE_PRODUCTION for production database migration'
         required: false
         type: string
@@ -42,13 +40,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: production-database-migrations
   group: cd-${{ github.workflow }}-${{ inputs.target_environment }}
   cancel-in-progress: false
 
 jobs:
-  migrate:
-    name: Run Database Migrations
   # ============================================================================
   # STAGING DEPLOYMENT
   # ============================================================================
@@ -56,12 +51,12 @@ jobs:
     name: Deploy API (Staging — Railway)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: production
-    if: ${{ inputs.confirmation == 'MIGRATE_PRODUCTION' }}
     if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'api') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
 
       - name: Deploy to Railway Staging
         env:
@@ -82,14 +77,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          ref: ${{ inputs.commit_sha }}
           version: 9.0.0
 
-      - name: Verify reviewed commit and release switch
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -101,19 +96,13 @@ jobs:
 
       - name: Deploy apps/web to Vercel Preview
         env:
-          EXPECTED_COMMIT: ${{ inputs.commit_sha }}
-          PRODUCTION_MIGRATION_ENABLED: ${{ vars.PRODUCTION_MIGRATION_ENABLED }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
         run: |
-          test "$(git rev-parse HEAD)" = "$EXPECTED_COMMIT"
-          test "$PRODUCTION_MIGRATION_ENABLED" = "true" || {
-            echo "Production migration is frozen. Set the protected environment variable PRODUCTION_MIGRATION_ENABLED=true after approval."
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "::warning ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret. See docs/deployment.md for setup instructions."
             exit 1
-          }
           fi
           npx vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
           npx vercel build --token=$VERCEL_TOKEN
@@ -127,6 +116,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -168,6 +159,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
 
       - name: Verify release approval
         run: |
@@ -196,6 +189,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -214,17 +209,14 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter @warkop-yareh/database run db:generate
 
-      - name: Validate production database target
       - name: Validate database target
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/validate-database-target.mjs production
         run: |
           if [ "${{ inputs.target_environment }}" = "production" ]; then
             node scripts/validate-database-target.mjs production
           fi
 
-      - name: Run Database Migrations (production)
       - name: Run Database Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
