@@ -6,8 +6,21 @@ import { EventsGateway } from '../../../websockets/events.gateway';
 
 describe('TableService', () => {
   let service: TableService;
-  let mockTableRepo: any;
-  let mockEventsGateway: any;
+  let mockTableRepo: {
+    getTableByQrCode: jest.Mock;
+    getTablesByBranch: jest.Mock;
+    getTableById: jest.Mock;
+    updateTableStatus: jest.Mock;
+    getRecentPendingWaiterCall: jest.Mock;
+    createWaiterCall: jest.Mock;
+    getWaiterCallById: jest.Mock;
+    resolveWaiterCall: jest.Mock;
+  };
+  let mockEventsGateway: {
+    broadcastTableUpdated: jest.Mock;
+    broadcastWaiterCalled: jest.Mock;
+    broadcastWaiterResolved: jest.Mock;
+  };
 
   const mockTable = {
     id: 'table-1',

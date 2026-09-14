@@ -1,20 +1,35 @@
 import type { Server } from 'node:http';
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
 import request from 'supertest';
 import { TableController } from './table.controller';
 import { TableService } from '../../application/services/table.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
+import { Role } from '@warkop-yareh/database';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
-let mockUser: any = { id: 'user_A', role: 'STAFF', branchId: 'branch_1' };
+const staffUser: AuthenticatedUser = {
+  id: 'user_A',
+  email: 'staff@example.test',
+  name: 'Staff',
+  role: Role.STAFF,
+  branchId: 'branch_1',
+};
+let mockUser: AuthenticatedUser = staffUser;
 
 @Injectable()
 class MockAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ user?: AuthenticatedUser }>();
     req.user = mockUser;
     return true;
   }
@@ -28,8 +43,12 @@ describe('TableController (E2E / Controller)', () => {
     tableService = {
       resolveQrCode: jest.fn().mockResolvedValue({ id: 'tbl_1', number: 'T1' }),
       getTablesByBranch: jest.fn().mockResolvedValue([]),
-      getTableById: jest.fn().mockResolvedValue({ id: 'tbl_1', branchId: 'branch_1' }),
-      updateStatus: jest.fn().mockResolvedValue({ id: 'tbl_1', status: 'OCCUPIED' }),
+      getTableById: jest
+        .fn()
+        .mockResolvedValue({ id: 'tbl_1', branchId: 'branch_1' }),
+      updateStatus: jest
+        .fn()
+        .mockResolvedValue({ id: 'tbl_1', status: 'OCCUPIED' }),
       createWaiterCall: jest.fn().mockResolvedValue({ id: 'call_1' }),
     };
 
@@ -55,7 +74,7 @@ describe('TableController (E2E / Controller)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUser = { id: 'user_A', role: 'STAFF', branchId: 'branch_1' };
+    mockUser = staffUser;
   });
 
   it('GET /api/v1/tables/qr/:code should resolve QR code (Public)', async () => {
@@ -95,6 +114,9 @@ describe('TableController (E2E / Controller)', () => {
       .send({ type: 'CALL_WAITER' })
       .expect(200);
 
-    expect(tableService.createWaiterCall).toHaveBeenCalledWith('tbl_1', 'CALL_WAITER');
+    expect(tableService.createWaiterCall).toHaveBeenCalledWith(
+      'tbl_1',
+      'CALL_WAITER',
+    );
   });
 });

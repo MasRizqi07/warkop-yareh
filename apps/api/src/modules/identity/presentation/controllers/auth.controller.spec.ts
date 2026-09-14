@@ -1,17 +1,23 @@
 import type { Server } from 'node:http';
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, UnauthorizedException, BadRequestException, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  INestApplication,
+  UnauthorizedException,
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+} from '@nestjs/common';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../../application/services/auth.service';
 import { JwtRefreshAuthGuard } from '../../../../infrastructure/auth/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
+import { GoogleAuthGuard } from '../../../../infrastructure/auth/google-auth.guard';
 
 class MockRefreshGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<{ user?: { id: string } }>();
     req.user = { id: 'user-1' };
     return true;
   }
@@ -19,8 +25,22 @@ class MockRefreshGuard implements CanActivate {
 
 class MockJwtGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<{ user?: { id: string } }>();
     req.user = { id: 'user-1' };
+    return true;
+  }
+}
+
+class MockGoogleGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const req = context.switchToHttp().getRequest<{
+      user?: { email: string; name: string; avatar?: string };
+    }>();
+    req.user = {
+      email: 'google-user@example.com',
+      name: 'Google User',
+      avatar: 'https://example.com/photo.jpg',
+    };
     return true;
   }
 }
@@ -38,18 +58,19 @@ describe('AuthController (E2E / Controller)', () => {
       logout: jest.fn(),
       sendOtp: jest.fn(),
       verifyOtp: jest.fn(),
+      validateOrRegisterGoogleUser: jest.fn(),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [
-        { provide: AuthService, useValue: authService },
-      ],
+      providers: [{ provide: AuthService, useValue: authService }],
     })
       .overrideGuard(JwtRefreshAuthGuard)
       .useClass(MockRefreshGuard)
       .overrideGuard(JwtAuthGuard)
       .useClass(MockJwtGuard)
+      .overrideGuard(GoogleAuthGuard)
+      .useClass(MockGoogleGuard)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -175,5 +196,35 @@ describe('AuthController (E2E / Controller)', () => {
       .expect(401);
 
     expect(res.body.message).toBe('Invalid or revoked refresh token');
+  });
+
+  it('GET /api/v1/auth/google/callback -> validates user, sets refresh cookie, and redirects to frontend', async () => {
+    (authService.validateOrRegisterGoogleUser as jest.Mock).mockResolvedValue({
+      accessToken: 'google-access-jwt',
+      refreshToken: 'google-refresh-jwt',
+      user: {
+        id: 'user-google-1',
+        email: 'google-user@example.com',
+        name: 'Google User',
+        role: 'CUSTOMER',
+      },
+    });
+
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/auth/google/callback')
+      .expect(302);
+
+    expect(res.headers.location).toMatch(/\/auth\/callback$/);
+    expect(res.headers.location).not.toContain('google-access-jwt');
+    const rawCookies = res.headers['set-cookie'];
+    expect(rawCookies).toBeDefined();
+    const cookieList = Array.isArray(rawCookies)
+      ? rawCookies
+      : [String(rawCookies)];
+    expect(
+      cookieList.some((c: string) =>
+        c.includes('refreshToken=google-refresh-jwt'),
+      ),
+    ).toBe(true);
   });
 });

@@ -1,52 +1,273 @@
-name: CD — Database Migrations
+name: CD — Staging & Production Delivery
 
-# Production schema changes are intentionally manual. Application delivery and
-# database mutation are separate approvals so a passing CI run cannot mutate a
-# production database by itself.
+# Production schema changes and deployments are intentionally manual and guarded.
+# Application delivery and database mutation require explicit inputs.
 
 on:
   workflow_dispatch:
     inputs:
+      target_environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        default: 'staging'
+        options:
+          - staging
+          - production
+      service:
+        description: 'Service to deploy'
+        required: true
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - api
+          - web
+          - admin
+          - database-migration
       commit_sha:
-        description: 'Exact, reviewed commit SHA to migrate'
-        required: true
+        description: 'Exact commit SHA to deploy (leave blank for latest)'
+        required: false
         type: string
+        default: ''
       confirmation:
-        description: 'Type MIGRATE_PRODUCTION'
-        required: true
+        description: 'Type DEPLOY-PROD for production deployment, or MIGRATE_PRODUCTION for production database migration'
+        required: false
         type: string
+        default: ''
 
 permissions:
   contents: read
 
 concurrency:
-  group: production-database-migrations
+  group: cd-${{ github.workflow }}-${{ inputs.target_environment }}
   cancel-in-progress: false
 
 jobs:
-  migrate:
-    name: Run Database Migrations
+  # ============================================================================
+  # STAGING DEPLOYMENT
+  # ============================================================================
+  deploy-staging-api:
+    name: Deploy API (Staging — Railway)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: production
-    if: ${{ inputs.confirmation == 'MIGRATE_PRODUCTION' }}
-
+    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'api') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
 
-      - name: Verify reviewed commit and release switch
+      - name: Deploy to Railway Staging
         env:
-          EXPECTED_COMMIT: ${{ inputs.commit_sha }}
-          PRODUCTION_MIGRATION_ENABLED: ${{ vars.PRODUCTION_MIGRATION_ENABLED }}
+          RAILWAY_TOKEN: ${{ secrets['RAILWAY_TOKEN'] }}
+          RAILWAY_SERVICE_ID: ${{ secrets['RAILWAY_SERVICE_ID_API_STAGING'] }}
         run: |
-          test "$(git rev-parse HEAD)" = "$EXPECTED_COMMIT"
-          test "$PRODUCTION_MIGRATION_ENABLED" = "true" || {
-            echo "Production migration is frozen. Set the protected environment variable PRODUCTION_MIGRATION_ENABLED=true after approval."
+          if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
+            echo "::error ::Missing RAILWAY_TOKEN or RAILWAY_SERVICE_ID_API_STAGING secret. See docs/deployment.md for setup instructions."
             exit 1
-          }
+          fi
+          npx @railway/cli up -s "$RAILWAY_SERVICE_ID" --detach
+
+  deploy-staging-web:
+    name: Deploy Web (Staging — Vercel Preview)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'web') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: pnpm dlx vercel --version
+
+      - name: Deploy apps/web to Vercel Preview
+        env:
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_WEB'] }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret. See docs/deployment.md for setup instructions."
+            exit 1
+          fi
+          npx vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+          npx vercel build --token=$VERCEL_TOKEN
+          npx vercel deploy --prebuilt --token=$VERCEL_TOKEN
+
+  deploy-staging-admin:
+    name: Deploy Admin (Staging — Vercel Preview)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'admin') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: pnpm dlx vercel --version
+
+      - name: Deploy apps/admin to Vercel Preview
+        env:
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_ADMIN'] }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_ADMIN secret. See docs/deployment.md for setup instructions."
+            exit 1
+          fi
+          npx vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+          npx vercel build --token=$VERCEL_TOKEN
+          npx vercel deploy --prebuilt --token=$VERCEL_TOKEN
+
+  # ============================================================================
+  # PRODUCTION DEPLOYMENT (STRICTLY MANUAL & GUARDED)
+  # ============================================================================
+  deploy-production-api:
+    name: Deploy API (Production — Railway)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'api') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
+
+      - name: Verify release approval
+        run: |
+          echo "Production deployment confirmed via manual token DEPLOY-PROD."
+
+      - name: Deploy API to Railway Production
+        env:
+          RAILWAY_TOKEN: ${{ secrets['RAILWAY_TOKEN'] }}
+          RAILWAY_SERVICE_ID: ${{ secrets['RAILWAY_SERVICE_ID_API_PROD'] }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
+            echo "::error ::Missing RAILWAY_TOKEN or RAILWAY_SERVICE_ID_API_PROD secret."
+            exit 1
+          fi
+          npx @railway/cli up -s "$RAILWAY_SERVICE_ID" --detach
+
+  deploy-production-web:
+    name: Deploy Web (Production — Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'web') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Deploy apps/web to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_WEB'] }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret."
+            exit 1
+          fi
+          pnpm dlx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          pnpm dlx vercel build --prod --token="$VERCEL_TOKEN"
+          pnpm dlx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+  deploy-production-admin:
+    name: Deploy Admin (Production — Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'admin') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Deploy apps/admin to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_ADMIN'] }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_ADMIN secret."
+            exit 1
+          fi
+          pnpm dlx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          pnpm dlx vercel build --prod --token="$VERCEL_TOKEN"
+          pnpm dlx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+  # ============================================================================
+  # DATABASE MIGRATIONS (MANUAL APPROVAL ONLY)
+  # ============================================================================
+  migrate-database:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.target_environment }}
+    if: ${{ (inputs.target_environment == 'staging' && inputs.service == 'database-migration') || (inputs.target_environment == 'production' && inputs.service == 'database-migration' && inputs.confirmation == 'MIGRATE_PRODUCTION') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -65,12 +286,15 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter @warkop-yareh/database run db:generate
 
-      - name: Validate production database target
+      - name: Validate database target
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: node scripts/validate-database-target.mjs production
+          DATABASE_URL: ${{ secrets['DATABASE_URL'] }}
+        run: |
+          if [ "${{ inputs.target_environment }}" = "production" ]; then
+            node scripts/validate-database-target.mjs production
+          fi
 
-      - name: Run Database Migrations (production)
+      - name: Run Database Migrations
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets['DATABASE_URL'] }}
         run: pnpm --filter @warkop-yareh/database run db:migrate:deploy

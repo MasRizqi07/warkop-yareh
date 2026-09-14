@@ -7,6 +7,7 @@ export interface CreateUserInput {
   email: string;
   name: string;
   phone?: string;
+  avatar?: string;
   passwordHash?: string;
   referredBy?: string;
   whatsAppMarketingOptInAt?: Date;

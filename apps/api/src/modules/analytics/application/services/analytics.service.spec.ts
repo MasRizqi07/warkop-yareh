@@ -4,7 +4,12 @@ import { DatabaseService } from '../../../../infrastructure/database/database.se
 
 describe('AnalyticsService', () => {
   let service: AnalyticsService;
-  let mockPrisma: any;
+  let mockPrisma: {
+    order: { aggregate: jest.Mock; groupBy: jest.Mock };
+    orderItem: { groupBy: jest.Mock };
+    product: { findMany: jest.Mock };
+    user: { findMany: jest.Mock; count: jest.Mock };
+  };
 
   beforeEach(async () => {
     mockPrisma = {

@@ -11,12 +11,28 @@ import { CatalogService } from '../../application/services/catalog.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { ROLES_KEY } from '../../../../common/decorators/roles.decorator';
 import { Role } from '@warkop-yareh/database';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
-let mockUser: any = null;
+let mockUser: AuthenticatedUser | null = null;
+
+function getControllerMethod(
+  methodName: 'updateBranchProduct' | 'toggleAvailability',
+): (...args: unknown[]) => unknown {
+  const method = Object.getOwnPropertyDescriptor(
+    CatalogController.prototype,
+    methodName,
+  )?.value as unknown;
+  if (typeof method !== 'function') {
+    throw new Error(`CatalogController.${methodName} is not a method`);
+  }
+  return method as (...args: unknown[]) => unknown;
+}
 
 class MockAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ user?: AuthenticatedUser | null }>();
     req.user = mockUser;
     return true;
   }
@@ -98,7 +114,13 @@ describe('CatalogController (E2E / Controller)', () => {
   });
 
   it('POST /api/v1/products -> creates product when authorized user has MANAGER or ADMIN role', async () => {
-    mockUser = { id: 'admin-1', role: 'ADMIN' };
+    mockUser = {
+      id: 'admin-1',
+      email: 'admin@example.test',
+      name: 'Admin',
+      role: Role.ADMIN,
+      branchId: 'branch-1',
+    };
     (catalogService.createProduct as jest.Mock).mockResolvedValue({
       id: 'prod-new',
       name: 'V60 Manual Brew',
@@ -118,19 +140,16 @@ describe('CatalogController (E2E / Controller)', () => {
   });
 
   it('limits inventory and price changes to management roles while preserving staff availability access', () => {
-    expect(
-      Reflect.getMetadata(
-        ROLES_KEY,
-        // eslint-disable-next-line @typescript-eslint/unbound-method -- Decorator metadata is read; the method is never invoked.
-        CatalogController.prototype.updateBranchProduct,
-      ),
-    ).toEqual([Role.MANAGER, Role.ADMIN, Role.OWNER, Role.SUPERADMIN]);
-    expect(
-      Reflect.getMetadata(
-        ROLES_KEY,
-        // eslint-disable-next-line @typescript-eslint/unbound-method -- Decorator metadata is read; the method is never invoked.
-        CatalogController.prototype.toggleAvailability,
-      ),
-    ).toEqual(expect.arrayContaining([Role.STAFF, Role.CASHIER, Role.KITCHEN]));
+    const updateBranchProduct = getControllerMethod('updateBranchProduct');
+    const toggleAvailability = getControllerMethod('toggleAvailability');
+    expect(Reflect.getMetadata(ROLES_KEY, updateBranchProduct)).toEqual([
+      Role.MANAGER,
+      Role.ADMIN,
+      Role.OWNER,
+      Role.SUPERADMIN,
+    ]);
+    expect(Reflect.getMetadata(ROLES_KEY, toggleAvailability)).toEqual(
+      expect.arrayContaining([Role.STAFF, Role.CASHIER, Role.KITCHEN]),
+    );
   });
 });

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Koneksi Terputus — Warkop Ya'reh</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #14110e;
+      color: #f8f5f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      max-width: 400px;
+      padding: 32px;
+      background: rgba(30, 26, 22, 0.85);
+      border: 1px solid rgba(194, 120, 3, 0.2);
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 12px 0;
+      color: #f8f5f0;
+    }
+    p {
+      font-size: 14px;
+      color: #a8a29e;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+    button {
+      background: #c27803;
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #a36302;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">☕</div>
+    <h1>Koneksi Terputus</h1>
+    <p>Anda sedang berada dalam mode offline. Silakan periksa koneksi internet Anda untuk kembali menikmati pengalaman digital Warkop Ya'reh.</p>
+    <button onclick="window.location.reload()">Coba Lagi</button>
+  </div>
+</body>
+</html>
+

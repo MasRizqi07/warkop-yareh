@@ -4,7 +4,14 @@ import { DatabaseService } from '../../../../infrastructure/database/database.se
 
 describe('BranchService', () => {
   let service: BranchService;
-  let mockPrisma: any;
+  let mockPrisma: {
+    branch: {
+      create: jest.Mock;
+      findFirst: jest.Mock;
+      findMany: jest.Mock;
+      update: jest.Mock;
+    };
+  };
 
   const mockBranch = {
     id: 'branch-1',
@@ -38,9 +45,7 @@ describe('BranchService', () => {
   });
 
   it('createBranch: should apply default values when optional fields are omitted', async () => {
-    mockPrisma.branch.create.mockImplementation(({ data }: any) =>
-      Promise.resolve({ id: 'branch-1', ...data }),
-    );
+    mockPrisma.branch.create.mockResolvedValue(mockBranch);
 
     const result = await service.createBranch({
       name: 'Warkop Gubeng',
@@ -51,6 +56,16 @@ describe('BranchService', () => {
     expect(result.province).toBe('Jawa Timur');
     expect(result.weekdayHours).toBe('07:00-24:00');
     expect(result.weekendHours).toBe('07:00-01:00');
+    expect(mockPrisma.branch.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          city: 'Surabaya',
+          province: 'Jawa Timur',
+          weekdayHours: '07:00-24:00',
+          weekendHours: '07:00-01:00',
+        }),
+      }),
+    );
   });
 
   it('getBranch & listBranches & updateBranch', async () => {

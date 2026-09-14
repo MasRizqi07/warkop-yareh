@@ -40,10 +40,12 @@ export default function ThankYouPage() {
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSubmitError(null);
     try {
       await api.post(`/orders/${params.id}/feedback`, {
         productRating,
@@ -52,8 +54,12 @@ export default function ThankYouPage() {
         comment,
       });
       setSubmitted(true);
-    } catch (err) {
-      console.error(err);
+    } catch (error: unknown) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'Feedback gagal dikirim. Silakan coba kembali.',
+      );
     } finally {
       setLoading(false);
     }
@@ -94,6 +100,14 @@ export default function ThankYouPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-xl border border-slate-200 dark:border-slate-800">
+        {submitError ? (
+          <p
+            role="alert"
+            className="mb-5 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+          >
+            {submitError}
+          </p>
+        ) : null}
         <StarRating label="Product Quality (Food & Drinks)" value={productRating} onChange={setProductRating} />
         <StarRating label="Service Speed & Friendliness" value={serviceRating} onChange={setServiceRating} />
         <StarRating label="Atmosphere & Cleanliness" value={atmosphereRating} onChange={setAtmosphereRating} />

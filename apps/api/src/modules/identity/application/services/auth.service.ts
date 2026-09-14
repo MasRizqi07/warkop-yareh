@@ -207,6 +207,33 @@ export class AuthService {
     return this.login(user);
   }
 
+  async validateOrRegisterGoogleUser(profile: {
+    email: string;
+    name: string;
+    avatar?: string;
+  }): Promise<{ accessToken: string; refreshToken: string; user: SafeUser }> {
+    const email = this.normalizeEmail(profile.email);
+    let user: InternalUser | SafeUser | null =
+      await this.identityService.getUserByEmail(email);
+    if (!user) {
+      user = await this.identityService.createUser({
+        email,
+        name: profile.name || email.split('@')[0],
+        avatar: profile.avatar,
+      });
+    } else if (profile.avatar && !user.avatar) {
+      user = await this.identityService.updateUser(user.id, {
+        avatar: profile.avatar,
+      });
+    }
+    const safeUser = this.toSafeUser(user);
+    const tokens = await this.login(safeUser);
+    return {
+      ...tokens,
+      user: safeUser,
+    };
+  }
+
   private async deliverOtp(email: string, otp: string): Promise<void> {
     if (process.env.NODE_ENV !== 'production') {
       this.logger.debug(`[DEV ONLY] OTP for ${email}: ${otp}`);
@@ -304,9 +331,12 @@ export class AuthService {
     return secret;
   }
 
-  private toSafeUser(user: InternalUser): SafeUser {
-    const { passwordHash, ...safeUser } = user;
-    void passwordHash;
-    return safeUser;
+  private toSafeUser(user: InternalUser | SafeUser): SafeUser {
+    if ('passwordHash' in user) {
+      const { passwordHash, ...safeUser } = user;
+      void passwordHash;
+      return safeUser;
+    }
+    return user;
   }
 }

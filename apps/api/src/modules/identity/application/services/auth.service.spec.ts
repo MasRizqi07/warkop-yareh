@@ -10,9 +10,22 @@ import { Role } from '@warkop-yareh/database';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let mockIdentityService: any;
-  let mockJwtService: any;
-  let mockRedisService: any;
+  let mockIdentityService: {
+    getUserByEmail: jest.Mock;
+    getUserProfile: jest.Mock;
+    createUser: jest.Mock;
+    updateUser: jest.Mock;
+  };
+  let mockJwtService: { sign: jest.Mock };
+  let mockRedisService: {
+    set: jest.Mock;
+    get: jest.Mock;
+    take: jest.Mock;
+    del: jest.Mock;
+    delPattern: jest.Mock;
+    setIfAbsent: jest.Mock;
+    incrementWithTtl: jest.Mock;
+  };
 
   const mockUser = {
     id: 'user-123',
@@ -32,6 +45,7 @@ describe('AuthService', () => {
       getUserByEmail: jest.fn(),
       getUserProfile: jest.fn(),
       createUser: jest.fn(),
+      updateUser: jest.fn(),
     };
 
     mockJwtService = {
@@ -62,7 +76,7 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user without passwordHash on correct credentials', async () => {
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
 
       const result = await service.validateUser(
         'test@warkopyareh.com',
@@ -76,7 +90,7 @@ describe('AuthService', () => {
     });
 
     it('should return null on wrong password', async () => {
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
 
       const result = await service.validateUser(
         'test@warkopyareh.com',
@@ -123,7 +137,7 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should throw BadRequestException if user email already exists', async () => {
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
 
       await expect(
         service.register({
@@ -140,7 +154,7 @@ describe('AuthService', () => {
         id: 'user-new',
         email: 'new@warkopyareh.com',
         name: 'New User',
-      } as any);
+      });
 
       const result = await service.register({
         email: 'new@warkopyareh.com',
@@ -195,7 +209,7 @@ describe('AuthService', () => {
   describe('refreshTokens', () => {
     it('should refresh tokens when valid refresh token is provided', async () => {
       mockRedisService.take.mockResolvedValue('valid');
-      mockIdentityService.getUserProfile.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserProfile.mockResolvedValue(mockUser);
       mockJwtService.sign
         .mockReturnValueOnce('new-access-token')
         .mockReturnValueOnce('new-refresh-token');
@@ -272,7 +286,7 @@ describe('AuthService', () => {
       const subjectHash = createHash('sha256').update(email).digest('hex');
       mockRedisService.get.mockResolvedValue(otpHash);
       mockRedisService.take.mockResolvedValue(otpHash);
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
       mockJwtService.sign
         .mockReturnValueOnce('otp-access-token')
         .mockReturnValueOnce('otp-refresh-token');
@@ -307,6 +321,82 @@ describe('AuthService', () => {
         status: 429,
       });
       expect(mockRedisService.set).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('validateOrRegisterGoogleUser', () => {
+    it('creates new user if email not registered and returns tokens', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue(null);
+      mockIdentityService.createUser.mockResolvedValue({
+        id: 'new-google-user',
+        email: 'google@test.com',
+        name: 'Google Person',
+        avatar: 'https://example.com/pic.jpg',
+        role: Role.CUSTOMER,
+      });
+
+      const res = await service.validateOrRegisterGoogleUser({
+        email: 'google@test.com',
+        name: 'Google Person',
+        avatar: 'https://example.com/pic.jpg',
+      });
+
+      expect(mockIdentityService.createUser).toHaveBeenCalledWith({
+        email: 'google@test.com',
+        name: 'Google Person',
+        avatar: 'https://example.com/pic.jpg',
+      });
+      expect(res.user.id).toBe('new-google-user');
+      expect(res.accessToken).toBe('mock-jwt-token');
+      expect(res.refreshToken).toBe('mock-jwt-token');
+    });
+
+    it('returns existing user if already registered', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue({
+        id: 'existing-google-user',
+        email: 'google@test.com',
+        name: 'Existing Person',
+        avatar: 'https://example.com/pic.jpg',
+        role: Role.CUSTOMER,
+      });
+
+      const res = await service.validateOrRegisterGoogleUser({
+        email: 'google@test.com',
+        name: 'Existing Person',
+        avatar: 'https://example.com/pic.jpg',
+      });
+
+      expect(mockIdentityService.createUser).not.toHaveBeenCalled();
+      expect(res.user.id).toBe('existing-google-user');
+    });
+
+    it('updates avatar if existing user has no avatar but google profile provides one', async () => {
+      mockIdentityService.getUserByEmail.mockResolvedValue({
+        id: 'existing-no-avatar',
+        email: 'noavatar@test.com',
+        name: 'No Avatar Person',
+        avatar: null,
+        role: Role.CUSTOMER,
+      });
+      mockIdentityService.updateUser.mockResolvedValue({
+        id: 'existing-no-avatar',
+        email: 'noavatar@test.com',
+        name: 'No Avatar Person',
+        avatar: 'https://example.com/new-pic.jpg',
+        role: Role.CUSTOMER,
+      });
+
+      const res = await service.validateOrRegisterGoogleUser({
+        email: 'noavatar@test.com',
+        name: 'No Avatar Person',
+        avatar: 'https://example.com/new-pic.jpg',
+      });
+
+      expect(mockIdentityService.updateUser).toHaveBeenCalledWith(
+        'existing-no-avatar',
+        { avatar: 'https://example.com/new-pic.jpg' },
+      );
+      expect(res.user.avatar).toBe('https://example.com/new-pic.jpg');
     });
   });
 });

@@ -34,6 +34,7 @@ export class IdentityService {
       email: data.email.trim().toLocaleLowerCase('en-US'),
       name: data.name.trim(),
       ...(data.phone ? { phone: data.phone.trim() } : {}),
+      ...(data.avatar ? { avatar: data.avatar.trim() } : {}),
     });
   }
 

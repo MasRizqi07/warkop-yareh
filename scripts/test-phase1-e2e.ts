@@ -1,8 +1,16 @@
+function requireEnvironmentVariable(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`${name} is required`);
+  return value;
+}
+
 async function run() {
   const baseUrl = 'http://localhost:4000/api/v1';
+  const adminEmail = requireEnvironmentVariable('PHASE1_ADMIN_EMAIL');
+  const adminPassword = requireEnvironmentVariable('PHASE1_ADMIN_PASSWORD');
 
   console.log('====================================================');
-  console.log('  WARKOP YA\'REH — PHASE 1 E2E VERIFICATION SUITE');
+  console.log("  WARKOP YA'REH — PHASE 1 E2E VERIFICATION SUITE");
   console.log('====================================================\n');
 
   // --- Step 1: Authenticate ---
@@ -11,12 +19,13 @@ async function run() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: 'admin@coldnbrew.id',
-      password: 'Admin123!',
+      email: adminEmail,
+      password: adminPassword,
     }),
   });
   const loginJson = await loginRes.json();
-  const token = loginJson.data?.tokens?.accessToken || loginJson.data?.accessToken;
+  const token =
+    loginJson.data?.tokens?.accessToken || loginJson.data?.accessToken;
   console.log('Login Status:', loginRes.status);
   console.log('User Role:', loginJson.data?.user?.role);
   console.log('Token Received:', token ? 'YES (Bearer JWT)' : 'NO');
@@ -65,7 +74,6 @@ async function run() {
   });
   const createJson = await createRes.json();
   console.log('Order Creation Status:', createRes.status);
-  console.log('Order Creation Response:', JSON.stringify(createJson, null, 2));
   const createdOrder = createJson.data;
   console.log('Created Order ID:', createdOrder?.id);
   console.log('Created Order Number:', createdOrder?.orderNumber);
@@ -77,7 +85,9 @@ async function run() {
   const dbTotal = createdOrder?.total;
 
   // --- Step 4: Midtrans Snap Tamper Rejection ---
-  console.log('\n--- 4. Midtrans Snap Tampered Amount Rejection (Client sends grossAmount: 500) ---');
+  console.log(
+    '\n--- 4. Midtrans Snap Tampered Amount Rejection (Client sends grossAmount: 500) ---'
+  );
   const tamperRes = await fetch(`${baseUrl}/payments/midtrans/snap`, {
     method: 'POST',
     headers: {
@@ -94,7 +104,9 @@ async function run() {
   console.log('Tamper Rejection Body:', JSON.stringify(tamperJson, null, 2));
 
   // --- Step 5: Midtrans Snap Missing Order Rejection ---
-  console.log('\n--- 5. Midtrans Snap Non-Existent Order (orderId: "non-existent-id-999") ---');
+  console.log(
+    '\n--- 5. Midtrans Snap Non-Existent Order (orderId: "non-existent-id-999") ---'
+  );
   const missingRes = await fetch(`${baseUrl}/payments/midtrans/snap`, {
     method: 'POST',
     headers: {
@@ -110,7 +122,9 @@ async function run() {
   console.log('Missing Order Body:', JSON.stringify(missingJson, null, 2));
 
   // --- Step 6: Midtrans Snap Server-Side Authoritative Total ---
-  console.log('\n--- 6. Midtrans Snap Authoritative Server Generation (grossAmount omitted) ---');
+  console.log(
+    '\n--- 6. Midtrans Snap Authoritative Server Generation (grossAmount omitted) ---'
+  );
   const validRes = await fetch(`${baseUrl}/payments/midtrans/snap`, {
     method: 'POST',
     headers: {
@@ -128,19 +142,41 @@ async function run() {
   });
   const validJson = await validRes.json();
   console.log('Valid Snap Token HTTP Status:', validRes.status);
-  console.log('Snap Token Generated:', validJson.data?.token);
-  console.log('Snap Redirect URL:', validJson.data?.redirect_url);
-  console.log('Authoritative Gross Amount in Snap:', validJson.data?.grossAmount);
-  console.log('Exact Match with DB Total:', validJson.data?.grossAmount === dbTotal ? 'YES' : 'NO');
+  console.log('Snap Token Generated:', Boolean(validJson.data?.token));
+  console.log('Snap Redirect URL Generated:', Boolean(validJson.data?.redirect_url));
+  console.log(
+    'Authoritative Gross Amount in Snap:',
+    validJson.data?.grossAmount
+  );
+  console.log(
+    'Exact Match with DB Total:',
+    validJson.data?.grossAmount === dbTotal ? 'YES' : 'NO'
+  );
 
   // --- Step 7: Order visible in GET /orders ---
-  console.log('\n--- 7. Verifying Order in Admin / Cashier Order List (GET /orders) ---');
+  console.log(
+    '\n--- 7. Verifying Order in Admin / Cashier Order List (GET /orders) ---'
+  );
   const listRes = await fetch(`${baseUrl}/orders`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const listJson = await listRes.json();
-  const listOrders = listJson.data || [];
-  const foundOrder = listOrders.find((o: any) => o.id === orderId);
+  interface OrderSummary {
+    id: string;
+    orderNumber?: string;
+    status?: string;
+    items?: unknown[];
+    total?: number;
+  }
+  const listOrders: OrderSummary[] = Array.isArray(listJson.data)
+    ? listJson.data.filter(
+        (value: unknown): value is OrderSummary =>
+          typeof value === 'object' &&
+          value !== null &&
+          typeof (value as { id?: unknown }).id === 'string'
+      )
+    : [];
+  const foundOrder = listOrders.find((order) => order.id === orderId);
   console.log('Order Found in Admin List:', foundOrder ? 'YES' : 'NO');
   if (foundOrder) {
     console.log({
@@ -153,7 +189,9 @@ async function run() {
   }
 
   // --- Step 8: Status Transitions ---
-  console.log('\n--- 8. Testing Admin Order Lifecycle Status Transitions (PATCH /orders/:id/status) ---');
+  console.log(
+    '\n--- 8. Testing Admin Order Lifecycle Status Transitions (PATCH /orders/:id/status) ---'
+  );
   for (const nextStatus of ['CONFIRMED', 'PREPARING', 'READY', 'COMPLETED']) {
     const patchRes = await fetch(`${baseUrl}/orders/${orderId}/status`, {
       method: 'PATCH',
@@ -164,7 +202,9 @@ async function run() {
       body: JSON.stringify({ status: nextStatus }),
     });
     const patchJson = await patchRes.json();
-    console.log(`Status Transition -> ${nextStatus}: HTTP ${patchRes.status} (Current: ${patchJson.data?.status})`);
+    console.log(
+      `Status Transition -> ${nextStatus}: HTTP ${patchRes.status} (Current: ${patchJson.data?.status})`
+    );
   }
 
   console.log('\n====================================================');
@@ -172,4 +212,10 @@ async function run() {
   console.log('====================================================\n');
 }
 
-run().catch(console.error);
+void run().catch((error: unknown) => {
+  console.error(
+    'Phase 1 runtime verification failed:',
+    error instanceof Error ? error.message : 'Unknown failure',
+  );
+  process.exitCode = 1;
+});

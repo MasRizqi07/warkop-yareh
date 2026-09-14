@@ -10,7 +10,27 @@ import { DatabaseService } from '../../../../infrastructure/database/database.se
 
 describe('ReservationService', () => {
   let service: ReservationService;
-  let mockPrisma: any;
+  type TransactionOperation =
+    | readonly Promise<unknown>[]
+    | ((client: ReservationDatabaseMock) => Promise<unknown>);
+  interface ReservationDatabaseMock {
+    $transaction: jest.Mock;
+    withTenantTransaction: jest.Mock;
+    $executeRaw: jest.Mock;
+    $queryRaw: jest.Mock;
+    branch: { findFirst: jest.Mock };
+    user: { findFirst: jest.Mock };
+    reservation: {
+      findMany: jest.Mock;
+      create: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      count: jest.Mock;
+    };
+    outboxEvent: { create: jest.Mock };
+    table: { findMany: jest.Mock; findFirst: jest.Mock };
+  }
+  let mockPrisma: ReservationDatabaseMock;
 
   const mockReservation = {
     id: 'res-1',
@@ -27,12 +47,17 @@ describe('ReservationService', () => {
 
   beforeEach(async () => {
     mockPrisma = {
-      $transaction: jest.fn((operation) =>
+      $transaction: jest.fn((operation: TransactionOperation) =>
         Array.isArray(operation)
           ? Promise.all(operation)
-          : operation(mockPrisma),
+          : (
+              operation as (client: ReservationDatabaseMock) => Promise<unknown>
+            )(mockPrisma),
       ),
-      withTenantTransaction: jest.fn((operation) => operation(mockPrisma)),
+      withTenantTransaction: jest.fn(
+        (operation: (client: ReservationDatabaseMock) => Promise<unknown>) =>
+          operation(mockPrisma),
+      ),
       $executeRaw: jest.fn(),
       $queryRaw: jest.fn(),
       branch: {

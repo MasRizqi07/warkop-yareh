@@ -7,6 +7,17 @@ import { IS_PUBLIC_KEY } from '../../../../common/decorators/public.decorator';
 import { OrderingService } from '../../application/services/ordering.service';
 import { GuestOrderQuotesController } from './guest-order-quotes.controller';
 
+function getQuoteHandler(): (...args: unknown[]) => unknown {
+  const handler = Object.getOwnPropertyDescriptor(
+    GuestOrderQuotesController.prototype,
+    'quote',
+  )?.value as unknown;
+  if (typeof handler !== 'function') {
+    throw new Error('GuestOrderQuotesController.quote is not a method');
+  }
+  return handler as (...args: unknown[]) => unknown;
+}
+
 describe('GuestOrderQuotesController', () => {
   let app: INestApplication;
   const quoteOrder = jest.fn();
@@ -48,14 +59,8 @@ describe('GuestOrderQuotesController', () => {
   });
 
   it('is explicitly public and passes only non-personal quote fields', async () => {
-    expect(
-      Reflect.getMetadata(
-        IS_PUBLIC_KEY,
-        // Method reference is inspected for decorator metadata, not invoked.
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        GuestOrderQuotesController.prototype.quote,
-      ),
-    ).toBe(true);
+    const quoteHandler = getQuoteHandler();
+    expect(Reflect.getMetadata(IS_PUBLIC_KEY, quoteHandler)).toBe(true);
 
     await request(app.getHttpServer() as Server)
       .post('/api/v1/orders/quote/guest')
