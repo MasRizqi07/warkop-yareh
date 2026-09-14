@@ -56,14 +56,16 @@ describe('BranchService', () => {
     expect(result.province).toBe('Jawa Timur');
     expect(result.weekdayHours).toBe('07:00-24:00');
     expect(result.weekendHours).toBe('07:00-01:00');
-    expect(mockPrisma.branch.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        city: 'Surabaya',
-        province: 'Jawa Timur',
-        weekdayHours: '07:00-24:00',
-        weekendHours: '07:00-01:00',
+    expect(mockPrisma.branch.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          city: 'Surabaya',
+          province: 'Jawa Timur',
+          weekdayHours: '07:00-24:00',
+          weekendHours: '07:00-01:00',
+        }),
       }),
-    });
+    );
   });
 
   it('getBranch & listBranches & updateBranch', async () => {
