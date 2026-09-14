@@ -19,7 +19,7 @@ describe('GoogleStrategy', () => {
     strategy = new GoogleStrategy();
   });
 
-  it('successfully extracts profile and invokes done callback with user data', async () => {
+  it('successfully extracts profile and invokes done callback with user data', () => {
     const mockProfile: Profile = {
       id: 'google-123',
       displayName: 'Ahmad Rizqi',
@@ -32,7 +32,7 @@ describe('GoogleStrategy', () => {
     };
 
     const done = jest.fn();
-    await strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
+    strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
 
     expect(done).toHaveBeenCalledWith(null, {
       email: 'rizqi@example.com',
@@ -41,7 +41,7 @@ describe('GoogleStrategy', () => {
     });
   });
 
-  it('falls back to name.givenName or email prefix when displayName is missing', async () => {
+  it('falls back to name.givenName or email prefix when displayName is missing', () => {
     const mockProfile: Profile = {
       id: 'google-456',
       displayName: '',
@@ -54,7 +54,7 @@ describe('GoogleStrategy', () => {
     };
 
     const done = jest.fn();
-    await strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
+    strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
 
     expect(done).toHaveBeenCalledWith(null, {
       email: 'barista@yareh.com',
@@ -63,7 +63,7 @@ describe('GoogleStrategy', () => {
     });
   });
 
-  it('calls done with UnauthorizedException if Google profile has no verified email', async () => {
+  it('calls done with UnauthorizedException if Google profile has no verified email', () => {
     const mockProfile: Profile = {
       id: 'google-789',
       displayName: 'No Email User',
@@ -74,12 +74,12 @@ describe('GoogleStrategy', () => {
     };
 
     const done = jest.fn();
-    await strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
+    strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
 
     expect(done).toHaveBeenCalledWith(expect.any(UnauthorizedException), false);
   });
 
-  it('rejects an unverified Google email', async () => {
+  it('rejects an unverified Google email', () => {
     const mockProfile: Profile = {
       id: 'google-unverified',
       displayName: 'Unverified User',
@@ -91,7 +91,7 @@ describe('GoogleStrategy', () => {
     };
     const done = jest.fn();
 
-    await strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
+    strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
 
     expect(done).toHaveBeenCalledWith(expect.any(UnauthorizedException), false);
   });
