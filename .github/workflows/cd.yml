@@ -51,7 +51,7 @@ jobs:
     name: Deploy API (Staging — Railway)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: staging
+    environment: ${{ inputs.target_environment }}
     if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'api') }}
     steps:
       - name: Checkout code
@@ -61,8 +61,8 @@ jobs:
 
       - name: Deploy to Railway Staging
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID_API_STAGING }}
+          RAILWAY_TOKEN: ${{ secrets['RAILWAY_TOKEN'] }}
+          RAILWAY_SERVICE_ID: ${{ secrets['RAILWAY_SERVICE_ID_API_STAGING'] }}
         run: |
           if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
             echo "::error ::Missing RAILWAY_TOKEN or RAILWAY_SERVICE_ID_API_STAGING secret. See docs/deployment.md for setup instructions."
@@ -74,7 +74,7 @@ jobs:
     name: Deploy Web (Staging — Vercel Preview)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: staging
+    environment: ${{ inputs.target_environment }}
     if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'web') }}
     steps:
       - name: Checkout code
@@ -98,9 +98,9 @@ jobs:
 
       - name: Deploy apps/web to Vercel Preview
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_WEB'] }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret. See docs/deployment.md for setup instructions."
@@ -114,7 +114,7 @@ jobs:
     name: Deploy Admin (Staging — Vercel Preview)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: staging
+    environment: ${{ inputs.target_environment }}
     if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'admin') }}
     steps:
       - name: Checkout code
@@ -138,9 +138,9 @@ jobs:
 
       - name: Deploy apps/admin to Vercel Preview
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_ADMIN'] }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_ADMIN secret. See docs/deployment.md for setup instructions."
@@ -157,7 +157,7 @@ jobs:
     name: Deploy API (Production — Railway)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: production
+    environment: ${{ inputs.target_environment }}
     if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'api') }}
     steps:
       - name: Checkout code
@@ -171,8 +171,8 @@ jobs:
 
       - name: Deploy API to Railway Production
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID_API_PROD }}
+          RAILWAY_TOKEN: ${{ secrets['RAILWAY_TOKEN'] }}
+          RAILWAY_SERVICE_ID: ${{ secrets['RAILWAY_SERVICE_ID_API_PROD'] }}
         run: |
           if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
             echo "::error ::Missing RAILWAY_TOKEN or RAILWAY_SERVICE_ID_API_PROD secret."
@@ -184,7 +184,7 @@ jobs:
     name: Deploy Web (Production — Vercel)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: production
+    environment: ${{ inputs.target_environment }}
     if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'web') }}
     steps:
       - name: Checkout code
@@ -205,9 +205,9 @@ jobs:
 
       - name: Deploy apps/web to Vercel Production
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_WEB'] }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret."
@@ -221,7 +221,7 @@ jobs:
     name: Deploy Admin (Production — Vercel)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: production
+    environment: ${{ inputs.target_environment }}
     if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'admin') }}
     steps:
       - name: Checkout code
@@ -242,9 +242,9 @@ jobs:
 
       - name: Deploy apps/admin to Vercel Production
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          VERCEL_TOKEN: ${{ secrets['VERCEL_TOKEN'] }}
+          VERCEL_ORG_ID: ${{ secrets['VERCEL_ORG_ID'] }}
+          VERCEL_PROJECT_ID: ${{ secrets['VERCEL_PROJECT_ID_ADMIN'] }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_ADMIN secret."
@@ -288,7 +288,7 @@ jobs:
 
       - name: Validate database target
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets['DATABASE_URL'] }}
         run: |
           if [ "${{ inputs.target_environment }}" = "production" ]; then
             node scripts/validate-database-target.mjs production
@@ -296,5 +296,5 @@ jobs:
 
       - name: Run Database Migrations
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets['DATABASE_URL'] }}
         run: pnpm --filter @warkop-yareh/database run db:migrate:deploy
