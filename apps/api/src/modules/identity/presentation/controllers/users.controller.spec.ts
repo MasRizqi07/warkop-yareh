@@ -9,12 +9,30 @@ import request from 'supertest';
 import { UsersController } from './users.controller';
 import { IdentityService } from '../../application/services/identity.service';
 import { APP_GUARD } from '@nestjs/core';
+import { Role } from '@warkop-yareh/database';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
-let mockCurrentUser: any = null;
+let mockCurrentUser: AuthenticatedUser | null = null;
+
+function authenticatedUser(
+  id: string,
+  role: Role,
+  branchId: string | null = null,
+): AuthenticatedUser {
+  return {
+    id,
+    email: `${id}@example.test`,
+    name: id,
+    role,
+    branchId,
+  };
+}
 
 class MockJwtGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ user?: AuthenticatedUser }>();
     if (!mockCurrentUser) {
       return false; // Unauthorized
     }
@@ -64,7 +82,7 @@ describe('UsersController (E2E / Controller)', () => {
   });
 
   it('rejects another customer profile before querying private data', async () => {
-    mockCurrentUser = { id: 'user-customer-self', role: 'CUSTOMER' };
+    mockCurrentUser = authenticatedUser('user-customer-self', Role.CUSTOMER);
     await request(app.getHttpServer())
       .get('/api/v1/users/other-user-target-id')
       .expect(403);
@@ -72,7 +90,7 @@ describe('UsersController (E2E / Controller)', () => {
   });
 
   it('allows a customer to read their own profile', async () => {
-    mockCurrentUser = { id: 'user-customer-self', role: 'CUSTOMER' };
+    mockCurrentUser = authenticatedUser('user-customer-self', Role.CUSTOMER);
     (identityService.getUserProfile as jest.Mock).mockResolvedValue({
       id: 'user-customer-self',
       branchId: null,
@@ -84,7 +102,7 @@ describe('UsersController (E2E / Controller)', () => {
   });
 
   it('GET /api/v1/users/:id -> ADMIN role can view any requested user profile by ID', async () => {
-    mockCurrentUser = { id: 'user-admin', role: 'ADMIN' };
+    mockCurrentUser = authenticatedUser('user-admin', Role.ADMIN);
     (identityService.getUserProfile as jest.Mock).mockResolvedValue({
       id: 'target-user-id',
       name: 'Target User',
@@ -102,7 +120,7 @@ describe('UsersController (E2E / Controller)', () => {
   });
 
   it('allows an account owner to withdraw their own WhatsApp marketing consent', async () => {
-    mockCurrentUser = { id: 'user-self', role: 'CUSTOMER' };
+    mockCurrentUser = authenticatedUser('user-self', Role.CUSTOMER);
     (identityService.getUserProfile as jest.Mock).mockResolvedValue({
       id: 'user-self',
       branchId: null,
@@ -123,11 +141,7 @@ describe('UsersController (E2E / Controller)', () => {
   });
 
   it('prevents managers from granting marketing consent for another account', async () => {
-    mockCurrentUser = {
-      id: 'manager-1',
-      role: 'MANAGER',
-      branchId: 'branch-1',
-    };
+    mockCurrentUser = authenticatedUser('manager-1', Role.MANAGER, 'branch-1');
 
     await request(app.getHttpServer())
       .patch('/api/v1/users/customer-1')

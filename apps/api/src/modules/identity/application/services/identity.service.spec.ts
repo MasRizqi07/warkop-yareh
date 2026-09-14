@@ -3,7 +3,13 @@ import { IdentityService } from './identity.service';
 
 describe('IdentityService', () => {
   let service: IdentityService;
-  let mockUserRepository: any;
+  let mockUserRepository: {
+    findById: jest.Mock;
+    findByEmail: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+    findAll: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockUserRepository = {

@@ -25,6 +25,7 @@ import { JwtRefreshAuthGuard } from '../../../../infrastructure/auth/jwt-refresh
 import { GoogleAuthGuard } from '../../../../infrastructure/auth/google-auth.guard';
 import { Public } from '../../../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
+import type { GoogleIdentity } from '../../../../infrastructure/auth/google.strategy';
 
 type AuthenticatedRequest = Omit<Request, 'user' | 'cookies'> & {
   user: AuthenticatedUser;
@@ -157,10 +158,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Google OAuth callback handler' })
   async googleAuthCallback(
     @Req()
-    req: Request & { user: { email: string; name: string; avatar?: string } },
+    req: Request & { user: GoogleIdentity },
     @Res() res: Response,
   ) {
-    const { accessToken, refreshToken } =
+    const { refreshToken } =
       await this.authService.validateOrRegisterGoogleUser(req.user);
     this.setRefreshTokenCookie(res, refreshToken);
 
@@ -168,9 +169,7 @@ export class AuthController {
       process.env.FRONTEND_URL ||
       process.env.NEXT_PUBLIC_SITE_URL ||
       'http://localhost:3000';
-    return res.redirect(
-      `${frontendUrl}/auth/callback?token=${encodeURIComponent(accessToken)}`,
-    );
+    return res.redirect(`${frontendUrl}/auth/callback`);
   }
 
   @Post('logout')

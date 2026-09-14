@@ -5,6 +5,16 @@ import type { Profile } from 'passport-google-oauth20';
 describe('GoogleStrategy', () => {
   let strategy: GoogleStrategy;
 
+  function createIdTokenPayload(sub: string): Profile['_json'] {
+    return {
+      iss: 'https://accounts.google.com',
+      aud: 'test-google-client',
+      sub,
+      iat: 1_789_000_000,
+      exp: 1_789_003_600,
+    };
+  }
+
   beforeEach(() => {
     strategy = new GoogleStrategy();
   });
@@ -18,7 +28,7 @@ describe('GoogleStrategy', () => {
       provider: 'google',
       profileUrl: '',
       _raw: '',
-      _json: {} as any,
+      _json: createIdTokenPayload('google-123'),
     };
 
     const done = jest.fn();
@@ -40,7 +50,7 @@ describe('GoogleStrategy', () => {
       provider: 'google',
       profileUrl: '',
       _raw: '',
-      _json: {} as any,
+      _json: createIdTokenPayload('google-456'),
     };
 
     const done = jest.fn();
@@ -53,17 +63,34 @@ describe('GoogleStrategy', () => {
     });
   });
 
-  it('calls done with UnauthorizedException if Google profile has no email', async () => {
+  it('calls done with UnauthorizedException if Google profile has no verified email', async () => {
     const mockProfile: Profile = {
       id: 'google-789',
       displayName: 'No Email User',
       provider: 'google',
       profileUrl: '',
       _raw: '',
-      _json: {} as any,
+      _json: createIdTokenPayload('google-789'),
     };
 
     const done = jest.fn();
+    await strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
+
+    expect(done).toHaveBeenCalledWith(expect.any(UnauthorizedException), false);
+  });
+
+  it('rejects an unverified Google email', async () => {
+    const mockProfile: Profile = {
+      id: 'google-unverified',
+      displayName: 'Unverified User',
+      emails: [{ value: 'unverified@example.com', verified: false }],
+      provider: 'google',
+      profileUrl: '',
+      _raw: '',
+      _json: createIdTokenPayload('google-unverified'),
+    };
+    const done = jest.fn();
+
     await strategy.validate('access-tok', 'refresh-tok', mockProfile, done);
 
     expect(done).toHaveBeenCalledWith(expect.any(UnauthorizedException), false);

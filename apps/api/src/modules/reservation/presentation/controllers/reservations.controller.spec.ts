@@ -1,20 +1,35 @@
 import type { Server } from 'node:http';
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  INestApplication,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
 import request from 'supertest';
 import { ReservationsController } from './reservations.controller';
 import { ReservationService } from '../../application/services/reservation.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
+import { Role } from '@warkop-yareh/database';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
-let mockUser: any = { id: 'user_A', role: 'CUSTOMER' };
+const customerUser: AuthenticatedUser = {
+  id: 'user_A',
+  email: 'customer@example.test',
+  name: 'Customer',
+  role: Role.CUSTOMER,
+  branchId: null,
+};
+let mockUser: AuthenticatedUser = customerUser;
 
 @Injectable()
 class MockAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ user?: AuthenticatedUser }>();
     req.user = mockUser;
     return true;
   }
@@ -27,7 +42,9 @@ describe('ReservationsController (E2E / Controller)', () => {
   beforeAll(async () => {
     reservationService = {
       listReservations: jest.fn().mockResolvedValue({ data: [], total: 0 }),
-      createReservation: jest.fn().mockResolvedValue({ id: 'res_1', userId: 'user_A' }),
+      createReservation: jest
+        .fn()
+        .mockResolvedValue({ id: 'res_1', userId: 'user_A' }),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -52,7 +69,7 @@ describe('ReservationsController (E2E / Controller)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUser = { id: 'user_A', role: 'CUSTOMER' };
+    mockUser = customerUser;
   });
 
   it('createReservation: should ignore body userId (User B) and use authenticated user (User A) for CUSTOMER', async () => {
@@ -82,7 +99,9 @@ describe('ReservationsController (E2E / Controller)', () => {
   });
 
   it('updateStatus: should delegate status update to ReservationService', async () => {
-    reservationService.updateStatus = jest.fn().mockResolvedValue({ id: 'res_1', status: 'CANCELLED' });
+    reservationService.updateStatus = jest
+      .fn()
+      .mockResolvedValue({ id: 'res_1', status: 'CANCELLED' });
 
     await request(app.getHttpServer())
       .patch('/api/v1/reservations/res_1/status')
@@ -97,7 +116,9 @@ describe('ReservationsController (E2E / Controller)', () => {
   });
 
   it('listTables: should return active tables for specified branchId', async () => {
-    reservationService.listTables = jest.fn().mockResolvedValue([{ id: 'tbl-1', branchId: 'branch_1' }]);
+    reservationService.listTables = jest
+      .fn()
+      .mockResolvedValue([{ id: 'tbl-1', branchId: 'branch_1' }]);
 
     await request(app.getHttpServer())
       .get('/api/v1/branches/branch_1/tables')

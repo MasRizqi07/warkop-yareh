@@ -13,13 +13,27 @@ import { FranchiseService } from '../../application/services/franchise.service';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
+import { Role } from '@warkop-yareh/database';
+import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 
-let mockUser: any = { id: 'user_A', role: 'CUSTOMER' };
+function authenticatedUser(id: string, role: Role): AuthenticatedUser {
+  return {
+    id,
+    email: `${id}@example.test`,
+    name: id,
+    role,
+    branchId: null,
+  };
+}
+
+let mockUser = authenticatedUser('user_A', Role.CUSTOMER);
 
 @Injectable()
 class MockAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ user?: AuthenticatedUser }>();
     req.user = mockUser;
     return true;
   }
@@ -59,7 +73,7 @@ describe('FranchiseController (E2E / Controller)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUser = { id: 'user_A', role: 'CUSTOMER' };
+    mockUser = authenticatedUser('user_A', Role.CUSTOMER);
   });
 
   it('GET /api/v1/franchise/agreements should return 403 Forbidden for CUSTOMER role', async () => {
@@ -69,7 +83,7 @@ describe('FranchiseController (E2E / Controller)', () => {
   });
 
   it('POST /api/v1/franchise/agreements should return 403 Forbidden for CUSTOMER role', async () => {
-    mockUser = { id: 'user_A', role: 'CUSTOMER' };
+    mockUser = authenticatedUser('user_A', Role.CUSTOMER);
 
     await request(app.getHttpServer())
       .post('/api/v1/franchise/agreements')
@@ -84,7 +98,7 @@ describe('FranchiseController (E2E / Controller)', () => {
   });
 
   it('POST /api/v1/franchise/billings should return 403 Forbidden for STAFF role', async () => {
-    mockUser = { id: 'staff_1', role: 'STAFF' };
+    mockUser = authenticatedUser('staff_1', Role.STAFF);
 
     await request(app.getHttpServer())
       .post('/api/v1/franchise/billings')
@@ -98,7 +112,7 @@ describe('FranchiseController (E2E / Controller)', () => {
   });
 
   it('GET /api/v1/franchise/agreements should allow ADMIN role', async () => {
-    mockUser = { id: 'admin_1', role: 'ADMIN' };
+    mockUser = authenticatedUser('admin_1', Role.ADMIN);
 
     await request(app.getHttpServer())
       .get('/api/v1/franchise/agreements')
@@ -108,7 +122,7 @@ describe('FranchiseController (E2E / Controller)', () => {
   });
 
   it('POST /api/v1/franchise/agreements should allow ADMIN role', async () => {
-    mockUser = { id: 'admin_1', role: 'ADMIN' };
+    mockUser = authenticatedUser('admin_1', Role.ADMIN);
 
     await request(app.getHttpServer())
       .post('/api/v1/franchise/agreements')

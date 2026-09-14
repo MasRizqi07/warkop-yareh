@@ -44,21 +44,20 @@ describe('PWA Manifest', () => {
     }
   });
 
-  it('ensures sw.js and offline fallback exist in public directory', () => {
+  it('ensures the service worker has a static offline fallback and no debug logging', () => {
     const publicDir = path.resolve(__dirname, '../../public');
     const swPath = path.join(publicDir, 'sw.js');
     const offlineHtmlPath = path.join(publicDir, 'offline.html');
-    const manifestJsonPath = path.join(publicDir, 'manifest.json');
 
     expect(fs.existsSync(swPath)).toBe(true);
     expect(fs.existsSync(offlineHtmlPath)).toBe(true);
-    expect(fs.existsSync(manifestJsonPath)).toBe(true);
 
     const swContent = fs.readFileSync(swPath, 'utf8');
     expect(swContent).toContain('addEventListener(\'install\'');
     expect(swContent).toContain('addEventListener(\'activate\'');
     expect(swContent).toContain('addEventListener(\'fetch\'');
-    expect(swContent).toContain('/offline');
+    expect(swContent).toContain("'/offline.html'");
+    expect(swContent).toContain("statusText: 'Offline'");
+    expect(swContent).not.toMatch(/console\.(log|debug|warn)\(/);
   });
 });
-

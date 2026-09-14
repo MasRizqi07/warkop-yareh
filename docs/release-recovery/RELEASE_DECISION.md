@@ -2,13 +2,13 @@
 
 ## Current Release Status
 
-| Metric | Status | Evidence Reference |
-|---|---|---|
-| **Baseline Integrity** | **VERIFIED GREEN** | Commit `e60b77281111d07920624c71b9f15de8b3f3c07c` (PR #15, CI Run 34831260813) |
-| **Local Test Suite** | **PASSING** | 245 unit tests, 10 persistence & RLS tests, 0 failures against local Docker Compose |
-| **Container Engine** | **VERIFIED** | Multi-stage Dockerfile builds cleanly on `node:24-alpine` (`warkop-api:phase8`) |
-| **Staging Deployment** | **IN PROGRESS** | CD pipeline scaffolded (`.github/workflows/cd.yml`), secrets configuration pending staging credentials |
-| **Production Certification** | **PENDING** | Strictly pending Phase 4 staging deployment and live runtime verification |
+| Metric                       | Status                         | Evidence Reference                                                                                         |
+| ---------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **Baseline Integrity**       | **UNVERIFIED FOR CURRENT TIP** | A fresh exact-commit CI run is required after the Phase 8 remediation changes.                             |
+| **Local Test Suite**         | **UNVERIFIED FOR CURRENT TIP** | Run the complete Node 24 matrix, including isolated persistence, API E2E, and browser E2E.                 |
+| **Container Engine**         | **UNVERIFIED FOR CURRENT TIP** | The Dockerfile targets `node:24-alpine`; a fresh image build and runtime smoke test are still required.    |
+| **Staging Deployment**       | **NOT VERIFIED**               | CD workflow exists, but no successful staging deployment/runtime evidence is recorded for the current tip. |
+| **Production Certification** | **PENDING**                    | Strictly pending Phase 4 staging deployment and live runtime verification                                  |
 
 ---
 
@@ -27,6 +27,5 @@ A production release is **NOT** certified until all following gates are satisfie
 ## Decision Summary
 
 - **Production Ready?**: **NO (Pending Phase 4 Evidence)**
-- **Staging Ready?**: **YES**
-- **Action**: Proceed with Phase 3 feature development (Google OAuth and PWA offline manifest) followed by Phase 4 final verification.
-
+- **Staging Ready?**: **UNVERIFIED**
+- **Action**: Run the final local matrix and exact-commit CI, then collect staging API, web, admin, database/RLS, OAuth, PWA, and provider evidence before any release decision.

@@ -8,10 +8,8 @@ describe('RolesGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      get: jest.fn(),
       getAllAndOverride: jest.fn(),
-      getAllAndMerge: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<Reflector>;
     guard = new RolesGuard(reflector);
   });
 

@@ -51,6 +51,7 @@ jobs:
     name: Deploy API (Staging — Railway)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: staging
     if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'api') }}
     steps:
       - name: Checkout code
@@ -64,7 +65,7 @@ jobs:
           RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID_API_STAGING }}
         run: |
           if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
-            echo "::warning ::Missing RAILWAY_TOKEN or RAILWAY_SERVICE_ID_API_STAGING secret. See docs/deployment.md for setup instructions."
+            echo "::error ::Missing RAILWAY_TOKEN or RAILWAY_SERVICE_ID_API_STAGING secret. See docs/deployment.md for setup instructions."
             exit 1
           fi
           npx @railway/cli up -s "$RAILWAY_SERVICE_ID" --detach
@@ -73,6 +74,7 @@ jobs:
     name: Deploy Web (Staging — Vercel Preview)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: staging
     if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'web') }}
     steps:
       - name: Checkout code
@@ -101,7 +103,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::warning ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret. See docs/deployment.md for setup instructions."
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret. See docs/deployment.md for setup instructions."
             exit 1
           fi
           npx vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
@@ -112,6 +114,7 @@ jobs:
     name: Deploy Admin (Staging — Vercel Preview)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: staging
     if: ${{ inputs.target_environment == 'staging' && (inputs.service == 'all' || inputs.service == 'admin') }}
     steps:
       - name: Checkout code
@@ -140,7 +143,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::warning ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_ADMIN secret. See docs/deployment.md for setup instructions."
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_ADMIN secret. See docs/deployment.md for setup instructions."
             exit 1
           fi
           npx vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
@@ -150,12 +153,12 @@ jobs:
   # ============================================================================
   # PRODUCTION DEPLOYMENT (STRICTLY MANUAL & GUARDED)
   # ============================================================================
-  deploy-production:
-    name: Deploy Production (Guarded)
+  deploy-production-api:
+    name: Deploy API (Production — Railway)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: production
-    if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' }}
+    if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'api') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -167,7 +170,6 @@ jobs:
           echo "Production deployment confirmed via manual token DEPLOY-PROD."
 
       - name: Deploy API to Railway Production
-        if: ${{ inputs.service == 'all' || inputs.service == 'api' }}
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID_API_PROD }}
@@ -178,6 +180,80 @@ jobs:
           fi
           npx @railway/cli up -s "$RAILWAY_SERVICE_ID" --detach
 
+  deploy-production-web:
+    name: Deploy Web (Production — Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'web') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Deploy apps/web to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_WEB secret."
+            exit 1
+          fi
+          pnpm dlx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          pnpm dlx vercel build --prod --token="$VERCEL_TOKEN"
+          pnpm dlx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+  deploy-production-admin:
+    name: Deploy Admin (Production — Vercel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    if: ${{ inputs.target_environment == 'production' && inputs.confirmation == 'DEPLOY-PROD' && (inputs.service == 'all' || inputs.service == 'admin') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha != '' && inputs.commit_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Deploy apps/admin to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error ::Missing VERCEL_TOKEN, VERCEL_ORG_ID, or VERCEL_PROJECT_ID_ADMIN secret."
+            exit 1
+          fi
+          pnpm dlx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          pnpm dlx vercel build --prod --token="$VERCEL_TOKEN"
+          pnpm dlx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
   # ============================================================================
   # DATABASE MIGRATIONS (MANUAL APPROVAL ONLY)
   # ============================================================================
@@ -185,7 +261,8 @@ jobs:
     name: Run Database Migrations
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: ${{ inputs.service == 'database-migration' || (inputs.target_environment == 'production' && inputs.confirmation == 'MIGRATE_PRODUCTION') }}
+    environment: ${{ inputs.target_environment }}
+    if: ${{ (inputs.target_environment == 'staging' && inputs.service == 'database-migration') || (inputs.target_environment == 'production' && inputs.service == 'database-migration' && inputs.confirmation == 'MIGRATE_PRODUCTION') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

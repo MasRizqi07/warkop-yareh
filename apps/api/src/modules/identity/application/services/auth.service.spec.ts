@@ -10,9 +10,22 @@ import { Role } from '@warkop-yareh/database';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let mockIdentityService: any;
-  let mockJwtService: any;
-  let mockRedisService: any;
+  let mockIdentityService: {
+    getUserByEmail: jest.Mock;
+    getUserProfile: jest.Mock;
+    createUser: jest.Mock;
+    updateUser: jest.Mock;
+  };
+  let mockJwtService: { sign: jest.Mock };
+  let mockRedisService: {
+    set: jest.Mock;
+    get: jest.Mock;
+    take: jest.Mock;
+    del: jest.Mock;
+    delPattern: jest.Mock;
+    setIfAbsent: jest.Mock;
+    incrementWithTtl: jest.Mock;
+  };
 
   const mockUser = {
     id: 'user-123',
@@ -63,7 +76,7 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user without passwordHash on correct credentials', async () => {
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
 
       const result = await service.validateUser(
         'test@warkopyareh.com',
@@ -77,7 +90,7 @@ describe('AuthService', () => {
     });
 
     it('should return null on wrong password', async () => {
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
 
       const result = await service.validateUser(
         'test@warkopyareh.com',
@@ -124,7 +137,7 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should throw BadRequestException if user email already exists', async () => {
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
 
       await expect(
         service.register({
@@ -141,7 +154,7 @@ describe('AuthService', () => {
         id: 'user-new',
         email: 'new@warkopyareh.com',
         name: 'New User',
-      } as any);
+      });
 
       const result = await service.register({
         email: 'new@warkopyareh.com',
@@ -196,7 +209,7 @@ describe('AuthService', () => {
   describe('refreshTokens', () => {
     it('should refresh tokens when valid refresh token is provided', async () => {
       mockRedisService.take.mockResolvedValue('valid');
-      mockIdentityService.getUserProfile.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserProfile.mockResolvedValue(mockUser);
       mockJwtService.sign
         .mockReturnValueOnce('new-access-token')
         .mockReturnValueOnce('new-refresh-token');
@@ -273,7 +286,7 @@ describe('AuthService', () => {
       const subjectHash = createHash('sha256').update(email).digest('hex');
       mockRedisService.get.mockResolvedValue(otpHash);
       mockRedisService.take.mockResolvedValue(otpHash);
-      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser as any);
+      mockIdentityService.getUserByEmail.mockResolvedValue(mockUser);
       mockJwtService.sign
         .mockReturnValueOnce('otp-access-token')
         .mockReturnValueOnce('otp-refresh-token');

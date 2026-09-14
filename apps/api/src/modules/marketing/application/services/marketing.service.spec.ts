@@ -12,8 +12,29 @@ import { MarketingService } from './marketing.service';
 import type { MarketingDispatchJobData } from '../../marketing.constants';
 
 describe('MarketingService', () => {
-  let prisma: any;
-  let whatsapp: any;
+  let prisma: {
+    marketingCampaign: {
+      findMany: jest.Mock;
+      count: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+      updateMany: jest.Mock;
+      findFirst: jest.Mock;
+    };
+    marketingDelivery: {
+      upsert: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      count: jest.Mock;
+    };
+    notification: { create: jest.Mock };
+    user: { findFirst: jest.Mock; findMany: jest.Mock };
+  };
+  let whatsapp: {
+    configured: boolean;
+    assertConfigured: jest.Mock;
+    sendCampaignTemplate: jest.Mock;
+  };
   let dispatchQueue: {
     getJob: jest.Mock;
     add: jest.Mock;
@@ -68,8 +89,8 @@ describe('MarketingService', () => {
       ),
     };
     service = new MarketingService(
-      prisma as DatabaseService,
-      whatsapp as WhatsAppCloudService,
+      prisma as unknown as DatabaseService,
+      whatsapp as unknown as WhatsAppCloudService,
       config as unknown as ConfigService,
       dispatchQueue as unknown as Queue<MarketingDispatchJobData>,
     );

@@ -2,6 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
 
+export interface GoogleIdentity {
+  email: string;
+  name: string;
+  avatar?: string;
+}
+
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor() {
@@ -16,20 +22,22 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(
+  validate(
     _accessToken: string,
     _refreshToken: string,
     profile: Profile,
     done: VerifyCallback,
-  ): Promise<any> {
-    const email = profile.emails?.[0]?.value;
+  ): void {
+    const email = profile.emails?.find(({ verified }) => verified)?.value;
     if (!email) {
       return done(
-        new UnauthorizedException('Google account does not provide an email'),
+        new UnauthorizedException(
+          'Google account does not provide a verified email',
+        ),
         false,
       );
     }
-    const user = {
+    const user: GoogleIdentity = {
       email,
       name:
         profile.displayName || profile.name?.givenName || email.split('@')[0],

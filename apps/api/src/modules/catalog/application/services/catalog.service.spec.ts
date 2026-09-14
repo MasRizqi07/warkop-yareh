@@ -4,8 +4,28 @@ import { RedisService } from '../../../../infrastructure/redis/redis.service';
 
 describe('CatalogService', () => {
   let service: CatalogService;
-  let mockCatalogRepo: any;
-  let mockRedisService: any;
+  let mockCatalogRepo: {
+    getFullCatalog: jest.Mock;
+    listCategories: jest.Mock;
+    listProducts: jest.Mock;
+    getProduct: jest.Mock;
+    createProduct: jest.Mock;
+    updateProduct: jest.Mock;
+    toggleAvailability: jest.Mock;
+    getDefaultBranchId: jest.Mock;
+    branchExists: jest.Mock;
+    categoryExists: jest.Mock;
+    productExists: jest.Mock;
+    listBranchProducts: jest.Mock;
+    getBranchProduct: jest.Mock;
+    updateBranchProduct: jest.Mock;
+  };
+  let mockRedisService: {
+    getJson: jest.Mock;
+    setJson: jest.Mock;
+    del: jest.Mock;
+    delPattern: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockCatalogRepo = {
@@ -105,7 +125,7 @@ describe('CatalogService', () => {
         branchId: 'branch-1',
         productId: 'prod-1',
         isAvailable: false,
-      } as any);
+      });
 
       const result = await service.toggleAvailability(
         'branch-1',

@@ -1,47 +1,44 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
-import { api } from '@/lib/api';
+import { api, refreshAccessToken } from '@/lib/api';
+import type { User } from '@warkop-yareh/types';
 
-function AuthCallbackContent() {
+export default function AuthCallbackPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
   const setAuth = useAuthStore((state) => state.setAuth);
-  const [error, setError] = useState<string | null>(() =>
-    token ? null : 'Token autentikasi tidak ditemukan dalam callback.'
-  );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
-
     let isMounted = true;
 
-    // Fetch authenticated user profile using the issued access token
-    api
-      .get('/auth/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
+    const completeAuthentication = async () => {
+      try {
+        const accessToken = await refreshAccessToken();
+        const response = await api.get<{ data: User }>('/auth/me', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         if (!isMounted) return;
-        const user = res.data.data;
-        setAuth(user, token);
+        setAuth(response.data.data, accessToken);
         router.replace('/');
-      })
-      .catch((err) => {
-        if (!isMounted) return;
-        console.error('Failed to complete Google authentication callback', err);
-        setError('Gagal memverifikasi sesi login Google. Silakan coba kembali.');
-      });
+      } catch {
+        if (isMounted) {
+          setError(
+            'Gagal memverifikasi sesi login Google. Silakan coba kembali.'
+          );
+        }
+      }
+    };
+
+    void completeAuthentication();
 
     return () => {
       isMounted = false;
     };
-  }, [token, router, setAuth]);
+  }, [router, setAuth]);
 
   if (error) {
     return (
@@ -53,13 +50,15 @@ function AuthCallbackContent() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
             Autentikasi Gagal
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{error}</p>
-          <a
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+            {error}
+          </p>
+          <Link
             href="/login"
             className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm transition-colors"
           >
             Kembali ke Halaman Login
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -74,22 +73,5 @@ function AuthCallbackContent() {
         </p>
       </div>
     </div>
-  );
-}
-
-export default function AuthCallbackPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600 mx-auto mb-4" />
-            <p className="text-sm text-slate-600">Memuat sesi...</p>
-          </div>
-        </div>
-      }
-    >
-      <AuthCallbackContent />
-    </Suspense>
   );
 }

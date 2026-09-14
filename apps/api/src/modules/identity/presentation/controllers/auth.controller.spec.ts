@@ -1,7 +1,12 @@
 import type { Server } from 'node:http';
-/* eslint-disable */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, UnauthorizedException, BadRequestException, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  INestApplication,
+  UnauthorizedException,
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+} from '@nestjs/common';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import { AuthController } from './auth.controller';
@@ -12,7 +17,7 @@ import { GoogleAuthGuard } from '../../../../infrastructure/auth/google-auth.gua
 
 class MockRefreshGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<{ user?: { id: string } }>();
     req.user = { id: 'user-1' };
     return true;
   }
@@ -20,7 +25,7 @@ class MockRefreshGuard implements CanActivate {
 
 class MockJwtGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<{ user?: { id: string } }>();
     req.user = { id: 'user-1' };
     return true;
   }
@@ -28,7 +33,9 @@ class MockJwtGuard implements CanActivate {
 
 class MockGoogleGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<{
+      user?: { email: string; name: string; avatar?: string };
+    }>();
     req.user = {
       email: 'google-user@example.com',
       name: 'Google User',
@@ -56,9 +63,7 @@ describe('AuthController (E2E / Controller)', () => {
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [
-        { provide: AuthService, useValue: authService },
-      ],
+      providers: [{ provide: AuthService, useValue: authService }],
     })
       .overrideGuard(JwtRefreshAuthGuard)
       .useClass(MockRefreshGuard)
@@ -209,12 +214,17 @@ describe('AuthController (E2E / Controller)', () => {
       .get('/api/v1/auth/google/callback')
       .expect(302);
 
-    expect(res.headers.location).toContain('/auth/callback?token=google-access-jwt');
+    expect(res.headers.location).toMatch(/\/auth\/callback$/);
+    expect(res.headers.location).not.toContain('google-access-jwt');
     const rawCookies = res.headers['set-cookie'];
     expect(rawCookies).toBeDefined();
-    const cookieList = Array.isArray(rawCookies) ? rawCookies : [String(rawCookies)];
+    const cookieList = Array.isArray(rawCookies)
+      ? rawCookies
+      : [String(rawCookies)];
     expect(
-      cookieList.some((c: string) => c.includes('refreshToken=google-refresh-jwt')),
+      cookieList.some((c: string) =>
+        c.includes('refreshToken=google-refresh-jwt'),
+      ),
     ).toBe(true);
   });
 });

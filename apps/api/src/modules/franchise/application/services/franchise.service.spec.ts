@@ -4,7 +4,17 @@ import { DatabaseService } from '../../../../infrastructure/database/database.se
 
 describe('FranchiseService', () => {
   let service: FranchiseService;
-  let mockPrisma: any;
+  let mockPrisma: {
+    branch: { findFirst: jest.Mock };
+    order: { aggregate: jest.Mock };
+    franchiseAgreement: {
+      create: jest.Mock;
+      findUnique: jest.Mock;
+      findFirst: jest.Mock;
+      findMany: jest.Mock;
+    };
+    franchiseBilling: { create: jest.Mock };
+  };
 
   const mockAgreement = {
     id: 'agr-1',
