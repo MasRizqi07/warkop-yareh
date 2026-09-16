@@ -1,6 +1,7 @@
-import { Footer } from "@/components/layout/footer";
-import { ScrollProgress } from "@warkop-yareh/ui";
-import { ScrollToTop } from "@warkop-yareh/ui";
+import { Footer } from '@/components/layout/footer';
+import { ScrollProgress } from '@warkop-yareh/ui';
+import { ScrollToTop } from '@warkop-yareh/ui';
+import { BaristaConciergeModal } from '@/components/ai/barista-concierge-modal';
 
 export default function MarketingLayout({
   children,
@@ -15,7 +16,7 @@ export default function MarketingLayout({
       </main>
       <Footer />
       <ScrollToTop />
+      <BaristaConciergeModal />
     </>
   );
 }
-

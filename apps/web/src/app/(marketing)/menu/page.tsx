@@ -236,7 +236,7 @@ export default function MenuPage() {
 
                     className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-primary hover:bg-primary-hover text-white shadow-sm'
+                        ? 'bg-primary hover:bg-primary-hover text-on-primary shadow-sm'
                         : 'text-text-muted hover:text-text-primary hover:bg-surface-card'
                     }`}
                   >
@@ -657,7 +657,7 @@ export default function MenuPage() {
 
               onClick={() => setCartOpen(true)}
 
-              className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-heading text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer whitespace-nowrap"
+              className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-heading text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer whitespace-nowrap"
             >
               <span>Review Order</span>
 

@@ -22,31 +22,29 @@ const webRoutes = [
   '/',
   '/about',
   '/account',
-  '/admin',
-  '/admin/branches',
-  '/admin/crm',
-  '/admin/inventory',
-  '/admin/marketing',
   '/auth',
+  '/auth/callback',
   '/blog',
+  '/blog/phase9-missing',
   '/booking',
   '/cart',
   '/checkout',
   '/checkout/status',
   '/checkout/success',
   '/community',
-  '/community/groups/demo',
+  '/community/groups/phase9-missing',
   '/contact',
   '/events',
+  '/events/phase9-missing',
   '/loyalty',
   '/menu',
   '/ops/kds',
   '/ops/pos',
   '/ops/shift',
-  '/order/track/demo-order',
+  '/order/track/phase9-missing',
   '/orders',
-  '/orders/demo-order',
-  '/orders/demo-order/thankyou',
+  '/orders/phase9-missing',
+  '/orders/phase9-missing/thankyou',
   '/payment/status',
   '/profile',
   '/reservations',
@@ -59,7 +57,7 @@ const adminRoutes = [
   '/community',
   '/crm',
   '/events',
-  '/events/demo',
+  '/events/phase9-missing',
   '/inventory',
   '/kitchen',
   '/loyalty',
@@ -86,6 +84,54 @@ const axeRoutes = new Set([
   'admin:/orders:desktop',
   'admin:/products:desktop',
   'admin:/settings:desktop',
+]);
+
+const expectedErrorRoutes = new Map([
+  [
+    'web:/blog/phase9-missing',
+    {
+      apiPaths: ['/api/v1/content/blog/phase9-missing'],
+      visibleText: 'Artikel tidak dapat dimuat',
+    },
+  ],
+  [
+    'web:/community/groups/phase9-missing',
+    {
+      apiPaths: ['/api/v1/community/groups/phase9-missing'],
+      visibleText: 'Komunitas belum dapat dibuka',
+    },
+  ],
+  [
+    'web:/events/phase9-missing',
+    {
+      apiPaths: ['/api/v1/events/phase9-missing'],
+      visibleText: 'Event tidak dapat dimuat',
+    },
+  ],
+  [
+    'web:/order/track/phase9-missing',
+    {
+      apiPaths: ['/api/v1/orders/phase9-missing'],
+      visibleText: 'Pesanan belum dapat ditampilkan',
+    },
+  ],
+  [
+    'web:/orders/phase9-missing',
+    {
+      apiPaths: ['/api/v1/orders/phase9-missing'],
+      visibleText: 'Pesanan belum dapat ditampilkan',
+    },
+  ],
+  [
+    'admin:/events/phase9-missing',
+    {
+      apiPaths: [
+        '/api/v1/events/phase9-missing',
+        '/api/v1/events/phase9-missing/registrations',
+      ],
+      visibleSelector: '[role="alert"]',
+    },
+  ],
 ]);
 
 const browser = await chromium.launch({ headless: true });
@@ -146,17 +192,34 @@ async function inspectRoute(context, app, baseUrl, route, viewport) {
   const page = await context.newPage();
   const issues = [];
   const localFailures = [];
+  const expectedError = expectedErrorRoutes.get(`${app}:${route}`);
 
   page.on('pageerror', (error) => issues.push(`pageerror: ${error.message}`));
   page.on('console', (entry) => {
-    if (['error', 'warning'].includes(entry.type())) {
+    const text = entry.text();
+    const expectedAuditServiceWorkerBlock =
+      text === 'Service Worker registration blocked by Playwright' ||
+      (text.startsWith('[PWA] Service Worker registration failed:') &&
+        text.includes('blocked by Playwright'));
+    if (
+      ['error', 'warning'].includes(entry.type()) &&
+      !text.startsWith('Failed to load resource:') &&
+      !expectedAuditServiceWorkerBlock
+    ) {
       issues.push(`console ${entry.type()}: ${entry.text()}`);
     }
   });
   page.on('response', (response) => {
     const resourceType = response.request().resourceType();
+    const pathname = new URL(response.url()).pathname;
+    const expectedAnonymousRefresh =
+      response.status() === 401 && pathname === '/api/v1/auth/refresh';
+    const expectedHandledError =
+      response.status() === 404 && expectedError?.apiPaths.includes(pathname);
     if (
       response.status() >= 400 &&
+      !expectedAnonymousRefresh &&
+      !expectedHandledError &&
       [
         'document',
         'fetch',
@@ -227,19 +290,23 @@ async function inspectRoute(context, app, baseUrl, route, viewport) {
         ...document.querySelectorAll(
           'input:not([type="hidden"]), select, textarea'
         ),
-      ].filter((element) => {
-        if (!visible(element)) return false;
-        if (
-          element.getAttribute('aria-label') ||
-          element.getAttribute('aria-labelledby') ||
-          element.getAttribute('title')
-        ) {
-          return false;
-        }
-        if (element.closest('label')) return false;
-        const id = element.getAttribute('id');
-        return !id || !document.querySelector(`label[for="${CSS.escape(id)}"]`);
-      }).map(describe);
+      ]
+        .filter((element) => {
+          if (!visible(element)) return false;
+          if (
+            element.getAttribute('aria-label') ||
+            element.getAttribute('aria-labelledby') ||
+            element.getAttribute('title')
+          ) {
+            return false;
+          }
+          if (element.closest('label')) return false;
+          const id = element.getAttribute('id');
+          return (
+            !id || !document.querySelector(`label[for="${CSS.escape(id)}"]`)
+          );
+        })
+        .map(describe);
       const imagesWithoutAlt = [
         ...document.querySelectorAll('img:not([alt])'),
       ].filter(visible).length;
@@ -260,8 +327,14 @@ async function inspectRoute(context, app, baseUrl, route, viewport) {
         .sort((first, second) => {
           const firstRect = first.getBoundingClientRect();
           const secondRect = second.getBoundingClientRect();
-          const firstExcess = Math.max(-firstRect.left, firstRect.right - window.innerWidth);
-          const secondExcess = Math.max(-secondRect.left, secondRect.right - window.innerWidth);
+          const firstExcess = Math.max(
+            -firstRect.left,
+            firstRect.right - window.innerWidth
+          );
+          const secondExcess = Math.max(
+            -secondRect.left,
+            secondRect.right - window.innerWidth
+          );
           return secondExcess - firstExcess;
         })
         .slice(0, 3)
@@ -280,6 +353,35 @@ async function inspectRoute(context, app, baseUrl, route, viewport) {
     });
 
     if (dom.bodyTextLength === 0) issues.push('empty body');
+    if (expectedError?.visibleText) {
+      await page
+        .getByText(expectedError.visibleText, { exact: false })
+        .first()
+        .waitFor({ state: 'visible', timeout: 15_000 })
+        .catch(async () =>
+          issues.push(
+            `expected handled error state not visible: ${expectedError.visibleText}; url=${page.url()}; body=${(
+              await page
+                .locator('body')
+                .innerText()
+                .catch(() => '')
+            )
+              .replace(/\s+/g, ' ')
+              .slice(0, 240)}`
+          )
+        );
+    }
+    if (expectedError?.visibleSelector) {
+      await page
+        .locator(expectedError.visibleSelector)
+        .first()
+        .waitFor({ state: 'visible', timeout: 5_000 })
+        .catch(() =>
+          issues.push(
+            `expected handled error selector not visible: ${expectedError.visibleSelector}`
+          )
+        );
+    }
     if (dom.brokenImages) issues.push(`${dom.brokenImages} broken image(s)`);
     if (dom.imagesWithoutAlt)
       issues.push(`${dom.imagesWithoutAlt} image(s) without alt`);
@@ -304,10 +406,7 @@ async function inspectRoute(context, app, baseUrl, route, viewport) {
       );
     }
 
-    if (
-      runAxeOnEveryRoute ||
-      axeRoutes.has(`${app}:${route}:${viewport}`)
-    ) {
+    if (runAxeOnEveryRoute || axeRoutes.has(`${app}:${route}:${viewport}`)) {
       const axe = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
         .exclude('nextjs-portal')
@@ -369,11 +468,16 @@ async function inspectRoute(context, app, baseUrl, route, viewport) {
 }
 
 try {
-  const anonymousAdmin = await browser.newContext();
+  const anonymousAdmin = await browser.newContext({
+    serviceWorkers: 'block',
+  });
   const loginPage = await anonymousAdmin.newPage();
   await loginPage.goto(`${adminBaseUrl}/orders`, {
     waitUntil: 'domcontentloaded',
   });
+  await loginPage
+    .waitForURL(`${adminBaseUrl}/login?redirect_url=**`, { timeout: 5_000 })
+    .catch(() => undefined);
   if (!loginPage.url().startsWith(`${adminBaseUrl}/login?redirect_url=`)) {
     failures.push({
       app: 'admin',
@@ -394,18 +498,36 @@ try {
 
   const anonymousWeb = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
+    serviceWorkers: 'block',
   });
   const protectedPage = await anonymousWeb.newPage();
   await protectedPage.goto(`${webBaseUrl}/profile`, {
     waitUntil: 'domcontentloaded',
   });
-  if (!protectedPage.url().startsWith(`${webBaseUrl}/login?redirect_url=`)) {
+  await protectedPage
+    .waitForURL(`${webBaseUrl}/account`, { timeout: 5_000 })
+    .catch(() => undefined);
+  if (protectedPage.url() !== `${webBaseUrl}/account`) {
     failures.push({
       app: 'web',
       route: '/profile',
       viewport: 'auth-guard',
-      issues: [`expected login redirect, got ${protectedPage.url()}`],
+      issues: [
+        `expected canonical account redirect, got ${protectedPage.url()}`,
+      ],
     });
+  } else {
+    await protectedPage
+      .getByText('Masuk untuk membuka akun Anda', { exact: true })
+      .waitFor({ state: 'visible', timeout: 5_000 })
+      .catch(() =>
+        failures.push({
+          app: 'web',
+          route: '/account',
+          viewport: 'auth-guard',
+          issues: ['expected visible unauthenticated account state'],
+        })
+      );
   }
   await protectedPage.close();
   for (const route of ['/login', '/register', '/otp']) {
@@ -415,6 +537,7 @@ try {
 
   const desktop = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
+    serviceWorkers: 'block',
   });
   const table = await authenticate(desktop);
   const resolvedWebRoutes = [
@@ -447,6 +570,7 @@ try {
   const mobile = await browser.newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 1,
+    serviceWorkers: 'block',
   });
   await authenticate(mobile);
   for (const [app, baseUrl, route] of [
@@ -479,6 +603,7 @@ try {
   const tablet = await browser.newContext({
     viewport: { width: 820, height: 1180 },
     deviceScaleFactor: 1,
+    serviceWorkers: 'block',
   });
   await authenticate(tablet);
   for (const [app, baseUrl, route] of [
@@ -490,6 +615,40 @@ try {
     await inspectRoute(tablet, app, baseUrl, route, 'tablet');
   }
   await tablet.close();
+
+  // Keep the installable-PWA proof isolated from the primary route crawl.
+  // The crawl blocks service workers so each response is authoritative network
+  // evidence. This context separately proves the real worker can activate.
+  const offline = await browser.newContext({
+    viewport: { width: 1440, height: 1000 },
+  });
+  await inspectRoute(offline, 'web', webBaseUrl, '/offline', 'desktop');
+  const pwaProof = await offline.newPage();
+  await pwaProof.goto(webBaseUrl, { waitUntil: 'load' });
+  const activeWorkerUrl = await pwaProof.evaluate(async () => {
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) =>
+        window.setTimeout(
+          () => reject(new Error('service worker activation timed out')),
+          5_000
+        )
+      ),
+    ]);
+    return registration.active?.scriptURL ?? null;
+  });
+  if (!activeWorkerUrl?.endsWith('/sw.js')) {
+    failures.push({
+      app: 'web',
+      route: '/offline',
+      viewport: 'pwa-worker',
+      issues: [
+        `expected active /sw.js worker, got ${activeWorkerUrl ?? 'none'}`,
+      ],
+    });
+  }
+  await pwaProof.close();
+  await offline.close();
 } finally {
   await browser.close();
 }

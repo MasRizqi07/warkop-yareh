@@ -70,20 +70,35 @@ export function BaristaConciergeModal() {
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   const { addItem } = useCartStore();
-  const { activeBranch } = useActiveBranch();
+  const branches = useActiveBranch();
+  const { activeBranch } = branches;
   const catalog = useCatalog(activeBranch?.id);
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm0',
       sender: 'barista',
-      text: "Halo! Saya **Barista AI Warkop Ya'reh**. Ceritakan seleramu atau pilih rekomendasi di bawah ini untuk menemukan racikan dan pairing camilan yang paling pas!",
+      text: "Halo! Saya **Rekomendasi Barista Warkop Ya'reh**. Ceritakan seleramu atau pilih preferensi di bawah ini untuk menemukan racikan dan pairing camilan yang paling pas dari menu cabang aktif.",
     },
   ]);
 
   const handleSend = async (queryText?: string) => {
     const text = queryText || inputMessage;
     if (!text.trim() || loading) return;
+
+    if (!activeBranch) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: createMessageId('b'),
+          sender: 'barista',
+          text: branches.isError
+            ? 'Cabang belum dapat dimuat. Periksa koneksi lalu coba lagi.'
+            : 'Cabang aktif belum tersedia. Tunggu pemuatan cabang selesai lalu coba lagi.',
+        },
+      ]);
+      return;
+    }
 
     const userMsgId = createMessageId('u');
     setMessages((prev) => [...prev, { id: userMsgId, sender: 'user', text }]);
@@ -99,7 +114,7 @@ export function BaristaConciergeModal() {
         fetch(`${apiUrl}/ai/barista-chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text }),
+          body: JSON.stringify({ message: text, branchId: activeBranch.id }),
           signal: AbortSignal.timeout(10_000),
         }).then(async (response) => {
           if (!response.ok) throw new Error('Barista chat request failed');
@@ -108,7 +123,10 @@ export function BaristaConciergeModal() {
         fetch(`${apiUrl}/ai/recommend-pairings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userQuery: text }),
+          body: JSON.stringify({
+            userQuery: text,
+            branchId: activeBranch.id,
+          }),
           signal: AbortSignal.timeout(10_000),
         }).then(async (response) => {
           if (!response.ok) throw new Error('Recommendation request failed');
@@ -166,14 +184,14 @@ export function BaristaConciergeModal() {
       {/* Floating Concierge Action Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-[var(--accent-fill)] text-[var(--text-on-brand)] font-bold text-xs shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white/20 min-h-[48px]"
-        aria-label="Tanya Barista AI"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-[var(--accent-fill)] text-[var(--button-primary-text)] font-bold text-xs shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white/20 min-h-[48px]"
+        aria-label="Buka Rekomendasi Barista"
       >
         <div className="relative flex items-center justify-center">
           <Sparkles className="w-4 h-4 animate-spin-slow" />
           <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white animate-ping" />
         </div>
-        <span>Tanya Barista AI</span>
+        <span>Rekomendasi Barista</span>
       </button>
 
       {/* Concierge Modal */}
@@ -203,7 +221,7 @@ export function BaristaConciergeModal() {
               {/* Header */}
               <div className="p-4 sm:p-5 border-b border-[var(--border-default)] flex items-center justify-between bg-[var(--bg-surface-overlay)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[var(--accent-fill)] text-[var(--text-on-brand)] flex items-center justify-center shadow-md">
+                  <div className="w-10 h-10 rounded-2xl bg-[var(--accent-fill)] text-[var(--button-primary-text)] flex items-center justify-center shadow-md">
                     <Sparkles className="w-5 h-5" />
                   </div>
                   <div>
@@ -211,7 +229,7 @@ export function BaristaConciergeModal() {
                       id="barista-dialog-title"
                       className="font-heading font-bold text-sm text-[var(--text-primary)] flex items-center gap-1.5"
                     >
-                      Barista AI Concierge
+                      Rekomendasi Barista
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[var(--gold-highlight)]/15 text-[var(--gold-highlight)] border border-[var(--gold-highlight)]/30 uppercase">
                         Active
                       </span>
@@ -248,7 +266,7 @@ export function BaristaConciergeModal() {
                       <div
                         className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${
                           m.sender === 'user'
-                            ? 'bg-[var(--accent-fill)] text-[var(--text-on-brand)] font-medium rounded-br-none shadow-sm'
+                            ? 'bg-[var(--accent-fill)] text-[var(--button-primary-text)] font-medium rounded-br-none shadow-sm'
                             : 'bg-[var(--bg-surface-overlay)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-bl-none shadow-sm'
                         }`}
                       >
@@ -284,7 +302,7 @@ export function BaristaConciergeModal() {
                                 handleAddToCart(m.recommendation!.id)
                               }
                               disabled={!recommendedProduct}
-                              className="px-3 py-1.5 rounded-xl bg-[var(--accent-fill)] text-[var(--text-on-brand)] font-bold text-[10px] flex items-center gap-1 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer min-h-[36px]"
+                              className="px-3 py-1.5 rounded-xl bg-[var(--accent-fill)] text-[var(--button-primary-text)] font-bold text-[10px] flex items-center gap-1 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer min-h-[36px]"
                             >
                               {addedItems[m.recommendation.id] ? (
                                 <>
@@ -362,6 +380,17 @@ export function BaristaConciergeModal() {
                     <span>Barista sedang meracik rekomendasi...</span>
                   </div>
                 )}
+
+                {!activeBranch && (
+                  <p
+                    className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface-overlay)] p-3 text-xs text-[var(--text-secondary)]"
+                    role={branches.isError ? 'alert' : 'status'}
+                  >
+                    {branches.isError
+                      ? 'Cabang belum dapat dimuat. Periksa koneksi lalu coba lagi.'
+                      : 'Menyiapkan cabang agar rekomendasi sesuai menu yang tersedia...'}
+                  </p>
+                )}
               </div>
 
               {/* Quick Presets */}
@@ -370,6 +399,7 @@ export function BaristaConciergeModal() {
                   <button
                     key={chip.label}
                     onClick={() => handleSend(chip.query)}
+                    disabled={!activeBranch || loading}
                     className="px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap bg-[var(--bg-surface-raised)] border border-[var(--border-default)] hover:border-[var(--accent-fill)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all cursor-pointer shrink-0"
                   >
                     {chip.label}
@@ -389,8 +419,8 @@ export function BaristaConciergeModal() {
                 />
                 <button
                   onClick={() => handleSend()}
-                  disabled={!inputMessage.trim() || loading}
-                  className="w-11 h-11 rounded-xl bg-[var(--accent-fill)] text-[var(--text-on-brand)] flex items-center justify-center shadow-md disabled:opacity-40 disabled:pointer-events-none hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
+                  disabled={!inputMessage.trim() || loading || !activeBranch}
+                  className="w-11 h-11 rounded-xl bg-[var(--accent-fill)] text-[var(--button-primary-text)] flex items-center justify-center shadow-md disabled:opacity-40 disabled:pointer-events-none hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
                   aria-label="Kirim pesan"
                 >
                   <Send className="w-4 h-4" />

@@ -149,7 +149,7 @@ export default function AboutPage() {
                 icon: <Lightbulb className="w-5 h-5" />,
                 title: 'Innovation Driven',
                 description:
-                  'Kami terus bereksplorasi — mulai dari AI Concierge hingga sistem loyalty member yang gamified.',
+                  'Kami terus bereksplorasi — mulai dari Rekomendasi Barista berbasis menu cabang hingga sistem loyalty member yang gamified.',
               },
               {
                 icon: <Globe className="w-5 h-5" />,

@@ -114,7 +114,7 @@ export function PwaBottomDock() {
             {/* Cart Button */}
             <button
               onClick={() => setCartOpen(true)}
-              className="relative flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-primary-hover text-white shadow-[0_4px_16px_rgba(156,107,58,0.4)] transition-transform active:scale-95 cursor-pointer"
+              className="relative flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-primary-hover text-on-primary shadow-[0_4px_16px_rgba(156,107,58,0.4)] transition-transform active:scale-95 cursor-pointer"
               aria-label="Keranjang"
             >
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
