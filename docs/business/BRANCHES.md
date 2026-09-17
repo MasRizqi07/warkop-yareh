@@ -8,6 +8,7 @@
 ## 1. Branch Overview
 
 Warkop Ya'reh operates exactly two known, verified physical locations in Surabaya, Jawa Timur.
+Warkop Ya'reh operates exactly two confirmed, verified physical locations in Surabaya, Jawa Timur.
 
 Any reference to other branches (such as "Gubeng", "Darmo", "Dharmahusada", or "Jakarta Flagship") represents historical template contamination and must be expunged from all active routing and configuration.
 
@@ -30,6 +31,7 @@ service_options:
   - "Dine-in"
   - "Takeaway"
 price_range: "Rp1-25.000 per person"
+public_spending_range: "Rp1-25.000 per orang" # Venue spending range, NOT item price
 address:
   street: "Jl. Raya Jetis Kulon I No.38"
   subdistrict: "Wonokromo"
@@ -50,6 +52,15 @@ amenities:
   drive_thru: "VERIFIED_ABSENT"
 source_type: "GOOGLE_MAPS"
 verification_date: "2026-09-17"
+  wifi: "UNVERIFIED (Common regional warkop amenity, requires physical verification)"
+  parking: "PARTIALLY_VERIFIED (Storefront/roadside motorcycle parking observed)"
+  vip_room: "UNVERIFIED (No current evidence; unsupported in Phase 1)"
+  meeting_room: "UNVERIFIED (No current evidence; unsupported in Phase 1)"
+  drive_thru: "UNVERIFIED (No current evidence; unsupported in Phase 1)"
+source:
+  source_type: "GOOGLE_MAPS"
+  captured_at: "2026-09-17"
+  last_verified_at: "2026-09-17"
 confidence_status: "VERIFIED"
 ```
 
@@ -70,6 +81,7 @@ service_options:
   - "Dine-in"
   - "Takeaway"
 price_range: "Rp1-25.000 per person"
+public_spending_range: "Rp1-25.000 per orang" # Venue spending range, NOT item price
 address:
   street: "Jl. Raya Prapen No.39"
   subdistrict: "Prapen"
@@ -90,6 +102,15 @@ amenities:
   drive_thru: "VERIFIED_ABSENT"
 source_type: "GOOGLE_MAPS"
 verification_date: "2026-09-17"
+  wifi: "UNVERIFIED (Common regional warkop amenity, requires physical verification)"
+  parking: "PARTIALLY_VERIFIED (Storefront/roadside motorcycle parking observed)"
+  vip_room: "UNVERIFIED (No current evidence; unsupported in Phase 1)"
+  meeting_room: "UNVERIFIED (No current evidence; unsupported in Phase 1)"
+  drive_thru: "UNVERIFIED (No current evidence; unsupported in Phase 1)"
+source:
+  source_type: "GOOGLE_MAPS"
+  captured_at: "2026-09-17"
+  last_verified_at: "2026-09-17"
 confidence_status: "VERIFIED"
 ```
 
@@ -112,3 +133,5 @@ confidence_status: "VERIFIED"
 2. The primary mode of transport for customers is motorcycle, with roadside/stall parking.
 3. Seating arrangements are communal warkop benches and tables; there are no reservable private rooms or conference facilities.
 
+2. The primary mode of customer transport is motorcycle, with street/storefront parking.
+3. Seating capacity is unmeasured and must remain `null` or `UNKNOWN` in schemas.

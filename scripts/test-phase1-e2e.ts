@@ -52,7 +52,7 @@ async function run() {
   // --- Step 3: Create real order ---
   console.log('\n--- 3. Creating Real Order via POST /orders ---');
   const orderPayload = {
-    branchId: 'coldnbrew-gubeng-001',
+    branchId: 'jetis-kulon',
     type: 'DINE_IN',
     notes: 'Table 7 - Live Phase 1 Test Order',
     items: [

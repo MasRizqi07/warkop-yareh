@@ -4,9 +4,9 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  LayoutDashboard, ShoppingCart, Package, CalendarCheck, MapPin, 
-  Users, CalendarDays, MessageSquare, Star, BarChart3, Settings, Coffee, X,
-  Boxes, Receipt, Send, UserCheck, MonitorPlay, Armchair
+  LayoutDashboard, ShoppingCart, Package, MapPin, 
+  Users, BarChart3, Settings, Coffee, X,
+  Receipt, MonitorPlay, Image as ImageIcon, FileText
 } from "lucide-react";
 import { BrandEmblem } from "@warkop-yareh/ui";
 
@@ -27,38 +27,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       ]
     },
     {
-      label: "Operations",
+      label: "Outlet & Content",
       items: [
-        { icon: ShoppingCart,   label: "Orders", href: "/orders" },
+        { icon: MapPin,         label: "Branches & Schedules", href: "/branches" },
         { icon: Package,        label: "Products Catalog", href: "/products" },
-        { icon: Boxes,          label: "Inventory & Silos", href: "/inventory" },
-        { icon: Receipt,        label: "Shifts & Drawer", href: "/shifts" },
-        { icon: CalendarCheck,  label: "Reservations", href: "/reservations" },
-        { icon: Armchair,       label: "Tables & Calls", href: "/tables" },
-        { icon: MapPin,         label: "Branches & Pricing", href: "/branches" },
+        { icon: ImageIcon,      label: "Gallery Assets", href: "/gallery" },
+        { icon: FileText,       label: "Site Content & Facts", href: "/site-content" },
       ]
     },
     {
-      label: "Patron Growth",
-      items: [
-        { icon: UserCheck,      label: "Patron CRM", href: "/crm" },
-        { icon: Send,           label: "WhatsApp Studio", href: "/marketing" },
-        { icon: Star,           label: "Loyalty Tier", href: "/loyalty" },
-        { icon: MessageSquare,  label: "Community Hub", href: "/community" },
-        { icon: CalendarDays,   label: "Events & Meetups", href: "/events" },
-        { icon: Users,          label: "User Accounts", href: "/users" },
-      ]
-    },
-    {
-      label: "Live Terminals",
+      label: "Live Operations",
       items: [
         { icon: Coffee,         label: "POS Cashier", href: "/pos" },
         { icon: MonitorPlay,    label: "Kitchen Display (KDS)", href: "/kitchen" },
+        { icon: Receipt,        label: "Shifts & Drawer", href: "/shifts" },
+        { icon: ShoppingCart,   label: "Orders & Logs", href: "/orders" },
       ]
     },
     {
       label: "System",
       items: [
+        { icon: Users,          label: "Staff Accounts", href: "/users" },
         { icon: Settings,       label: "Settings", href: "/settings" },
       ]
     }
@@ -77,7 +66,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               Warkop<span className="text-[#f59e0b]">.</span>Ya&apos;reh
             </h1>
             <p className="font-mono text-[9px] uppercase tracking-widest text-[#f59e0b]">
-              Enterprise Admin
+              Backoffice & CMS
             </p>
           </div>
         </div>
@@ -99,16 +88,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 const Icon = item.icon;
                 return (
                   <li key={j}>
-                    <Link 
+                    <Link
                       href={item.href}
-                      className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                        isActive 
-                          ? "bg-[#201f21] text-[#f59e0b] shadow-sm border border-white/[0.08]" 
-                          : "text-[#94a3b8] hover:text-white hover:bg-white/[0.04]"
+                      onClick={onClose}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                        isActive
+                          ? "bg-[#9c6b3a]/20 text-[#f59e0b] shadow-inner font-semibold border-l-2 border-[#f59e0b]"
+                          : "text-[#94a3b8] hover:bg-white/[0.04] hover:text-white"
                       }`}
                     >
                       <Icon className={`w-4 h-4 ${isActive ? "text-[#f59e0b]" : "text-[#94a3b8]"}`} />
-                      {item.label}
+                      <span>{item.label}</span>
                     </Link>
                   </li>
                 );
@@ -117,9 +107,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         ))}
       </nav>
-      
-      <div className="border-t border-white/[0.08] p-4 text-[10px] font-mono leading-5 text-[#94a3b8]">
-        Status layanan diverifikasi per permintaan API, bukan diasumsikan dari antarmuka.
+
+      {/* Footer System Info */}
+      <div className="p-4 border-t border-white/[0.08] bg-black/20">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-mono text-[#94a3b8]">Surabaya 24 Jam • Reality Active</span>
+        </div>
       </div>
     </aside>
   );

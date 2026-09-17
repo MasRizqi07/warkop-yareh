@@ -39,11 +39,14 @@ export function Footer() {
             <p className="max-w-sm text-sm leading-relaxed text-text-muted">
               Kopi, workspace, pemesanan, reservasi, komunitas, dan loyalty
               Warkop Ya&apos;reh dalam satu platform.
+              Kedai kopi lokal di Surabaya dengan operasional 24 jam di Jetis Kulon (Wonokromo) dan Prapen (Tenggilis Mejoyo).
             </p>
             <div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3.5 py-1.5">
               <span className="h-2 w-2 rounded-full bg-accent-amber" />
+              <span className="h-2 w-2 rounded-full bg-[var(--green-500)]" />
               <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-cream-beige">
                 Jam dan fasilitas mengikuti cabang pilihan
+                Buka 24 Jam • Dine-in & Takeaway
               </span>
             </div>
           </div>
@@ -67,6 +70,7 @@ export function Footer() {
                   </p>
                   <span className="mt-1 inline-block rounded bg-primary-container/20 px-1.5 py-0.5 font-mono text-[10px] text-cream-beige">
                     Hari kerja {branch.weekdayHours}
+                    {branch.weekdayHours || '24 Jam'}
                   </span>
                 </div>
               ))}
@@ -82,6 +86,7 @@ export function Footer() {
           <div className="lg:col-span-2 space-y-3">
             <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
               Navigation
+              Navigasi
             </h4>
             <ul className="space-y-2.5">
               {NAV_LINKS.map((link) => (
@@ -150,9 +155,11 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-6 font-mono text-[11px]">
             <span className="text-cream-beige">Surabaya, East Java</span>
+            <span className="text-cream-beige">Surabaya, Jawa Timur</span>
             <span>•</span>
             <span className="text-text-muted">
               Crafted with Precision & Single Origin
+              Kedai Kopi 24 Jam Surabaya
             </span>
           </div>
         </div>

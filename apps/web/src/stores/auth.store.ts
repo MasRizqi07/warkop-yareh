@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@warkop-yareh/types';
-import { getPersistStorage } from './persist-storage';
+import { getPersistStorage, TARGET_AUTH_STORAGE_KEY } from './persist-storage';
 
 interface AuthState {
   user: User | null;
@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
         }),
     }),
     {
-      name: 'coldnbrew-auth',
+      name: TARGET_AUTH_STORAGE_KEY,
       version: 2,
       storage: createJSONStorage<PersistedAuthState>(getPersistStorage),
       migrate: (persistedState): PersistedAuthState => {

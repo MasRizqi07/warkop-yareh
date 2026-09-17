@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { User } from '@warkop-yareh/types';
-import { getPersistStorage } from './persist-storage';
+import {
+  getPersistStorage,
+  LEGACY_AUTH_STORAGE_KEY,
+  TARGET_AUTH_STORAGE_KEY,
+} from './persist-storage';
 import { useAuthStore } from './auth.store';
 import { useBranchStore } from './branch.store';
 import { useCheckoutStore } from './checkout.store';
@@ -22,7 +26,7 @@ describe('browser-only Zustand persistence', () => {
     expect(() => storage.removeItem('state')).not.toThrow();
   });
 
-  it('never persists access tokens', () => {
+  it('never persists access tokens into target storage key', () => {
     const user = {
       id: 'customer-1',
       name: 'Customer',
@@ -31,10 +35,45 @@ describe('browser-only Zustand persistence', () => {
 
     useAuthStore.getState().setAuth(user, 'secret-access-token');
 
-    const serialized = window.localStorage.getItem('coldnbrew-auth') ?? '';
+    const serialized = window.localStorage.getItem(TARGET_AUTH_STORAGE_KEY) ?? '';
     expect(serialized).toContain('customer@example.com');
     expect(serialized).not.toContain('secret-access-token');
     expect(serialized).not.toContain('accessToken');
+    expect(window.localStorage.getItem(LEGACY_AUTH_STORAGE_KEY)).toBeNull();
+  });
+
+  it('transparently migrates legacy coldnbrew-auth to warkop-yareh-auth and deletes legacy key', () => {
+    const legacyState = {
+      state: {
+        user: {
+          id: 'legacy-1',
+          name: 'Legacy User',
+          email: 'legacy@example.com',
+          membershipTier: 'GOLD',
+          loyaltyPoints: 1000,
+          referralCode: 'REF123',
+        },
+      },
+      version: 2,
+    };
+
+    window.localStorage.setItem(LEGACY_AUTH_STORAGE_KEY, JSON.stringify(legacyState));
+
+    const storage = getPersistStorage();
+    const retrieved = storage.getItem(TARGET_AUTH_STORAGE_KEY);
+
+    expect(retrieved).not.toBeNull();
+    const parsed = JSON.parse(retrieved as string);
+    expect(parsed.state.user.id).toBe('legacy-1');
+    expect(parsed.state.user.email).toBe('legacy@example.com');
+    expect(parsed.state.user.membershipTier).toBeUndefined();
+    expect(parsed.state.user.loyaltyPoints).toBeUndefined();
+    expect(parsed.state.user.referralCode).toBeUndefined();
+
+    // Legacy key must be deleted
+    expect(window.localStorage.getItem(LEGACY_AUTH_STORAGE_KEY)).toBeNull();
+    // Target key must be set
+    expect(window.localStorage.getItem(TARGET_AUTH_STORAGE_KEY)).toBe(retrieved);
   });
 
   it('sanitizes legacy persisted values during version migrations', async () => {

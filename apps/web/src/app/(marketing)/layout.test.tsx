@@ -11,14 +11,10 @@ vi.mock('@/components/layout/footer', () => ({
   Footer: () => <footer>Footer</footer>,
 }));
 
-vi.mock('@/components/ai/barista-concierge-modal', () => ({
-  BaristaConciergeModal: () => <div>Rekomendasi Barista mounted</div>,
-}));
-
 describe('MarketingLayout', () => {
   afterEach(cleanup);
 
-  it('mounts the branch-aware barista recommendation entry point', () => {
+  it('renders marketing content, scroll progress, and footer', () => {
     render(
       <MarketingLayout>
         <p>Marketing content</p>
@@ -26,6 +22,7 @@ describe('MarketingLayout', () => {
     );
 
     expect(screen.getByText('Marketing content')).toBeDefined();
-    expect(screen.getByText('Rekomendasi Barista mounted')).toBeDefined();
+    expect(screen.getByTestId('scroll-progress')).toBeDefined();
+    expect(screen.getByText('Footer')).toBeDefined();
   });
 });

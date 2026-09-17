@@ -10,8 +10,12 @@
 
 1. **Verified Price Range:** Rp1 - 25.000 per person across both branches.
 2. **Item-Level Verification Status:** `UNVERIFIED`.
+1. **Public Venue Spending Range:**  
+   The value **`Rp1 - 25.000 per orang`** recorded from public listings is a **venue spending range** (typical expenditure per person per visit). It is **NOT** an item-level menu price.
+2. **Item-Level Verification Status:** Currently **`UNVERIFIED`** (No current evidence of official printed menu or itemized receipts).
 3. **Official Production Seed Rule:**  
    Because exact item names, ingredients, categorization, and prices have not been validated against direct physical receipts or authenticated merchant records, **the production menu database MUST REMAIN EMPTY**.
+   Because exact item names, ingredients, portion options, and item-specific prices have not been validated against direct physical receipts or authenticated merchant records, **the production menu database MUST REMAIN COMPLETELY EMPTY**.
 
 ---
 
@@ -47,6 +51,7 @@ In traditional Surabaya warkop culture, standard offerings typically include:
 ---
 
 ## 4. Public Menu Page Behavior (Phase 1)
+## 4. Public Menu Page Behavior (`/menu`)
 
 When users visit `/menu` on the customer-facing website:
 1. The page must display the **verified price range**: `Rp1 - Rp25.000 per orang`.
@@ -54,3 +59,11 @@ When users visit `/menu` on the customer-facing website:
    > *"Daftar menu lengkap dan harga detail sedang dalam proses verifikasi langsung dari outlet. Kunjungi Warkop Ya'reh Jetis Kulon atau Prapen untuk menikmati sajian kopi dan makanan kami secara langsung (Buka 24 Jam)."*
 3. If an empty state component is rendered, it must be informative and welcoming, not a broken UI error.
 
+1. **Primary Status Banner:**  
+   `"Menu lengkap sedang diverifikasi langsung dari outlet."`
+2. **Public Spending Range Reference:**  
+   `"Kisaran pengeluaran yang tercantum pada listing publik: Rp1–25.000 per orang."`
+3. **Transparent Guidance:**  
+   `"Silakan berkunjung langsung ke Warkop Ya'reh Jetis Kulon atau Prapen untuk memesan aneka minuman dan makanan kami (Buka 24 Jam)."`
+4. **No Price Confusion:**  
+   Never present Rp1–25.000 as a single product price or suggest that all items start at Rp1.
