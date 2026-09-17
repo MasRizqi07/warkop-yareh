@@ -7,7 +7,6 @@ import {
   Clock,
   Navigation,
   CheckCircle2,
-  ExternalLink,
   MessageSquare,
 } from 'lucide-react';
 import { VERIFIED_BRANCHES } from '@warkop-yareh/types';
