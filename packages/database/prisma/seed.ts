@@ -129,10 +129,12 @@ async function main() {
       id: 'jetis-kulon',
       name: "WARKOP YA'REH",
       slug: 'jetis-kulon',
-      address: 'Jl. Raya Jetis Kulon I No.38, Wonokromo',
+      brandName: "Warkop Ya'reh",
+      address: 'Jl. Raya Jetis Kulon I No.38, Wonokromo, Kec. Wonokromo, Surabaya, Jawa Timur 60243',
       city: 'Surabaya',
       province: 'Jawa Timur',
       postalCode: '60243',
+      plusCode: 'MPVJ+2G Wonokromo, Surabaya, Jawa Timur',
       phone: null,
       email: null,
       latitude: -7.311494,
@@ -148,10 +150,12 @@ async function main() {
       id: 'prapen',
       name: "WARKOP YA'REH 2 PRAPEN",
       slug: 'prapen',
-      address: 'Jl. Raya Prapen No.39, Prapen, Kec. Tenggilis Mejoyo',
+      brandName: "Warkop Ya'reh",
+      address: 'Jl. Raya Prapen No.39, Prapen, Kec. Tenggilis Mejoyo, Surabaya, Jawa Timur 60239',
       city: 'Surabaya',
       province: 'Jawa Timur',
       postalCode: '60239',
+      plusCode: 'MQM3+XJ Prapen, Surabaya, Jawa Timur',
       phone: '0821-3735-4606',
       email: null,
       latitude: -7.319762,
@@ -171,10 +175,12 @@ async function main() {
       update: {
         name: b.name,
         slug: b.slug,
+        brandName: b.brandName,
         address: b.address,
         city: b.city,
         province: b.province,
         postalCode: b.postalCode,
+        plusCode: b.plusCode,
         phone: b.phone,
         email: b.email,
         latitude: b.latitude,
@@ -196,7 +202,9 @@ async function main() {
   // but itemized catalog and prices are UNVERIFIED. Zero products are seeded.
   console.log('ℹ️  Menu Catalog: 0 products seeded (Production catalog pending physical menu verification).');
 
-  // ── 3. Administrative Staff Accounts ──────────────────────────────────────
+  // ── 3. Administrative Staff Accounts (Bootstrap / Technical Only — Non-Public) ──
+  // IMPORTANT: These accounts are for initial local/staging system access only.
+  // They are NOT public business contacts and MUST NEVER be exposed on customer surfaces.
   const staffAccounts = [
     {
       email: 'admin@warkopyareh.local',

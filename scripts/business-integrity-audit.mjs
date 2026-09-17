@@ -44,28 +44,74 @@ function runAudit() {
     if (check(title, fn)) totalPassed++;
   }
 
-  // 1. Branch Fixture Invariant
-  run("packages/types exports VERIFIED_BRANCHES with Jetis Kulon and Prapen only", () => {
+  // 1. Branch Fixture Invariant — Canonical Jetis Kulon
+  run("packages/types exports exact canonical Jetis Kulon fixture", () => {
     const typesPath = path.join(ROOT_DIR, 'packages', 'types', 'index.ts');
     const content = readFileSync(typesPath, 'utf8');
     return (
       content.includes("id: 'jetis-kulon'") &&
-      content.includes("id: 'prapen'") &&
-      !content.includes("coldnbrew-gubeng-001")
+      content.includes("name: \"WARKOP YA'REH\"") &&
+      content.includes("street: 'Jl. Raya Jetis Kulon I No.38'") &&
+      content.includes("postalCode: '60243'") &&
+      content.includes("plusCode: 'MPVJ+2G Wonokromo, Surabaya, Jawa Timur'") &&
+      content.includes("phone: null,")
     );
   });
 
-  // 2. Database Seed Invariant
-  run("Database seed does not seed fictional Cold 'N Brew branches or luxury items", () => {
+  // 2. Branch Fixture Invariant — Canonical Prapen
+  run("packages/types exports exact canonical Prapen fixture", () => {
+    const typesPath = path.join(ROOT_DIR, 'packages', 'types', 'index.ts');
+    const content = readFileSync(typesPath, 'utf8');
+    return (
+      content.includes("id: 'prapen'") &&
+      content.includes("name: \"WARKOP YA'REH 2 PRAPEN\"") &&
+      content.includes("street: 'Jl. Raya Prapen No.39'") &&
+      content.includes("postalCode: '60239'") &&
+      content.includes("plusCode: 'MQM3+XJ Prapen, Surabaya, Jawa Timur'") &&
+      content.includes("phone: '0821-3735-4606'")
+    );
+  });
+
+  // 3. Rejection of Legacy Incorrect Values in Active Fixtures
+  run("Active production fixtures reject legacy incorrect addresses and Plus Codes", () => {
+    const filesToCheck = [
+      path.join(ROOT_DIR, 'packages', 'types', 'index.ts'),
+      path.join(ROOT_DIR, 'packages', 'database', 'prisma', 'seed.ts'),
+      path.join(ROOT_DIR, 'apps', 'web', 'src', 'lib', 'constants.ts'),
+    ];
+    for (const file of filesToCheck) {
+      const content = readFileSync(file, 'utf8');
+      if (
+        content.includes('JP7J+54') ||
+        content.includes('HMQF+XX') ||
+        content.includes('37A') ||
+        content.includes('Prapen Indah')
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // 4. Database Seed Invariant — Canonical Branches and Clean State
+  run("Database seed contains exact canonical branches, Plus Codes, and zero fake products", () => {
     const seedPath = path.join(ROOT_DIR, 'packages', 'database', 'prisma', 'seed.ts');
     const content = readFileSync(seedPath, 'utf8');
-    // Ensure only jetis-kulon and prapen are created
+    const hasJetisCanonical =
+      content.includes("'jetis-kulon'") &&
+      content.includes("Jl. Raya Jetis Kulon I No.38") &&
+      content.includes("MPVJ+2G Wonokromo, Surabaya, Jawa Timur");
+    const hasPrapenCanonical =
+      content.includes("'prapen'") &&
+      content.includes("Jl. Raya Prapen No.39") &&
+      content.includes("MQM3+XJ Prapen, Surabaya, Jawa Timur") &&
+      content.includes("0821-3735-4606");
     const doesNotCreateFakeBranch = !content.includes("create: {\n      id: BRANCH_ID");
     const doesNotUpsertProducts = !content.includes("prisma.product.upsert");
     const doesNotSeedColdNBrewStaff = !content.includes("email: 'admin@coldnbrew.id'");
     return (
-      content.includes("'jetis-kulon'") &&
-      content.includes("'prapen'") &&
+      hasJetisCanonical &&
+      hasPrapenCanonical &&
       doesNotCreateFakeBranch &&
       doesNotUpsertProducts &&
       doesNotSeedColdNBrewStaff

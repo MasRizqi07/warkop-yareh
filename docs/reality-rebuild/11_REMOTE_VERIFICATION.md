@@ -1,10 +1,8 @@
 # Phase 2.5: Implementation Integrity & Remote Verification Report
 
 ## 1. Local HEAD
-- **Commit SHA**: `8eab7ecc4bbceb26090e8a75765089304910eb67`
 - **Branch**: `codex/phase9-functional-completeness`
 - **Author**: MasRizqi07 <sembarangananak@gmail.com>
-- **Date**: 2026-09-17 18:56:22 +0700
 
 ## 2. Remote HEAD Before Push
 - **Remote Branch Tracking**: `origin/codex/phase9-functional-completeness`
@@ -20,6 +18,12 @@
 3. **`8eab7ecc4bbceb26090e8a75765089304910eb67`**
    - *Title*: `chore: clean marketing page lint warnings`
    - *Scope*: Cleaned residual unused `MapPin` and `ExternalLink` imports in marketing pages, achieving 0 errors and 0 warnings.
+4. **`b7169e7c10b7849e7a4ee0ec1345d1fe686361a6`**
+   - *Title*: `docs: update remote verification report with Node 24 canonical validation`
+   - *Scope*: Canonical quality gate execution under Node 24.20.0 and verification notes.
+5. **`2745b8decfcfaaa02c2e0b12bc1a8e10d29ca9ca`**
+   - *Title*: `fix: correct canonical Warkop Ya'reh branch data and harden reality audit`
+   - *Scope*: Fixed seed branch addresses, Plus Codes, and non-public staff comments; hardened business integrity audit to 15/15 checks; added canonical branch unit tests (13 test files, 46 web tests).
 
 ## 4. Remote HEAD Status After Push Attempt
 - **Status**: Push blocked by host network IPv4 unavailability (`Could not resolve host: github.com` / `TCP connect to (20.205.243.166:443) failed`).
@@ -33,19 +37,28 @@
 - **Shell**: PowerShell 7.6.6
 
 ## 6. Canonical Quality Gates (Executed under Node 24.20.0)
-All 9 canonical verification commands pass with exit code 0:
-1. `pnpm audit:reality`: **PASS (13/13 checks)**, exit code 0
+All canonical verification commands pass with exit code 0:
+1. `pnpm audit:reality`: **PASS (15/15 checks)**, exit code 0
 2. `pnpm turbo run lint`: **PASS (0 errors, 0 warnings across 6 packages)**, exit code 0
 3. `pnpm turbo run typecheck`: **PASS (4/4 TypeScript projects)**, exit code 0
-4. `pnpm --filter @warkop-yareh/web test`: **PASS (12 test files, 42 tests)**, exit code 0
+4. `pnpm --filter @warkop-yareh/web test`: **PASS (13 test files, 46 tests)**, exit code 0
 5. `pnpm --filter @warkop-yareh/admin test`: **PASS (1 test file, 4 tests)**, exit code 0
 6. `pnpm --filter @warkop-yareh/api run test --maxWorkers=2`: **PASS (37 test suites, 246 tests)**, exit code 0
 7. `pnpm --filter @warkop-yareh/database run db:generate`: **PASS (Prisma Client v5.22.0 generated)**, exit code 0
 8. `pnpm --filter @warkop-yareh/database run build`: **PASS (Database package TypeScript compiled)**, exit code 0
 9. `pnpm turbo run build --concurrency=1`: **PASS (5/5 packages built)**, exit code 0
 
-## 7. Business Integrity Audit Invariants
-Executed via `node scripts/business-integrity-audit.mjs` (13/13 passing):
+## 7. Canonical Branch Data Invariants
+| Branch Slug | Canonical Brand & Outlet Name | Street Address & Postal Code | Plus Code | Phone |
+| :--- | :--- | :--- | :--- | :--- |
+| `jetis-kulon` | **WARKOP YA'REH** | `Jl. Raya Jetis Kulon I No.38, Wonokromo, Kec. Wonokromo, Surabaya, Jawa Timur 60243` | `MPVJ+2G Wonokromo, Surabaya, Jawa Timur` | `null` |
+| `prapen` | **WARKOP YA'REH 2 PRAPEN** | `Jl. Raya Prapen No.39, Prapen, Kec. Tenggilis Mejoyo, Surabaya, Jawa Timur 60239` | `MQM3+XJ Prapen, Surabaya, Jawa Timur` | `0821-3735-4606` |
+
+**Enforced Invariants**:
+- Zero legacy incorrect addresses (`37A`, `Prapen Indah No. 22`) or speculative Plus Codes (`JP7J+54`, `HMQF+XX`).
+- Zero fictional branches (`gubeng`, `darmo`, `dharmahusada`).
+- Seed accounts (`admin@warkopyareh.local`) marked as local/staging bootstrap only, strictly excluded from customer UI.
+- Automated tests in `apps/web/src/lib/verified-branches.test.ts` and `scripts/business-integrity-audit.mjs` guarantee regression prevention.
 - Verified branches only (`jetis-kulon` and `prapen`) in `packages/types`
 - Zero fake products or Cold N Brew staff in database seed
 - Storage key namespace enforced as `warkop-yareh-auth`
