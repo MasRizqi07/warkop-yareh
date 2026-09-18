@@ -24,22 +24,38 @@ vi.mock('framer-motion', () => ({
 
 describe('LoginPage', () => {
   it('renders Google sign-in button linking to the backend OAuth endpoint', () => {
-    render(<LoginPage />);
+    const { unmount } = render(<LoginPage />);
 
-    const googleBtns = screen.getAllByRole('button', { name: /Masuk dengan Google/i });
-    expect(googleBtns.length).toBeGreaterThan(0);
+    try {
+      const googleBtns = screen.getAllByRole('button', {
+        name: /Masuk dengan Google/i,
+      });
+      expect(googleBtns.length).toBeGreaterThan(0);
 
-    const googleLink = document.getElementById('google-login-button');
-    expect(googleLink).toBeDefined();
-    expect(googleLink?.getAttribute('href')).toMatch(/\/auth\/google$/);
+      const googleLink = document.getElementById('google-login-button');
+      expect(googleLink).toBeDefined();
+      expect(googleLink?.getAttribute('href')).toMatch(/\/auth\/google$/);
+    } finally {
+      unmount();
+    }
   });
 
   it('renders standard email & password form controls and OTP option', () => {
-    render(<LoginPage />);
+    const { unmount } = render(<LoginPage />);
 
-    expect(screen.getByLabelText(/Email address/i)).toBeDefined();
-    expect(screen.getByLabelText(/Password/i)).toBeDefined();
-    expect(screen.getAllByRole('button', { name: /Sign in/i }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('button', { name: /Email Magic Link \(OTP\)/i }).length).toBeGreaterThan(0);
+    try {
+      expect(screen.getByLabelText(/Email address/i)).toBeDefined();
+      expect(screen.getByLabelText(/Password/i)).toBeDefined();
+      expect(
+        screen.getAllByRole('button', { name: /Sign in/i }).length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.getAllByRole('button', {
+          name: /Email Magic Link \(OTP\)/i,
+        }).length,
+      ).toBeGreaterThan(0);
+    } finally {
+      unmount();
+    }
   });
 });
