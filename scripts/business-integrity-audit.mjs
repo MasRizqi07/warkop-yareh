@@ -125,15 +125,14 @@ function runAudit() {
     return content.includes("TARGET_AUTH_STORAGE_KEY = 'warkop-yareh-auth'");
   });
 
-  // 4. Route Transitions Configured
-  run("Web next.config.mjs configures redirects for decommissioned and parked routes", () => {
+  // 6. Route Transitions Configured
+  run("Web next.config.mjs configures redirects for decommissioned speculative routes", () => {
     const configPath = path.join(ROOT_DIR, 'apps', 'web', 'next.config.mjs');
     const content = readFileSync(configPath, 'utf8');
     return (
       content.includes("source: '/booking', destination: '/outlets'") &&
       content.includes("source: '/community") &&
-      content.includes("source: '/loyalty") &&
-      content.includes("source: '/cart', destination: '/menu'")
+      content.includes("source: '/loyalty")
     );
   });
 

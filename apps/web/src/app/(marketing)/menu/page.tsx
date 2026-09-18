@@ -12,13 +12,16 @@ import {
 } from 'lucide-react';
 import { useActiveBranch, useCatalog } from '@/features/catalog/catalog.hooks';
 import { VERIFIED_BRANCHES } from '@warkop-yareh/types';
+import type { Product } from '@warkop-yareh/types';
 import { useBranchStore } from '@/stores';
+import { ProductCustomizerModal } from '@/components/menu/ProductCustomizerModal';
 
 export default function MenuPage() {
   const { activeBranch } = useActiveBranch();
   const catalog = useCatalog(activeBranch?.id);
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
+  const [customizingProduct, setCustomizingProduct] = React.useState<Product | null>(null);
 
   const products = catalog.data?.products ?? [];
 
@@ -161,22 +164,33 @@ export default function MenuPage() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {products.map((item) => (
-                <div
+                <article
                   key={item.id}
-                  className="rounded-2xl border border-border-subtle bg-surface-card p-5 space-y-2"
+                  className="rounded-2xl border border-border-subtle bg-surface-card p-5 space-y-3 flex flex-col justify-between"
                 >
-                  <div className="flex justify-between items-start gap-2">
-                    <h4 className="font-heading font-bold text-base text-text-primary">
-                      {item.name}
-                    </h4>
-                    <span className="font-mono text-xs font-semibold text-accent-amber">
-                      Rp {item.price.toLocaleString('id-ID')}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <h4 className="font-heading font-bold text-base text-text-primary">
+                        {item.name}
+                      </h4>
+                      <span className="font-mono text-xs font-semibold text-accent-amber">
+                        Rp {item.price.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                    {item.description && (
+                      <p className="text-xs text-text-muted leading-relaxed">{item.description}</p>
+                    )}
                   </div>
-                  {item.description && (
-                    <p className="text-xs text-text-muted">{item.description}</p>
-                  )}
-                </div>
+                  <div className="pt-2 border-t border-border-subtle/50 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setCustomizingProduct(item as unknown as Product)}
+                      className="px-4 py-2 rounded-xl bg-accent-amber text-canvas-obsidian font-heading text-xs font-bold shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Customize</span>
+                    </button>
+                  </div>
+                </article>
               ))}
             </div>
           </div>
@@ -200,6 +214,12 @@ export default function MenuPage() {
           </div>
         )}
       </div>
+
+      <ProductCustomizerModal
+        product={customizingProduct}
+        isOpen={Boolean(customizingProduct)}
+        onClose={() => setCustomizingProduct(null)}
+      />
     </div>
   );
 }
