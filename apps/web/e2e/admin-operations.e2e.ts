@@ -20,6 +20,22 @@ async function login(page: Page) {
   await expect(page).toHaveURL(`${adminUrl}/`);
 }
 
+async function readRevenue(page: Page) {
+  return page.evaluate(async (baseUrl) => {
+    const token = window.sessionStorage.getItem('admin_access_token');
+    const response = await fetch(`${baseUrl}/api/v1/analytics/revenue`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Revenue request failed with HTTP ${response.status}`);
+    }
+    const body = (await response.json()) as {
+      data: { totalRevenue: number; orderCount: number };
+    };
+    return body.data;
+  }, apiUrl);
+}
+
 test.describe.serial('database-backed admin operations', () => {
   test('all retained admin routes load through authenticated APIs without request failures', async ({
     page,
@@ -71,6 +87,7 @@ test.describe.serial('database-backed admin operations', () => {
     page,
   }) => {
     await login(page);
+    const revenueBefore = await readRevenue(page);
     await page.goto(`${adminUrl}/shifts`, { waitUntil: 'networkidle' });
 
     await page.getByRole('button', { name: 'Buka shift' }).click();
@@ -116,8 +133,33 @@ test.describe.serial('database-backed admin operations', () => {
     const orderNumber = receipt.match(/^Struk (.+?) ·/)?.[1];
     expect(orderNumber).toBeTruthy();
 
+    await page.goto(`${adminUrl}/kitchen`, { waitUntil: 'networkidle' });
+    const ticket = page.locator('li').filter({ hasText: orderNumber! }).first();
+    await expect(ticket).toBeVisible();
+    await expect(ticket).toContainText('Browser Test Latte');
+    await ticket.getByRole('button', { name: 'Mulai siapkan' }).click();
+    await expect(
+      ticket.getByRole('button', { name: 'Tandai siap' })
+    ).toBeVisible();
+    await ticket.getByRole('button', { name: 'Tandai siap' }).click();
+    await expect(
+      ticket.getByRole('button', { name: 'Tandai disajikan' })
+    ).toBeVisible();
+    await ticket.getByRole('button', { name: 'Tandai disajikan' }).click();
+    await expect(ticket).toHaveCount(0);
+
     await page.goto(`${adminUrl}/orders`, { waitUntil: 'networkidle' });
-    await expect(page.getByText(orderNumber!, { exact: true })).toBeVisible();
+    const orderRow = page
+      .getByRole('row')
+      .filter({ hasText: orderNumber! })
+      .first();
+    await expect(orderRow).toBeVisible();
+    await orderRow.getByRole('button', { name: 'COMPLETED' }).click();
+    await expect(
+      page.getByText(`${orderNumber} diperbarui menjadi COMPLETED.`, {
+        exact: true,
+      })
+    ).toBeVisible();
 
     await page.goto(`${adminUrl}/shifts`, { waitUntil: 'networkidle' });
     await expect(
@@ -143,6 +185,20 @@ test.describe.serial('database-backed admin operations', () => {
     await expect(closedRow).toContainText('133.920');
     await expect(closedRow).toContainText('135.920');
     await expect(closedRow).toContainText('2.000');
+
+    const revenueAfter = await readRevenue(page);
+    expect(revenueAfter).toEqual({
+      totalRevenue: revenueBefore.totalRevenue + 13_920,
+      orderCount: revenueBefore.orderCount + 1,
+      averageOrderValue: expect.any(Number),
+    });
+    await page.goto(`${adminUrl}/analytics`, { waitUntil: 'networkidle' });
+    await expect(
+      page.locator('article').filter({ hasText: 'Pendapatan selesai' })
+    ).toContainText(`Rp ${revenueAfter.totalRevenue.toLocaleString('id-ID')}`);
+    await expect(
+      page.locator('article').filter({ hasText: 'Order selesai' })
+    ).toContainText(String(revenueAfter.orderCount));
   });
 
   test('branch and inventory edits are read back from the API after reload', async ({

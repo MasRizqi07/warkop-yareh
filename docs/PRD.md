@@ -88,9 +88,9 @@ Traditional coffee shops ("Warkop") in Indonesia are community centers, but they
 - **Rewards Shop**: Catalog of swap rewards (free coffee, merchandise, workspace passes).
 - **Referral Loops**: Generate referral codes. Reward both inviter and invitee with 500 bonus points after the invitee's first purchase.
 
-### 4.5 AI Domain (Phase 3+)
+### 4.5 Menu Recommendation Domain
 
-- **AI Concierge & Menu Co-pilot**: Conversational assistant embedded in the web app to suggest drinks based on preferences (e.g. "Suggest a cold drink under 200 calories"). Powered by **Google Gemini** integration due to favorable regional latency and pricing.
+- **Rekomendasi Barista**: Deterministic, branch-scoped menu recommender embedded in the web app. It maps customer preferences to fixed taste profiles and ranks products from the real active-branch catalog. It does not call an external LLM. Any future Gemini-backed assistant remains a separate, unimplemented roadmap item.
 
 ---
 

@@ -22,10 +22,8 @@ import { EventModule } from './modules/event/event.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { BranchModule } from './modules/branch/branch.module';
-import { FranchiseModule } from './modules/franchise/franchise.module';
 import { WebsocketsModule } from './modules/websockets/websockets.module';
 import { TablesModule } from './modules/tables/tables.module';
-import { AiModule } from './modules/ai/ai.module';
 import { HealthModule } from './modules/health/health.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { OperationsModule } from './modules/operations/operations.module';
@@ -60,10 +58,8 @@ import { validateEnvironment } from './config/environment.validation';
     LoyaltyModule,
     AnalyticsModule,
     BranchModule,
-    FranchiseModule,
     WebsocketsModule,
     TablesModule,
-    AiModule,
     HealthModule,
     MarketingModule,
     OperationsModule,

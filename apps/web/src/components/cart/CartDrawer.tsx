@@ -98,7 +98,7 @@ export function CartDrawer() {
                   <Link
                     href="/menu"
                     onClick={() => setCartOpen(false)}
-                    className="rounded-xl bg-primary hover:bg-primary-hover px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all"
+                    className="rounded-xl bg-primary hover:bg-primary-hover px-5 py-2.5 text-xs font-semibold text-on-primary shadow-sm transition-all"
                   >
                     Jelajahi Menu
                   </Link>

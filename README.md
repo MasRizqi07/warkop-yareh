@@ -143,6 +143,7 @@ The Warkop Ya'reh platform supports a rich ecosystem combining food-ordering, co
 
 - Branch-specific operating hours, seating capacity, geo-coordinates, and customized menus.
 - Supports Surabaya-based locations (e.g., Darmo flagship, Dharmahusada branch).
+- Supports verified Surabaya-based locations (e.g., Jetis Kulon in Wonokromo and Prapen in Tenggilis Mejoyo).
 
 ### 🍔 3. Product Catalog & Customization
 

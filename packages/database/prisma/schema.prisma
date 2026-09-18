@@ -104,6 +104,8 @@ model Branch {
   postalCode   String?
   phone        String?
   email        String?
+  plusCode     String?
+  brandName    String?   @default("Warkop Ya'reh")
   latitude     Float?
   longitude    Float?
   isMainBranch Boolean   @default(false)
@@ -124,6 +126,8 @@ model Branch {
   events             Event[]
   marketingCampaigns MarketingCampaign[]
   cashierShifts      CashierShift[]
+  businessHours      BusinessHour[]
+  galleryAssets      GalleryAsset[]
 
   @@index([city])
   @@index([isActive])
@@ -973,3 +977,126 @@ model OrderFeedback {
   @@index([orderId])
   @@map("order_feedbacks")
 }
+
+// ============================================
+// WARKOP YA'REH — CORE REALITY DOMAIN ADDITIONS
+// ============================================
+
+model BusinessHour {
+  id          String   @id @default(cuid())
+  branchId    String
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  openTime    String   @default("00:00")
+  closeTime   String   @default("24:00")
+  is24Hours   Boolean  @default(true)
+  isOpen      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([branchId, dayOfWeek])
+  @@index([branchId])
+  @@map("business_hours")
+}
+
+enum AssetCategory {
+  ATMOSPHERE
+  OUTLET_EXTERIOR
+  OUTLET_INTERIOR
+  MENU_DISPLAY
+  COMMUNITY
+}
+
+model GalleryAsset {
+  id           String        @id @default(cuid())
+  branchId     String?
+  branch       Branch?       @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  title        String
+  caption      String?
+  imageUrl     String
+  thumbnailUrl String?
+  category     AssetCategory @default(ATMOSPHERE)
+  sortOrder    Int           @default(0)
+  isFeatured   Boolean       @default(false)
+  isVerified   Boolean       @default(true)
+  capturedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([branchId])
+  @@index([category])
+  @@map("gallery_assets")
+}
+
+model SiteContent {
+  id          String   @id @default(cuid())
+  sectionKey  String   @unique // e.g. "homepage.hero", "about.story", "menu.notice"
+  title       String?
+  subtitle    String?
+  body        String?
+  metadata    Json?    // flexible key-value attributes
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sectionKey])
+  @@map("site_contents")
+}
+
+enum FactConfidence {
+  VERIFIED
+  PARTIALLY_VERIFIED
+  UNVERIFIED
+  VERIFIED_ABSENT
+  DISPUTED
+  DEPRECATED
+}
+
+enum SourceType {
+  PRIMARY_OPERATOR
+  DIRECT_PHYSICAL_AUDIT
+  GOOGLE_MAPS
+  SOCIAL_MEDIA
+  COMMUNITY_SUBMISSION
+  INFERRED
+}
+
+model BusinessFact {
+  id             String            @id @default(cuid())
+  domain         String            // e.g. "branches", "menu", "hours", "facilities"
+  entityKey      String            // e.g. "jetis-kulon.operating-hours", "prapen.phone"
+  claim          String            // Statement of fact
+  value          String            // Serialized value or string representation
+  confidence     FactConfidence    @default(UNVERIFIED)
+  notes          String?
+  capturedAt     DateTime          @default(now())
+  lastVerifiedAt DateTime          @default(now())
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  sources        SourceReference[]
+
+  @@unique([domain, entityKey])
+  @@index([domain])
+  @@index([confidence])
+  @@map("business_facts")
+}
+
+model SourceReference {
+  id           String       @id @default(cuid())
+  factId       String
+  fact         BusinessFact @relation(fields: [factId], references: [id], onDelete: Cascade)
+  sourceType   SourceType
+  name         String       // e.g. "Google Maps Prapen Listing"
+  referenceUrl String?
+  capturedAt   DateTime     @default(now())
+  verifiedBy   String?      // e.g. "Auditor / Engineer"
+  rawExcerpt   String?      // snippet or quote
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([factId])
+  @@index([sourceType])
+  @@map("source_references")
+}
+

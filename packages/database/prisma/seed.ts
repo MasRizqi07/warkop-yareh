@@ -1,28 +1,28 @@
 /**
- * Warkop Ya'reh Gubeng — Database Seed
- * =====================================
- * Seeds: categories, products (menu items), tables, branch, staff accounts
+ * Warkop Ya'reh — Truthful Reality Database Seed (Phase 1.5)
+ * =========================================================
+ * Authoritative Business Domain Seed
  *
- * Run: pnpm --filter @warkop-yareh/database db:seed
+ * Rules:
+ * 1. Seed ONLY verified branches (Jetis Kulon & Prapen)
+ * 2. Menu seed is strictly EMPTY (spending range: Rp1–25.000/person; item prices unverified)
+ * 3. Administrative accounts use neutral domain (@warkopyareh.local)
+ * 4. Automatic decontamination of legacy speculative fixtures (Cold 'N Brew)
+ *
+ * Run: pnpm --filter @warkop-yareh/database run db:seed
  */
 
 import {
-  CommunityMemberRole,
-  EventCategory,
-  EventStatus,
   PrismaClient,
   Role,
-  TableStatus,
-  TableType,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 const BCRYPT_ROUNDS = 12;
-const BRANCH_ID = 'coldnbrew-gubeng-001'; // Fixed ID for single-branch
 
-function getSeedPassword(environmentName: string, developmentFallback: string) {
+function getSeedPassword(environmentName: string, developmentFallback: string): string {
   const configuredPassword = process.env[environmentName];
   if (configuredPassword) return configuredPassword;
 
@@ -37,444 +37,225 @@ async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-async function main() {
-  console.log("🌱 Starting Warkop Ya'reh seed...");
+async function cleanupContaminatedFixtures() {
+  console.log('🧹 Checking and decontaminating legacy speculative fixtures...');
 
-  // ── 1. Upsert Branch ─────────────────────────────────────────────────────
-  const branch = await prisma.branch.upsert({
-    where: { id: BRANCH_ID },
-    update: {
-      name: "Warkop Ya'reh Gubeng",
-      address: 'Jl. Gubeng Pojok No. 10',
+  // 1. Reassign or delete references to legacy fictional branch 'coldnbrew-gubeng-001'
+  const legacyBranch = await prisma.branch.findUnique({
+    where: { id: 'coldnbrew-gubeng-001' },
+  });
+
+  if (legacyBranch) {
+    console.log("  ⚠️  Found legacy branch 'coldnbrew-gubeng-001'. Cleaning references...");
+    await prisma.user.updateMany({
+      where: { branchId: 'coldnbrew-gubeng-001' },
+      data: { branchId: null },
+    });
+    await prisma.branchProduct.deleteMany({
+      where: { branchId: 'coldnbrew-gubeng-001' },
+    });
+    await prisma.table.deleteMany({
+      where: { branchId: 'coldnbrew-gubeng-001' },
+    });
+    await prisma.review.deleteMany({
+      where: { branchId: 'coldnbrew-gubeng-001' },
+    });
+    await prisma.event.deleteMany({
+      where: { branchId: 'coldnbrew-gubeng-001' },
+    });
+    await prisma.branch.delete({
+      where: { id: 'coldnbrew-gubeng-001' },
+    }).catch((err) => {
+      console.warn('  ⚠️  Could not delete legacy branch directly (may have foreign keys):', err.message);
+    });
+  }
+
+  // 2. Remove legacy staff accounts
+  const legacyStaffEmails = [
+    'admin@coldnbrew.id',
+    'kasir@coldnbrew.id',
+    'kitchen@coldnbrew.id',
+  ];
+  const deletedStaff = await prisma.user.deleteMany({
+    where: { email: { in: legacyStaffEmails } },
+  });
+  if (deletedStaff.count > 0) {
+    console.log(`  ✅ Removed ${deletedStaff.count} legacy @coldnbrew.id staff accounts.`);
+  }
+
+  // 3. Remove speculative rewards, community groups, events, and fake reviews
+  await prisma.review.deleteMany({
+    where: { id: 'seed-verified-review' },
+  });
+  await prisma.communityPost.deleteMany({
+    where: { id: 'seed-community-welcome-post' },
+  });
+  await prisma.communityMembership.deleteMany({
+    where: { group: { slug: 'kawan-produk-surabaya' } },
+  });
+  await prisma.communityGroup.deleteMany({
+    where: { slug: 'kawan-produk-surabaya' },
+  });
+  await prisma.event.deleteMany({
+    where: { slug: 'ngopi-dan-bangun-produk' },
+  });
+  await prisma.reward.deleteMany({
+    where: { id: { in: ['nitro-cold-brew', 'toraja-v60'] } },
+  });
+
+  // 4. Remove speculative menu items and categories
+  const legacyCategories = ['espresso', 'cold-brew', 'non-coffee', 'snacks', 'main-course', 'desserts'];
+  await prisma.branchProduct.deleteMany({
+    where: { product: { category: { slug: { in: legacyCategories } } } },
+  });
+  await prisma.product.deleteMany({
+    where: { category: { slug: { in: legacyCategories } } },
+  });
+  await prisma.category.deleteMany({
+    where: { slug: { in: legacyCategories } },
+  });
+}
+
+async function main() {
+  console.log("🌱 Starting Warkop Ya'reh Reality Seed (Phase 1.5)...");
+
+  // Decontaminate any existing legacy fixtures
+  await cleanupContaminatedFixtures();
+
+  // ── 1. Seed Verified Branches ─────────────────────────────────────────────
+  // Source: docs/business/BRANCHES.md & packages/types/index.ts (VERIFIED_BRANCHES)
+  const branches = [
+    {
+      id: 'jetis-kulon',
+      name: "WARKOP YA'REH",
+      slug: 'jetis-kulon',
+      brandName: "Warkop Ya'reh",
+      address: 'Jl. Raya Jetis Kulon I No.38, Wonokromo, Kec. Wonokromo, Surabaya, Jawa Timur 60243',
       city: 'Surabaya',
       province: 'Jawa Timur',
-      postalCode: '60281',
-      phone: '+62 812-3456-7890',
-      email: 'gubeng@warkopyareh.id',
-      latitude: -7.265,
-      longitude: 112.7508,
+      postalCode: '60243',
+      plusCode: 'MPVJ+2G Wonokromo, Surabaya, Jawa Timur',
+      phone: null,
+      email: null,
+      latitude: -7.311494,
+      longitude: 112.730303,
       isMainBranch: true,
       isActive: true,
-      capacity: 80,
-      features: ['WiFi Kencang', 'Meeting Room', 'Drive Thru', 'Indoor & Outdoor'],
+      capacity: 0,
+      features: ['Dine-in', 'Takeaway', '24 Jam'],
       weekdayHours: '00:00-24:00',
       weekendHours: '00:00-24:00',
     },
-    create: {
-      id: BRANCH_ID,
-      name: "Warkop Ya'reh Gubeng",
-      slug: 'coldnbrew-gubeng',
-      address: 'Jl. Gubeng Pojok No. 10',
+    {
+      id: 'prapen',
+      name: "WARKOP YA'REH 2 PRAPEN",
+      slug: 'prapen',
+      brandName: "Warkop Ya'reh",
+      address: 'Jl. Raya Prapen No.39, Prapen, Kec. Tenggilis Mejoyo, Surabaya, Jawa Timur 60239',
       city: 'Surabaya',
       province: 'Jawa Timur',
-      postalCode: '60281',
-      phone: '+62 812-3456-7890',
-      email: 'gubeng@warkopyareh.id',
-      latitude: -7.265,
-      longitude: 112.7508,
-      isMainBranch: true,
+      postalCode: '60239',
+      plusCode: 'MQM3+XJ Prapen, Surabaya, Jawa Timur',
+      phone: '0821-3735-4606',
+      email: null,
+      latitude: -7.319762,
+      longitude: 112.766167,
+      isMainBranch: false,
       isActive: true,
-      capacity: 80,
-      features: ['WiFi Kencang', 'Meeting Room', 'Drive Thru', 'Indoor & Outdoor'],
-      weekdayHours: '00:00-24:00', // 24 hours
+      capacity: 0,
+      features: ['Dine-in', 'Takeaway', '24 Jam'],
+      weekdayHours: '00:00-24:00',
       weekendHours: '00:00-24:00',
     },
-  });
-  console.log(`✅ Branch: ${branch.name}`);
-
-  // ── 2. Categories ─────────────────────────────────────────────────────────
-  const categories = [
-    { slug: 'espresso',    name: 'Espresso',    icon: '☕', sortOrder: 1 },
-    { slug: 'cold-brew',   name: 'Cold Brew',   icon: '🧊', sortOrder: 2 },
-    { slug: 'non-coffee',  name: 'Non-Coffee',  icon: '🧋', sortOrder: 3 },
-    { slug: 'snacks',      name: 'Snacks',      icon: '🍪', sortOrder: 4 },
-    { slug: 'main-course', name: 'Main Course', icon: '🍽️', sortOrder: 5 },
-    { slug: 'desserts',    name: 'Desserts',    icon: '🍰', sortOrder: 6 },
   ];
 
-  const categoryMap: Record<string, string> = {};
-  for (const cat of categories) {
-    const created = await prisma.category.upsert({
-      where: { slug: cat.slug },
-      update: { name: cat.name, icon: cat.icon, sortOrder: cat.sortOrder },
-      create: { ...cat, isActive: true },
-    });
-    categoryMap[cat.slug] = created.id;
-    console.log(`  📂 Category: ${cat.name}`);
-  }
-
-  // ── 3. Products (Menu Items) ──────────────────────────────────────────────
-  const products = [
-    // Espresso (8 items)
-    { name: 'Americano', slug: 'americano', description: 'Espresso shots diluted with hot water. Clean, bold, refreshing.', price: 22000, categorySlug: 'espresso', isPopular: true, preparationTime: 3 },
-    { name: 'Cappuccino', slug: 'cappuccino', description: 'Double espresso with steamed milk and velvety microfoam.', price: 28000, categorySlug: 'espresso', isPopular: true, preparationTime: 5 },
-    { name: 'Caramel Latte', slug: 'caramel-latte', description: 'Espresso, steamed milk, house-made caramel sauce.', price: 32000, categorySlug: 'espresso', isPopular: true, preparationTime: 5 },
-    { name: 'Flat White', slug: 'flat-white', description: 'Ristretto shots with microfoam — stronger than latte, silkier than cappuccino.', price: 32000, categorySlug: 'espresso', preparationTime: 5 },
-    { name: 'Espresso', slug: 'espresso-shot', description: 'Pure single or double shot. Intense, aromatic, the foundation.', price: 18000, categorySlug: 'espresso', preparationTime: 2 },
-    { name: 'Macchiato', slug: 'macchiato', description: 'Espresso marked with a dollop of foamed milk.', price: 24000, categorySlug: 'espresso', preparationTime: 3 },
-    { name: 'Cortado', slug: 'cortado', description: 'Equal parts espresso and warm milk to reduce acidity.', price: 26000, categorySlug: 'espresso', preparationTime: 4 },
-    { name: 'Long Black', slug: 'long-black', description: 'Hot water with double ristretto on top. Crema preserved.', price: 24000, categorySlug: 'espresso', preparationTime: 3 },
-
-    // Cold Brew (6 items)
-    { name: 'Classic Cold Brew', slug: 'classic-cold-brew', description: '18-hour cold-steeped Colombian single origin. Smooth, no bitterness.', price: 35000, categorySlug: 'cold-brew', isPopular: true, preparationTime: 2 },
-    { name: 'Cold Brew Tonic', slug: 'cold-brew-tonic', description: 'Cold brew over sparkling tonic water. Bright, effervescent, addictive.', price: 38000, categorySlug: 'cold-brew', isPopular: true, preparationTime: 3 },
-    { name: 'Salted Caramel Cold Brew', slug: 'salted-caramel-cold-brew', description: 'Cold brew with house salted caramel syrup and cream float.', price: 42000, categorySlug: 'cold-brew', preparationTime: 4 },
-    { name: 'Cold Brew Latte', slug: 'cold-brew-latte', description: 'Cold brew concentrate over fresh milk. Creamy, cold perfection.', price: 38000, categorySlug: 'cold-brew', preparationTime: 3 },
-    { name: 'Nitro Cold Brew', slug: 'nitro-cold-brew', description: 'Cold brew infused with nitrogen for creamy texture without dairy.', price: 45000, categorySlug: 'cold-brew', preparationTime: 2 },
-    { name: 'Cold Brew Float', slug: 'cold-brew-float', description: 'Cold brew with vanilla ice cream float. Dessert meets coffee.', price: 48000, categorySlug: 'cold-brew', preparationTime: 5 },
-
-    // Non-Coffee (7 items)
-    { name: 'Matcha Latte', slug: 'matcha-latte', description: 'Ceremonial grade Japanese matcha with oat milk. Earthy, creamy.', price: 35000, categorySlug: 'non-coffee', isPopular: true, preparationTime: 5 },
-    { name: 'Taro Latte', slug: 'taro-latte', description: 'Purple taro blend with fresh milk. Sweet, nutty, vibrant.', price: 32000, categorySlug: 'non-coffee', isPopular: true, preparationTime: 5 },
-    { name: 'Chocolate Avocado', slug: 'chocolate-avocado', description: 'Blended fresh avocado with dark chocolate and milk. Rich, indulgent.', price: 38000, categorySlug: 'non-coffee', preparationTime: 7 },
-    { name: 'Strawberry Milk', slug: 'strawberry-milk', description: 'Fresh strawberry puree with cold milk. Simple and refreshing.', price: 28000, categorySlug: 'non-coffee', preparationTime: 4 },
-    { name: 'Es Jeruk Peras', slug: 'es-jeruk-peras', description: 'Freshly squeezed Indonesian orange juice over ice. Vitamin-packed.', price: 22000, categorySlug: 'non-coffee', preparationTime: 3 },
-    { name: 'Lychee Sparkling', slug: 'lychee-sparkling', description: 'Lychee syrup with sparkling water and basil seeds.', price: 28000, categorySlug: 'non-coffee', preparationTime: 3 },
-    { name: 'Blue Lemonade', slug: 'blue-lemonade', description: 'Butterfly pea flower lemonade. Color-changing, Instagram-worthy.', price: 30000, categorySlug: 'non-coffee', isNew: true, preparationTime: 4 },
-
-    // Snacks (6 items)
-    { name: 'Croissant Mentega', slug: 'croissant-mentega', description: 'Flaky, buttery French croissant baked daily in-house.', price: 25000, categorySlug: 'snacks', preparationTime: 2 },
-    { name: 'Banana Bread', slug: 'banana-bread', description: 'Moist house-baked banana bread with walnut topping.', price: 22000, categorySlug: 'snacks', preparationTime: 2 },
-    { name: 'Cheese Toast', slug: 'cheese-toast', description: 'Thick toast with premium melted cheese. Perfect with coffee.', price: 28000, categorySlug: 'snacks', isPopular: true, preparationTime: 5 },
-    { name: 'Cookies & Cream Brownie', slug: 'cookies-cream-brownie', description: 'Dense fudgy brownie with cookies & cream topping.', price: 28000, categorySlug: 'snacks', preparationTime: 2 },
-    { name: 'Granola Bar', slug: 'granola-bar', description: 'House-made oat granola bar with honey and dried fruits.', price: 18000, categorySlug: 'snacks', preparationTime: 1 },
-    { name: 'Karipap (Curry Puff)', slug: 'karipap', description: 'Crispy pastry filled with spiced chicken potato curry.', price: 20000, categorySlug: 'snacks', preparationTime: 3 },
-
-    // Main Course (5 items)
-    { name: 'Nasi Goreng Kampung', slug: 'nasi-goreng-kampung', description: 'Indonesian village-style fried rice with egg, acar, and kerupuk.', price: 38000, categorySlug: 'main-course', isPopular: true, preparationTime: 12 },
-    { name: 'Mie Goreng Spesial', slug: 'mie-goreng-spesial', description: 'Wok-fried noodles with chicken, vegetables, and spicy sambal.', price: 35000, categorySlug: 'main-course', preparationTime: 12 },
-    { name: 'Sandwich Club', slug: 'sandwich-club', description: 'Triple-decker with chicken, egg, tomato, lettuce, and mayo.', price: 42000, categorySlug: 'main-course', preparationTime: 10 },
-    { name: 'Pasta Aglio e Olio', slug: 'pasta-aglio-olio', description: 'Spaghetti with garlic, olive oil, chili flakes, and parmesan.', price: 45000, categorySlug: 'main-course', preparationTime: 15 },
-    { name: 'Ayam Geprek Sambal Matah', slug: 'ayam-geprek-sambal-matah', description: 'Crispy smashed fried chicken with Balinese raw sambal matah.', price: 40000, categorySlug: 'main-course', isPopular: true, preparationTime: 15 },
-
-    // Desserts (5 items)
-    { name: 'Lava Cake', slug: 'lava-cake', description: 'Warm dark chocolate molten cake with vanilla ice cream.', price: 45000, categorySlug: 'desserts', isPopular: true, preparationTime: 12 },
-    { name: 'Crème Brûlée', slug: 'creme-brulee', description: 'Classic French custard with caramelized sugar crust.', price: 48000, categorySlug: 'desserts', preparationTime: 5 },
-    { name: 'Tiramisu', slug: 'tiramisu', description: 'House tiramisu with mascarpone and cold brew soaked ladyfingers.', price: 45000, categorySlug: 'desserts', preparationTime: 3 },
-    { name: 'Mochi Ice Cream', slug: 'mochi-ice-cream', description: 'Japanese mochi filled with premium ice cream (3 pcs).', price: 35000, categorySlug: 'desserts', preparationTime: 2 },
-    { name: 'Pudding Susu', slug: 'pudding-susu', description: 'Silky Indonesian milk pudding with caramel sauce.', price: 25000, categorySlug: 'desserts', preparationTime: 2 },
-  ];
-
-  for (const item of products) {
-    const { categorySlug, ...productData } = item;
-    const product = await prisma.product.upsert({
-      where: { slug: item.slug },
+  for (const b of branches) {
+    const upserted = await prisma.branch.upsert({
+      where: { id: b.id },
       update: {
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        isPopular: item.isPopular ?? false,
-        isNew: (item as { isNew?: boolean }).isNew ?? false,
-        preparationTime: item.preparationTime,
+        name: b.name,
+        slug: b.slug,
+        brandName: b.brandName,
+        address: b.address,
+        city: b.city,
+        province: b.province,
+        postalCode: b.postalCode,
+        plusCode: b.plusCode,
+        phone: b.phone,
+        email: b.email,
+        latitude: b.latitude,
+        longitude: b.longitude,
+        isMainBranch: b.isMainBranch,
+        isActive: b.isActive,
+        capacity: b.capacity,
+        features: b.features,
+        weekdayHours: b.weekdayHours,
+        weekendHours: b.weekendHours,
       },
-      create: {
-        ...productData,
-        description: item.description,
-        categoryId: categoryMap[categorySlug]!,
-        isPopular: item.isPopular ?? false,
-        isNew: (item as { isNew?: boolean }).isNew ?? false,
-        isActive: true,
-        rating: 0,
-        reviewCount: 0,
-        preparationTime: item.preparationTime,
-        sortOrder: 0,
-      },
+      create: b,
     });
-
-    // Create BranchProduct entry (availability at this branch)
-    await prisma.branchProduct.upsert({
-      where: { branchId_productId: { branchId: BRANCH_ID, productId: product.id } },
-      update: { isAvailable: true },
-      create: { branchId: BRANCH_ID, productId: product.id, isAvailable: true },
-    });
+    console.log(`✅ Verified Branch: ${upserted.name} (${upserted.id})`);
   }
-  console.log(`✅ Products: ${products.length} items seeded`);
 
-  // ── 4. Tables ─────────────────────────────────────────────────────────────
-  const tables = [
-    { number: '1', name: 'Table 1', type: TableType.INDOOR, capacity: 4, zone: 'Main Hall' },
-    { number: '2', name: 'Table 2', type: TableType.INDOOR, capacity: 4, zone: 'Main Hall' },
-    { number: '3', name: 'Table 3', type: TableType.INDOOR, capacity: 4, zone: 'Main Hall' },
-    { number: '4', name: 'Table 4', type: TableType.INDOOR, capacity: 6, zone: 'Main Hall' },
-    { number: '5', name: 'Table 5', type: TableType.INDOOR, capacity: 2, zone: 'Window Seat' },
-    { number: '6', name: 'Table 6', type: TableType.INDOOR, capacity: 2, zone: 'Window Seat' },
-    { number: '7', name: 'Table 7', type: TableType.OUTDOOR, capacity: 4, zone: 'Outdoor' },
-    { number: '8', name: 'Table 8', type: TableType.OUTDOOR, capacity: 6, zone: 'Outdoor' },
-    { number: 'MR-A', name: 'Meeting Room A', type: TableType.MEETING_ROOM, capacity: 10, zone: 'Meeting' },
-    { number: 'MR-B', name: 'Meeting Room B', type: TableType.MEETING_ROOM, capacity: 6, zone: 'Meeting' },
-  ];
+  // ── 2. Production Menu Seed: Intentionally Empty ──────────────────────────
+  // Per docs/business/MENU.md: Venue spending range (Rp1–25.000/person) is verified,
+  // but itemized catalog and prices are UNVERIFIED. Zero products are seeded.
+  console.log('ℹ️  Menu Catalog: 0 products seeded (Production catalog pending physical menu verification).');
 
-  for (const table of tables) {
-    await prisma.table.upsert({
-      where: { branchId_number: { branchId: BRANCH_ID, number: table.number } },
-      update: { status: TableStatus.AVAILABLE },
-      create: {
-        branchId: BRANCH_ID,
-        number: table.number,
-        name: table.name,
-        type: table.type,
-        capacity: table.capacity,
-        zone: table.zone,
-        status: TableStatus.AVAILABLE,
-        isActive: true,
-      },
-    });
-  }
-  console.log(`✅ Tables: ${tables.length} tables seeded`);
-
-  // ── 4.5 Rewards ───────────────────────────────────────────────────────────
-  const rewards = [
-    {
-      name: 'Nitro Cold Brew',
-      description: '12-hour steeped Arabica infused with nitrogen for a silky, stout-like finish.',
-      pointsCost: 500,
-      category: 'Beverage',
-      tier: 'BRONZE' as const,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDYw602AtnbJJESMy_bdiuZotsmjhWjgb1zYnkFm8Jv7mcz0mhNhUzQbEM8MiZDyIoORvjmKYYUFqP-tLrTv3ForjZjgbs157Mgdp3wlCzk2sd99lc2Q0eBZYE1JqZOTW9VG54gUA5e9eYZA_3rzhKIySMKzCFu_K4mwlkk0_oBjtxOGVPAiUT5Axje5CkB-v2drmsLa_NA2fxTtc1LaAI2UOHz8Ub4kDAfRGdY7Y2s7F-kIJEiuFG92Os5BLrVRZ80k7mTWW_20uM',
-    },
-    {
-      name: 'Toraja V60',
-      description: 'Single origin Toraja beans with notes of dark chocolate and spice.',
-      pointsCost: 400,
-      category: 'Beverage',
-      tier: 'BRONZE' as const,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDsM3-HY4GAvMpIfbfFT0aBkFCSTAcRQNEJybzNt50RN_34cUanMbufTtS6q2pYs4puDX-TocpHvqncY7mZyrgeyWn4t7A6stWlS2U0Hmd9Tm8lhukWAcjCAm8wZcNCXvSSa01fcfVDJudwPPxOIZKJeAn-6qv_7_T-Ja9xvpg4VfkGdEjlIPC0ExGjNKFWpbHZX1C1ilqjL-U38pGCVJk49XcrkRS5l4LBHwdtvLJFthybooFUCJN7FO2JccoIcprlkW3pH4E3uuY',
-    },
-  ];
-
-  for (const r of rewards) {
-    await prisma.reward.upsert({
-      where: { id: r.name.toLowerCase().replace(/\s+/g, '-') },
-      update: {
-        pointsCost: r.pointsCost,
-        isAvailable: true,
-      },
-      create: {
-        id: r.name.toLowerCase().replace(/\s+/g, '-'),
-        name: r.name,
-        description: r.description,
-        pointsCost: r.pointsCost,
-        category: r.category,
-        tier: r.tier,
-        image: r.image,
-        isAvailable: true,
-      },
-    });
-  }
-  console.log(`✅ Rewards: ${rewards.length} rewards seeded`);
-
-  // ── 5. Staff Accounts ─────────────────────────────────────────────────────
+  // ── 3. Administrative Staff Accounts (Bootstrap / Technical Only — Non-Public) ──
+  // IMPORTANT: These accounts are for initial local/staging system access only.
+  // They are NOT public business contacts and MUST NEVER be exposed on customer surfaces.
   const staffAccounts = [
     {
-      email: 'admin@coldnbrew.id',
-      name: 'Admin Cold N Brew',
+      email: 'admin@warkopyareh.local',
+      name: "Administrator Warkop Ya'reh",
       password: getSeedPassword('SEED_ADMIN_PASSWORD', 'Admin123!'),
       role: Role.ADMIN,
+      branchId: 'jetis-kulon',
     },
     {
-      email: 'kasir@coldnbrew.id',
-      name: 'Kasir Gubeng',
+      email: 'kasir.jetiskulon@warkopyareh.local',
+      name: 'Kasir Jetis Kulon',
       password: getSeedPassword('SEED_CASHIER_PASSWORD', 'Kasir123!'),
       role: Role.CASHIER,
+      branchId: 'jetis-kulon',
     },
     {
-      email: 'kitchen@coldnbrew.id',
-      name: 'Kitchen Staff',
-      password: getSeedPassword('SEED_KITCHEN_PASSWORD', 'Kitchen123!'),
-      role: Role.KITCHEN,
+      email: 'kasir.prapen@warkopyareh.local',
+      name: 'Kasir Prapen',
+      password: getSeedPassword('SEED_CASHIER_PASSWORD', 'Kasir123!'),
+      role: Role.CASHIER,
+      branchId: 'prapen',
     },
   ];
 
   for (const staff of staffAccounts) {
     const passwordHash = await hashPassword(staff.password);
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: staff.email },
-      update: { role: staff.role },
+      update: {
+        name: staff.name,
+        role: staff.role,
+        branchId: staff.branchId,
+      },
       create: {
         email: staff.email,
         name: staff.name,
         passwordHash,
         role: staff.role,
-        branchId: BRANCH_ID,
+        branchId: staff.branchId,
         membershipTier: 'BRONZE',
         loyaltyPoints: 0,
       },
     });
-    console.log(`  👤 Staff: ${staff.email} (${staff.role})`);
+    console.log(`👤 Staff Account: ${user.email} (${user.role}) -> ${user.branchId}`);
   }
 
-  // ── 6. Public content and customer journey fixtures ───────────────────────
-  const customerPassword = await hashPassword(
-    getSeedPassword('SEED_CUSTOMER_PASSWORD', 'Customer123!'),
-  );
-  const customer = await prisma.user.upsert({
-    where: { email: 'customer.demo@warkopyareh.local' },
-    update: {
-      name: "Kawan Ya'reh Demo",
-      passwordHash: customerPassword,
-      role: Role.CUSTOMER,
-      branchId: BRANCH_ID,
-    },
-    create: {
-      id: 'seed-customer-demo',
-      email: 'customer.demo@warkopyareh.local',
-      name: "Kawan Ya'reh Demo",
-      passwordHash: customerPassword,
-      role: Role.CUSTOMER,
-      branchId: BRANCH_ID,
-      membershipTier: 'SILVER',
-      loyaltyPoints: 750,
-    },
-  });
-
-  const eventDate = new Date();
-  eventDate.setUTCDate(eventDate.getUTCDate() + 30);
-  eventDate.setUTCHours(12, 0, 0, 0);
-  await prisma.event.upsert({
-    where: { slug: 'ngopi-dan-bangun-produk' },
-    update: {
-      title: 'Ngopi & Bangun Produk',
-      description: 'Sesi komunitas untuk membedah proses membangun produk digital yang siap dipakai.',
-      longDescription: 'Bawa satu masalah produk yang sedang kamu kerjakan. Sesi mencakup diskusi validasi masalah, arsitektur solusi, dan umpan balik antarpeserta.',
-      date: eventDate,
-      startTime: '19:00',
-      endTime: '21:30',
-      location: "Warkop Ya'reh Gubeng",
-      branchId: BRANCH_ID,
-      category: EventCategory.TECH,
-      capacity: 40,
-      price: 0,
-      isFree: true,
-      isOnline: false,
-      tags: ['Produk Digital', 'Teknologi', 'Komunitas'],
-      status: EventStatus.UPCOMING,
-      deletedAt: null,
-    },
-    create: {
-      title: 'Ngopi & Bangun Produk',
-      slug: 'ngopi-dan-bangun-produk',
-      description: 'Sesi komunitas untuk membedah proses membangun produk digital yang siap dipakai.',
-      longDescription: 'Bawa satu masalah produk yang sedang kamu kerjakan. Sesi mencakup diskusi validasi masalah, arsitektur solusi, dan umpan balik antarpeserta.',
-      date: eventDate,
-      startTime: '19:00',
-      endTime: '21:30',
-      location: "Warkop Ya'reh Gubeng",
-      branchId: BRANCH_ID,
-      category: EventCategory.TECH,
-      capacity: 40,
-      price: 0,
-      isFree: true,
-      isOnline: false,
-      tags: ['Produk Digital', 'Teknologi', 'Komunitas'],
-      status: EventStatus.UPCOMING,
-    },
-  });
-
-  const publishedAt = new Date();
-  await prisma.blogPost.upsert({
-    where: { slug: 'panduan-memilih-kopi-untuk-sesi-kerja' },
-    update: {
-      title: 'Panduan Memilih Kopi untuk Sesi Kerja',
-      excerpt: 'Kenali karakter racikan dan kadar intensitas yang sesuai dengan ritme kerja kamu.',
-      content: 'Pilihan kopi yang tepat dimulai dari preferensi rasa, bukan sekadar kadar kafein. Espresso memberi karakter pekat, sedangkan cold brew cenderung lebih halus dan mudah dinikmati dalam sesi panjang.\n\nMulailah dari satu sajian, imbangi dengan air putih, dan beri jeda sebelum menambah pesanan. Tim barista dapat membantu menyesuaikan profil rasa tanpa membuat klaim kesehatan.',
-      image: '/images/cold-brew-aren-brulee.png',
-      authorName: "Tim Barista Ya'reh",
-      authorRole: 'Coffee Educator',
-      category: 'Coffee Guide',
-      tags: ['Kopi', 'Produktivitas', 'Panduan'],
-      readTime: 4,
-      isPublished: true,
-      publishedAt,
-    },
-    create: {
-      title: 'Panduan Memilih Kopi untuk Sesi Kerja',
-      slug: 'panduan-memilih-kopi-untuk-sesi-kerja',
-      excerpt: 'Kenali karakter racikan dan kadar intensitas yang sesuai dengan ritme kerja kamu.',
-      content: 'Pilihan kopi yang tepat dimulai dari preferensi rasa, bukan sekadar kadar kafein. Espresso memberi karakter pekat, sedangkan cold brew cenderung lebih halus dan mudah dinikmati dalam sesi panjang.\n\nMulailah dari satu sajian, imbangi dengan air putih, dan beri jeda sebelum menambah pesanan. Tim barista dapat membantu menyesuaikan profil rasa tanpa membuat klaim kesehatan.',
-      image: '/images/cold-brew-aren-brulee.png',
-      authorName: "Tim Barista Ya'reh",
-      authorRole: 'Coffee Educator',
-      category: 'Coffee Guide',
-      tags: ['Kopi', 'Produktivitas', 'Panduan'],
-      readTime: 4,
-      isPublished: true,
-      publishedAt,
-    },
-  });
-
-  const group = await prisma.communityGroup.upsert({
-    where: { slug: 'kawan-produk-surabaya' },
-    update: {
-      name: 'Kawan Produk Surabaya',
-      description: 'Ruang berbagi praktik pengembangan produk, desain, dan teknologi untuk komunitas Surabaya.',
-      category: 'Technology',
-      image: '/images/darmo-interior.png',
-      tags: ['Product', 'Design', 'Engineering'],
-      isActive: true,
-      deletedAt: null,
-    },
-    create: {
-      id: 'seed-community-product',
-      name: 'Kawan Produk Surabaya',
-      slug: 'kawan-produk-surabaya',
-      description: 'Ruang berbagi praktik pengembangan produk, desain, dan teknologi untuk komunitas Surabaya.',
-      category: 'Technology',
-      image: '/images/darmo-interior.png',
-      tags: ['Product', 'Design', 'Engineering'],
-      isActive: true,
-    },
-  });
-  await prisma.communityMembership.upsert({
-    where: { userId_groupId: { userId: customer.id, groupId: group.id } },
-    update: { role: CommunityMemberRole.MEMBER },
-    create: { userId: customer.id, groupId: group.id, role: CommunityMemberRole.MEMBER },
-  });
-  await prisma.communityPost.upsert({
-    where: { id: 'seed-community-welcome-post' },
-    update: {
-      authorId: customer.id,
-      groupId: group.id,
-      content: 'Selamat datang! Bagikan tantangan produk yang sedang kamu kerjakan dan konteks yang cukup agar anggota lain dapat memberi masukan yang berguna.',
-    },
-    create: {
-      id: 'seed-community-welcome-post',
-      authorId: customer.id,
-      groupId: group.id,
-      content: 'Selamat datang! Bagikan tantangan produk yang sedang kamu kerjakan dan konteks yang cukup agar anggota lain dapat memberi masukan yang berguna.',
-    },
-  });
-
-  const reviewedProduct = await prisma.product.findUnique({
-    where: { slug: 'classic-cold-brew' },
-  });
-  if (!reviewedProduct) {
-    throw new Error('Seeded classic cold brew product was not found');
-  }
-  await prisma.review.upsert({
-    where: { id: 'seed-verified-review' },
-    update: {
-      userId: customer.id,
-      productId: reviewedProduct.id,
-      branchId: BRANCH_ID,
-      rating: 5,
-      comment: 'Rasa cold brew seimbang dan proses pemesanan di meja mudah diikuti.',
-      isVerified: true,
-    },
-    create: {
-      id: 'seed-verified-review',
-      userId: customer.id,
-      productId: reviewedProduct.id,
-      branchId: BRANCH_ID,
-      rating: 5,
-      comment: 'Rasa cold brew seimbang dan proses pemesanan di meja mudah diikuti.',
-      isVerified: true,
-    },
-  });
-  console.log('✅ Public content: event, blog, community, and verified review seeded');
-
-  console.log('\n🎉 Seed completed successfully!');
+  console.log('\n🎉 Reality Seed completed successfully!');
   console.log('─────────────────────────────────────────');
-  console.log('Development credentials use the documented local defaults unless overridden.');
+  console.log("Branches: Jetis Kulon & Prapen (24 Hours)");
+  console.log("Menu: Empty (Rp1–25.000/person spending range preserved)");
+  console.log('Admin: admin@warkopyareh.local');
   console.log('─────────────────────────────────────────');
 }
 

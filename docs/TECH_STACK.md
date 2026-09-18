@@ -58,7 +58,7 @@ packages:
 3. **NestJS 11**: Provides an structured architecture (Domain, Application, Infrastructure, Presentation) suitable for DDD and Clean Architecture.
 4. **BullMQ & Redis**: Lightweight, highly efficient background queuing system. Avoids the operational cost of managing a full Kafka cluster in the early launch phases.
 5. **Neon Serverless PostgreSQL**: Eliminates database sizing administration tasks for multi-branch layouts while supporting PostgreSQL features (RLS, window functions).
-6. **Google Gemini integration**: Selected to power the AI concierge and recommendation subsystems. Gemini provides favorable latency metrics for Indonesian network paths, low cost per token, and strong local contextual language parsing.
+6. **Deterministic menu recommendation**: The current Rekomendasi Barista flow uses fixed taste-profile keywords and the real branch-scoped catalog. No external LLM provider or model credential is part of the current runtime. Gemini remains an unimplemented roadmap candidate.
 
 ---
 

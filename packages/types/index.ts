@@ -254,13 +254,130 @@ export interface Branch {
   name: string;
   address: string;
   city: string;
-  coordinates: { lat: number; lng: number };
-  phone: string;
+  coordinates?: { lat: number; lng: number };
+  phone?: string | null;
   isMainBranch: boolean;
-  capacity: number;
-  features: string[];
+  capacity?: number;
+  features?: string[];
+  plusCode?: string;
+  brandName?: string;
+  publicSpendingRange?: string;
   operatingHours: {
     weekday: string;
     weekend: string;
   };
 }
+
+// ============================================
+// DATA CONFIDENCE & SOURCE TRACEABILITY
+// ============================================
+
+export type DataConfidenceLevel =
+  | 'VERIFIED'
+  | 'PARTIALLY_VERIFIED'
+  | 'UNVERIFIED'
+  | 'VERIFIED_ABSENT'
+  | 'DISPUTED'
+  | 'DEPRECATED';
+
+export type BusinessSourceType =
+  | 'BUSINESS_OWNER'
+  | 'IN_STORE_OBSERVATION'
+  | 'OFFICIAL_MENU'
+  | 'OFFICIAL_SOCIAL_MEDIA'
+  | 'GOOGLE_MAPS'
+  | 'CUSTOMER_REVIEW'
+  | 'THIRD_PARTY_PLATFORM';
+
+export interface DynamicExternalFact<T> {
+  value: T;
+  confidence: DataConfidenceLevel;
+  sourceType: BusinessSourceType;
+  sourceReference: string;
+  capturedAt: string;     // ISO 8601 string
+  lastVerifiedAt: string; // ISO 8601 string
+  notes?: string;
+}
+
+export interface VerifiedBranchFixture {
+  id: string;
+  slug: string;
+  name: string;
+  brandName: string;
+  address: {
+    street: string;
+    subdistrict: string;
+    district: string;
+    city: string;
+    province: string;
+    postalCode: string;
+  };
+  plusCode: string;
+  phone: string | null;
+  operatingHours: string;
+  servicesSupported: ('DINE_IN' | 'TAKEAWAY')[];
+  publicSpendingRange: string;
+  isMainBranch: boolean;
+  confidence: DataConfidenceLevel;
+  source: {
+    sourceType: BusinessSourceType;
+    capturedAt: string;
+    lastVerifiedAt: string;
+  };
+}
+
+export const VERIFIED_BRANCHES: readonly VerifiedBranchFixture[] = [
+  {
+    id: 'jetis-kulon',
+    slug: 'jetis-kulon',
+    name: "WARKOP YA'REH",
+    brandName: "Warkop Ya'reh",
+    address: {
+      street: 'Jl. Raya Jetis Kulon I No.38',
+      subdistrict: 'Wonokromo',
+      district: 'Kec. Wonokromo',
+      city: 'Surabaya',
+      province: 'Jawa Timur',
+      postalCode: '60243',
+    },
+    plusCode: 'MPVJ+2G Wonokromo, Surabaya, Jawa Timur',
+    phone: null,
+    operatingHours: '24 Hours',
+    servicesSupported: ['DINE_IN', 'TAKEAWAY'],
+    publicSpendingRange: 'Rp1–25.000 per orang',
+    isMainBranch: true,
+    confidence: 'VERIFIED',
+    source: {
+      sourceType: 'GOOGLE_MAPS',
+      capturedAt: '2026-09-17',
+      lastVerifiedAt: '2026-09-17',
+    },
+  },
+  {
+    id: 'prapen',
+    slug: 'prapen',
+    name: "WARKOP YA'REH 2 PRAPEN",
+    brandName: "Warkop Ya'reh",
+    address: {
+      street: 'Jl. Raya Prapen No.39',
+      subdistrict: 'Prapen',
+      district: 'Kec. Tenggilis Mejoyo',
+      city: 'Surabaya',
+      province: 'Jawa Timur',
+      postalCode: '60239',
+    },
+    plusCode: 'MQM3+XJ Prapen, Surabaya, Jawa Timur',
+    phone: '0821-3735-4606',
+    operatingHours: '24 Hours',
+    servicesSupported: ['DINE_IN', 'TAKEAWAY'],
+    publicSpendingRange: 'Rp1–25.000 per orang',
+    isMainBranch: false,
+    confidence: 'VERIFIED',
+    source: {
+      sourceType: 'GOOGLE_MAPS',
+      capturedAt: '2026-09-17',
+      lastVerifiedAt: '2026-09-17',
+    },
+  },
+] as const;
+

@@ -356,10 +356,14 @@ test('register -> rejected password -> login -> HttpOnly refresh rotation -> log
   )!;
   expect(newCookie.value).not.toBe(oldCookie.value);
   const storedAuth = await page.evaluate(() =>
-    localStorage.getItem('coldnbrew-auth')
+    localStorage.getItem('warkop-yareh-auth')
   );
   expect(storedAuth).not.toContain(token);
   expect(storedAuth).not.toContain('accessToken');
+  const legacyStoredAuth = await page.evaluate(() =>
+    localStorage.getItem('coldnbrew-auth')
+  );
+  expect(legacyStoredAuth).toBeNull();
   const logout = await page.request.post(`${apiUrl}/auth/logout`, {
     headers: { authorization: `Bearer ${token}` },
   });

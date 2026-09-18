@@ -1,4 +1,3 @@
-
 import { fileURLToPath } from "node:url";
 
 const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
@@ -35,6 +34,18 @@ const nextConfig = {
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
+  },
+  async redirects() {
+    return [
+      // 301 Permanent Redirects for Decommissioned Speculative Routes
+      { source: '/booking', destination: '/outlets', permanent: true },
+      { source: '/reservations', destination: '/outlets', permanent: true },
+      { source: '/community', destination: '/', permanent: true },
+      { source: '/community/:path*', destination: '/', permanent: true },
+      { source: '/events', destination: '/', permanent: true },
+      { source: '/events/:path*', destination: '/', permanent: true },
+      { source: '/loyalty', destination: '/', permanent: true },
+    ];
   },
 };
 

@@ -6,13 +6,11 @@ import { usePathname } from 'next/navigation';
 import {
   MapPin,
   ChevronDown,
-  ShoppingBag,
-  Award,
   CheckCircle2,
 } from 'lucide-react';
 import { useActiveBranch } from '@/features/catalog/catalog.hooks';
 import { useAuthStore } from '@/stores/auth.store';
-import { useBranchStore, useCartStore } from '@/stores';
+import { useBranchStore } from '@/stores';
 import { getAdminUrl } from '@/lib/admin-url';
 
 export function UniversalHeader() {
@@ -20,17 +18,10 @@ export function UniversalHeader() {
   const { data: branches = [], activeBranch } = useActiveBranch();
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
-  const cartItems = useCartStore((state) => state.items);
-  const setCartOpen = useCartStore((state) => state.setCartOpen);
-  const clearCart = useCartStore((state) => state.clearCart);
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
-  const totalCartCount = cartItems.reduce(
-    (acc, item) => acc + item.quantity,
-    0
-  );
   const canAccessOperations = Boolean(
     user &&
     [
@@ -44,17 +35,12 @@ export function UniversalHeader() {
     ].includes(user.role)
   );
 
-  // Hide on dedicated full-screen staff terminals
-  if (pathname.startsWith('/ops/pos') || pathname.startsWith('/ops/kds')) {
-    return null;
-  }
-
   const navLinks = [
     { href: '/menu', label: 'Menu' },
-    { href: '/booking', label: 'Reservasi' },
-    { href: '/community', label: 'Komunitas' },
-    { href: '/loyalty', label: 'Rewards' },
-    { href: '/#locations', label: 'Cabang' },
+    { href: '/outlets', label: 'Cabang' },
+    { href: '/gallery', label: 'Galeri' },
+    { href: '/about', label: 'Tentang' },
+    { href: '/contact', label: 'Kontak' },
   ];
 
   return (
@@ -73,7 +59,7 @@ export function UniversalHeader() {
                 Warkop Ya&apos;reh
               </div>
               <div className="font-mono text-[10px] uppercase tracking-widest text-accent-amber">
-                Surabaya Roastery
+                Surabaya • 24 Jam
               </div>
             </div>
           </Link>
@@ -95,13 +81,12 @@ export function UniversalHeader() {
             {isBranchDropdownOpen && (
               <div className="animate-in fade-in slide-in-from-top-2 absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-border-subtle bg-surface-card p-2 shadow-2xl backdrop-blur-2xl">
                 <div className="px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-muted">
-                  Pilih Cabang Surabaya
+                  Pilih Cabang Surabaya (24 Jam)
                 </div>
                 {branches.map((b) => (
                   <button
                     key={b.id}
                     onClick={() => {
-                      if (b.id !== activeBranchId) clearCart();
                       setActiveBranchId(b.id);
                       setIsBranchDropdownOpen(false);
                     }}
@@ -127,7 +112,7 @@ export function UniversalHeader() {
                       </div>
                       <div className="mt-1 flex items-center gap-2 font-mono text-[10px] text-text-muted">
                         <span className="text-[var(--green-500)]">
-                          {b.weekdayHours}
+                          {b.weekdayHours || '24 Jam'}
                         </span>
                         <span>•</span>
                         <span>{b.city}</span>
@@ -160,7 +145,7 @@ export function UniversalHeader() {
           })}
         </nav>
 
-        {/* Center: Quick Portal Switcher Pills */}
+        {/* Center: Quick Portal Switcher Pills for Staff */}
         {canAccessOperations && (
           <div className="hidden items-center gap-1 rounded-full border border-border-subtle bg-surface-secondary p-1 text-xs font-medium xl:flex">
             <Link
@@ -175,60 +160,21 @@ export function UniversalHeader() {
             </Link>
             <Link
               href={getAdminUrl('/pos')}
-              className={`px-3 py-1 rounded-full transition-colors ${
-                pathname.startsWith('/ops/pos')
-                  ? 'bg-[var(--green-500)] text-on-primary'
-                  : 'text-text-muted hover:text-text-primary'
-              }`}
+              className="px-3 py-1 rounded-full text-text-muted hover:text-text-primary transition-colors"
             >
               POS Kasir
             </Link>
             <Link
               href={getAdminUrl('/kitchen')}
-              className={`px-3 py-1 rounded-full transition-colors ${
-                pathname.startsWith('/ops/kds')
-                  ? 'bg-accent-amber text-on-secondary'
-                  : 'text-text-muted hover:text-text-primary'
-              }`}
+              className="px-3 py-1 rounded-full text-text-muted hover:text-text-primary transition-colors"
             >
               Kitchen KDS
             </Link>
           </div>
         )}
 
-        {/* Right: Loyalty Status + Cart Button + Profile */}
+        {/* Right: Profile / Auth */}
         <div className="flex items-center gap-3">
-          {/* Loyalty Tier Pill */}
-          {isAuthenticated && user && (
-            <Link
-              href="/loyalty"
-              className="hidden items-center gap-2 rounded-full border border-tertiary/20 bg-tertiary/10 px-3 py-1.5 text-xs text-tertiary transition-colors hover:border-tertiary/40 sm:flex"
-            >
-              <Award className="h-3.5 w-3.5 text-accent-amber" />
-              <span className="font-semibold text-text-primary">
-                {user.membershipTier}
-              </span>
-              <span className="font-mono text-[11px] text-accent-amber">
-                {user.loyaltyPoints} pts
-              </span>
-            </Link>
-          )}
-
-          {/* Cart Trigger */}
-          <button
-            onClick={() => setCartOpen(true)}
-            className="relative rounded-xl border border-border-subtle bg-surface-card p-2 text-on-surface transition-colors hover:border-outline-variant"
-            aria-label="Keranjang Belanja"
-          >
-            <ShoppingBag className="h-5 w-5 text-on-surface-variant" />
-            {totalCartCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-amber px-1 font-mono text-[10px] font-bold text-on-secondary shadow-md">
-                {totalCartCount}
-              </span>
-            )}
-          </button>
-
-          {/* Profile Avatar */}
           {isAuthenticated && user ? (
             <Link
               href="/profile"
