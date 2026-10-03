@@ -52,10 +52,8 @@ export class BranchService {
   constructor(private readonly prisma: DatabaseService) {}
 
   async createBranch(data: CreateBranchInput) {
-    const weekdayHours = data.weekdayHours ?? '07:00-24:00';
-    const weekendHours = data.weekendHours ?? '07:00-01:00';
-    this.assertHours(weekdayHours, 'weekdayHours');
-    this.assertHours(weekendHours, 'weekendHours');
+    if (data.weekdayHours) this.assertHours(data.weekdayHours, 'weekdayHours');
+    if (data.weekendHours) this.assertHours(data.weekendHours, 'weekendHours');
     const slugBase =
       data.name
         .trim()
@@ -76,9 +74,9 @@ export class BranchService {
           email: data.email?.trim().toLowerCase() || null,
           latitude: data.latitude,
           longitude: data.longitude,
-          weekdayHours,
-          weekendHours,
-          capacity: data.capacity ?? 0,
+          weekdayHours: data.weekdayHours ?? null,
+          weekendHours: data.weekendHours ?? null,
+          capacity: data.capacity ?? null,
           features: data.features?.map((feature) => feature.trim()) ?? [],
         },
         select: publicBranchSelect,

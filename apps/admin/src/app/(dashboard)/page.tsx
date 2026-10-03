@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Activity, CalendarDays, PackageCheck, ReceiptText } from 'lucide-react';
+import { Activity, MapPin, PackageCheck, ReceiptText } from 'lucide-react';
 import {
   DataPanel,
   PageHeading,
@@ -14,22 +14,21 @@ import {
   getOperationalBranchScope,
   getRevenueAnalytics,
 } from '@/lib/operations-api';
-import { getEvents, getOrders } from '@/lib/management-api';
+import { getOrders } from '@/lib/management-api';
 
 async function loadOverview() {
   const scope = await getOperationalBranchScope();
   const branchId = scope.user.branchId ?? scope.branches[0]?.id;
   if (!branchId) throw new Error('Belum ada cabang aktif untuk ditampilkan.');
 
-  const [orders, inventory, revenue, events] = await Promise.all([
+  const [orders, inventory, revenue] = await Promise.all([
     getOrders({ branchId, limit: 8 }),
     getBranchProducts(branchId),
     scope.canAccessManagement
       ? getRevenueAnalytics(branchId)
       : Promise.resolve(null),
-    scope.canAccessManagement ? getEvents(branchId) : Promise.resolve(null),
   ]);
-  return { scope, branchId, orders, inventory, revenue, events };
+  return { scope, branchId, orders, inventory, revenue };
 }
 
 export default function AdminDashboard() {
@@ -95,11 +94,9 @@ export default function AdminDashboard() {
                   icon: PackageCheck,
                 },
                 {
-                  label: 'Event tercatat',
-                  value: overview.events
-                    ? String(overview.events.meta.total)
-                    : 'Akses terbatas',
-                  icon: CalendarDays,
+                  label: 'Cabang terdaftar',
+                  value: String(overview.scope.branches.length),
+                  icon: MapPin,
                 },
               ].map(({ label, value, icon: Icon }) => (
                 <article

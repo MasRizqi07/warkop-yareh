@@ -15,13 +15,13 @@ describe('BranchService', () => {
 
   const mockBranch = {
     id: 'branch-1',
-    name: 'Warkop Gubeng',
-    slug: 'warkop-gubeng',
-    address: 'Jl. Gubeng No. 12',
+    name: "WARKOP YA'REH",
+    slug: 'jetis-kulon',
+    address: 'Jl. Raya Jetis Kulon I No.38',
     city: 'Surabaya',
     province: 'Jawa Timur',
-    weekdayHours: '07:00-24:00',
-    weekendHours: '07:00-01:00',
+    weekdayHours: null,
+    weekendHours: null,
   };
 
   beforeEach(async () => {
@@ -48,21 +48,22 @@ describe('BranchService', () => {
     mockPrisma.branch.create.mockResolvedValue(mockBranch);
 
     const result = await service.createBranch({
-      name: 'Warkop Gubeng',
-      address: 'Jl. Gubeng No. 12',
+      name: "WARKOP YA'REH",
+      address: 'Jl. Raya Jetis Kulon I No.38',
     });
 
     expect(result.city).toBe('Surabaya');
     expect(result.province).toBe('Jawa Timur');
-    expect(result.weekdayHours).toBe('07:00-24:00');
-    expect(result.weekendHours).toBe('07:00-01:00');
+    expect(result.weekdayHours).toBeNull();
+    expect(result.weekendHours).toBeNull();
     expect(mockPrisma.branch.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           city: 'Surabaya',
           province: 'Jawa Timur',
-          weekdayHours: '07:00-24:00',
-          weekendHours: '07:00-01:00',
+          weekdayHours: null,
+          weekendHours: null,
+          capacity: null,
         }),
       }),
     );

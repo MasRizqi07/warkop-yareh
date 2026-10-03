@@ -18,7 +18,10 @@ export const SITE = {
   tagline: 'Ngopi, Makan, Nongkrong. 24 Jam.',
   description:
     "Informasi resmi Warkop Ya'reh Surabaya — kedai kopi 24 jam di Jetis Kulon (Wonokromo) dan Prapen (Tenggilis Mejoyo).",
-  url: httpUrl(process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'),
+  url: httpUrl(
+    process.env.NEXT_PUBLIC_SITE_URL,
+    'https://warkop-yareh-web.vercel.app'
+  ),
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || '',
   phone: process.env.NEXT_PUBLIC_CONTACT_PHONE?.trim() || '0821-3735-4606',
   whatsapp: (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, ''),

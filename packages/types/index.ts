@@ -2,6 +2,21 @@
    WARKOP YA'REH TYPE DEFINITIONS
    ============================================ */
 
+export const FEATURE_FLAGS = [
+  'PUBLIC_ORDERING',
+  'ONLINE_PAYMENT',
+  'QR_ORDERING',
+  'TABLE_ORDERING',
+  'OPERATIONS',
+  'ANALYTICS',
+] as const;
+
+export type FeatureFlag = (typeof FEATURE_FLAGS)[number];
+
+export function isFeatureEnabled(flag: FeatureFlag, values: Partial<Record<FeatureFlag, string | undefined>>): boolean {
+  return values[flag] === 'true';
+}
+
 // ---- User & Auth ----
 export type Role =
   | 'CUSTOMER'

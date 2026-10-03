@@ -16,10 +16,6 @@ import { JwtAuthGuard } from './infrastructure/auth/jwt-auth.guard';
 import { IdentityModule } from './modules/identity/identity.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { OrderingModule } from './modules/ordering/ordering.module';
-import { ReservationModule } from './modules/reservation/reservation.module';
-import { CommunityModule } from './modules/community/community.module';
-import { EventModule } from './modules/event/event.module';
-import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { WebsocketsModule } from './modules/websockets/websockets.module';
@@ -28,6 +24,7 @@ import { HealthModule } from './modules/health/health.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { OperationsModule } from './modules/operations/operations.module';
 import { ContentModule } from './modules/content/content.module';
+import { RealityModule } from './modules/reality/reality.module';
 import { validateEnvironment } from './config/environment.validation';
 
 @Module({
@@ -52,10 +49,6 @@ import { validateEnvironment } from './config/environment.validation';
     IdentityModule,
     CatalogModule,
     OrderingModule,
-    ReservationModule,
-    CommunityModule,
-    EventModule,
-    LoyaltyModule,
     AnalyticsModule,
     BranchModule,
     WebsocketsModule,
@@ -64,6 +57,7 @@ import { validateEnvironment } from './config/environment.validation';
     MarketingModule,
     OperationsModule,
     ContentModule,
+    RealityModule,
   ],
   controllers: [],
   providers: [
