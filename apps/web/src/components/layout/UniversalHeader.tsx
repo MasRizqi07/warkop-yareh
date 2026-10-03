@@ -3,26 +3,40 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  MapPin,
-  ChevronDown,
-  CheckCircle2,
-} from 'lucide-react';
+import { MapPin, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useActiveBranch } from '@/features/catalog/catalog.hooks';
 import { useAuthStore } from '@/stores/auth.store';
 import { useBranchStore } from '@/stores';
 import { getAdminUrl } from '@/lib/admin-url';
+import { VERIFIED_BRANCHES } from '@warkop-yareh/types';
+import { branchAddress } from '@/lib/seo';
+import { TEST_CATALOG_ENABLED } from '@/lib/test-catalog';
+import { OPERATIONS_ENABLED } from '@/lib/feature-flags';
 
 export function UniversalHeader() {
   const pathname = usePathname();
-  const { data: branches = [], activeBranch } = useActiveBranch();
+  const { data: runtimeBranches = [], activeBranch: runtimeBranch } =
+    useActiveBranch(TEST_CATALOG_ENABLED);
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
+  const branches = TEST_CATALOG_ENABLED
+    ? runtimeBranches
+    : VERIFIED_BRANCHES.map((branch) => ({
+        id: branch.id,
+        name: branch.name,
+        address: branchAddress(branch),
+        city: branch.address.city,
+        weekdayHours: '24 Jam',
+      }));
+  const activeBranch = TEST_CATALOG_ENABLED
+    ? runtimeBranch
+    : (branches.find((branch) => branch.id === activeBranchId) ?? branches[0]);
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
   const canAccessOperations = Boolean(
+    OPERATIONS_ENABLED &&
     user &&
     [
       'STAFF',
@@ -47,7 +61,7 @@ export function UniversalHeader() {
     <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-canvas-obsidian/85 backdrop-blur-xl transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand + Branch Selector */}
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-amber to-brand-coffee shadow-[var(--shadow-glow-gold)] transition-transform group-hover:scale-105">
               <span className="font-heading text-xl font-black tracking-tighter text-on-primary-container">
@@ -68,6 +82,8 @@ export function UniversalHeader() {
           <div className="relative hidden lg:block">
             <button
               onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
+              aria-expanded={isBranchDropdownOpen}
+              aria-controls="branch-options"
               className="flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3 py-1.5 text-xs text-on-surface-variant transition-colors hover:border-primary/40"
             >
               <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--green-500)]" />
@@ -79,7 +95,13 @@ export function UniversalHeader() {
             </button>
 
             {isBranchDropdownOpen && (
-              <div className="animate-in fade-in slide-in-from-top-2 absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-border-subtle bg-surface-card p-2 shadow-2xl backdrop-blur-2xl">
+              <div
+                id="branch-options"
+                className="animate-in fade-in slide-in-from-top-2 absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-border-subtle bg-surface-card p-2 shadow-2xl backdrop-blur-2xl"
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setIsBranchDropdownOpen(false);
+                }}
+              >
                 <div className="px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-muted">
                   Pilih Cabang Surabaya (24 Jam)
                 </div>
@@ -126,13 +148,17 @@ export function UniversalHeader() {
         </div>
 
         {/* Desktop Customer Nav Links */}
-        <nav className="hidden items-center gap-1 xl:flex">
+        <nav
+          aria-label="Navigasi utama"
+          className="hidden items-center gap-1 xl:flex"
+        >
           {navLinks.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
                   isActive
                     ? 'bg-accent-amber/10 font-semibold text-accent-amber'

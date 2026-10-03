@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import {
@@ -26,7 +24,8 @@ export default function OutletsPage() {
             Outlet Warkop Ya&apos;reh
           </h1>
           <p className="text-sm sm:text-base text-text-muted max-w-xl mx-auto">
-            Dua cabang terverifikasi di Surabaya yang siap melayani Anda 24 jam setiap hari.
+            Dua cabang terverifikasi di Surabaya yang siap melayani Anda 24 jam
+            setiap hari.
           </p>
         </div>
       </section>
@@ -62,13 +61,20 @@ export default function OutletsPage() {
                     <p className="flex items-start gap-2.5">
                       <MapPin className="h-4 w-4 shrink-0 text-accent-amber mt-0.5" />
                       <span>
-                        {branch.address.street}, {branch.address.subdistrict}, {branch.address.district}, {branch.address.city} {branch.address.postalCode}
+                        {branch.address.street}, {branch.address.subdistrict},{' '}
+                        {branch.address.district}, {branch.address.city}{' '}
+                        {branch.address.postalCode}
                       </span>
                     </p>
 
                     <p className="flex items-center gap-2.5 font-mono text-xs">
                       <Navigation className="h-4 w-4 shrink-0 text-text-muted" />
-                      <span>Plus Code: <strong className="text-text-primary">{branch.plusCode}</strong></span>
+                      <span>
+                        Plus Code:{' '}
+                        <strong className="text-text-primary">
+                          {branch.plusCode}
+                        </strong>
+                      </span>
                     </p>
 
                     <p className="flex items-center gap-2.5">
@@ -79,7 +85,10 @@ export default function OutletsPage() {
                     {branch.phone && (
                       <p className="flex items-center gap-2.5">
                         <Phone className="h-4 w-4 shrink-0 text-accent-amber" />
-                        <a href={`tel:${branch.phone}`} className="font-mono text-text-primary hover:text-accent-amber">
+                        <a
+                          href={`tel:${branch.phone}`}
+                          className="font-mono text-text-primary hover:text-accent-amber"
+                        >
                           {branch.phone}
                         </a>
                       </p>
@@ -113,4 +122,3 @@ export default function OutletsPage() {
     </div>
   );
 }
-

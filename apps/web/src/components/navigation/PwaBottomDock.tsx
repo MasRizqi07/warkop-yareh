@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { getAdminUrl } from "@/lib/admin-url";
+import { OPERATIONS_ENABLED } from "@/lib/feature-flags";
 
 function subscribeToNetworkStatus(onStoreChange: () => void) {
   window.addEventListener("online", onStoreChange);
@@ -41,6 +42,7 @@ export function PwaBottomDock() {
   const [isOpsMenuOpen, setIsOpsMenuOpen] = useState(false);
 
   const canAccessOperations = Boolean(
+    OPERATIONS_ENABLED &&
     user && ['STAFF', 'CASHIER', 'KITCHEN', 'MANAGER', 'ADMIN', 'OWNER', 'SUPERADMIN'].includes(user.role),
   );
 

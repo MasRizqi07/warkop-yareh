@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import {
   Phone,
@@ -25,7 +23,8 @@ export default function ContactPage() {
             Hubungi Warkop Ya&apos;reh
           </h1>
           <p className="text-sm sm:text-base text-text-muted max-w-xl mx-auto">
-            Informasi alamat resmi, nomor kontak, dan panduan rute Google Maps menuju outlet Warkop Ya&apos;reh di Surabaya.
+            Informasi alamat resmi, nomor kontak, dan panduan rute Google Maps
+            menuju outlet Warkop Ya&apos;reh di Surabaya.
           </p>
         </div>
       </section>
@@ -61,9 +60,13 @@ export default function ContactPage() {
                     <div className="flex items-start gap-2.5">
                       <MapPin className="h-4 w-4 shrink-0 text-accent-amber mt-0.5" />
                       <div>
-                        <strong className="text-text-primary block">Alamat Lengkap:</strong>
+                        <strong className="text-text-primary block">
+                          Alamat Lengkap:
+                        </strong>
                         <span>
-                          {branch.address.street}, {branch.address.subdistrict}, {branch.address.district}, {branch.address.city}, Jawa Timur {branch.address.postalCode}
+                          {branch.address.street}, {branch.address.subdistrict},{' '}
+                          {branch.address.district}, {branch.address.city}, Jawa
+                          Timur {branch.address.postalCode}
                         </span>
                       </div>
                     </div>
@@ -71,15 +74,21 @@ export default function ContactPage() {
                     <div className="flex items-start gap-2.5">
                       <Navigation className="h-4 w-4 shrink-0 text-text-muted mt-0.5" />
                       <div>
-                        <strong className="text-text-primary block">Google Maps Plus Code:</strong>
-                        <span className="font-mono text-accent-amber">{branch.plusCode}</span>
+                        <strong className="text-text-primary block">
+                          Google Maps Plus Code:
+                        </strong>
+                        <span className="font-mono text-accent-amber">
+                          {branch.plusCode}
+                        </span>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-2.5">
                       <Clock className="h-4 w-4 shrink-0 text-[var(--green-500)] mt-0.5" />
                       <div>
-                        <strong className="text-text-primary block">Jam Operasional:</strong>
+                        <strong className="text-text-primary block">
+                          Jam Operasional:
+                        </strong>
                         <span>24 Jam Nonstop (Senin – Minggu)</span>
                       </div>
                     </div>
@@ -88,7 +97,9 @@ export default function ContactPage() {
                       <div className="flex items-start gap-2.5 pt-1">
                         <Phone className="h-4 w-4 shrink-0 text-accent-amber mt-0.5" />
                         <div>
-                          <strong className="text-text-primary block">Nomor Telepon:</strong>
+                          <strong className="text-text-primary block">
+                            Nomor Telepon:
+                          </strong>
                           <a
                             href={`tel:${branch.phone}`}
                             className="font-mono text-sm text-text-primary hover:text-accent-amber font-semibold transition-colors"
@@ -101,9 +112,12 @@ export default function ContactPage() {
                       <div className="flex items-start gap-2.5 pt-1">
                         <MessageSquare className="h-4 w-4 shrink-0 text-text-muted mt-0.5" />
                         <div>
-                          <strong className="text-text-primary block">Layanan Kontak:</strong>
+                          <strong className="text-text-primary block">
+                            Layanan Kontak:
+                          </strong>
                           <span className="text-xs text-text-muted">
-                            Silakan datang langsung ke outlet 24 jam untuk pemesanan dan pertanyaan.
+                            Silakan datang langsung ke outlet 24 jam untuk
+                            pemesanan dan pertanyaan.
                           </span>
                         </div>
                       </div>

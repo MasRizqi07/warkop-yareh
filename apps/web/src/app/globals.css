@@ -305,3 +305,7 @@
     animation: none !important;
   }
 }
+
+.skip-link { position: fixed; left: 1rem; top: -5rem; z-index: 200; padding: .75rem 1rem; border-radius: .5rem; background: #fff; color: #111; }
+.skip-link:focus { top: 1rem; }
+:where(a, button, input, select, textarea):focus-visible { outline: 2px solid var(--accent-amber, #f59e0b); outline-offset: 3px; }

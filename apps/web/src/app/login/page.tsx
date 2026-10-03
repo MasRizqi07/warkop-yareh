@@ -13,13 +13,13 @@ import { motion } from 'framer-motion';
 export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const brandName = process.env.NEXT_PUBLIC_BRAND_NAME || 'Our Store';
+  const brandName = "Warkop Ya'reh";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,17 +29,20 @@ export default function LoginPage() {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { accessToken, user } = response.data.data;
-      
+
       setAuth(user, accessToken);
       const params = new URLSearchParams(window.location.search);
-      const requestedPath = params.get('returnTo') ?? params.get('redirect_url');
+      const requestedPath =
+        params.get('returnTo') ?? params.get('redirect_url');
       const safePath =
         requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
           ? requestedPath
           : '/';
       router.replace(safePath);
     } catch (err: unknown) {
-      const errorMsg = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
+      const errorMsg = (
+        err as { response?: { data?: { error?: { message?: string } } } }
+      )?.response?.data?.error?.message;
       setError(errorMsg || 'Invalid email or password');
     } finally {
       setIsLoading(false);
@@ -63,7 +66,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white dark:bg-slate-900 py-8 px-4 shadow-xl shadow-slate-200/50 dark:shadow-none sm:rounded-2xl sm:px-10 border border-slate-100 dark:border-slate-800"
@@ -72,12 +75,17 @@ export default function LoginPage() {
             {error && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {error}
+                </p>
               </div>
             )}
 
             <div>
-              <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="login-email"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
                 Email address
               </label>
               <div className="mt-2 relative">
@@ -97,7 +105,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="login-password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
                 Password
               </label>
               <div className="mt-2 relative">
@@ -116,8 +127,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-500/20 h-11"
               disabled={isLoading}
             >
@@ -131,7 +142,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-slate-200 dark:border-slate-800" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-slate-900 text-slate-500">
+                <span className="px-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                   Or login with
                 </span>
               </div>
@@ -148,7 +159,11 @@ export default function LoginPage() {
                   variant="outline"
                   className="w-full h-11 border-slate-200 dark:border-slate-800 font-medium flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
                     <path
                       fill="#4285F4"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -186,7 +201,10 @@ export default function LoginPage() {
 
         <p className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-medium text-brand-600 hover:text-brand-500 flex items-center justify-center gap-1 mt-2">
+          <Link
+            href="/register"
+            className="font-medium text-brand-600 hover:text-brand-500 flex items-center justify-center gap-1 mt-2"
+          >
             Create account <ArrowRight className="h-4 w-4" />
           </Link>
         </p>

@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import {
@@ -40,10 +38,15 @@ export default function AboutPage() {
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed text-text-muted">
               <p>
-                <strong>Warkop Ya&apos;reh</strong> merupakan kedai kopi lokal di Surabaya dengan outlet yang saat ini teridentifikasi di <strong>Jetis Kulon</strong> (Kec. Wonokromo) dan <strong>Prapen</strong> (Kec. Tenggilis Mejoyo).
+                <strong>Warkop Ya&apos;reh</strong> merupakan kedai kopi lokal
+                di Surabaya dengan outlet yang saat ini teridentifikasi di{' '}
+                <strong>Jetis Kulon</strong> (Kec. Wonokromo) dan{' '}
+                <strong>Prapen</strong> (Kec. Tenggilis Mejoyo).
               </p>
               <p>
-                Kami hadir melayani warga, pelajar, mahasiswa, pekerja, dan komunitas Surabaya selama <strong>24 jam setiap hari</strong> untuk ngopi, menikmati sajian warkop, dan beristirahat santai.
+                Kami hadir melayani warga, pelajar, mahasiswa, pekerja, dan
+                komunitas Surabaya selama <strong>24 jam setiap hari</strong>{' '}
+                untuk ngopi, menikmati sajian warkop, dan beristirahat santai.
               </p>
             </div>
 
@@ -51,9 +54,15 @@ export default function AboutPage() {
               <div className="flex items-start gap-3 rounded-2xl bg-surface-secondary/80 p-4 border border-border-subtle">
                 <AlertCircle className="h-5 w-5 shrink-0 text-accent-amber mt-0.5" />
                 <div className="text-xs sm:text-sm text-text-muted space-y-1">
-                  <div className="font-semibold text-text-primary">Transparansi Data & Kisaran Harga</div>
+                  <div className="font-semibold text-text-primary">
+                    Transparansi Data & Kisaran Harga
+                  </div>
                   <p>
-                    Berdasarkan informasi listing publik Google Maps, kisaran pengeluaran pengunjung adalah <strong>Rp1–25.000 per orang</strong>. Informasi menu lengkap dan harga resmi per item saat ini dalam proses verifikasi langsung dari outlet.
+                    Berdasarkan informasi listing publik Google Maps, kisaran
+                    pengeluaran pengunjung adalah{' '}
+                    <strong>Rp1–25.000 per orang</strong>. Informasi menu
+                    lengkap dan harga resmi per item saat ini dalam proses
+                    verifikasi langsung dari outlet.
                   </p>
                 </div>
               </div>
@@ -68,7 +77,8 @@ export default function AboutPage() {
                 <span>Operasional Nonstop</span>
               </div>
               <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Kedua cabang Warkop Ya&apos;reh buka 24 jam setiap hari (Senin s/d Minggu), siap melayani pengunjung kapan pun dibutuhkan.
+                Kedua cabang Warkop Ya&apos;reh buka 24 jam setiap hari (Senin
+                s/d Minggu), siap melayani pengunjung kapan pun dibutuhkan.
               </p>
             </div>
 
@@ -78,7 +88,8 @@ export default function AboutPage() {
                 <span>Format Layanan</span>
               </div>
               <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Menyediakan layanan makan & minum di tempat (dine-in) dengan area duduk terbuka yang santai serta pesanan bawa pulang (takeaway).
+                Menyediakan layanan makan & minum di tempat (dine-in) serta
+                pesanan bawa pulang (takeaway).
               </p>
             </div>
           </div>
@@ -112,7 +123,8 @@ export default function AboutPage() {
                         </span>
                       </div>
                       <p className="text-xs text-text-muted">
-                        {branch.address.street}, {branch.address.subdistrict}, {branch.address.city}
+                        {branch.address.street}, {branch.address.subdistrict},{' '}
+                        {branch.address.city}
                       </p>
                       <p className="font-mono text-xs text-accent-amber">
                         Plus Code: {branch.plusCode}
