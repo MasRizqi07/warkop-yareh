@@ -1,0 +1,11 @@
+# Verified menu architecture
+
+`Product.publicationStatus` is additive and defaults to `DRAFT`, including for rows created by historical migrations. The workflow is `DRAFT → REVIEW → VERIFIED → PUBLISHED`, with review rollback and archive transitions. Archive can return to draft. An optimistic expected-status write rejects concurrent publication changes. Editing product identity, price, category, image, customization, branch price or availability returns it to draft; catalog caches are invalidated.
+
+Verification requires an admin-created `SourceReference` linked to a `BusinessFact` in the `menu` domain. Evidence records its type, source name, capture date, actor, and a URL or excerpt. The fact snapshot covers product name, base price, image, category and available branch price overrides. Verification and publication compare the current product with that snapshot. Publication additionally requires an active product/category and at least one active available branch. An operator must inspect the source: the application can enforce provenance fields and consistency, not authenticate a physical menu by itself.
+
+Public catalog reads and ordering price lookup require `PUBLISHED`; `isActive` alone is insufficient. Branch-specific overrides supply the displayed price. A catalog with zero qualifying products shows an empty state. The production seed writes two branches and normalized 24-hour records, with **zero menu products**. A second additive migration archives seven fictional products introduced by an older booking migration without deleting those rows or historical references. Browser tests create their synthetic published product only in the disposable `warkop_audit` database.
+
+Admin Menu supports category creation, product create/edit, image URL, branch availability/price override, customization JSON, evidence capture, draft preview, review/verify/publish/archive. Category edit/archive and a richer customization form remain follow-up UX work. Published menu content must still receive human source review before rollout.
+
+Migration rehearsal: both new migrations deployed on isolated PostgreSQL 16. Production migration needs a backup, row-count review and staged deploy; this work did not connect to production data.

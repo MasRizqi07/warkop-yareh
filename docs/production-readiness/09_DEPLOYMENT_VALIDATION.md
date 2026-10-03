@@ -1,0 +1,9 @@
+# Deployment and CI validation
+
+Baseline `main`: `b21ee705d845dd2459f39682b164ca4afa26c718`. The existing post-merge GitHub Actions run `35296648119` was green for that baseline only. It does not validate Phase 3. The deployed web and admin aliases returned HTTP 200 before this branch's changes, but the live browser report still had 46 findings. `warkopyareh.id` did not resolve at baseline. No production API, database, or preview deployment identity was independently established.
+
+The Phase 3 branch must be pushed and associated with a PR. CI must finish on its exact head SHA, including scope audit, integrity/contracts, frozen install, Prisma migration, lint with zero warnings, typecheck, build, unit and persistence suites, API E2E, and Playwright E2E. Workflow `ci.yml` runs on PRs targeting `main` and on pushes to `main`; it uses disposable Postgres 16 and Redis 7. GitHub branch protection settings were not readable by the integration (HTTP 403), so required-check and review enforcement remain an operator check.
+
+The new Prisma migration is additive and was applied to `warkop_audit`; it does not authorize running `migrate deploy` against production. API version compatibility and migration timing must be reviewed before web/admin roll forward because the new gallery/editorial endpoints live in the API. No provider credentials were available for direct Railway/Vercel deployment inspection. Vercel `READY` alone would not satisfy this report: after deploy, run the read-only smoke against both aliases, verify exact build SHA and API readiness, inspect cache-busted metadata/headers, and compare rendered branch facts.
+
+The deployment state remains **NOT PRODUCTION READY** while exact-head CI and deployed runtime validation are pending. No merge or production database mutation should be inferred from the local green gates.
