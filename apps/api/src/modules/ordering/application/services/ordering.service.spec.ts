@@ -141,6 +141,22 @@ describe('OrderingService', () => {
     );
   });
 
+  it.each([OrderType.DRIVE_THRU, OrderType.DELIVERY])(
+    'rejects unsupported new %s orders while preserving historical enum values',
+    async (type) => {
+      await expect(
+        service.createOrder({
+          userId: 'user-1',
+          branchId: 'branch-1',
+          idempotencyKey: 'idem-unsupported',
+          items: [{ productId: 'product-1', quantity: 1 }],
+          type,
+        }),
+      ).rejects.toThrow('Only dine-in and takeaway orders are supported');
+      expect(repository.createOrder).not.toHaveBeenCalled();
+    },
+  );
+
   it.each(['createOrder', 'quoteOrder'] as const)(
     '%s leaves voucher and point pricing to the repository',
     async (operation) => {

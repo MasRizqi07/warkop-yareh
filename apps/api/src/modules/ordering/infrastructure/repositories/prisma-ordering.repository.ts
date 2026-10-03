@@ -4,7 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus, PaymentStatus, Prisma } from '@warkop-yareh/database';
+import {
+  OrderStatus,
+  PaymentStatus,
+  Prisma,
+  ProductPublicationStatus,
+} from '@warkop-yareh/database';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 import {
   CreateOrderData,
@@ -43,7 +48,12 @@ export class PrismaOrderingRepository implements IOrderingRepository {
         productId: { in: ids },
         isAvailable: true,
         branch: { isActive: true, deletedAt: null },
-        product: { isActive: true, deletedAt: null },
+        product: {
+          isActive: true,
+          deletedAt: null,
+          publicationStatus: ProductPublicationStatus.PUBLISHED,
+          category: { isActive: true },
+        },
       },
       select: {
         priceOverride: true,

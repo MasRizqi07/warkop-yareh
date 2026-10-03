@@ -61,14 +61,29 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof Error) {
       // Never expose stack traces or internal messages to clients
       this.logger.error(
-        `[${request.method}] ${request.url} — Unhandled exception: ${exception.message}`,
-        exception.stack,
+        JSON.stringify({
+          event: 'unhandled_request_error',
+          method: request.method,
+          path: request.path,
+          status,
+          requestId: response.getHeader('X-Request-Id'),
+          errorType: exception.name,
+        }),
       );
     } else {
-      this.logger.error('Unknown exception type:', exception);
+      this.logger.error(
+        JSON.stringify({
+          event: 'unknown_request_error',
+          method: request.method,
+          path: request.path,
+          status,
+          requestId: response.getHeader('X-Request-Id'),
+        }),
+      );
     }
 
     response.status(status).json({
+      requestId: response.getHeader('X-Request-Id') ?? null,
       success: false,
       error: {
         code,

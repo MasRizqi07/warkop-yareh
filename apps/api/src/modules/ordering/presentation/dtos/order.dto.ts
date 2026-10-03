@@ -2,6 +2,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsEnum,
+  IsIn,
   IsInt,
   IsArray,
   IsNotEmpty,
@@ -87,8 +88,11 @@ export class CreateOrderDto {
   @Type(() => OrderItemDto)
   items!: OrderItemDto[];
 
-  @ApiPropertyOptional({ enum: OrderType, example: OrderType.DINE_IN })
-  @IsEnum(OrderType)
+  @ApiPropertyOptional({
+    enum: [OrderType.DINE_IN, OrderType.TAKE_AWAY],
+    example: OrderType.DINE_IN,
+  })
+  @IsIn([OrderType.DINE_IN, OrderType.TAKE_AWAY])
   @IsOptional()
   type?: OrderType;
 

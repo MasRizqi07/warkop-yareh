@@ -36,6 +36,7 @@ const order = (overrides: Record<string, unknown> = {}): OrderDetails =>
   }) as unknown as OrderDetails;
 
 describe('PaymentController', () => {
+  const originalOnlinePayment = process.env.ONLINE_PAYMENT;
   let controller: PaymentController;
   let paymentService: {
     initializeSnap: jest.Mock;
@@ -44,6 +45,7 @@ describe('PaymentController', () => {
   let orderingService: { getOrder: jest.Mock };
 
   beforeEach(() => {
+    process.env.ONLINE_PAYMENT = 'true';
     paymentService = {
       initializeSnap: jest.fn(),
       handleWebhook: jest.fn(),
@@ -53,6 +55,23 @@ describe('PaymentController', () => {
       paymentService as unknown as PaymentService,
       orderingService as unknown as OrderingService,
     );
+  });
+
+  afterEach(() => {
+    if (originalOnlinePayment === undefined) delete process.env.ONLINE_PAYMENT;
+    else process.env.ONLINE_PAYMENT = originalOnlinePayment;
+  });
+
+  it('does not initialize a gateway payment when the feature is disabled', async () => {
+    delete process.env.ONLINE_PAYMENT;
+    await expect(
+      controller.generateSnapToken(customer, {
+        orderId: 'order-1',
+        paymentMethod: PaymentMethod.QRIS,
+      }),
+    ).rejects.toThrow('Online payment is not available');
+    expect(orderingService.getOrder).not.toHaveBeenCalled();
+    expect(paymentService.initializeSnap).not.toHaveBeenCalled();
   });
 
   it('returns not found for an unknown order', async () => {

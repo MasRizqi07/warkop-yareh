@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
+import { isFeatureEnabled } from '@warkop-yareh/types';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../../../../common/decorators/public.decorator';
 import { OrderingService } from '../../application/services/ordering.service';
@@ -17,6 +25,12 @@ export class GuestOrderQuotesController {
       'Calculate public branch prices and fees without account-specific discounts',
   })
   async quote(@Body() body: GuestOrderQuoteDto) {
+    if (!isFeatureEnabled('PUBLIC_ORDERING', process.env)) {
+      throw new ForbiddenException('Public ordering is not available');
+    }
+    if (body.tableId && !isFeatureEnabled('TABLE_ORDERING', process.env)) {
+      throw new ForbiddenException('Table ordering is not available');
+    }
     return {
       data: await this.orderingService.quoteOrder({
         branchId: body.branchId,

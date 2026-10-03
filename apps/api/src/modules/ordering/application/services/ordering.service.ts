@@ -74,6 +74,11 @@ export class OrderingService {
   ): Promise<import('../../domain/checkout-pricing').OrderQuote>;
   private async prepareOrder(data: CreateOrderInput, quoteOnly: boolean) {
     const type = data.type ?? OrderType.DINE_IN;
+    if (type !== OrderType.DINE_IN && type !== OrderType.TAKE_AWAY) {
+      throw new BadRequestException(
+        'Only dine-in and takeaway orders are supported',
+      );
+    }
     if (type !== OrderType.DINE_IN && data.tableId) {
       throw new BadRequestException(
         'tableId can only be used with DINE_IN orders',

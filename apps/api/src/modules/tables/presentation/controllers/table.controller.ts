@@ -22,6 +22,7 @@ import { Public } from '../../../../common/decorators/public.decorator';
 import { UpdateTableStatusDto, CreateWaiterCallDto } from '../dtos/table.dto';
 import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 import { Throttle } from '@nestjs/throttler';
+import { isFeatureEnabled } from '@warkop-yareh/types';
 
 const GLOBAL_TABLE_ROLES: readonly Role[] = [Role.ADMIN, Role.SUPERADMIN];
 
@@ -36,6 +37,8 @@ export class TableController {
     summary: 'Resolve a QR code to a table metadata (Guest & Customer)',
   })
   async resolveQrCode(@Param('code') code: string) {
+    if (!isFeatureEnabled('QR_ORDERING', process.env))
+      throw new ForbiddenException('QR ordering is not available');
     const table = await this.tableService.resolveQrCode(code);
     return { data: table };
   }
@@ -44,6 +47,8 @@ export class TableController {
   @Public()
   @ApiOperation({ summary: 'Get safe public metadata for an active table' })
   async getPublicTable(@Param('id') id: string) {
+    if (!isFeatureEnabled('TABLE_ORDERING', process.env))
+      throw new ForbiddenException('Table ordering is not available');
     const table = await this.tableService.getTableById(id);
     if (!table || !table.isActive) {
       throw new NotFoundException('Table not found or inactive');
@@ -149,6 +154,8 @@ export class TableController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Call waiter or request bill' })
   async callWaiter(@Param('id') id: string, @Body() body: CreateWaiterCallDto) {
+    if (!isFeatureEnabled('TABLE_ORDERING', process.env))
+      throw new ForbiddenException('Table service is not available');
     const call = await this.tableService.createWaiterCall(id, body.type);
     return { data: call, message: 'Waiter called successfully' };
   }
