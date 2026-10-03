@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@warkop-yareh/database';
+import {
+  Prisma,
+  ProductPublicationStatus,
+  FactConfidence,
+  SourceType,
+} from '@warkop-yareh/database';
 import { DatabaseService } from '../../../../infrastructure/database/database.service';
 import {
   CatalogProduct,
@@ -52,12 +57,25 @@ export class PrismaCatalogRepository implements ICatalogRepository {
   async getFullCatalog(branchId: string) {
     const [categories, products] = await Promise.all([
       this.prisma.category.findMany({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          products: {
+            some: {
+              isActive: true,
+              deletedAt: null,
+              publicationStatus: ProductPublicationStatus.PUBLISHED,
+              branchProducts: { some: { branchId, isAvailable: true } },
+            },
+          },
+        },
         orderBy: { sortOrder: 'asc' },
       }),
       this.prisma.product.findMany({
         where: {
           isActive: true,
+          deletedAt: null,
+          publicationStatus: ProductPublicationStatus.PUBLISHED,
+          category: { isActive: true },
           branchProducts: {
             some: {
               branchId,
@@ -105,8 +123,188 @@ export class PrismaCatalogRepository implements ICatalogRepository {
 
   async listCategories() {
     return this.prisma.category.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        products: {
+          some: {
+            isActive: true,
+            deletedAt: null,
+            publicationStatus: ProductPublicationStatus.PUBLISHED,
+          },
+        },
+      },
       orderBy: { sortOrder: 'asc' },
+    });
+  }
+
+  async listAdminCategories() {
+    return this.prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
+  }
+
+  async createCategory(data: { name: string; slug: string }) {
+    return this.prisma.category.create({ data });
+  }
+
+  async createMenuEvidence(data: {
+    productId: string;
+    sourceType: SourceType;
+    sourceName: string;
+    referenceUrl?: string;
+    rawExcerpt?: string;
+    capturedAt: Date;
+    actorId: string;
+  }) {
+    return this.prisma.$transaction(async (tx) => {
+      const snapshot = await this.menuSnapshot(tx, data.productId);
+      const fact = await tx.businessFact.upsert({
+        where: {
+          domain_entityKey: { domain: 'menu', entityKey: data.productId },
+        },
+        create: {
+          domain: 'menu',
+          entityKey: data.productId,
+          claim: `Menu identity, price and branch availability verified for ${snapshot.name}`,
+          value: JSON.stringify(snapshot),
+          confidence: FactConfidence.VERIFIED,
+          capturedAt: data.capturedAt,
+          lastVerifiedAt: new Date(),
+        },
+        update: {
+          claim: `Menu identity, price and branch availability verified for ${snapshot.name}`,
+          value: JSON.stringify(snapshot),
+          confidence: FactConfidence.VERIFIED,
+          capturedAt: data.capturedAt,
+          lastVerifiedAt: new Date(),
+        },
+      });
+      return tx.sourceReference.create({
+        data: {
+          factId: fact.id,
+          sourceType: data.sourceType,
+          name: data.sourceName,
+          referenceUrl: data.referenceUrl,
+          rawExcerpt: data.rawExcerpt,
+          capturedAt: data.capturedAt,
+          verifiedBy: data.actorId,
+        },
+      });
+    });
+  }
+
+  async replaceCustomizations(
+    productId: string,
+    groups: Array<{
+      name: string;
+      options: Array<{ label: string; price: number }>;
+    }>,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.productCustomization.deleteMany({ where: { productId } });
+      for (const group of groups) {
+        await tx.productCustomization.create({
+          data: { productId, name: group.name, options: group.options },
+        });
+      }
+      return tx.product.update({
+        where: { id: productId },
+        data: {
+          publicationStatus: ProductPublicationStatus.DRAFT,
+          sourceReferenceId: null,
+          verifiedAt: null,
+          verifiedById: null,
+          publishedAt: null,
+        },
+        include: { category: true, customizations: true, reviews: true },
+      });
+    });
+  }
+
+  async listAdminProducts() {
+    return this.prisma.product.findMany({
+      where: { deletedAt: null },
+      include: { category: true, customizations: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
+
+  async getAdminProduct(id: string) {
+    return this.prisma.product.findFirst({
+      where: { id, deletedAt: null },
+      include: { category: true, customizations: true },
+    });
+  }
+
+  async isVerifiedSource(sourceReferenceId: string, productId: string) {
+    const source = await this.prisma.sourceReference.findFirst({
+      where: {
+        id: sourceReferenceId,
+        fact: {
+          confidence: FactConfidence.VERIFIED,
+          domain: 'menu',
+          entityKey: productId,
+        },
+      },
+      select: { fact: { select: { value: true } } },
+    });
+    if (!source) return false;
+    return (
+      source.fact.value ===
+      JSON.stringify(await this.menuSnapshot(this.prisma, productId))
+    );
+  }
+
+  private async menuSnapshot(
+    client: Prisma.TransactionClient | DatabaseService,
+    productId: string,
+  ) {
+    const product = await client.product.findUniqueOrThrow({
+      where: { id: productId },
+      select: {
+        name: true,
+        price: true,
+        image: true,
+        categoryId: true,
+        branchProducts: {
+          where: { isAvailable: true },
+          select: { branchId: true, priceOverride: true },
+          orderBy: { branchId: 'asc' },
+        },
+      },
+    });
+    return product;
+  }
+
+  async countAvailableBranches(productId: string) {
+    return this.prisma.branchProduct.count({
+      where: {
+        productId,
+        isAvailable: true,
+        branch: { isActive: true, deletedAt: null },
+      },
+    });
+  }
+
+  async setPublicationStatus(
+    id: string,
+    expectedStatus: ProductPublicationStatus,
+    data: {
+      publicationStatus: ProductPublicationStatus;
+      sourceReferenceId?: string | null;
+      verifiedAt?: Date | null;
+      verifiedById?: string | null;
+      publishedAt?: Date | null;
+    },
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const changed = await tx.product.updateMany({
+        where: { id, publicationStatus: expectedStatus },
+        data,
+      });
+      if (changed.count !== 1) return null;
+      return tx.product.findUniqueOrThrow({
+        where: { id },
+        include: { category: true, customizations: true, reviews: true },
+      });
     });
   }
 
@@ -121,6 +319,8 @@ export class PrismaCatalogRepository implements ICatalogRepository {
     const where: Prisma.ProductWhereInput = {
       isActive: true,
       deletedAt: null,
+      publicationStatus: ProductPublicationStatus.PUBLISHED,
+      category: { isActive: true },
       ...(categoryId ? { categoryId } : {}),
       ...(search ? { name: { contains: search, mode: 'insensitive' } } : {}),
       ...(branchId
@@ -160,7 +360,13 @@ export class PrismaCatalogRepository implements ICatalogRepository {
 
   async getProduct(id: string) {
     return this.prisma.product.findUnique({
-      where: { id, deletedAt: null },
+      where: {
+        id,
+        deletedAt: null,
+        isActive: true,
+        publicationStatus: ProductPublicationStatus.PUBLISHED,
+        category: { isActive: true },
+      },
       include: {
         category: true,
         customizations: true,
@@ -179,7 +385,14 @@ export class PrismaCatalogRepository implements ICatalogRepository {
   async updateProduct(id: string, data: UpdateCatalogProductInput) {
     return this.prisma.product.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        publicationStatus: ProductPublicationStatus.DRAFT,
+        sourceReferenceId: null,
+        verifiedAt: null,
+        verifiedById: null,
+        publishedAt: null,
+      },
       include: { category: true, customizations: true, reviews: true },
     });
   }
@@ -189,14 +402,27 @@ export class PrismaCatalogRepository implements ICatalogRepository {
     productId: string,
     isAvailable: boolean,
   ) {
-    return this.prisma.branchProduct.upsert({
-      where: { branchId_productId: { branchId, productId } },
-      update: { isAvailable },
-      create: { branchId, productId, isAvailable },
-      include: {
-        product: { include: { category: true } },
-        branch: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.branchProduct.upsert({
+        where: { branchId_productId: { branchId, productId } },
+        update: { isAvailable },
+        create: { branchId, productId, isAvailable },
+        include: {
+          product: { include: { category: true } },
+          branch: true,
+        },
+      });
+      await tx.product.update({
+        where: { id: productId },
+        data: {
+          publicationStatus: ProductPublicationStatus.DRAFT,
+          sourceReferenceId: null,
+          verifiedAt: null,
+          verifiedById: null,
+          publishedAt: null,
+        },
+      });
+      return result;
     });
   }
 
@@ -205,14 +431,32 @@ export class PrismaCatalogRepository implements ICatalogRepository {
     productId: string,
     data: UpdateBranchProductInput,
   ) {
-    return this.prisma.branchProduct.upsert({
-      where: { branchId_productId: { branchId, productId } },
-      update: data,
-      create: { branchId, productId, ...data },
-      include: {
-        product: { include: { category: true } },
-        branch: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.branchProduct.upsert({
+        where: { branchId_productId: { branchId, productId } },
+        update: data,
+        create: { branchId, productId, ...data },
+        include: {
+          product: { include: { category: true } },
+          branch: true,
+        },
+      });
+      if (
+        Object.prototype.hasOwnProperty.call(data, 'priceOverride') ||
+        Object.prototype.hasOwnProperty.call(data, 'isAvailable')
+      ) {
+        await tx.product.update({
+          where: { id: productId },
+          data: {
+            publicationStatus: ProductPublicationStatus.DRAFT,
+            sourceReferenceId: null,
+            verifiedAt: null,
+            verifiedById: null,
+            publishedAt: null,
+          },
+        });
+      }
+      return result;
     });
   }
 

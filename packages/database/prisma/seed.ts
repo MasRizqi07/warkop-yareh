@@ -7,7 +7,7 @@
  * 1. Seed ONLY verified branches (Jetis Kulon & Prapen)
  * 2. Menu seed is strictly EMPTY (spending range: Rp1–25.000/person; item prices unverified)
  * 3. Administrative accounts use neutral domain (@warkopyareh.local)
- * 4. Automatic decontamination of legacy speculative fixtures (Cold 'N Brew)
+ * 4. Never delete historical data or invent coordinates/capacity
  *
  * Run: pnpm --filter @warkop-yareh/database run db:seed
  */
@@ -17,6 +17,7 @@ import {
   Role,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { VERIFIED_BRANCHES } from '@warkop-yareh/types';
 
 const prisma = new PrismaClient();
 
@@ -37,139 +38,40 @@ async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-async function cleanupContaminatedFixtures() {
-  console.log('🧹 Checking and decontaminating legacy speculative fixtures...');
-
-  // 1. Reassign or delete references to legacy fictional branch 'coldnbrew-gubeng-001'
-  const legacyBranch = await prisma.branch.findUnique({
-    where: { id: 'coldnbrew-gubeng-001' },
-  });
-
-  if (legacyBranch) {
-    console.log("  ⚠️  Found legacy branch 'coldnbrew-gubeng-001'. Cleaning references...");
-    await prisma.user.updateMany({
-      where: { branchId: 'coldnbrew-gubeng-001' },
-      data: { branchId: null },
-    });
-    await prisma.branchProduct.deleteMany({
-      where: { branchId: 'coldnbrew-gubeng-001' },
-    });
-    await prisma.table.deleteMany({
-      where: { branchId: 'coldnbrew-gubeng-001' },
-    });
-    await prisma.review.deleteMany({
-      where: { branchId: 'coldnbrew-gubeng-001' },
-    });
-    await prisma.event.deleteMany({
-      where: { branchId: 'coldnbrew-gubeng-001' },
-    });
-    await prisma.branch.delete({
-      where: { id: 'coldnbrew-gubeng-001' },
-    }).catch((err) => {
-      console.warn('  ⚠️  Could not delete legacy branch directly (may have foreign keys):', err.message);
-    });
-  }
-
-  // 2. Remove legacy staff accounts
-  const legacyStaffEmails = [
-    'admin@coldnbrew.id',
-    'kasir@coldnbrew.id',
-    'kitchen@coldnbrew.id',
-  ];
-  const deletedStaff = await prisma.user.deleteMany({
-    where: { email: { in: legacyStaffEmails } },
-  });
-  if (deletedStaff.count > 0) {
-    console.log(`  ✅ Removed ${deletedStaff.count} legacy @coldnbrew.id staff accounts.`);
-  }
-
-  // 3. Remove speculative rewards, community groups, events, and fake reviews
-  await prisma.review.deleteMany({
-    where: { id: 'seed-verified-review' },
-  });
-  await prisma.communityPost.deleteMany({
-    where: { id: 'seed-community-welcome-post' },
-  });
-  await prisma.communityMembership.deleteMany({
-    where: { group: { slug: 'kawan-produk-surabaya' } },
-  });
-  await prisma.communityGroup.deleteMany({
-    where: { slug: 'kawan-produk-surabaya' },
-  });
-  await prisma.event.deleteMany({
-    where: { slug: 'ngopi-dan-bangun-produk' },
-  });
-  await prisma.reward.deleteMany({
-    where: { id: { in: ['nitro-cold-brew', 'toraja-v60'] } },
-  });
-
-  // 4. Remove speculative menu items and categories
-  const legacyCategories = ['espresso', 'cold-brew', 'non-coffee', 'snacks', 'main-course', 'desserts'];
-  await prisma.branchProduct.deleteMany({
-    where: { product: { category: { slug: { in: legacyCategories } } } },
-  });
-  await prisma.product.deleteMany({
-    where: { category: { slug: { in: legacyCategories } } },
-  });
-  await prisma.category.deleteMany({
-    where: { slug: { in: legacyCategories } },
-  });
-}
-
 async function main() {
-  console.log("🌱 Starting Warkop Ya'reh Reality Seed (Phase 1.5)...");
+  console.log("Starting Warkop Ya'reh verified branch seed");
 
-  // Decontaminate any existing legacy fixtures
-  await cleanupContaminatedFixtures();
-
-  // ── 1. Seed Verified Branches ─────────────────────────────────────────────
-  // Source: docs/business/BRANCHES.md & packages/types/index.ts (VERIFIED_BRANCHES)
-  const branches = [
-    {
-      id: 'jetis-kulon',
-      name: "WARKOP YA'REH",
-      slug: 'jetis-kulon',
-      brandName: "Warkop Ya'reh",
-      address: 'Jl. Raya Jetis Kulon I No.38, Wonokromo, Kec. Wonokromo, Surabaya, Jawa Timur 60243',
-      city: 'Surabaya',
-      province: 'Jawa Timur',
-      postalCode: '60243',
-      plusCode: 'MPVJ+2G Wonokromo, Surabaya, Jawa Timur',
-      phone: null,
+  // This seed is additive. Legacy data must be classified before any cleanup.
+  for (const fixture of VERIFIED_BRANCHES) {
+    const b = {
+      id: fixture.id,
+      name: fixture.name,
+      slug: fixture.slug,
+      brandName: fixture.brandName,
+      address: [
+        fixture.address.street,
+        fixture.address.subdistrict,
+        fixture.address.district,
+        fixture.address.city,
+        `${fixture.address.province} ${fixture.address.postalCode}`,
+      ].join(', '),
+      city: fixture.address.city,
+      province: fixture.address.province,
+      postalCode: fixture.address.postalCode,
+      plusCode: fixture.plusCode,
+      phone: fixture.phone,
       email: null,
-      latitude: -7.311494,
-      longitude: 112.730303,
-      isMainBranch: true,
+      latitude: null,
+      longitude: null,
+      isMainBranch: fixture.isMainBranch,
       isActive: true,
-      capacity: 0,
-      features: ['Dine-in', 'Takeaway', '24 Jam'],
-      weekdayHours: '00:00-24:00',
-      weekendHours: '00:00-24:00',
-    },
-    {
-      id: 'prapen',
-      name: "WARKOP YA'REH 2 PRAPEN",
-      slug: 'prapen',
-      brandName: "Warkop Ya'reh",
-      address: 'Jl. Raya Prapen No.39, Prapen, Kec. Tenggilis Mejoyo, Surabaya, Jawa Timur 60239',
-      city: 'Surabaya',
-      province: 'Jawa Timur',
-      postalCode: '60239',
-      plusCode: 'MQM3+XJ Prapen, Surabaya, Jawa Timur',
-      phone: '0821-3735-4606',
-      email: null,
-      latitude: -7.319762,
-      longitude: 112.766167,
-      isMainBranch: false,
-      isActive: true,
-      capacity: 0,
-      features: ['Dine-in', 'Takeaway', '24 Jam'],
-      weekdayHours: '00:00-24:00',
-      weekendHours: '00:00-24:00',
-    },
-  ];
-
-  for (const b of branches) {
+      capacity: null,
+      features: fixture.servicesSupported.map((mode) =>
+        mode === 'DINE_IN' ? 'Dine-in' : 'Takeaway',
+      ),
+      weekdayHours: null,
+      weekendHours: null,
+    };
     const upserted = await prisma.branch.upsert({
       where: { id: b.id },
       update: {
@@ -194,7 +96,14 @@ async function main() {
       },
       create: b,
     });
-    console.log(`✅ Verified Branch: ${upserted.name} (${upserted.id})`);
+    for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek += 1) {
+      await prisma.businessHour.upsert({
+        where: { branchId_dayOfWeek: { branchId: upserted.id, dayOfWeek } },
+        update: { openTime: '00:00', closeTime: '24:00', is24Hours: true, isOpen: true },
+        create: { branchId: upserted.id, dayOfWeek, openTime: '00:00', closeTime: '24:00', is24Hours: true, isOpen: true },
+      });
+    }
+    console.log(`Verified branch: ${upserted.name} (${upserted.id})`);
   }
 
   // ── 2. Production Menu Seed: Intentionally Empty ──────────────────────────
@@ -205,6 +114,11 @@ async function main() {
   // ── 3. Administrative Staff Accounts (Bootstrap / Technical Only — Non-Public) ──
   // IMPORTANT: These accounts are for initial local/staging system access only.
   // They are NOT public business contacts and MUST NEVER be exposed on customer surfaces.
+  if (process.env.NODE_ENV === 'production' && process.env.SEED_BOOTSTRAP_STAFF !== 'true') {
+    console.log('Production staff bootstrap skipped; set SEED_BOOTSTRAP_STAFF=true with explicit passwords to opt in.');
+    return;
+  }
+
   const staffAccounts = [
     {
       email: 'admin@warkopyareh.local',
@@ -244,8 +158,6 @@ async function main() {
         passwordHash,
         role: staff.role,
         branchId: staff.branchId,
-        membershipTier: 'BRONZE',
-        loyaltyPoints: 0,
       },
     });
     console.log(`👤 Staff Account: ${user.email} (${user.role}) -> ${user.branchId}`);

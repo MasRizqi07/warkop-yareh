@@ -92,6 +92,14 @@ enum MembershipTier {
   PLATINUM
 }
 
+enum ProductPublicationStatus {
+  DRAFT
+  REVIEW
+  VERIFIED
+  PUBLISHED
+  ARCHIVED
+}
+
 // ---- Branches ----
 
 model Branch {
@@ -110,10 +118,10 @@ model Branch {
   longitude    Float?
   isMainBranch Boolean   @default(false)
   isActive     Boolean   @default(true)
-  capacity     Int       @default(0)
+  capacity     Int?
   features     String[]  @default([])
-  weekdayHours String    @default("07:00-24:00")
-  weekendHours String    @default("07:00-01:00")
+  weekdayHours String?
+  weekendHours String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
@@ -165,6 +173,12 @@ model Product {
   isPopular       Boolean   @default(false)
   isNew           Boolean   @default(false)
   isActive        Boolean   @default(true)
+  publicationStatus ProductPublicationStatus @default(DRAFT)
+  verifiedAt      DateTime?
+  verifiedById    String?
+  sourceReferenceId String?
+  sourceReference SourceReference? @relation(fields: [sourceReferenceId], references: [id], onDelete: SetNull)
+  publishedAt     DateTime?
   rating          Float     @default(0)
   reviewCount     Int       @default(0)
   preparationTime Int       @default(5)
@@ -183,6 +197,7 @@ model Product {
   @@index([categoryId])
   @@index([isPopular])
   @@index([isActive])
+  @@index([publicationStatus, isActive])
   @@map("products")
 }
 
@@ -1018,7 +1033,11 @@ model GalleryAsset {
   category     AssetCategory @default(ATMOSPHERE)
   sortOrder    Int           @default(0)
   isFeatured   Boolean       @default(false)
-  isVerified   Boolean       @default(true)
+  isVerified   Boolean       @default(false)
+  provenance   String        @default("UNVERIFIED")
+  sourceUrl    String?
+  sourceType   SourceType?
+  lastVerifiedAt DateTime?
   capturedAt   DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -1035,7 +1054,7 @@ model SiteContent {
   subtitle    String?
   body        String?
   metadata    Json?    // flexible key-value attributes
-  isPublished Boolean  @default(true)
+  isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1069,8 +1088,8 @@ model BusinessFact {
   value          String            // Serialized value or string representation
   confidence     FactConfidence    @default(UNVERIFIED)
   notes          String?
-  capturedAt     DateTime          @default(now())
-  lastVerifiedAt DateTime          @default(now())
+  capturedAt     DateTime?
+  lastVerifiedAt DateTime?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
@@ -1089,11 +1108,12 @@ model SourceReference {
   sourceType   SourceType
   name         String       // e.g. "Google Maps Prapen Listing"
   referenceUrl String?
-  capturedAt   DateTime     @default(now())
+  capturedAt   DateTime?
   verifiedBy   String?      // e.g. "Auditor / Engineer"
   rawExcerpt   String?      // snippet or quote
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+  products     Product[]
 
   @@index([factId])
   @@index([sourceType])

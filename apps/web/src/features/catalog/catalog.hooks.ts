@@ -10,16 +10,17 @@ export const catalogKeys = {
   catalog: (branchId: string) => ['catalog', branchId] as const,
 };
 
-export function useBranches() {
+export function useBranches(enabled = true) {
   return useQuery({
     queryKey: catalogKeys.branches,
     queryFn: getBranches,
+    enabled,
     staleTime: 5 * 60_000,
   });
 }
 
-export function useActiveBranch() {
-  const query = useBranches();
+export function useActiveBranch(enabled = true) {
+  const query = useBranches(enabled);
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
   const activeBranch =
@@ -37,18 +38,20 @@ export function useActiveBranch() {
   return { ...query, activeBranch };
 }
 
-export function useCatalog(branchId: string | null | undefined) {
+export function useCatalog(
+  branchId: string | null | undefined,
+  enabled = true
+) {
   return useQuery({
     queryKey: catalogKeys.catalog(branchId ?? 'none'),
     queryFn: () => getCatalog(branchId!),
-    enabled: Boolean(branchId),
+    enabled: enabled && Boolean(branchId),
     select: (catalog) => ({
       ...catalog,
       products: catalog.products.map((product) =>
-        toUiProduct(product, branchId!),
+        toUiProduct(product, branchId!)
       ),
     }),
     staleTime: 60_000,
   });
 }
-
