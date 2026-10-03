@@ -32,6 +32,7 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Warkop Ya'reh — Admin Terminal",
   description: "Warkop Ya'reh platform admin dashboard",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
@@ -41,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="id"
       className={`${plusJakartaSans.variable} ${inter.variable} ${jetBrainsMono.variable} dark h-full antialiased`}
       data-scroll-behavior="smooth"
     >
