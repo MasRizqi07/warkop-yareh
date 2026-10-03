@@ -145,28 +145,32 @@ All tests pass 100% without mocks on core business rules.
 
 ## 15. CI
 
-- Workflow configuration `.github/workflows/ci.yml` maintains triggers on PR to `main` and push to `main`.
+- **Branch Pushed**: `codex/product-v3-reality-platform`
+- **Head SHA**: `79f47d451d4714f6a7cf2aa24a921e0efa91d2ad`
+- **Workflow**: `.github/workflows/ci.yml` runs on PR to `main` and push to `main`.
 - Includes reality integrity audit, production isolation contract checks, migration deployment against PostgreSQL service container, typecheck, lint, monorepo build, persistence tests, API E2E, and Playwright Chromium E2E.
 
 ---
 
 ## 16. Deployments
 
-- Web and Admin Vercel preview environments will trigger automatically upon Pull Request creation against the repository.
+- **PR Target**: `main` ← `codex/product-v3-reality-platform`
+- **Pull Request URL**: https://github.com/MasRizqi07/warkop-yareh/pull/new/codex/product-v3-reality-platform
+- Vercel Web and Admin preview builds trigger automatically on Pull Request creation.
 - Runtime preview QA checklist prepared in [03_PUBLIC_PRODUCT_AUDIT.md](03_PUBLIC_PRODUCT_AUDIT.md).
 
 ---
 
 ## 17. Commits
 
-Changes are prepared as atomic, descriptive commits tracking logical architectural boundaries:
-1. `docs: replace legacy product specification with reality-first v3`
-2. `refactor: isolate deprecated product domains and align canonical facts`
-3. `feat: add verified menu publication workflow and additive migrations`
-4. `feat: harden admin menu management, gallery, and site content`
-5. `feat: enforce reality-aligned public discovery, ordering gate, and local business SEO`
-6. `security: harden ordering request validation, payment boundaries, and health observability`
-7. `test: expand reality audits, contract gates, and Playwright E2E coverage`
+All changes are partitioned into 7 atomic, descriptive commits tracking logical architectural boundaries:
+1. `04ca120` — `docs: replace legacy product specification with reality-first v3`
+2. `9f0050e` — `refactor: isolate deprecated product domains and align canonical facts`
+3. `1c5208e` — `feat: add verified menu publication workflow and additive migrations`
+4. `537a868` — `feat: harden admin menu management, gallery, and site content`
+5. `e1811a4` — `feat: enforce reality-aligned public discovery, ordering gate, and local business SEO`
+6. `4e0cded` — `security: harden ordering request validation, payment boundaries, and health observability`
+7. `79f47d4` — `test: expand reality audits, contract gates, and Playwright E2E coverage`
 
 ---
 
