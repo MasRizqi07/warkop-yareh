@@ -14,6 +14,7 @@ import path from 'node:path';
 import process from 'node:process';
 
 const ROOT_DIR = process.cwd();
+const { VERIFIED_BRANCHES, FEATURE_FLAGS } = await import('../packages/types/index.ts');
 
 function check(title, assertion) {
   try {
@@ -44,32 +45,32 @@ function runAudit() {
     if (check(title, fn)) totalPassed++;
   }
 
-  // 1. Branch Fixture Invariant — Canonical Jetis Kulon
-  run("packages/types exports exact canonical Jetis Kulon fixture", () => {
-    const typesPath = path.join(ROOT_DIR, 'packages', 'types', 'index.ts');
-    const content = readFileSync(typesPath, 'utf8');
-    return (
-      content.includes("id: 'jetis-kulon'") &&
-      content.includes("name: \"WARKOP YA'REH\"") &&
-      content.includes("street: 'Jl. Raya Jetis Kulon I No.38'") &&
-      content.includes("postalCode: '60243'") &&
-      content.includes("plusCode: 'MPVJ+2G Wonokromo, Surabaya, Jawa Timur'") &&
-      content.includes("phone: null,")
-    );
+  run('Exactly two verified canonical branch fixtures', () =>
+    VERIFIED_BRANCHES.length === 2 &&
+    VERIFIED_BRANCHES.every(branch => branch.confidence === 'VERIFIED'));
+
+  run('Jetis fixture matches verified business data', () => {
+    const branch = VERIFIED_BRANCHES.find(item => item.id === 'jetis-kulon');
+    return branch?.name === "WARKOP YA'REH" &&
+      branch.slug === 'jetis-kulon' &&
+      Object.values(branch.address).join(', ') === 'Jl. Raya Jetis Kulon I No.38, Wonokromo, Kec. Wonokromo, Surabaya, Jawa Timur, 60243' &&
+      branch.plusCode === 'MPVJ+2G Wonokromo, Surabaya, Jawa Timur' &&
+      branch.phone === null &&
+      branch.operatingHours === '24 Hours' &&
+      JSON.stringify(branch.servicesSupported) === JSON.stringify(['DINE_IN', 'TAKEAWAY']) &&
+      branch.publicSpendingRange === 'Rp1–25.000 per orang';
   });
 
-  // 2. Branch Fixture Invariant — Canonical Prapen
-  run("packages/types exports exact canonical Prapen fixture", () => {
-    const typesPath = path.join(ROOT_DIR, 'packages', 'types', 'index.ts');
-    const content = readFileSync(typesPath, 'utf8');
-    return (
-      content.includes("id: 'prapen'") &&
-      content.includes("name: \"WARKOP YA'REH 2 PRAPEN\"") &&
-      content.includes("street: 'Jl. Raya Prapen No.39'") &&
-      content.includes("postalCode: '60239'") &&
-      content.includes("plusCode: 'MQM3+XJ Prapen, Surabaya, Jawa Timur'") &&
-      content.includes("phone: '0821-3735-4606'")
-    );
+  run('Prapen fixture matches verified business data', () => {
+    const branch = VERIFIED_BRANCHES.find(item => item.id === 'prapen');
+    return branch?.name === "WARKOP YA'REH 2 PRAPEN" &&
+      branch.slug === 'prapen' &&
+      Object.values(branch.address).join(', ') === 'Jl. Raya Prapen No.39, Prapen, Kec. Tenggilis Mejoyo, Surabaya, Jawa Timur, 60239' &&
+      branch.plusCode === 'MQM3+XJ Prapen, Surabaya, Jawa Timur' &&
+      branch.phone === '0821-3735-4606' &&
+      branch.operatingHours === '24 Hours' &&
+      JSON.stringify(branch.servicesSupported) === JSON.stringify(['DINE_IN', 'TAKEAWAY']) &&
+      branch.publicSpendingRange === 'Rp1–25.000 per orang';
   });
 
   // 3. Rejection of Legacy Incorrect Values in Active Fixtures
@@ -93,29 +94,13 @@ function runAudit() {
     return true;
   });
 
-  // 4. Database Seed Invariant — Canonical Branches and Clean State
-  run("Database seed contains exact canonical branches, Plus Codes, and zero fake products", () => {
-    const seedPath = path.join(ROOT_DIR, 'packages', 'database', 'prisma', 'seed.ts');
-    const content = readFileSync(seedPath, 'utf8');
-    const hasJetisCanonical =
-      content.includes("'jetis-kulon'") &&
-      content.includes("Jl. Raya Jetis Kulon I No.38") &&
-      content.includes("MPVJ+2G Wonokromo, Surabaya, Jawa Timur");
-    const hasPrapenCanonical =
-      content.includes("'prapen'") &&
-      content.includes("Jl. Raya Prapen No.39") &&
-      content.includes("MQM3+XJ Prapen, Surabaya, Jawa Timur") &&
-      content.includes("0821-3735-4606");
-    const doesNotCreateFakeBranch = !content.includes("create: {\n      id: BRANCH_ID");
-    const doesNotUpsertProducts = !content.includes("prisma.product.upsert");
-    const doesNotSeedColdNBrewStaff = !content.includes("email: 'admin@coldnbrew.id'");
-    return (
-      hasJetisCanonical &&
-      hasPrapenCanonical &&
-      doesNotCreateFakeBranch &&
-      doesNotUpsertProducts &&
-      doesNotSeedColdNBrewStaff
-    );
+  run('Seed consumes canonical fixtures without product writes or destructive cleanup', () => {
+    const seed = readFileSync(path.join(ROOT_DIR, 'packages/database/prisma/seed.ts'), 'utf8');
+    return seed.includes('for (const fixture of VERIFIED_BRANCHES)') &&
+      seed.includes('latitude: null') && seed.includes('longitude: null') &&
+      seed.includes('capacity: null') && seed.includes('businessHour.upsert') &&
+      !/prisma\.(product|category|branchProduct)\.(create|upsert|delete|deleteMany)/.test(seed) &&
+      !seed.includes('cleanupContaminatedFixtures');
   });
 
   // 3. Client LocalStorage Key
@@ -162,18 +147,10 @@ function runAudit() {
     );
   });
 
-  // 8. Sitemap Truthfulness
-  run("Sitemap indexes only verified routes (menu, outlets, gallery, about, contact)", () => {
-    const sitemapPath = path.join(ROOT_DIR, 'apps', 'web', 'src', 'app', 'sitemap.ts');
-    const content = readFileSync(sitemapPath, 'utf8');
-    return (
-      content.includes("/menu`") &&
-      content.includes("/outlets`") &&
-      content.includes("/gallery`") &&
-      !content.includes("/events`") &&
-      !content.includes("/community`") &&
-      !content.includes("/loyalty`")
-    );
+  run("Sitemap indexes the explicit verified public route set", () => {
+    const sitemap = readFileSync(path.join(ROOT_DIR, 'apps/web/src/app/sitemap.ts'), 'utf8');
+    const seo = readFileSync(path.join(ROOT_DIR, 'apps/web/src/lib/seo.ts'), 'utf8');
+    return sitemap.includes('PUBLIC_PATHS.map') && ['/menu', '/outlets', '/gallery', '/about', '/contact', '/outlets/jetis-kulon', '/outlets/prapen'].every(route => seo.includes(`'${route}'`)) && !/\/events|\/community|\/loyalty|\/checkout/.test(seo.split('export const PRIVATE_METADATA')[0]);
   });
 
   // 9. Public Constants Truthfulness
@@ -229,6 +206,86 @@ function runAudit() {
       !content.includes("Nitro Cold Brew") &&
       !content.includes("Truffle Fries")
     );
+  });
+
+  run("Global marketing metadata and footer contain no speculative service claims", () => {
+    const files = ['apps/web/src/app/layout.tsx', 'apps/web/src/components/layout/footer.tsx'];
+    return files.every(file => !/coworking|specialty|single origin|acceptsReservations|servesCuisine|loyalty|workspace|reservasi|komunitas/i.test(readFileSync(path.join(ROOT_DIR, file), 'utf8')));
+  });
+  run("Production catalog cannot accidentally display browser fixtures", () => {
+    const menu = readFileSync(path.join(ROOT_DIR, 'apps/web/src/app/(marketing)/menu/page.tsx'), 'utf8');
+    const config = readFileSync(path.join(ROOT_DIR, 'apps/web/next.config.mjs'), 'utf8');
+    return menu.includes('catalog.data?.products') &&
+      !menu.includes('Browser Test Latte') &&
+      menu.includes('TEST_CATALOG_ENABLED') &&
+      menu.includes('runtimeBranches.map') &&
+      config.includes('process.env.VERCEL') &&
+      config.includes('/warkop_audit') &&
+      config.includes('127.0.0.1');
+  });
+  run("Gallery publication starts unverified and requires primary dated evidence", () => {
+    const schema = readFileSync(path.join(ROOT_DIR, 'packages/database/prisma/schema.prisma'), 'utf8');
+    const model = schema.split('model GalleryAsset {')[1]?.split('model SiteContent')[0] ?? '';
+    const service = readFileSync(path.join(ROOT_DIR, 'apps/api/src/modules/reality/reality.service.ts'), 'utf8');
+    return /isVerified\s+Boolean\s+@default\(false\)/.test(model) && model.includes('UNVERIFIED') && service.includes('GALLERY_FRESHNESS_DAYS') && service.includes('PRIMARY_OPERATOR');
+  });
+  run("Customer account pages cannot inherit a legacy brand name from the environment", () => {
+    const pages = [
+      'apps/web/src/app/login/page.tsx',
+      'apps/web/src/app/register/page.tsx',
+      'apps/web/src/app/otp/page.tsx',
+      'apps/web/src/app/orders/[id]/thankyou/page.tsx',
+    ];
+    return pages.every(file => !readFileSync(path.join(ROOT_DIR, file), 'utf8').includes('NEXT_PUBLIC_BRAND_NAME'));
+  });
+
+  run('Menu publication gates all public reads and ordering writes', () => {
+    const repo = readFileSync(path.join(ROOT_DIR, 'apps/api/src/modules/catalog/infrastructure/repositories/prisma-catalog.repository.ts'), 'utf8');
+    const ordering = readFileSync(path.join(ROOT_DIR, 'apps/api/src/modules/ordering/infrastructure/repositories/prisma-ordering.repository.ts'), 'utf8');
+    const schema = readFileSync(path.join(ROOT_DIR, 'packages/database/prisma/schema.prisma'), 'utf8');
+    return (repo.match(/publicationStatus: ProductPublicationStatus.PUBLISHED/g) ?? []).length >= 3 &&
+      ordering.includes('publicationStatus: ProductPublicationStatus.PUBLISHED') &&
+      schema.includes('publicationStatus ProductPublicationStatus @default(DRAFT)');
+  });
+
+  run('Feature flags default off and public order types reject unsupported modes', () => {
+    const service = readFileSync(path.join(ROOT_DIR, 'apps/api/src/modules/ordering/application/services/ordering.service.ts'), 'utf8');
+    const controller = readFileSync(path.join(ROOT_DIR, 'apps/api/src/modules/ordering/presentation/controllers/orders.controller.ts'), 'utf8');
+    return FEATURE_FLAGS.length === 6 && controller.includes("isFeatureEnabled('PUBLIC_ORDERING', process.env)") &&
+      service.includes('type !== OrderType.DINE_IN && type !== OrderType.TAKE_AWAY');
+  });
+
+  run('Customer cart and checkout expose only dine-in and takeaway', () => {
+    const cart = readFileSync(path.join(ROOT_DIR, 'apps/web/src/app/cart/page.tsx'), 'utf8');
+    const checkout = readFileSync(path.join(ROOT_DIR, 'apps/web/src/features/orders/checkout-page.tsx'), 'utf8');
+    const state = readFileSync(path.join(ROOT_DIR, 'apps/web/src/stores/checkout.store.ts'), 'utf8');
+    return !/DRIVE_THRU|DELIVERY|Drive-Thru|Delivery/.test(cart + checkout) &&
+      !/drive-thru|delivery/.test(state.split('const initialState')[0]) &&
+      !/Voucher &|Kawan Points|Tukar poin/.test(checkout);
+  });
+
+  run('Legacy customer modules are unregistered and admin routes redirect', () => {
+    const app = readFileSync(path.join(ROOT_DIR, 'apps/api/src/app.module.ts'), 'utf8');
+    const admin = readFileSync(path.join(ROOT_DIR, 'apps/admin/next.config.ts'), 'utf8');
+    return !/ReservationModule|EventModule|CommunityModule|LoyaltyModule/.test(app) &&
+      ['/community', '/crm', '/events/:path*', '/loyalty', '/reservations'].every(route => admin.includes(`'${route}'`));
+  });
+
+  run('Shared brand does not claim an unverified founding year', () => {
+    const logo = readFileSync(path.join(ROOT_DIR, 'packages/ui/src/assets/brand-emblem.tsx'), 'utf8');
+    return !logo.includes('1998') && logo.includes('Surabaya · 24 Jam');
+  });
+
+  run('Active account and order pages make no loyalty or member-pass claims', () => {
+    const account = readFileSync(path.join(ROOT_DIR, 'apps/web/src/features/account/account-page.tsx'), 'utf8');
+    const orders = readFileSync(path.join(ROOT_DIR, 'apps/web/src/app/orders/page.tsx'), 'utf8');
+    return !/Poin member|Tier member|member pass|Sanctuary/i.test(account + orders) &&
+      !account.includes('href="/loyalty"');
+  });
+
+  run("Active README and PRD describe Warkop Ya'reh without legacy business claims", () => {
+    const active = ['README.md', 'PRD.md'].map(file => readFileSync(path.join(ROOT_DIR, file), 'utf8'));
+    return active.every(text => /Warkop Ya.reh/i.test(text) && !/Cold .N Brew Gubeng|Premium Specialty Coffee Shop & Coworking Ecosystem|Darmo flagship|Dharmahusada/i.test(text));
   });
 
   console.log(`\nResults: ${totalPassed} / ${totalChecks} checks passed.`);

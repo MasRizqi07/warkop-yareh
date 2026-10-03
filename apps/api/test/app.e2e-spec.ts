@@ -55,6 +55,15 @@ describe('Application health and global authentication (e2e)', () => {
       );
   });
 
+  it('exposes the same safe readiness contract at /health', () => {
+    return request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect(({ body }: { body: { data: { status: string } } }) => {
+        expect(body.data.status).toBe('ready');
+      });
+  });
+
   it('rejects an unauthenticated request through the global JWT guard', () => {
     return request(app.getHttpServer()).get('/api/v1/auth/me').expect(401);
   });

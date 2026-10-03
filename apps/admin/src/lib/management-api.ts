@@ -23,8 +23,13 @@ export interface ProductRecord {
   price: number;
   image: string | null;
   isActive: boolean;
+  publicationStatus: 'DRAFT' | 'REVIEW' | 'VERIFIED' | 'PUBLISHED' | 'ARCHIVED';
+  sourceReferenceId: string | null;
+  verifiedAt: string | null;
+  publishedAt: string | null;
   categoryId: string;
   category: { id: string; name: string; slug: string };
+  customizations: Array<{ id: string; name: string; options: Array<{ label: string; price: number }> }>;
 }
 
 export interface CategoryRecord {
@@ -220,18 +225,41 @@ function queryString(input: Record<string, string | number | undefined>) {
 }
 
 export async function getProducts(params: { page?: number; limit?: number; search?: string; categoryId?: string } = {}): Promise<Paginated<ProductRecord>> {
-  return apiFetch(`/products${queryString({ page: params.page ?? 1, limit: params.limit ?? 100, search: params.search, categoryId: params.categoryId })}`);
+  const products = (await apiFetch<Envelope<ProductRecord[]>>('/admin/products')).data;
+  const filtered = products.filter((product) =>
+    (!params.categoryId || product.categoryId === params.categoryId) &&
+    (!params.search || product.name.toLowerCase().includes(params.search.toLowerCase()))
+  );
+  const page = params.page ?? 1;
+  const limit = params.limit ?? Math.max(filtered.length, 1);
+  return { data: filtered.slice((page - 1) * limit, page * limit), meta: { total: filtered.length, page, limit, totalPages: Math.ceil(filtered.length / limit), hasNext: page * limit < filtered.length, hasPrevious: page > 1 } };
 }
 
 export async function getCategories(): Promise<CategoryRecord[]> {
-  return (await apiFetch<Envelope<CategoryRecord[]>>('/categories')).data;
+  return (await apiFetch<Envelope<CategoryRecord[]>>('/admin/categories')).data;
 }
 
-export async function createProduct(input: { name: string; description?: string; price: number; categoryId: string }): Promise<ProductRecord> {
+export async function createCategory(name: string): Promise<CategoryRecord> {
+  return (await apiFetch<Envelope<CategoryRecord>>('/categories', { method: 'POST', body: JSON.stringify({ name }) })).data;
+}
+
+export async function createMenuEvidence(id: string, evidence: { sourceType: 'PRIMARY_OPERATOR' | 'DIRECT_PHYSICAL_AUDIT'; sourceName: string; referenceUrl?: string; rawExcerpt?: string; capturedAt: string }): Promise<{ id: string }> {
+  return (await apiFetch<Envelope<{ id: string }>>(`/admin/products/${id}/evidence`, { method: 'POST', body: JSON.stringify(evidence) })).data;
+}
+
+export async function setProductPublication(id: string, status: ProductRecord['publicationStatus'], sourceReferenceId?: string): Promise<ProductRecord> {
+  return (await apiFetch<Envelope<ProductRecord>>(`/products/${id}/publication`, { method: 'PATCH', body: JSON.stringify({ status, sourceReferenceId }) })).data;
+}
+
+export async function replaceProductCustomizations(id: string, groups: Array<{ name: string; options: Array<{ label: string; price: number }> }>): Promise<ProductRecord> {
+  return (await apiFetch<Envelope<ProductRecord>>(`/admin/products/${id}/customizations`, { method: 'PUT', body: JSON.stringify({ groups }) })).data;
+}
+
+export async function createProduct(input: { name: string; description?: string; price: number; categoryId: string; image?: string | null }): Promise<ProductRecord> {
   return (await apiFetch<Envelope<ProductRecord>>('/products', { method: 'POST', body: JSON.stringify(input) })).data;
 }
 
-export async function updateProduct(id: string, input: Partial<{ name: string; description: string; price: number; categoryId: string }>): Promise<ProductRecord> {
+export async function updateProduct(id: string, input: Partial<{ name: string; description: string; price: number; categoryId: string; image: string | null }>): Promise<ProductRecord> {
   return (await apiFetch<Envelope<ProductRecord>>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(input) })).data;
 }
 
@@ -361,8 +389,4 @@ export async function updateReward(id: string, input: Partial<RewardInput>): Pro
 
 export async function getUsers(params: { search?: string; role?: string } = {}): Promise<Paginated<UserRecord>> {
   return apiFetch(`/users${queryString({ search: params.search, role: params.role, page: 1, limit: 100 })}`);
-}
-
-export async function awardPoints(userId: string, points: number, reason: string): Promise<unknown> {
-  return apiFetch(`/loyalty/users/${userId}/award`, { method: 'POST', body: JSON.stringify({ points, reason }) });
 }

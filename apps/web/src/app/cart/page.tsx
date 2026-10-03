@@ -6,8 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
-  Bike,
-  Car,
   ChevronRight,
   Minus,
   Plus,
@@ -31,8 +29,6 @@ import { getApiErrorMessage } from '@/lib/api-error';
 const ORDER_TYPES: Record<FulfillmentType, CreateOrderRequest['type']> = {
   'dine-in': 'DINE_IN',
   pickup: 'TAKE_AWAY',
-  'drive-thru': 'DRIVE_THRU',
-  delivery: 'DELIVERY',
 };
 
 const FULFILLMENT_OPTIONS: Array<{
@@ -42,8 +38,6 @@ const FULFILLMENT_OPTIONS: Array<{
 }> = [
   { type: 'dine-in', label: 'Dine-In', icon: Utensils },
   { type: 'pickup', label: 'Self Pickup', icon: Store },
-  { type: 'drive-thru', label: 'Drive-Thru', icon: Car },
-  { type: 'delivery', label: 'Delivery', icon: Bike },
 ];
 
 export default function CartPage() {
@@ -425,8 +419,8 @@ export default function CartPage() {
               <p className="text-[11px] leading-relaxed text-text-muted">
                 Estimasi berasal dari server.{' '}
                 {authenticated
-                  ? 'Voucher dan poin dapat diterapkan pada langkah checkout.'
-                  : 'Masuk saat checkout untuk menerapkan voucher dan poin.'}
+                  ? 'Harga akhir akan dikonfirmasi saat checkout.'
+                  : 'Masuk saat checkout untuk melanjutkan pesanan.'}
               </p>
               <Link
                 href="/checkout"

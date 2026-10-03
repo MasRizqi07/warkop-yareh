@@ -52,15 +52,28 @@ function extractErrorMessage(data: LoginResponse, fallback: string) {
 async function revokeUnauthorizedSession(accessToken?: string) {
   if (!accessToken) return;
 
-  await fetch(`${API_URL}/auth/logout`, {
+  await boundedFetch(`${API_URL}/auth/logout`, {
     method: 'POST',
     credentials: 'include',
     headers: { Authorization: `Bearer ${accessToken}` },
   }).catch(() => undefined);
 }
 
+async function boundedFetch(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const timeout = AbortSignal.timeout(15_000);
+  return fetch(url, {
+    ...options,
+    signal: options.signal
+      ? AbortSignal.any([options.signal, timeout])
+      : timeout,
+  });
+}
+
 export async function adminLogin(email: string, password: string) {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const response = await boundedFetch(`${API_URL}/auth/login`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -88,7 +101,7 @@ export async function adminLogin(email: string, password: string) {
 }
 
 async function refreshAdminToken(): Promise<string | null> {
-  const response = await fetch(`${API_URL}/auth/refresh`, {
+  const response = await boundedFetch(`${API_URL}/auth/refresh`, {
     method: 'POST',
     credentials: 'include',
   });
@@ -111,7 +124,7 @@ function redirectToLogin() {
   const loginUrl = new URL('/login', window.location.origin);
   loginUrl.searchParams.set(
     'redirect_url',
-    `${window.location.pathname}${window.location.search}`,
+    `${window.location.pathname}${window.location.search}`
   );
   window.location.replace(loginUrl);
 }
@@ -120,7 +133,7 @@ export async function adminLogout() {
   const token = getAdminToken();
   try {
     if (token) {
-      await fetch(`${API_URL}/auth/logout`, {
+      await boundedFetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
@@ -133,7 +146,7 @@ export async function adminLogout() {
 
 export async function apiFetch<T = unknown>(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<T> {
   let token = getAdminToken() || (await refreshAdminToken());
   if (!token) {
@@ -147,7 +160,7 @@ export async function apiFetch<T = unknown>(
     Authorization: `Bearer ${token}`,
   };
 
-  let response = await fetch(`${API_URL}${endpoint}`, {
+  let response = await boundedFetch(`${API_URL}${endpoint}`, {
     ...options,
     credentials: 'include',
     headers,
@@ -162,7 +175,7 @@ export async function apiFetch<T = unknown>(
     }
 
     headers.Authorization = `Bearer ${token}`;
-    response = await fetch(`${API_URL}${endpoint}`, {
+    response = await boundedFetch(`${API_URL}${endpoint}`, {
       ...options,
       credentials: 'include',
       headers,
@@ -172,7 +185,7 @@ export async function apiFetch<T = unknown>(
   if (!response.ok) {
     const data = (await response.json().catch(() => ({}))) as LoginResponse;
     throw new Error(
-      extractErrorMessage(data, `Request failed with status ${response.status}`),
+      extractErrorMessage(data, `Request failed with status ${response.status}`)
     );
   }
 

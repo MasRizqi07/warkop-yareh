@@ -90,10 +90,9 @@ describe('browser-only Zustand persistence', () => {
     expect(
       await checkoutMigration?.(
         {
-          fulfillmentType: 'teleport',
+          fulfillmentType: 'delivery',
           tableId: 12,
           tableLabel: null,
-          deliveryAddress: false,
           splitBillCount: 99,
         },
         0
@@ -102,7 +101,6 @@ describe('browser-only Zustand persistence', () => {
       fulfillmentType: 'pickup',
       tableId: null,
       tableLabel: '',
-      deliveryAddress: '',
       splitBillCount: 10,
     });
     expect(await themeMigration?.({ isDark: 'yes' }, 0)).toEqual({

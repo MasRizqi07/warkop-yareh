@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@warkop-yareh/ui';
 import { Input } from '@warkop-yareh/ui';
 import { api } from '@/lib/api';
+import { SITE } from '@/lib/constants';
 import {
   Coffee,
   Mail,
@@ -29,7 +30,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const brandName = process.env.NEXT_PUBLIC_BRAND_NAME || "Warkop Ya'reh";
+  const brandName = SITE.name;
 
   useEffect(() => {
     if (!success) return;
@@ -73,7 +74,7 @@ export default function RegisterPage() {
           Create an account
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-          Join {brandName} untuk mengakses pesanan, reservasi, dan loyalty
+          Buat akun {brandName} untuk mengakses riwayat pesanan Anda.
         </p>
       </div>
 
@@ -218,7 +219,7 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                   />
                 </div>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                   Must be at least 12 characters
                 </p>
               </div>
@@ -256,7 +257,7 @@ export default function RegisterPage() {
                   <div className="w-full border-t border-slate-200 dark:border-slate-800" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-slate-900 text-slate-500">
+                  <span className="px-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                     Or sign up with
                   </span>
                 </div>

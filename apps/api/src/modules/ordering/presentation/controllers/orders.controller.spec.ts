@@ -45,6 +45,7 @@ const orderResult = (overrides: Record<string, unknown> = {}): OrderDetails =>
   }) as unknown as OrderDetails;
 
 describe('OrdersController', () => {
+  const originalPublicOrdering = process.env.PUBLIC_ORDERING;
   let app: INestApplication<Server>;
   let orderingService: {
     createOrder: jest.MockedFunction<OrderingService['createOrder']>;
@@ -86,6 +87,7 @@ describe('OrdersController', () => {
   });
 
   beforeEach(() => {
+    delete process.env.PUBLIC_ORDERING;
     jest.clearAllMocks();
     mockUser = {
       id: 'user_A',
@@ -94,6 +96,24 @@ describe('OrdersController', () => {
       role: Role.CUSTOMER,
       branchId: null,
     };
+  });
+
+  afterEach(() => {
+    if (originalPublicOrdering === undefined)
+      delete process.env.PUBLIC_ORDERING;
+    else process.env.PUBLIC_ORDERING = originalPublicOrdering;
+  });
+
+  it('keeps customer ordering disabled by default', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/orders')
+      .set('Idempotency-Key', 'controller-idem-disabled')
+      .send({
+        branchId: 'branch_A',
+        items: [{ productId: 'prod_1', quantity: 1 }],
+      })
+      .expect(403);
+    expect(orderingService.createOrder).not.toHaveBeenCalled();
   });
 
   it('requires an idempotency key for order creation', async () => {
@@ -109,6 +129,7 @@ describe('OrdersController', () => {
   });
 
   it('ignores a spoofed body userId for customers', async () => {
+    process.env.PUBLIC_ORDERING = 'true';
     orderingService.createOrder.mockResolvedValue(orderResult());
 
     await request(app.getHttpServer())

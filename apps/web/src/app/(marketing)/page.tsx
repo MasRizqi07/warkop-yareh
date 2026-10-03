@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import {
@@ -16,13 +14,10 @@ import {
   Compass,
 } from 'lucide-react';
 import { VERIFIED_BRANCHES } from '@warkop-yareh/types';
-import { useBranchStore } from '@/stores';
 
 export default function HomePage() {
-  const activeBranchId = useBranchStore((state) => state.activeBranchId);
-
   return (
-    <main className="overflow-hidden bg-canvas-obsidian text-on-surface">
+    <div className="overflow-hidden bg-canvas-obsidian text-on-surface">
       {/* 1. Hero Section */}
       <section className="relative border-b border-border-subtle pt-16 pb-20 sm:pt-24 sm:pb-28">
         <div className="pointer-events-none absolute -top-32 left-1/2 h-[550px] w-[950px] -translate-x-1/2 rounded-full bg-gradient-to-b from-accent-amber/15 via-brand-coffee/10 to-transparent blur-3xl" />
@@ -42,7 +37,9 @@ export default function HomePage() {
             </p>
 
             <p className="text-base sm:text-lg text-text-muted leading-relaxed max-w-2xl">
-              Kedai kopi lokal Surabaya yang hadir melayani warga, pekerja, dan komunitas selama 24 jam nonstop di Wonokromo dan Tenggilis Mejoyo. Tempat santai untuk cangkrukan kapan saja.
+              Kedai kopi lokal di Surabaya dengan cabang Jetis Kulon di
+              Wonokromo dan Prapen di Tenggilis Mejoyo. Buka 24 jam untuk
+              dine-in dan takeaway.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2 justify-center sm:justify-start">
@@ -77,7 +74,8 @@ export default function HomePage() {
                 Warkop Khas Surabaya
               </h3>
               <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Suasana cangkrukan santai dengan aneka seduhan kopi, minuman segar, serta camilan dan makanan warkop yang terjangkau.
+                Informasi alamat, layanan, dan kontak kedua outlet Warkop
+                Ya&apos;reh di Surabaya.
               </p>
             </div>
 
@@ -89,7 +87,8 @@ export default function HomePage() {
                 Operasional 24 Jam Nonstop
               </h3>
               <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Siang ataupun malam, kedua cabang kami siap menyambut Anda yang butuh tempat istirahat, ngobrol santai, atau bekerja.
+                Siang ataupun malam, kedua cabang kami siap menyambut Anda yang
+                butuh tempat istirahat, ngobrol santai, atau bekerja.
               </p>
             </div>
 
@@ -101,7 +100,8 @@ export default function HomePage() {
                 Dua Cabang Terverifikasi
               </h3>
               <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Outlet 1 berlokasi di Jl. Raya Jetis Kulon (Wonokromo) dan Outlet 2 di Jl. Raya Prapen (Tenggilis Mejoyo).
+                Outlet 1 berlokasi di Jl. Raya Jetis Kulon (Wonokromo) dan
+                Outlet 2 di Jl. Raya Prapen (Tenggilis Mejoyo).
               </p>
             </div>
           </div>
@@ -121,7 +121,9 @@ export default function HomePage() {
                 Kapan Pun Anda Butuh Kopi, Kami Buka.
               </h2>
               <p className="text-sm sm:text-base text-text-muted leading-relaxed">
-                Tidak perlu khawatir mencari tempat singgah larut malam di Surabaya. Warkop Ya&apos;reh beroperasi penuh 24 jam setiap hari di Jetis Kulon maupun Prapen.
+                Tidak perlu khawatir mencari tempat singgah larut malam di
+                Surabaya. Warkop Ya&apos;reh beroperasi penuh 24 jam setiap hari
+                di Jetis Kulon maupun Prapen.
               </p>
             </div>
           </div>
@@ -150,7 +152,7 @@ export default function HomePage() {
                   Makan & Minum di Tempat (Dine-in)
                 </h3>
                 <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                  Ruang santai terbuka untuk duduk ngopi bersama teman, rekan kerja, maupun menikmati waktu sendiri.
+                  Layanan makan dan minum di tempat tersedia di kedua outlet.
                 </p>
               </div>
             </div>
@@ -164,7 +166,8 @@ export default function HomePage() {
                   Bawa Pulang (Takeaway)
                 </h3>
                 <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                  Pesan langsung di konter untuk dibawa pulang dalam kemasan praktis dan siap dinikmati di jalan.
+                  Layanan bawa pulang tersedia. Tanyakan menu dan harga langsung
+                  di outlet.
                 </p>
               </div>
             </div>
@@ -185,7 +188,10 @@ export default function HomePage() {
                 Kisaran Pengeluaran: Rp1–25.000 per orang
               </h3>
               <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Berdasarkan data listing publik, rata-rata pengunjung menghabiskan Rp1–25.000 per kunjungan. Daftar menu lengkap beserta harga resmi per item sedang dalam proses verifikasi langsung dari outlet.
+                Berdasarkan data listing publik, rata-rata pengunjung
+                menghabiskan Rp1–25.000 per kunjungan. Daftar menu lengkap
+                beserta harga resmi per item sedang dalam proses verifikasi
+                langsung dari outlet.
               </p>
             </div>
             <Link
@@ -200,7 +206,10 @@ export default function HomePage() {
       </section>
 
       {/* 6. Outlets Directory Preview */}
-      <section id="outlets" className="border-b border-border-subtle py-16 sm:py-20 bg-surface-secondary/40 scroll-mt-16">
+      <section
+        id="outlets"
+        className="border-b border-border-subtle py-16 sm:py-20 bg-surface-secondary/40 scroll-mt-16"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-xl mx-auto mb-12 space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3 py-1 font-mono text-xs text-accent-amber">
@@ -217,7 +226,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {VERIFIED_BRANCHES.map((branch) => {
-              const isSelected = branch.id === activeBranchId;
+              const isSelected = branch.isMainBranch;
               const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(branch.plusCode)}`;
 
               return (
@@ -249,13 +258,20 @@ export default function HomePage() {
                       <p className="flex items-start gap-2.5">
                         <MapPin className="h-4 w-4 shrink-0 text-accent-amber mt-0.5" />
                         <span>
-                          {branch.address.street}, {branch.address.subdistrict}, {branch.address.district}, {branch.address.city} {branch.address.postalCode}
+                          {branch.address.street}, {branch.address.subdistrict},{' '}
+                          {branch.address.district}, {branch.address.city}{' '}
+                          {branch.address.postalCode}
                         </span>
                       </p>
 
                       <p className="flex items-center gap-2.5 font-mono text-xs">
                         <Navigation className="h-4 w-4 shrink-0 text-text-muted" />
-                        <span>Plus Code: <strong className="text-text-primary">{branch.plusCode}</strong></span>
+                        <span>
+                          Plus Code:{' '}
+                          <strong className="text-text-primary">
+                            {branch.plusCode}
+                          </strong>
+                        </span>
                       </p>
 
                       {branch.phone && (
@@ -296,81 +312,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 7. Real Atmosphere Gallery Preview */}
-      <section className="border-b border-border-subtle py-16 bg-canvas-obsidian">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
-            <div className="space-y-2">
-              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
-                Dokumentasi Suasana
-              </span>
-              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-text-primary">
-                Suasana Cangkrukan Warkop
-              </h2>
-            </div>
-            <Link
-              href="/gallery"
-              className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-accent-amber hover:underline"
-            >
-              Buka Galeri Lengkap →
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 flex flex-col justify-between h-48">
-              <div className="space-y-1">
-                <span className="font-mono text-[10px] text-accent-amber uppercase tracking-wider">Suasana Malam</span>
-                <h4 className="font-heading font-bold text-text-primary text-base">Cangkrukan Santai</h4>
-                <p className="text-xs text-text-muted">Tempat berkumpul warga dan mahasiswa menikmati obrolan malam dengan segelas kopi.</p>
-              </div>
-              <div className="text-[11px] font-mono text-text-muted">Jetis Kulon & Prapen</div>
-            </div>
-
-            <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 flex flex-col justify-between h-48">
-              <div className="space-y-1">
-                <span className="font-mono text-[10px] text-accent-amber uppercase tracking-wider">Layanan Terbuka</span>
-                <h4 className="font-heading font-bold text-text-primary text-base">Seduhan Cepat di Konter</h4>
-                <p className="text-xs text-text-muted">Pelayanan sigap untuk pesanan kopi panas, es kopi, dan hidangan cepat saji.</p>
-              </div>
-              <div className="text-[11px] font-mono text-text-muted">Dine-in & Takeaway</div>
-            </div>
-
-            <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 flex flex-col justify-between h-48">
-              <div className="space-y-1">
-                <span className="font-mono text-[10px] text-accent-amber uppercase tracking-wider">Kenyamanan</span>
-                <h4 className="font-heading font-bold text-text-primary text-base">Ruang Duduk Terbuka</h4>
-                <p className="text-xs text-text-muted">Area duduk warkop yang ramah dan bersahaja, nyaman untuk beristirahat di setiap jam.</p>
-              </div>
-              <div className="text-[11px] font-mono text-text-muted">Buka 24 Jam Nonstop</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Customer Sentiment Signals */}
-      <section className="border-b border-border-subtle py-14 bg-surface-secondary/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center max-w-2xl">
-          <h3 className="font-heading text-xl sm:text-2xl font-bold text-text-primary mb-3">
-            Mengapa Pelanggan Memilih Warkop Ya&apos;reh?
-          </h3>
-          <p className="text-xs sm:text-sm text-text-muted leading-relaxed mb-8">
-            Catatan kepuasan umum pengunjung dari listing publik
+      <section className="border-b border-border-subtle py-12">
+        <div className="mx-auto max-w-5xl px-4 space-y-3">
+          <h2 className="font-heading text-2xl font-bold">
+            Dokumentasi Outlet
+          </h2>
+          <p className="text-sm text-text-muted">
+            Foto outlet belum tersedia untuk ditampilkan. Kunjungi halaman
+            galeri untuk melihat status dokumentasi.
           </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-            <div className="rounded-xl border border-border-subtle bg-surface-card p-4 space-y-1.5">
-              <div className="font-semibold text-text-primary text-xs sm:text-sm">Akses 24 Jam</div>
-              <p className="text-[11px] text-text-muted leading-normal">Mudah dikunjungi sewaktu-waktu saat malam hari maupun dini hari.</p>
-            </div>
-            <div className="rounded-xl border border-border-subtle bg-surface-card p-4 space-y-1.5">
-              <div className="font-semibold text-text-primary text-xs sm:text-sm">Harga Bersahabat</div>
-              <p className="text-[11px] text-text-muted leading-normal">Pengeluaran ramah di kantong cocok untuk semua kalangan.</p>
-            </div>
-            <div className="rounded-xl border border-border-subtle bg-surface-card p-4 space-y-1.5">
-              <div className="font-semibold text-text-primary text-xs sm:text-sm">Lokasi Strategis</div>
-              <p className="text-[11px] text-text-muted leading-normal">Terletak di jalan raya utama Wonokromo dan Prapen yang mudah dijangkau.</p>
-            </div>
-          </div>
+          <Link className="inline-block py-3 text-accent-amber" href="/gallery">
+            Lihat Galeri
+          </Link>
         </div>
       </section>
 
@@ -383,7 +336,8 @@ export default function HomePage() {
               Buka Peta & Petunjuk Arah
             </h3>
             <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
-              Gunakan Google Maps dengan Plus Code resmi untuk navigasi presisi menuju cabang Warkop Ya&apos;reh pilihan Anda:
+              Gunakan Google Maps dengan Plus Code resmi untuk navigasi presisi
+              menuju cabang Warkop Ya&apos;reh pilihan Anda:
             </p>
             <div className="flex flex-wrap justify-center gap-3 pt-2">
               <a
@@ -416,7 +370,8 @@ export default function HomePage() {
             Ada Pertanyaan Seputar Outlet?
           </h3>
           <p className="text-xs sm:text-sm text-text-muted">
-            Hubungi kontak resmi outlet Prapen atau kunjungi halaman kontak untuk informasi lengkap.
+            Hubungi kontak resmi outlet Prapen atau kunjungi halaman kontak
+            untuk informasi lengkap.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <a
@@ -435,6 +390,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

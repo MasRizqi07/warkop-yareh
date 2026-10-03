@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@warkop-yareh/types": "workspace:*",
     "bcrypt": "^6.0.0"
   },
   "devDependencies": {

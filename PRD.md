@@ -1,656 +1,1040 @@
-## **PRODUCT REQUIREMENTS DOCUMENT (PRD)** 
+# PRODUCT REQUIREMENTS DOCUMENT
+# WARKOP YA'REH DIGITAL PLATFORM
+## Version 3.0 — Reality-First Production Product
 
-## **Digitalisasi Coffee Shop Cold 'N Brew - Gubeng** 
+**Status:** Approved Product Direction
+**Date:** October 2026
+**Repository:** `MasRizqi07/warkop-yareh`
+**Current baseline:** `main @ b21ee705d845dd2459f39682b164ca4afa26c718`
 
-## **Version** 
+---
 
-v1.0 
+# 1. EXECUTIVE SUMMARY
 
-## **Status** 
+Warkop Ya'reh adalah bisnis warkop lokal Surabaya yang saat ini memiliki dua outlet terverifikasi:
 
-Product Discovery & Planning 
+1. Warkop Ya'reh — Jetis Kulon
+2. Warkop Ya'reh 2 — Prapen
 
-## **Prepared By** 
+Versi awal sistem digital Warkop Ya'reh berkembang dari konsep coffee-shop enterprise yang terlalu spekulatif dan mengandung asumsi bisnis yang belum terbukti.
 
-Product Manager 
+Reality Rebuild telah memperbaiki sebagian besar customer-facing product sehingga platform kembali merepresentasikan bisnis yang benar-benar ada.
 
-## **Date** 
+PRD v3.0 menjadi source of truth baru untuk transformasi berikutnya.
 
-June 2026 
+Produk tidak lagi dibangun sebagai:
 
-## **1. EXECUTIVE SUMMARY** 
+> “premium specialty coffee / coworking ecosystem”
 
-Cold 'N Brew Gubeng merupakan coffee shop modern yang beroperasi 24 jam dan melayani pelanggan dine-in, take-away, drive-thru, delivery, komunitas, meeting, serta work-from-cafe. 
+tetapi sebagai:
 
-Saat ini sebagian besar proses operasional masih terfragmentasi antara kasir, WhatsApp, Google Maps, marketplace, dan pencatatan manual. 
+> **Digital Operating Platform untuk Warkop Ya'reh yang reality-first, mobile-first, local-first, operationally useful, scalable, dan dapat berkembang hanya berdasarkan kemampuan bisnis yang benar-benar tersedia.**
 
-Tujuan digitalisasi adalah membangun ekosistem digital terintegrasi yang mampu meningkatkan: 
+Platform harus mampu bertumbuh dari:
 
-- Revenue 
+`Business Information Platform`
 
-- Customer Retention 
+menjadi:
 
-- Operational Efficiency 
+`Verified Digital Menu`
 
-- Data-Driven Decision Making 
+kemudian:
 
-- Brand Loyalty 
+`Ordering & Customer Platform`
 
-## **2. PRODUCT VISION** 
+kemudian:
 
-Menjadi coffee shop digital-first terbaik di Surabaya yang menghadirkan pengalaman digital premium dan *immersive*. Kami memadukan kemudahan pemesanan, pembayaran, loyalitas pelanggan, dan operasional bisnis dalam satu platform dengan standar desain **UI/UX tingkat tinggi (Wow Factor)** yang setara dengan aplikasi gaya hidup modern berkelas dunia.
+`Operational Business Platform`
 
-1 
+tanpa pernah mengorbankan integritas data bisnis.
 
-## **3. BUSINESS OBJECTIVES** 
+---
 
-## **Primary Goals** 
+# 2. PRODUCT VISION
 
-## **BO-01** 
+Membangun platform digital resmi Warkop Ya'reh yang menjadi pusat informasi, discovery, customer interaction, ordering, content, dan operasional bisnis untuk seluruh outlet.
 
-Meningkatkan revenue sebesar 30% dalam 12 bulan. 
+Platform harus terasa:
 
-## **BO-02** 
+- lokal;
+- cepat;
+- sederhana;
+- modern;
+- mobile-first;
+- accessible;
+- terpercaya;
+- mudah digunakan pelanggan;
+- mudah dioperasikan owner/staff;
+- scalable secara teknis;
+- tidak bergantung pada data fiktif.
 
-Meningkatkan repeat customer sebesar 40%. 
+North-star principle:
 
-## **BO-03** 
+> **Real business first. Software follows reality.**
 
-Mengurangi waktu pemesanan hingga 50%. 
+---
 
-## **BO-04** 
+# 3. PRODUCT PRINCIPLES
 
-Mengurangi kesalahan pesanan hingga 80%. 
+## 3.1 Reality Before Features
 
-## **BO-05** 
+Tidak ada fitur atau informasi customer-facing yang boleh dianggap aktif sebelum kemampuan bisnisnya terbukti.
 
-Meningkatkan customer satisfaction score menjadi >90%. 
+---
 
-## **4. PRODUCT GOALS** 
+## 3.2 Unknown Is Not Absent
 
-Platform harus memungkinkan: 
+Data yang belum diketahui harus direpresentasikan sebagai:
 
-- Pemesanan digital dengan *fluid navigation* dan animasi 
+`UNVERIFIED`
 
-- Loyalty Program yang digamifikasi (Gamified Dashboard) 
+bukan dianggap tidak tersedia.
 
-- Membership dengan efek visual eksklusif (Glassmorphism & 3D Elements) 
+---
 
-- Customer Analytics 
+## 3.3 Evidence-Driven Data
 
-- Inventory Management 
+Business facts harus memiliki provenance apabila berasal dari sumber eksternal atau observasi bisnis.
 
-- POS Integration 
+Confidence model:
 
-- Marketing Automation 
+- `VERIFIED`
+- `PARTIALLY_VERIFIED`
+- `UNVERIFIED`
+- `DISPUTED`
+- `DEPRECATED`
 
-- Event Management 
+---
 
-- Multi Channel Ordering 
+## 3.4 Mobile First
 
-- Personalized AI Menu Recommendations dengan antarmuka dinamis
+Mayoritas penggunaan customer diasumsikan melalui smartphone.
 
-## **5. TARGET USERS** 
+Desktop tetap first-class, tetapi keputusan UX dimulai dari mobile.
 
-## **Persona 1 - Student** 
+---
 
-Usia: 18-25 tahun 
+## 3.5 Progressive Capability
 
-2 
+Fitur bisnis berat hanya diaktifkan ketika data dan operasional siap.
 
-Kebutuhan: 
+Contoh:
 
-- Nongkrong • Nugas • Wifi • Promo 
+`menu verified → cart → checkout → payment → kitchen workflow`
 
-Pain Points: 
+bukan sebaliknya.
 
-- Antri lama • Tidak tahu promo 
+---
 
-## **Persona 2 - Freelancer** 
+## 3.6 Operational Simplicity
 
-Usia: 22-35 tahun 
+Owner/staff tidak boleh membutuhkan developer untuk melakukan perubahan rutin seperti:
 
-Kebutuhan: 
+- memperbarui jam;
+- memperbarui menu;
+- mengganti foto;
+- memperbarui harga;
+- menandai item unavailable;
+- mengubah content landing page.
 
-- Tempat kerja • Meeting • Reservasi 
+---
 
-Pain Points: 
+# 4. VERIFIED BUSINESS BASELINE
 
-- Sulit booking tempat 
+## 4.1 Jetis Kulon
 
-## **Persona 3 - Corporate Worker** 
+**Brand name:** WARKOP YA'REH
 
-Usia: 24-40 tahun 
+**Slug:** `jetis-kulon`
 
-Kebutuhan: 
+**Address:**
 
-- Meeting • Delivery 
+`Jl. Raya Jetis Kulon I No.38, Wonokromo, Kec. Wonokromo, Surabaya, Jawa Timur 60243`
 
-- Quick Order 
+**Plus Code:**
 
-Pain Points: 
+`MPVJ+2G Wonokromo, Surabaya, Jawa Timur`
 
-- Waktu terbatas 
+**Phone:**
 
-## **Persona 4 - Community Leader** 
+`UNKNOWN`
 
-Usia: 20-40 tahun 
+**Operating hours:**
 
-3 
+24 hours
 
-Kebutuhan: 
+**Known service modes:**
 
-- Event 
+- dine-in;
+- takeaway.
 
-- Gathering 
+**Public spending range:**
 
-- Reservasi area 
+`Rp1–25.000 per orang`
 
-Pain Points: 
+This is a venue spending range, not item pricing.
 
-- Sulit koordinasi booking 
+---
 
-## **6. PRODUCT SCOPE** 
+## 4.2 Prapen
 
-## **In Scope** 
+**Brand name:** WARKOP YA'REH 2 PRAPEN
 
-## **Customer Mobile Experience** 
+**Slug:** `prapen`
 
-- Website 
+**Address:**
 
-- Progressive Web App 
+`Jl. Raya Prapen No.39, Prapen, Kec. Tenggilis Mejoyo, Surabaya, Jawa Timur 60239`
 
-- QR Menu • Online Ordering • Loyalty 
+**Plus Code:**
 
-- Membership 
+`MQM3+XJ Prapen, Surabaya, Jawa Timur`
 
-- Reservation 
+**Phone:**
 
-## **Staff Operations** 
+`0821-3735-4606`
 
-- POS • Kitchen Display System • Inventory • Employee Management 
+**Operating hours:**
 
-## **Admin Management** 
+24 hours
 
-- Dashboard • Reports • Analytics • Marketing 
+**Known service modes:**
 
-## **Out Of Scope (Phase 1)** 
+- dine-in;
+- takeaway.
 
-- Franchise Management 
+**Public spending range:**
 
-- Multi Outlet Management 
+`Rp1–25.000 per orang`
 
-- ERP 
+---
 
-- Accounting System 
+# 5. PRODUCT PROBLEMS
 
-4 
+## P-01 — Business Information Fragmentation
 
-## **7. CORE FEATURES** 
+Informasi outlet tersebar di external listing dan belum memiliki satu canonical digital source.
 
-## **MODULE 1** 
+---
 
-CUSTOMER APPLICATION 
+## P-02 — Menu Data Not Yet Digitally Authoritative
 
-## **Feature 1.1** 
+Belum ada verified item-level menu dataset yang cukup aman untuk dianggap production truth.
 
-Authentication 
+---
 
-Functions: 
+## P-03 — Legacy Domain Contamination
 
-- Register 
+Repository masih memiliki domain model yang berasal dari product concept lama:
 
-- Login 
+- loyalty;
+- membership tiers;
+- reservation;
+- events;
+- community;
+- drive-thru;
+- delivery;
+- coworking-related assumptions;
+- speculative branch capabilities.
 
-- Google Login 
+Model-model tersebut menciptakan architecture debt dan risiko future regression.
 
-- OTP Login 
+---
 
-## **Feature 1.2** 
+## P-04 — Documentation Drift
 
-Profile Management 
+`PRD.md`, `README.md`, dan sebagian architecture documentation belum merepresentasikan Reality Rebuild.
 
-Functions: 
+---
 
-- Edit profile 
+## P-05 — Operational Content Dependency
 
-- Favorite menu 
+Business content masih terlalu bergantung pada source code.
 
-- Order history • Membership status 
+Owner/staff membutuhkan CMS yang lebih usable.
 
-## **Feature 1.3** 
+---
 
-Digital Menu 
+## P-06 — Production Readiness Gap
 
-Functions: 
+Build dan CI sudah hijau, tetapi production readiness harus mencakup:
 
-- Browse menu 
+- monitoring;
+- accessibility;
+- SEO;
+- observability;
+- security;
+- runtime validation;
+- content provenance.
 
-- Search menu 
+---
 
-- Categories 
+# 6. TARGET USERS
 
-- Recommendation 
+## Customer / Visitor
 
-- Bestseller 
+Kebutuhan:
 
-## **Feature 1.4** 
+- menemukan outlet;
+- mengetahui apakah buka;
+- mendapatkan arah;
+- melihat informasi menu ketika tersedia;
+- menghubungi outlet;
+- melakukan pemesanan jika fitur aktif.
 
-QR Ordering 
+---
 
-5 
+## Returning Customer
 
-Customer scans QR code. 
+Kebutuhan:
 
-Flow: 
+- login;
+- melihat order history;
+- melakukan repeat order ketika ordering benar-benar aktif;
+- mengelola profil.
 
-Scan QR → Select Table → Order → Pay → Kitchen → Served 
+---
 
-## **Feature 1.5** 
+## Staff
 
-Online Ordering 
+Kebutuhan:
 
-Options: 
+- melihat order aktif;
+- memperbarui status order;
+- mengelola availability menu;
+- menangani workflow outlet.
 
-- Dine In 
+Aktif hanya jika deployment operasional benar-benar digunakan.
 
-- Take Away 
+---
 
-- Drive Thru 
+## Admin
 
-- Delivery 
+Kebutuhan:
 
-## **Feature 1.6** 
+- manage content;
+- menu;
+- gallery;
+- outlet data;
+- visibility;
+- provenance;
+- availability.
 
-Reservation 
+---
 
-Functions: 
+## Owner / Manager
 
-- Book table 
+Kebutuhan:
 
-- Book meeting room 
+- business overview;
+- outlet status;
+- menu management;
+- operational visibility;
+- analytics berbasis real data.
 
-- Event reservation 
+---
 
-## **Feature 1.7** 
+# 7. PRODUCT INFORMATION ARCHITECTURE
 
-Loyalty Program 
+Canonical public IA:
 
-Features: 
+```text
+/
+├── /menu
+├── /outlets
+│   ├── /outlets/jetis-kulon
+│   └── /outlets/prapen
+├── /gallery
+├── /about
+├── /contact
+└── /login
+```
 
-- Earn Points 
+Internal/customer application routes may include:
 
-- Redeem Points 
+```text
+/account
+/profile
+/cart
+/checkout
+/orders
+/orders/[id]
+/order/track/[orderId]
+/payment/status
+/qr/[code]
+/table/[tableId]
+```
 
-- Rewards 
+These routes must not automatically become publicly promoted or SEO-indexed.
 
-- Birthday Rewards 
+---
 
-## **Feature 1.8** 
+# 8. PRODUCT MODULES
 
-Membership 
+# MODULE A — PUBLIC BUSINESS EXPERIENCE
 
-Tier: 
+Priority: **P0**
 
-Bronze Silver Gold Platinum 
+Features:
 
-6 
+- homepage;
+- outlet discovery;
+- outlet detail;
+- maps CTA;
+- business hours;
+- verified contact;
+- service modes;
+- spending range;
+- verified status indication;
+- responsive navigation;
+- footer.
 
-Benefits: 
+Acceptance:
 
-- Discount 
+- no fictional facts;
+- no stale branches;
+- no broken CTA;
+- mobile-first.
 
-- Free Drink 
+---
 
-- Priority Reservation 
+# MODULE B — VERIFIED MENU PLATFORM
 
-- Event Access 
+Priority: **P0 / gated by data**
 
-## **MODULE 2** 
+Capabilities:
 
-POINT OF SALE (POS) 
+- categories;
+- products;
+- description;
+- price;
+- availability;
+- branch-level availability;
+- branch-level pricing;
+- optional customization;
+- image;
+- dietary/allergen fields when known;
+- provenance;
+- publish state.
 
-Functions: 
+Required publishing workflow:
 
-- New Order • Split Bill 
+```text
+DRAFT
+→ REVIEW
+→ VERIFIED
+→ PUBLISHED
+→ ARCHIVED
+```
 
-- Discount 
+No item should enter production simply because it exists in database.
 
-- Voucher • Payment • Refund 
+---
 
-Payment: 
+# MODULE C — CONTENT MANAGEMENT SYSTEM
 
-- Cash 
+Priority: **P0**
 
-- QRIS • Debit 
+Admin capabilities:
 
-- Credit Card 
+- branch content;
+- hero copy;
+- announcements;
+- menu;
+- gallery;
+- contact information;
+- business hours;
+- FAQ;
+- metadata;
+- structured content blocks.
 
-- E-Wallet 
+CMS requirements:
 
-## **MODULE 3** 
+- optimistic concurrency;
+- audit trail;
+- validation;
+- draft/publish;
+- preview;
+- rollback-ready design.
 
-KITCHEN DISPLAY SYSTEM 
+---
 
-Functions: 
+# MODULE D — GALLERY & MEDIA
 
-- Incoming Orders 
+Priority: **P1**
 
-- Order Queue 
+Asset classifications:
 
-- Cooking Status 
+- verified venue photo;
+- verified branch photo;
+- menu item photo;
+- brand asset;
+- placeholder;
+- unverified.
 
-- Ready Status 
+Requirements:
 
-Statuses: 
+- alt text;
+- branch relation;
+- provenance;
+- responsive image;
+- optimized delivery;
+- order/sort;
+- visibility.
 
-Pending Preparing Ready Completed 
+---
 
-7 
+# MODULE E — CUSTOMER IDENTITY
 
-## **MODULE 4** 
+Priority: **P1**
 
-INVENTORY MANAGEMENT 
+Capabilities:
 
-Functions: 
+- email/password;
+- Google login;
+- OTP only where implementation is properly configured;
+- logout;
+- secure refresh;
+- device/session management;
+- profile.
 
-- Stock Tracking 
+Security requirements:
 
-- Ingredient Tracking 
+- HttpOnly where appropriate;
+- no persisted raw token;
+- revocable sessions;
+- rate limiting;
+- secure error responses.
 
-- Supplier Management 
+---
 
-- Purchase Orders 
+# MODULE F — ORDERING ENGINE
 
-Alerts: 
+Priority: **P1, FEATURE FLAGGED**
 
-- Low Stock 
+Ordering may only be publicly activated after:
 
-- Out Of Stock 
+1. real menu exists;
+2. availability is reliable;
+3. operational fulfillment is confirmed;
+4. payment readiness is confirmed.
 
-- Expired Ingredients 
+Supported initial real-world modes:
 
-## **MODULE 5** 
+- `DINE_IN`
+- `TAKEAWAY`
 
-CRM 
+Unsupported modes must not be customer-facing without verification:
 
-Functions: 
+- DRIVE_THRU;
+- DELIVERY.
 
-- Customer Database 
+Flow:
 
-- Segmentation 
+```text
+Branch
+→ Menu
+→ Product
+→ Customization
+→ Cart
+→ Checkout
+→ Payment
+→ Order
+→ Fulfillment
+→ Completion
+```
 
-- Purchase History 
+---
 
-- Loyalty Tracking 
+# MODULE G — PAYMENT
 
-Segments: 
+Priority: **P1, FEATURE FLAGGED**
 
-New Customer Active Customer VIP Customer Inactive Customer 
+Potential integration:
 
-## **MODULE 6** 
+Midtrans.
 
-MARKETING AUTOMATION 
+Requirements:
 
-Channels: 
+- webhook signature verification;
+- idempotency;
+- payment state machine;
+- timeout;
+- reconciliation;
+- immutable payment event log;
+- no fake payment method claims.
 
-- WhatsApp 
+---
 
-- Email 
+# MODULE H — QR / TABLE ORDERING
 
-- Push Notification 
+Priority: **P2**
 
-Campaigns: 
+Only activate after in-store validation.
 
-- Birthday Promo 
+Requirements:
 
-- Weekend Promo 
+- signed/unguessable QR identifier;
+- branch binding;
+- table state;
+- no IDOR;
+- expiration/revocation capability.
 
-8 
+---
 
-- New Menu 
+# MODULE I — OPERATIONS
 
-- Event Promotion 
+Priority: **P2**
 
-## **MODULE 7** 
+Potential capabilities:
 
-EVENT MANAGEMENT 
+- order queue;
+- kitchen status;
+- cashier workflow;
+- shift;
+- inventory visibility.
 
-Functions: 
+Must not be exposed until owner/staff operational requirements are confirmed.
 
-- Event Creation 
+---
 
-- Event Registration 
+# MODULE J — ANALYTICS
 
-- Ticketing 
+Priority: **P2**
 
-- Attendance Tracking 
+Only real events.
 
-Examples: 
+Potential metrics:
 
-- Nobar 
+- outlet views;
+- map CTA click;
+- contact CTA;
+- menu views;
+- conversion;
+- cart starts;
+- checkout;
+- paid order;
+- repeat orders;
+- top verified items.
 
-- Workshop 
+No vanity analytics based on fabricated data.
 
-- Community Meetup 
+---
 
-- Open Mic 
+# 9. EXPLICIT NON-GOALS
 
-## **MODULE 8** 
+Until business evidence exists, the following are NOT active product capabilities:
 
-ADMIN DASHBOARD 
+- loyalty tiers;
+- membership;
+- rewards;
+- referral incentives;
+- reservation;
+- coworking;
+- meeting room booking;
+- events;
+- community forum;
+- franchise management;
+- AI recommendations;
+- predictive analytics;
+- delivery;
+- drive-thru;
+- invented promotions.
 
-Metrics: 
+Legacy schema may temporarily preserve some structures for migration safety, but runtime and documentation must not present them as product features.
 
-- Revenue 
+---
 
-- Orders 
+# 10. TARGET DOMAIN ARCHITECTURE
 
-- Best Seller Menu 
+Core domain:
 
-- Active Customers 
+```text
+Identity
+Business
+Branch
+BusinessHours
+BusinessFacts
+Sources
+Menu
+MenuCategory
+MenuItem
+BranchMenu
+Media
+Content
+Order
+Payment
+Session
+Audit
+```
 
-- Inventory Health 
+Optional future operational domains:
 
-Reports: 
+```text
+Table
+Kitchen
+Shift
+Inventory
+Analytics
+```
 
-- Daily 
+Deprecated domains should be isolated:
 
-- Weekly 
+```text
+Reservation
+Community
+Event
+Membership
+Loyalty
+Referral
+Franchise
+AI Recommendation
+```
 
-- Monthly 
+---
 
-- Annual 
+# 11. LEGACY DOMAIN MIGRATION STRATEGY
 
-9 
+No destructive big-bang migration.
 
-## **8. USER JOURNEYS** 
+Use stages:
 
-## **Customer Ordering Journey** 
+### Stage 1 — Dependency Mapping
 
-Open Website → Login → Browse Menu → Add To Cart → Checkout → Payment → Order Tracking → Complete 
+Find active code referencing legacy models.
 
-## **Reservation Journey** 
+### Stage 2 — Runtime Decoupling
 
-Choose Date → Choose Table → Confirm → Pay Deposit → Reservation Confirmed 
+Remove active application dependencies.
 
-## **Loyalty Journey** 
+### Stage 3 — Schema Deprecation
 
-Purchase → Earn Points → Reach Threshold → Redeem Rewards 
+Mark models/fields deprecated.
 
-## **9. NON-FUNCTIONAL REQUIREMENTS** 
+### Stage 4 — Data Export / Backup Strategy
 
-## **Performance & UI/UX Standards** 
+Document data retention.
 
-Page Load: < 2 Seconds 
+### Stage 5 — Removal Migration
 
-API Response: < 500ms 
+Only after proven unused and explicitly approved.
 
-Animation Frame Rate: Konsisten 60fps (memanfaatkan hardware acceleration) 
+This PRD does NOT authorize destructive production drops by default.
 
-Cumulative Layout Shift (CLS): Hampir 0 (Zero CLS) 
+---
 
-Accessibility Score: > 95 (WCAG 2.1 AA Compliance) 
+# 12. DESIGN DIRECTION
 
-Concurrent Users: 10,000+ 
+Brand axis:
 
-Availability: 99.9% 
+`LOCAL × URBAN × YOUTHFUL × ACCESSIBLE × SURABAYA × 24 JAM`
 
-## **Security** 
+Avoid:
 
-JWT Authentication 
+- fake luxury positioning;
+- excessive glassmorphism;
+- generic SaaS dashboard aesthetic;
+- “premium specialty coffee” messaging;
+- developer/coworking branding.
 
-Role Based Access Control 
+UI characteristics:
 
-Rate Limiting 
+- strong typography;
+- warm neutral palette;
+- simple high-contrast surfaces;
+- authentic photography;
+- tactile but subtle motion;
+- clear information hierarchy;
+- accessible contrast;
+- fast on low-to-mid-range devices.
 
-Encryption 
+---
 
-HTTPS 
+# 13. SEO & LOCAL DISCOVERY
 
-OWASP Top 10 Compliance 
+Required:
 
-10 
+- canonical URLs;
+- route-specific metadata;
+- sitemap;
+- robots;
+- OpenGraph;
+- LocalBusiness structured data;
+- branch-specific structured data;
+- contact/address consistency;
+- map CTA.
 
-## **Scalability** 
+Never add unverified:
 
-Microservice Ready 
+- aggregateRating;
+- review count;
+- geo coordinates;
+- official email;
+- social profile.
 
-Cloud Native 
+Dynamic third-party data must have freshness metadata.
 
-Containerized 
+---
 
-Horizontal Scaling 
+# 14. ACCESSIBILITY
 
-## **10. TECHNICAL REQUIREMENTS** 
+Target:
 
-## **Frontend** 
+**WCAG 2.2 AA practical compliance**
 
-Next.js 15 
+Required:
 
-React 19 
+- semantic HTML;
+- keyboard navigation;
+- focus management;
+- labels;
+- error announcements;
+- alt text;
+- touch target sizing;
+- color contrast;
+- reduced motion;
+- accessible dialogs.
 
-TypeScript 
+---
 
-Tailwind CSS 
+# 15. PERFORMANCE TARGETS
 
-Shadcn UI 
+Target production expectations:
 
-Framer Motion 
+- LCP ideally ≤ 2.5 s;
+- CLS ≤ 0.1;
+- INP ≤ 200 ms where practical;
+- no unnecessary client hydration;
+- optimized images;
+- route-level code splitting;
+- minimal third-party JavaScript.
 
-PWA 
+Performance must be measured on production-like deployment.
 
-## **Backend** 
+---
 
-NestJS 
+# 16. SECURITY REQUIREMENTS
 
-TypeScript 
+Minimum:
 
-REST API 
+- RBAC;
+- authorization ownership checks;
+- IDOR protection;
+- secure cookie usage;
+- CSRF-aware architecture;
+- rate limiting;
+- helmet/security headers;
+- password hashing;
+- secret isolation;
+- webhook verification;
+- input validation;
+- secure uploads;
+- audit logs;
+- no sensitive information in client bundle.
 
-WebSocket 
+---
 
-## **Database** 
+# 17. OBSERVABILITY
 
-PostgreSQL 
+Required production foundations:
 
-Redis 
+- health endpoint;
+- structured API logging;
+- deployment identification;
+- error correlation;
+- safe request ID;
+- operational logs;
+- audit events.
 
-11 
+Do not log:
 
-Prisma ORM 
+- passwords;
+- access tokens;
+- refresh tokens;
+- payment secrets;
+- sensitive cookie values.
 
-## **Infrastructure** 
+---
 
-Docker 
+# 18. ADMIN REQUIREMENTS
 
-Nginx 
+Admin must evolve into a usable business control center.
 
-Cloudflare 
+Core navigation:
 
-Vercel 
+```text
+Dashboard
+Branches
+Menu
+Media
+Site Content
+Orders
+Customers
+System
+Audit
+```
 
-AWS 
+Show only enabled domains.
 
-## **11. SUCCESS METRICS** 
+Deprecated modules must disappear from normal navigation.
 
-KPIs 
+---
 
-Monthly Revenue 
+# 19. DATA PROVENANCE
 
-Average Order Value 
+BusinessFact should support:
 
-Customer Retention Rate 
+- subject;
+- key;
+- value;
+- status;
+- source;
+- capturedAt;
+- lastVerifiedAt;
+- notes.
 
-Repeat Purchase Rate 
+Externally sourced facts should be re-verifiable.
 
-Membership Conversion 
+---
 
-Reservation Conversion 
+# 20. CI/CD REQUIREMENTS
 
-Campaign ROI 
+Current CI already validates PR and `main` pushes.
 
-Inventory Accuracy 
+Required gates:
 
-NPS Score 
+- frozen install;
+- Prisma generate;
+- isolated migration;
+- reality audit;
+- lint;
+- typecheck;
+- build;
+- unit tests;
+- persistence tests;
+- API E2E;
+- browser E2E.
 
-Customer Satisfaction Score 
+Future additions:
 
-## **12. PHASE ROADMAP** 
+- accessibility smoke;
+- dead-link validation;
+- structured-data validation;
+- canonical-business regression;
+- migration safety audit.
 
-PHASE 1 
+---
 
-12 
+# 21. SUCCESS METRICS
 
-Foundation 
+Technical:
 
-- Website 
+- zero critical production errors;
+- zero canonical-data regression;
+- green CI;
+- deployment success;
+- no critical security findings;
+- mobile usability pass.
 
-- Menu 
+Product:
 
-- Ordering 
+- map CTA engagement;
+- outlet detail engagement;
+- menu discovery;
+- verified menu coverage;
+- ordering conversion once activated.
 
-- POS 
+Operational:
 
-Timeline: 8 Weeks 
+- percentage content editable without developer;
+- menu update turnaround;
+- admin task completion rate;
+- reduced manual content deployment.
 
-PHASE 2 
+---
 
-Growth 
+# 22. ROADMAP
 
-- Loyalty • Membership • CRM • Reservation 
+## Release A — Architecture Alignment
 
-Timeline: 6 Weeks 
+- replace stale PRD;
+- rewrite README;
+- update architecture docs;
+- inventory legacy schema;
+- isolate unsupported domains;
+- clean feature navigation;
+- strengthen reality audit.
 
-PHASE 3 
+## Release B — Local Discovery & Content
 
-Automation 
+- SEO;
+- structured data;
+- better outlet UX;
+- CMS improvements;
+- media provenance;
+- gallery.
 
-- Marketing Automation 
+## Release C — Verified Menu
 
-- Analytics 
+- verified menu ingestion;
+- menu approval workflow;
+- availability;
+- branch-level menu management.
 
-- Event Management 
+## Release D — Ordering Pilot
 
-Timeline: 6 Weeks 
+- feature flag;
+- cart;
+- checkout;
+- payment;
+- order flow;
+- limited operational pilot.
 
-PHASE 4 
+## Release E — Operational Platform
 
-Scale 
+- staff order board;
+- kitchen;
+- cashier;
+- inventory where required.
 
-- Multi Branch 
+## Release F — Growth
 
-- Franchise 
+Only after real product usage:
 
-- AI Recommendation 
+- analytics;
+- retention;
+- promotions;
+- advanced automation.
 
-- Predictive Analytics 
+---
 
-Timeline: 8 Weeks 
+# 23. DEFINITION OF DONE
 
-## **FINAL PRODUCT STATEMENT** 
+Warkop Ya'reh v3.0 is considered aligned when:
 
-Cold 'N Brew Digital Platform adalah sistem terpadu yang menghubungkan pelanggan, kasir, barista, dapur, manajemen, dan marketing dalam satu ekosistem digital modern untuk meningkatkan efisiensi operasional, loyalitas pelanggan, dan pertumbuhan bisnis secara berkelanjutan. 
+1. Product docs match business reality.
+2. README no longer advertises fictional capabilities.
+3. Active code does not depend on unsupported domains.
+4. Schema legacy debt is explicitly mapped.
+5. Public routes are factual.
+6. Verified menu pipeline exists.
+7. CMS can manage business content.
+8. Ordering remains gated until operationally ready.
+9. Security and accessibility baselines pass.
+10. CI and deployments remain green.
+11. Every critical business fact has a traceable source.
+12. No new fictional capability is introduced.
 
-13 
+---
 
+# 24. FINAL PRODUCT STATEMENT
+
+Warkop Ya'reh Digital Platform is not intended to simulate an imaginary enterprise coffee company.
+
+It exists to digitally represent and improve the real Warkop Ya'reh business.
+
+The architecture may be sophisticated.
+
+The product truth must remain simple:
+
+> **Build only what the business actually is, then scale what the business actually needs.**

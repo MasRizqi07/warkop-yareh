@@ -86,7 +86,7 @@ export interface BrandLogoProps extends React.HTMLAttributes<HTMLDivElement> {
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 36,
   showSubtitle = true,
-  subtitle = "Surabaya 1998",
+  subtitle = "Surabaya · 24 Jam",
   className,
   ...props
 }) => {

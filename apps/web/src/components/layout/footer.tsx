@@ -1,168 +1,79 @@
-'use client';
-
 import Link from 'next/link';
 import { BrandLogo } from '@warkop-yareh/ui';
-import { SITE, NAV_LINKS } from '@/lib/constants';
-import { useBranches } from '@/features/catalog/catalog.hooks';
+import { VERIFIED_BRANCHES } from '@warkop-yareh/types';
+import { NAV_LINKS } from '@/lib/constants';
+import { branchAddress } from '@/lib/seo';
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
-  const branches = useBranches();
-  const contactLinks = [
-    { label: 'Instagram', href: SITE.social.instagram, external: true },
-    {
-      label: 'WhatsApp Official',
-      href: SITE.whatsapp ? `https://wa.me/${SITE.whatsapp}` : '',
-      external: true,
-    },
-    { label: 'TikTok', href: SITE.social.tiktok, external: true },
-    {
-      label: SITE.email,
-      href: SITE.email ? `mailto:${SITE.email}` : '',
-      external: false,
-    },
-  ].filter((item) => item.href && item.label);
-
   return (
-    <footer className="relative overflow-hidden border-t border-border-subtle bg-canvas-obsidian text-on-surface">
-      {/* Top subtle glow line */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-accent-amber/30 to-transparent" />
-
-      {/* Footer Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-32 md:pb-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 mb-14">
-          {/* Brand Column (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
-            <Link href="/" className="inline-block group">
+    <footer className="border-t border-border-subtle bg-canvas-obsidian text-on-surface">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12 pb-32 md:pb-12">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
+            <Link href="/" aria-label="Warkop Ya'reh, beranda">
               <BrandLogo size={40} />
             </Link>
-            <p className="max-w-sm text-sm leading-relaxed text-text-muted">
-              Kopi, workspace, pemesanan, reservasi, komunitas, dan loyalty
-              Warkop Ya&apos;reh dalam satu platform.
-              Kedai kopi lokal di Surabaya dengan operasional 24 jam di Jetis Kulon (Wonokromo) dan Prapen (Tenggilis Mejoyo).
+            <p className="text-sm leading-relaxed text-text-muted">
+              Kedai kopi lokal di Surabaya. Kunjungi cabang Jetis Kulon atau
+              Prapen untuk dine-in dan takeaway.
             </p>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3.5 py-1.5">
-              <span className="h-2 w-2 rounded-full bg-accent-amber" />
-              <span className="h-2 w-2 rounded-full bg-[var(--green-500)]" />
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-cream-beige">
-                Jam dan fasilitas mengikuti cabang pilihan
-                Buka 24 Jam • Dine-in & Takeaway
-              </span>
-            </div>
+            <p className="text-sm text-text-muted">
+              Buka 24 Jam • Dine-in &amp; Takeaway
+            </p>
           </div>
-
-          {/* Outlets Sanctuary (3 cols) */}
-          <div id="locations" className="lg:col-span-3 space-y-3 scroll-mt-24">
-            <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
-              Cabang aktif
-            </h4>
-            <div className="space-y-2.5 text-sm text-text-muted">
-              {(branches.data ?? []).slice(0, 3).map((branch) => (
-                <div
-                  key={branch.id}
-                  className="rounded-xl border border-border-subtle bg-surface-secondary p-2.5"
+          <div className="space-y-3">
+            <h2 className="font-heading text-base font-bold">
+              Cabang Warkop Ya&apos;reh
+            </h2>
+            {VERIFIED_BRANCHES.map((branch) => (
+              <div
+                key={branch.id}
+                className="space-y-1 rounded-xl border border-border-subtle p-3"
+              >
+                <Link
+                  href={`/outlets/${branch.slug}`}
+                  className="text-sm font-semibold text-accent-amber"
                 >
-                  <p className="text-xs font-semibold text-text-primary">
-                    {branch.name}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-text-muted">
-                    {branch.address}, {branch.city}
-                  </p>
-                  <span className="mt-1 inline-block rounded bg-primary-container/20 px-1.5 py-0.5 font-mono text-[10px] text-cream-beige">
-                    Hari kerja {branch.weekdayHours}
-                    {branch.weekdayHours || '24 Jam'}
-                  </span>
-                </div>
-              ))}
-              {!branches.isPending && !branches.data?.length && (
-                <p className="text-xs text-text-muted">
-                  Informasi cabang belum tersedia.
+                  {branch.name}
+                </Link>
+                <p className="text-xs leading-relaxed text-text-muted">
+                  {branchAddress(branch)}
                 </p>
-              )}
-            </div>
+                {branch.phone && (
+                  <a
+                    className="inline-block py-2 text-sm text-accent-amber"
+                    href={`tel:${branch.phone}`}
+                  >
+                    Prapen: {branch.phone}
+                  </a>
+                )}
+              </div>
+            ))}
           </div>
-
-          {/* Quick Links (2 cols) */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
-              Navigation
-              Navigasi
-            </h4>
-            <ul className="space-y-2.5">
+          <nav aria-label="Navigasi footer">
+            <h2 className="font-heading text-base font-bold mb-3">Navigasi</h2>
+            <ul className="space-y-1">
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
+                    className="inline-block py-2 text-sm text-text-muted hover:text-primary"
                     href={link.href}
-                    className="text-sm text-text-muted transition-colors hover:text-primary"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  href="/account"
-                  className="text-sm text-text-muted transition-colors hover:text-primary"
-                >
-                  Account Portal
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/checkout"
-                  className="text-sm text-text-muted transition-colors hover:text-primary"
-                >
-                  Cart & Orders
-                </Link>
-              </li>
             </ul>
-          </div>
-
-          {/* Social & Contact (2 cols) */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="font-mono text-xs font-semibold uppercase tracking-widest text-accent-amber">
-              Connect
-            </h4>
-            <div className="flex flex-col gap-2 text-sm text-text-muted">
-              {contactLinks.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  {...(item.external
-                    ? { target: '_blank', rel: 'noopener noreferrer' }
-                    : {})}
-                  className="flex items-center gap-1.5 transition-colors hover:text-primary"
-                >
-                  {item.label}
-                </a>
-              ))}
-              {contactLinks.length === 0 && (
-                <Link
-                  href="/contact"
-                  className="transition-colors hover:text-primary"
-                >
-                  Lihat halaman kontak
-                </Link>
-              )}
-            </div>
-          </div>
+          </nav>
         </div>
-
-        {/* Bottom Bar */}
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-border-subtle pt-8 text-xs text-text-muted sm:flex-row">
-          <p>
-            © {currentYear} Warkop Ya&apos;reh Indonesia. All Rights Reserved.
-          </p>
-          <div className="flex items-center gap-6 font-mono text-[11px]">
-            <span className="text-cream-beige">Surabaya, East Java</span>
-            <span className="text-cream-beige">Surabaya, Jawa Timur</span>
-            <span>•</span>
-            <span className="text-text-muted">
-              Crafted with Precision & Single Origin
-              Kedai Kopi 24 Jam Surabaya
-            </span>
-          </div>
-        </div>
+        <p className="mt-6 text-xs leading-relaxed text-text-muted">
+          Jam dan kisaran pengeluaran mengacu pada listing publik yang dicatat
+          pada 17 September 2026. Informasi ini dapat berubah; konfirmasikan
+          langsung di outlet. Kisaran pengeluaran bukan harga per item menu.
+        </p>
+        <p className="mt-8 border-t border-border-subtle pt-6 text-xs text-text-muted">
+          © {new Date().getFullYear()} Warkop Ya&apos;reh • Surabaya, Jawa Timur
+        </p>
       </div>
     </footer>
   );

@@ -34,10 +34,10 @@ export default function OrdersIndexPage() {
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 font-mono text-xs text-text-muted">
         <Link href="/" className="hover:text-primary transition-colors">
-          Sanctuary Home
+          Beranda
         </Link>
         <span className="text-outline-variant">/</span>
-        <span className="text-accent-amber font-semibold">Track &amp; Order History</span>
+        <span className="text-accent-amber font-semibold">Riwayat pesanan</span>
       </nav>
 
       {/* Order Search Card */}
@@ -50,7 +50,7 @@ export default function OrdersIndexPage() {
             Lacak Status Pesanan Ya&apos;reh
           </h1>
           <p className="mx-auto max-w-md text-xs sm:text-sm text-text-muted font-body-md">
-            Masukkan Order ID atau kode struk digital dari struk fisik atau notifikasi WhatsApp.
+            Masukkan ID pesanan yang Anda terima saat checkout.
           </p>
         </div>
 
@@ -74,7 +74,7 @@ export default function OrdersIndexPage() {
             type="submit"
             className="w-full rounded-xl bg-gradient-to-r from-brand-coffee to-secondary-container hover:from-primary-container hover:to-secondary px-4 py-3 text-xs font-bold text-text-primary transition-all shadow-md active:scale-[0.99]"
           >
-            Lacak Status &amp; Posisi Barista
+            Lacak Status Pesanan
           </button>
         </form>
       </section>
@@ -89,14 +89,14 @@ export default function OrdersIndexPage() {
           <ClipboardList className="mx-auto h-10 w-10 text-text-muted" />
           <h2 className="font-headline-md text-base font-bold text-text-primary">Riwayat Pesanan Akun Privat</h2>
           <p className="text-xs text-text-muted max-w-sm mx-auto">
-            Masuk ke Sanctuary Member Pass untuk mengakses riwayat e-receipt, loyalty reward point, dan reorder 1-klik.
+            Masuk untuk melihat riwayat pesanan Anda.
           </p>
           <div className="pt-2">
             <Link
               href="/login?returnTo=%2Forders"
               className="inline-flex items-center gap-2 rounded-xl bg-brand-coffee hover:bg-primary-container text-text-primary px-5 py-2.5 text-xs font-bold transition-all shadow-md"
             >
-              <span>Masuk Akun Member</span>
+              <span>Masuk Akun</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>

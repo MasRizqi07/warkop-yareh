@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { useCartStore } from "@/stores";
+import { PUBLIC_ORDERING_ENABLED } from "@/lib/feature-flags";
 
 export function CartDrawer() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export function CartDrawer() {
   const subtotal = useCartStore((state) => state.total());
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
+    document.body.style.overflow = isOpen && PUBLIC_ORDERING_ENABLED ? "hidden" : "";
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setCartOpen(false);
     };
@@ -30,6 +31,8 @@ export function CartDrawer() {
   }, [isOpen, setCartOpen]);
 
   const totalCount = items.reduce((count, item) => count + item.quantity, 0);
+
+  if (!PUBLIC_ORDERING_ENABLED) return null;
 
   return (
     <AnimatePresence>

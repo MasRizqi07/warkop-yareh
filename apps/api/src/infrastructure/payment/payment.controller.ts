@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from '@warkop-yareh/database';
+import { isFeatureEnabled } from '@warkop-yareh/types';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
@@ -44,6 +45,9 @@ export class PaymentController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateSnapPaymentDto,
   ) {
+    if (!isFeatureEnabled('ONLINE_PAYMENT', process.env)) {
+      throw new ForbiddenException('Online payment is not available');
+    }
     const order = await this.orderingService.getOrder(body.orderId);
     if (!order) throw new NotFoundException('Order not found');
     this.assertOrderAccess(user, order);

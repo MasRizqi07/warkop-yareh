@@ -8,8 +8,6 @@ import type {
   FullCatalogDto,
 } from '@/features/api/contracts';
 
-const PRODUCT_FALLBACK_IMAGE = '/images/cold-brew-aren-brulee.png';
-
 export async function getBranches(): Promise<BranchDto[]> {
   const response = await api.get<ApiEnvelope<BranchDto[]>>('/branches');
   return response.data.data;
@@ -61,7 +59,7 @@ export function toUiProduct(
     ...(product.originalPrice !== null
       ? { originalPrice: product.originalPrice }
       : {}),
-    image: product.image || PRODUCT_FALLBACK_IMAGE,
+    image: product.image || '',
     category: product.category.slug,
     tags: product.tags,
     isPopular: product.isPopular,

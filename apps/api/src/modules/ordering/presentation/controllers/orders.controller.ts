@@ -27,6 +27,7 @@ import { CurrentUser } from '../../../../common/decorators/current-user.decorato
 import type { AuthenticatedUser } from '../../../../common/interfaces/authenticated-user.interface';
 import type { OrderDetails } from '../../domain/repositories/ordering.repository.interface';
 import { JwtAuthGuard } from '../../../../infrastructure/auth/jwt-auth.guard';
+import { isFeatureEnabled } from '@warkop-yareh/types';
 
 const ORDER_OPERATOR_ROLES: readonly Role[] = [
   Role.STAFF,
@@ -67,6 +68,30 @@ export class OrdersController {
 
     const isGlobal = this.hasRole(user, GLOBAL_ORDER_ROLES);
     const isBranchOperator = this.hasRole(user, BRANCH_ORDER_ROLES);
+    if (
+      !isGlobal &&
+      !isBranchOperator &&
+      !isFeatureEnabled('PUBLIC_ORDERING', process.env)
+    ) {
+      throw new ForbiddenException('Public ordering is not available');
+    }
+    if (
+      !isGlobal &&
+      !isBranchOperator &&
+      (body.voucherCode || body.loyaltyPointsUsed)
+    ) {
+      throw new ForbiddenException(
+        'Unverified promotional redemption is unavailable',
+      );
+    }
+    if (
+      !isGlobal &&
+      !isBranchOperator &&
+      body.tableId &&
+      !isFeatureEnabled('TABLE_ORDERING', process.env)
+    ) {
+      throw new ForbiddenException('Table ordering is not available');
+    }
     const branchId = isGlobal
       ? body.branchId
       : isBranchOperator
@@ -99,6 +124,19 @@ export class OrdersController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateOrderDto,
   ) {
+    if (
+      !this.hasRole(user, [...GLOBAL_ORDER_ROLES, ...BRANCH_ORDER_ROLES]) &&
+      !isFeatureEnabled('PUBLIC_ORDERING', process.env)
+    ) {
+      throw new ForbiddenException('Public ordering is not available');
+    }
+    if (
+      !this.hasRole(user, [...GLOBAL_ORDER_ROLES, ...BRANCH_ORDER_ROLES]) &&
+      body.tableId &&
+      !isFeatureEnabled('TABLE_ORDERING', process.env)
+    ) {
+      throw new ForbiddenException('Table ordering is not available');
+    }
     const branchId = this.hasRole(user, BRANCH_ORDER_ROLES)
       ? this.requireAssignedBranch(user)
       : body.branchId;

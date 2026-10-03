@@ -58,15 +58,10 @@ test.describe.serial('database-backed admin operations', () => {
       '/',
       '/analytics',
       '/branches',
-      '/community',
-      '/crm',
-      '/events',
       '/inventory',
-      '/loyalty',
       '/marketing',
       '/orders',
       '/products',
-      '/reservations',
       '/settings',
       '/shifts',
       '/users',
@@ -77,6 +72,11 @@ test.describe.serial('database-backed admin operations', () => {
       await page.goto(`${adminUrl}${route}`, { waitUntil: 'networkidle' });
       await expect(page.locator('h1').first()).toBeVisible();
       await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
+    }
+
+    for (const route of ['/community', '/crm', '/events', '/loyalty', '/reservations']) {
+      await page.goto(`${adminUrl}${route}`, { waitUntil: 'networkidle' });
+      await expect(page).toHaveURL(`${adminUrl}/`);
     }
 
     expect(responseFailures).toEqual([]);
@@ -216,14 +216,14 @@ test.describe.serial('database-backed admin operations', () => {
     );
 
     await page.goto(`${adminUrl}/inventory`, { waitUntil: 'networkidle' });
-    const row = page.getByTestId('inventory-row-browser-coffee');
+    const row = page.getByTestId('inventory-row-browser-inventory');
     await row.getByRole('button', { name: 'Adjust' }).click();
     await page.getByLabel('Current quantity').fill('75');
     await page.getByRole('button', { name: 'Save inventory' }).click();
     await expect(page.getByText(/inventory persisted\./)).toBeVisible();
     await page.reload({ waitUntil: 'networkidle' });
     await expect(
-      page.getByTestId('inventory-row-browser-coffee')
+      page.getByTestId('inventory-row-browser-inventory')
     ).toContainText('75 / 100 kg');
   });
 
@@ -238,5 +238,41 @@ test.describe.serial('database-backed admin operations', () => {
     ).toBeVisible();
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.getByText(campaignName, { exact: true })).toBeVisible();
+  });
+
+  test('unverified gallery and site drafts persist privately after reload', async ({
+    page,
+  }) => {
+    await login(page);
+    const title = `Private venue draft ${randomUUID()}`;
+    await page.goto(`${adminUrl}/gallery`, { waitUntil: 'networkidle' });
+    await page.getByLabel('Judul Foto').fill(title);
+    await page
+      .getByLabel('URL Foto (HTTPS)')
+      .fill('https://example.test/private-venue-draft.jpg');
+    await page.getByRole('button', { name: 'Simpan Dokumentasi' }).click();
+    await expect(page.getByText('Dokumentasi tersimpan.')).toBeVisible();
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+
+    const unauthenticated = await page.request.get(
+      `${apiUrl}/api/v1/reality/gallery`
+    );
+    expect([401, 403]).toContain(unauthenticated.status());
+    const published = await page.request.get(
+      `${apiUrl}/api/v1/reality/gallery/public`
+    );
+    expect(published.status()).toBe(200);
+    expect(await published.text()).not.toContain(title);
+
+    await page.goto(`${adminUrl}/site-content`, { waitUntil: 'networkidle' });
+    const draftTitle = `Private story ${randomUUID()}`;
+    await page.getByLabel('Judul Konten').fill(draftTitle);
+    await page.getByLabel('Isi Konten').fill('Draft internal untuk tinjauan.');
+    await page.getByRole('button', { name: 'Simpan Draft' }).click();
+    await expect(page.getByText('Draft tersimpan dan tetap privat.')).toBeVisible();
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(page.getByText(draftTitle, { exact: true })).toBeVisible();
+    await expect(page.getByText('Draft privat / UNVERIFIED')).toBeVisible();
   });
 });

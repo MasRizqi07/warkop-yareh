@@ -12,6 +12,8 @@
     "test:e2e": "playwright test",
     "audit:scope": "node scripts/scope-integrity.mjs",
     "audit:reality": "node scripts/business-integrity-audit.mjs",
+    "test:contracts": "node --test scripts/production-contracts.test.mjs",
+    "test:production-smoke": "node scripts/production-smoke.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "clean": "node scripts/clean.mjs",
     "test": "turbo run test"

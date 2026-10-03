@@ -36,6 +36,8 @@ class MockAuthGuard implements CanActivate {
 }
 
 describe('TableController (E2E / Controller)', () => {
+  const originalQrFlag = process.env.QR_ORDERING;
+  const originalTableFlag = process.env.TABLE_ORDERING;
   let app: INestApplication<Server>;
   let tableService: jest.Mocked<Partial<TableService>>;
 
@@ -73,8 +75,34 @@ describe('TableController (E2E / Controller)', () => {
   });
 
   beforeEach(() => {
+    process.env.QR_ORDERING = 'true';
+    process.env.TABLE_ORDERING = 'true';
     jest.clearAllMocks();
     mockUser = staffUser;
+  });
+
+  afterEach(() => {
+    if (originalQrFlag === undefined) delete process.env.QR_ORDERING;
+    else process.env.QR_ORDERING = originalQrFlag;
+    if (originalTableFlag === undefined) delete process.env.TABLE_ORDERING;
+    else process.env.TABLE_ORDERING = originalTableFlag;
+  });
+
+  it('hides unapproved public QR and table operations when flags are off', async () => {
+    delete process.env.QR_ORDERING;
+    delete process.env.TABLE_ORDERING;
+    await request(app.getHttpServer())
+      .get('/api/v1/tables/qr/QR_T1')
+      .expect(403);
+    await request(app.getHttpServer())
+      .get('/api/v1/tables/public/tbl_1')
+      .expect(403);
+    await request(app.getHttpServer())
+      .post('/api/v1/tables/tbl_1/call')
+      .send({ type: 'CALL_WAITER' })
+      .expect(403);
+    expect(tableService.resolveQrCode).not.toHaveBeenCalled();
+    expect(tableService.createWaiterCall).not.toHaveBeenCalled();
   });
 
   it('GET /api/v1/tables/qr/:code should resolve QR code (Public)', async () => {

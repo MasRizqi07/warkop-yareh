@@ -6,6 +6,7 @@ import {
   OrderStatus,
   OrderType,
   PaymentStatus,
+  ProductPublicationStatus,
 } from '@warkop-yareh/database';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
 import { tenantContext } from '../src/infrastructure/database/tenant-context';
@@ -82,6 +83,7 @@ describe('Checkout persistence, concurrency and RLS', () => {
         name: 'Test coffee',
         description: 'Integration fixture',
         price: 10000,
+        publicationStatus: ProductPublicationStatus.PUBLISHED,
       },
     });
   });

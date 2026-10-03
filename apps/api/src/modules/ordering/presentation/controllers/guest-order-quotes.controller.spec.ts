@@ -19,6 +19,7 @@ function getQuoteHandler(): (...args: unknown[]) => unknown {
 }
 
 describe('GuestOrderQuotesController', () => {
+  const originalPublicOrdering = process.env.PUBLIC_ORDERING;
   let app: INestApplication;
   const quoteOrder = jest.fn();
 
@@ -44,6 +45,7 @@ describe('GuestOrderQuotesController', () => {
   afterAll(async () => app.close());
 
   beforeEach(() => {
+    delete process.env.PUBLIC_ORDERING;
     jest.clearAllMocks();
     quoteOrder.mockResolvedValue({
       subtotal: 12_000,
@@ -58,7 +60,26 @@ describe('GuestOrderQuotesController', () => {
     });
   });
 
+  afterEach(() => {
+    if (originalPublicOrdering === undefined)
+      delete process.env.PUBLIC_ORDERING;
+    else process.env.PUBLIC_ORDERING = originalPublicOrdering;
+  });
+
+  it('blocks public quote while public ordering is disabled', async () => {
+    await request(app.getHttpServer() as Server)
+      .post('/api/v1/orders/quote/guest')
+      .send({
+        branchId: 'branch-1',
+        type: 'TAKE_AWAY',
+        items: [{ productId: 'prod-1', quantity: 1 }],
+      })
+      .expect(403);
+    expect(quoteOrder).not.toHaveBeenCalled();
+  });
+
   it('is explicitly public and passes only non-personal quote fields', async () => {
+    process.env.PUBLIC_ORDERING = 'true';
     const quoteHandler = getQuoteHandler();
     expect(Reflect.getMetadata(IS_PUBLIC_KEY, quoteHandler)).toBe(true);
 

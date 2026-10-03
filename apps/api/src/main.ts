@@ -3,16 +3,13 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 
 process.on('unhandledRejection', (reason) => {
   new Logger('Process').error(
-    `Unhandled Rejection: ${reason instanceof Error ? reason.stack : String(reason)}`,
+    `Unhandled rejection (${reason instanceof Error ? reason.name : 'unknown'})`,
   );
   process.exit(1);
 });
 
 process.on('uncaughtException', (error) => {
-  new Logger('Process').error(
-    `Uncaught Exception: ${error.message}`,
-    error.stack,
-  );
+  new Logger('Process').error(`Uncaught exception (${error.name})`);
   process.exit(1);
 });
 
@@ -22,6 +19,7 @@ import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { requestCorrelation } from './common/request-correlation';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -29,6 +27,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug'],
   });
   app.enableShutdownHooks();
+  app.use(requestCorrelation);
   if (process.env.TRUST_PROXY === 'true') {
     app.getHttpAdapter().getInstance().set('trust proxy', 1);
   }
@@ -76,7 +75,9 @@ async function bootstrap() {
       'Authorization',
       'Idempotency-Key',
       'X-Requested-With',
+      'X-Request-Id',
     ],
+    exposedHeaders: ['X-Request-Id'],
   });
 
   // ── Global Prefix ─────────────────────────────────────────────────────────
@@ -105,8 +106,9 @@ async function bootstrap() {
     const config = new DocumentBuilder()
       .setTitle("Warkop Ya'reh API")
       .setDescription(
-        "REST API for Warkop Ya'reh Digital Platform — Phase 1\n\n" +
-          'Includes: Auth, Menu/Catalog, Orders, Payments, Tables, Real-time tracking.',
+        "Warkop Ya'reh Product v3 API. Public catalog reads contain published, branch-available menu only. " +
+          'Customer ordering, online payment and QR/table flows are feature-gated. ' +
+          'Operations, analytics and marketing endpoints are internal; legacy reservation, event, community and loyalty modules are not registered.',
       )
       .setVersion('1.0')
       .addBearerAuth(
@@ -114,10 +116,13 @@ async function bootstrap() {
         'JWT',
       )
       .addTag('auth', 'Authentication & authorization')
-      .addTag('menu', 'Menu categories and items')
-      .addTag('orders', 'Order management')
-      .addTag('payments', 'Payment processing (Midtrans)')
-      .addTag('tables', 'Table management & QR scanning')
+      .addTag('menu', 'Verified menu categories and published items')
+      .addTag('orders', 'Feature-gated customer orders and internal management')
+      .addTag(
+        'payments',
+        'Feature-gated Midtrans initiation and signed webhook',
+      )
+      .addTag('tables', 'Feature-gated QR/table and staff management')
       .addTag('health', 'Health check')
       .build();
 
@@ -148,7 +153,7 @@ void bootstrap().catch((error: unknown) => {
   const logger = new Logger('Bootstrap');
   logger.error(
     'Failed to start application',
-    error instanceof Error ? error.stack : String(error),
+    error instanceof Error ? error.name : 'unknown',
   );
   process.exit(1);
 });

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@warkop-yareh/ui';
 import { Input } from '@warkop-yareh/ui';
 import { api } from '@/lib/api';
+import { SITE } from '@/lib/constants';
 import { useAuthStore } from '@/stores/auth.store';
 import { Coffee, Mail, KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -62,7 +63,7 @@ export default function OTPPage() {
     }
   };
 
-  const brandName = process.env.NEXT_PUBLIC_BRAND_NAME || 'Our Store';
+  const brandName = SITE.name;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

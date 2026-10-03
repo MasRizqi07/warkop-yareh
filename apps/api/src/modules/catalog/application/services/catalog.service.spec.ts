@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CatalogService } from './catalog.service';
 import { RedisService } from '../../../../infrastructure/redis/redis.service';
+import { ProductPublicationStatus } from '@warkop-yareh/database';
 
 describe('CatalogService', () => {
   let service: CatalogService;
@@ -19,6 +20,14 @@ describe('CatalogService', () => {
     listBranchProducts: jest.Mock;
     getBranchProduct: jest.Mock;
     updateBranchProduct: jest.Mock;
+    getAdminProduct: jest.Mock;
+    listAdminProducts: jest.Mock;
+    listAdminCategories: jest.Mock;
+    createCategory: jest.Mock;
+    createMenuEvidence: jest.Mock;
+    isVerifiedSource: jest.Mock;
+    countAvailableBranches: jest.Mock;
+    setPublicationStatus: jest.Mock;
   };
   let mockRedisService: {
     getJson: jest.Mock;
@@ -43,6 +52,14 @@ describe('CatalogService', () => {
       listBranchProducts: jest.fn(),
       getBranchProduct: jest.fn().mockResolvedValue(null),
       updateBranchProduct: jest.fn(),
+      getAdminProduct: jest.fn(),
+      listAdminProducts: jest.fn(),
+      listAdminCategories: jest.fn(),
+      createCategory: jest.fn(),
+      createMenuEvidence: jest.fn(),
+      isVerifiedSource: jest.fn(),
+      countAvailableBranches: jest.fn(),
+      setPublicationStatus: jest.fn(),
     };
 
     mockRedisService = {
@@ -139,8 +156,108 @@ describe('CatalogService', () => {
         'prod-1',
         false,
       );
-      expect(mockRedisService.del).toHaveBeenCalledWith(
-        'catalog:full:branch-1',
+      expect(mockRedisService.delPattern).toHaveBeenCalledWith(
+        'catalog:full:*',
+      );
+    });
+  });
+
+  describe('verified publication workflow', () => {
+    const product = {
+      id: 'product-1',
+      name: 'Menu terverifikasi',
+      price: 18000,
+      isActive: true,
+      category: { isActive: true },
+      sourceReferenceId: 'source-1',
+      publicationStatus: ProductPublicationStatus.REVIEW,
+    };
+
+    it('rejects verification without a matching menu source', async () => {
+      mockCatalogRepo.getAdminProduct.mockResolvedValue(product);
+      mockCatalogRepo.isVerifiedSource.mockResolvedValue(false);
+      await expect(
+        service.transitionProduct(
+          'product-1',
+          ProductPublicationStatus.VERIFIED,
+          'admin-1',
+          'unrelated-source',
+        ),
+      ).rejects.toThrow('Verified menu source reference is required');
+      expect(mockCatalogRepo.setPublicationStatus).not.toHaveBeenCalled();
+    });
+
+    it('records verification actor and timestamp for sourced menu', async () => {
+      mockCatalogRepo.getAdminProduct.mockResolvedValue(product);
+      mockCatalogRepo.isVerifiedSource.mockResolvedValue(true);
+      mockCatalogRepo.setPublicationStatus.mockResolvedValue({
+        ...product,
+        publicationStatus: ProductPublicationStatus.VERIFIED,
+      });
+      await service.transitionProduct(
+        'product-1',
+        ProductPublicationStatus.VERIFIED,
+        'admin-1',
+        'source-1',
+      );
+      expect(mockCatalogRepo.isVerifiedSource).toHaveBeenCalledWith(
+        'source-1',
+        'product-1',
+      );
+      expect(mockCatalogRepo.setPublicationStatus).toHaveBeenCalledWith(
+        'product-1',
+        ProductPublicationStatus.REVIEW,
+        expect.objectContaining({
+          publicationStatus: ProductPublicationStatus.VERIFIED,
+          verifiedById: 'admin-1',
+          verifiedAt: expect.any(Date),
+        }),
+      );
+    });
+
+    it('keeps a verified product private until a branch offers it', async () => {
+      mockCatalogRepo.getAdminProduct.mockResolvedValue({
+        ...product,
+        publicationStatus: ProductPublicationStatus.VERIFIED,
+      });
+      mockCatalogRepo.isVerifiedSource.mockResolvedValue(true);
+      mockCatalogRepo.countAvailableBranches.mockResolvedValue(0);
+      await expect(
+        service.transitionProduct(
+          'product-1',
+          ProductPublicationStatus.PUBLISHED,
+          'admin-1',
+        ),
+      ).rejects.toThrow('At least one active branch');
+      expect(mockCatalogRepo.setPublicationStatus).not.toHaveBeenCalled();
+    });
+
+    it('publishes only sourced and available product, then invalidates all catalog caches', async () => {
+      mockCatalogRepo.getAdminProduct.mockResolvedValue({
+        ...product,
+        publicationStatus: ProductPublicationStatus.VERIFIED,
+      });
+      mockCatalogRepo.isVerifiedSource.mockResolvedValue(true);
+      mockCatalogRepo.countAvailableBranches.mockResolvedValue(1);
+      mockCatalogRepo.setPublicationStatus.mockResolvedValue({
+        ...product,
+        publicationStatus: ProductPublicationStatus.PUBLISHED,
+      });
+      await service.transitionProduct(
+        'product-1',
+        ProductPublicationStatus.PUBLISHED,
+        'admin-1',
+      );
+      expect(mockCatalogRepo.setPublicationStatus).toHaveBeenCalledWith(
+        'product-1',
+        ProductPublicationStatus.VERIFIED,
+        expect.objectContaining({
+          publicationStatus: ProductPublicationStatus.PUBLISHED,
+          publishedAt: expect.any(Date),
+        }),
+      );
+      expect(mockRedisService.delPattern).toHaveBeenCalledWith(
+        'catalog:full:*',
       );
     });
   });

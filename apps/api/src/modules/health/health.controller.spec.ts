@@ -45,4 +45,12 @@ describe('HealthController', () => {
       ServiceUnavailableException,
     );
   });
+
+  it('returns unavailable instead of ready for a degraded Redis response', async () => {
+    database.$queryRaw.mockResolvedValue([{ '?column?': 1 }]);
+    redis.ping.mockResolvedValue('NOT_READY');
+    await expect(controller.getReadiness()).rejects.toThrow(
+      ServiceUnavailableException,
+    );
+  });
 });

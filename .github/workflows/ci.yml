@@ -1,5 +1,12 @@
 name: CI
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     branches: [main]
@@ -35,6 +42,16 @@ jobs:
       MIDTRANS_SERVER_KEY: ci-placeholder-midtrans-key
       NEXT_PUBLIC_API_URL: http://127.0.0.1:4006/api/v1
       NEXT_PUBLIC_WS_URL: http://127.0.0.1:4006
+      NEXT_PUBLIC_TEST_CATALOG: 'true'
+      # Only the disposable CI fixture enables ordering; production defaults remain off.
+      PUBLIC_ORDERING: 'true'
+      NEXT_PUBLIC_PUBLIC_ORDERING: 'true'
+      ONLINE_PAYMENT: 'true'
+      QR_ORDERING: 'true'
+      TABLE_ORDERING: 'true'
+      NEXT_PUBLIC_QR_ORDERING: 'true'
+      NEXT_PUBLIC_TABLE_ORDERING: 'true'
+        NEXT_PUBLIC_OPERATIONS: 'true'
 
     steps:
       - name: Checkout
@@ -62,6 +79,11 @@ jobs:
           SCOPE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: pnpm audit:scope
 
+      - name: Canonical business integrity and production isolation contracts
+        run: |
+          pnpm audit:reality
+          pnpm test:contracts
+
       # Prisma output is intentionally gitignored and must be generated for
       # the runner platform before typechecking or building.
       - name: Generate Prisma Client
@@ -74,7 +96,7 @@ jobs:
         run: pnpm turbo run typecheck
 
       - name: Lint
-        run: pnpm turbo run lint
+        run: pnpm turbo run lint -- --max-warnings=0
 
       - name: Build
         run: pnpm turbo run build

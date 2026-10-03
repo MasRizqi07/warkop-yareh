@@ -7,6 +7,7 @@ import { UniversalHeader } from '@/components/layout/UniversalHeader';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { PwaBottomDock } from '@/components/navigation/PwaBottomDock';
 import { PwaRegister } from '@/components/pwa/PwaRegister';
+import { serializeJsonLd, websiteStructuredData } from '@/lib/seo';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -45,12 +46,9 @@ export const metadata: Metadata = {
     'warkop wonokromo',
     'coffee shop surabaya',
     'tempat nongkrong surabaya',
-    'coworking space surabaya',
-    'cafe premium surabaya',
-    'community hub surabaya',
-    'event space surabaya',
-    'kopi specialty surabaya',
-    'warkop modern surabaya',
+    'warkop prapen',
+    'warkop jetis kulon',
+    'warkop 24 jam surabaya',
   ],
   authors: [{ name: SITE.name }],
   creator: SITE.name,
@@ -61,26 +59,17 @@ export const metadata: Metadata = {
     siteName: SITE.name,
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: SITE.name,
-      },
-    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
-    images: ['/og-image.jpg'],
   },
   robots: {
-    index: true,
+    index: process.env.VERCEL_ENV !== 'preview',
     follow: true,
     googleBot: {
-      index: true,
+      index: process.env.VERCEL_ENV !== 'preview',
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
@@ -96,23 +85,6 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: SITE.name,
   },
-};
-
-// JSON-LD Structured Data
-const socialProfiles = Object.values(SITE.social).filter(Boolean);
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'CafeOrCoffeeShop',
-  name: SITE.name,
-  description: SITE.description,
-  url: SITE.url,
-  ...(SITE.phone ? { telephone: SITE.phone } : {}),
-  ...(SITE.email ? { email: SITE.email } : {}),
-  priceRange: '$$',
-  servesCuisine: ['Coffee', 'Indonesian Food', 'Pastry'],
-  hasMenu: `${SITE.url}/menu`,
-  acceptsReservations: true,
-  ...(socialProfiles.length ? { sameAs: socialProfiles } : {}),
 };
 
 export default function RootLayout({
@@ -131,7 +103,9 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(websiteStructuredData()),
+          }}
           suppressHydrationWarning={true}
         />
       </head>
@@ -139,6 +113,9 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} ${inter.variable} ${jetBrainsMono.variable} min-h-screen bg-canvas-obsidian text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container`}
       >
         <Providers>
+          <a href="#main-content" className="skip-link">
+            Lewati ke konten utama
+          </a>
           <PwaRegister />
           <UniversalHeader />
           {children}

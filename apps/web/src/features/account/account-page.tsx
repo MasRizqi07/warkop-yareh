@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Award,
   Heart,
   LogOut,
   MapPin,
@@ -22,6 +21,7 @@ import { useCartStore } from '@/stores';
 import { useBranchStore } from '@/stores/branch.store';
 import { getApiErrorMessage } from '@/lib/api-error';
 import { api } from '@/lib/api';
+import { PUBLIC_ORDERING_ENABLED } from '@/lib/feature-flags';
 
 const TABS = [
   { id: 'profile', label: 'Profil', icon: User },
@@ -178,13 +178,13 @@ export default function AccountPage() {
     <main className="mx-auto min-h-screen max-w-7xl space-y-8 px-4 pb-32 pt-10 text-text-primary sm:px-6">
       <header>
         <Link href="/" className="text-sm text-text-muted">
-          Sanctuary Home
+          Beranda
         </Link>
         <h1 className="mt-3 text-3xl font-bold sm:text-4xl">
-          Your Sanctuary Account
+          Akun Warkop Ya&apos;reh
         </h1>
         <p className="mt-2 text-text-muted">
-          Profil, cangkir favorit, dan perjalanan Kawan Ya&apos;reh Anda.
+          Kelola profil dan lihat riwayat pesanan Anda.
         </p>
       </header>
       {!initialized ? (
@@ -202,42 +202,23 @@ export default function AccountPage() {
       ) : (
         profile.data && (
           <>
-            <section className="grid gap-4 sm:grid-cols-3">
-              {[
-                ['Poin member', profile.data.loyaltyPoints ?? 0],
-                ['Tier member', profile.data.membershipTier ?? 'BRONZE'],
-                ['Pesanan terbaru dimuat', orders.data?.length ?? 0],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-2xl border border-border-subtle bg-surface-card p-6"
-                >
-                  <p className="text-xs text-text-muted">{label}</p>
-                  <strong className="mt-3 block text-2xl text-accent-amber">
-                    {value}
-                  </strong>
-                </div>
-              ))}
+            <section className="rounded-2xl border border-border-subtle bg-surface-card p-6">
+              <p className="text-xs text-text-muted">Pesanan terbaru dimuat</p>
+              <strong className="mt-3 block text-2xl text-accent-amber">{orders.data?.length ?? 0}</strong>
             </section>
             <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)]">
               <aside className="space-y-4">
                 <section className="rounded-2xl border border-accent-amber/30 bg-gradient-to-br from-brand-coffee to-surface-card p-6">
-                  <Award className="h-9 w-9 text-accent-amber" />
+                  <User className="h-9 w-9 text-accent-amber" />
                   <h2 className="mt-6 break-words text-xl font-semibold">
                     {profile.data.name}
                   </h2>
                   <p className="mt-2 text-xs text-text-muted">
-                    Member sejak{' '}
+                    Akun dibuat pada{' '}
                     {new Date(profile.data.createdAt).toLocaleDateString(
                       'id-ID'
                     )}
                   </p>
-                  <Link
-                    href="/loyalty"
-                    className="mt-5 inline-block text-accent-amber underline"
-                  >
-                    Lihat member pass &amp; hadiah
-                  </Link>
                 </section>
                 <nav
                   aria-label="Navigasi akun"
@@ -279,7 +260,7 @@ export default function AccountPage() {
                     ) : !favoriteProducts.length ? (
                       <DataState
                         title="Belum ada menu favorit dari riwayat pesanan"
-                        detail="Pesan menu pertama Anda untuk mulai mengisi daftar ini."
+                        detail="Belum ada item menu dari riwayat pesanan untuk cabang ini."
                       />
                     ) : (
                       <div className="grid gap-4 sm:grid-cols-2">
@@ -293,14 +274,14 @@ export default function AccountPage() {
                             <p className="my-3 text-sm text-text-muted">
                               Rp {product.price.toLocaleString('id-ID')}
                             </p>
-                            <Button
+                            {PUBLIC_ORDERING_ENABLED && <Button
                               onClick={() => {
                                 addItem(product, 1);
                                 setNotice(`${product.name} masuk keranjang.`);
                               }}
                             >
                               Pesan lagi
-                            </Button>
+                            </Button>}
                           </article>
                         ))}
                       </div>

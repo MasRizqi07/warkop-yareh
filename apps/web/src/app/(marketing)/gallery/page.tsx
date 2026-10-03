@@ -1,136 +1,116 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
-import {
-  Image as ImageIcon,
-  MapPin,
-  Coffee,
-  AlertCircle,
-} from 'lucide-react';
+import Image from 'next/image';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+
+interface VenuePhoto {
+  id: string;
+  title: string;
+  caption: string | null;
+  imageUrl: string;
+  provenance: string;
+}
 
 export default function GalleryPage() {
-  const scenes = [
-    {
-      title: 'Cangkrukan Malam Surabaya',
-      location: 'Jetis Kulon & Prapen',
-      description: 'Momen kebersamaan warga, mahasiswa, dan komunitas menikmati obrolan santai larut malam dengan secangkir kopi panas.',
-      tag: 'Suasana Malam',
+  const gallery = useQuery({
+    queryKey: ['verified-venue-gallery'],
+    enabled: Boolean(process.env.NEXT_PUBLIC_API_URL),
+    retry: false,
+    queryFn: async () => {
+      const response = await api.get<{ data: VenuePhoto[] }>(
+        '/reality/gallery/public'
+      );
+      if (!Array.isArray(response.data.data))
+        throw new Error('Dokumentasi belum dapat dimuat');
+      return response.data.data.filter(
+        (asset) =>
+          typeof asset.imageUrl === 'string' &&
+          asset.imageUrl.startsWith('https://') &&
+          ['VERIFIED_VENUE_PHOTO', 'VERIFIED_BRANCH_PHOTO'].includes(
+            asset.provenance
+          )
+      );
     },
-    {
-      title: 'Konter Barista & Seduhan Cepat',
-      location: 'Area Layanan Terbuka',
-      description: 'Aktivitas peracikan kopi khas warkop, es teh manis, dan aneka minuman segar yang disajikan dengan cepat dan hangat.',
-      tag: 'Layanan Terbuka',
-    },
-    {
-      title: 'Sudut Santai & Istirahat',
-      location: 'Area Duduk Warkop',
-      description: 'Ruang terbuka bersahaja yang nyaman untuk melepas lelah setelah beraktivitas seharian di Kota Surabaya.',
-      tag: 'Area Duduk',
-    },
-    {
-      title: 'Sajian Camilan & Hidangan Hangat',
-      location: 'Dapur Cepat Saji',
-      description: 'Mie instan warkop, aneka gorengan hangat, dan kudapan pendamping cangkrukan yang selalu siap kapan saja.',
-      tag: 'Sajian Warkop',
-    },
-    {
-      title: 'Operasional 24 Jam Nonstop',
-      location: 'Wonokromo & Prapen',
-      description: 'Penerangan hangat yang menyambut siapa pun yang melintas atau membutuhkan tempat singgah di tengah malam.',
-      tag: '24 Jam Nonstop',
-    },
-    {
-      title: 'Kebersamaan Komunitas Lokal',
-      location: 'Meja Komunal',
-      description: 'Interaksi hangat antarpengunjung dalam suasana egaliter khas budaya warkop Jawa Timur.',
-      tag: 'Cangkrukan',
-    },
-  ];
-
+  });
+  const photos = gallery.data ?? [];
   return (
-    <div className="min-h-screen bg-canvas-obsidian text-on-surface pb-20 font-body">
-      {/* Header Section */}
-      <section className="relative border-b border-border-subtle bg-surface-secondary/40 py-16 sm:py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface-card px-3.5 py-1 font-mono text-xs text-accent-amber">
-            <ImageIcon className="h-3.5 w-3.5" />
-            <span>Dokumentasi Ambiance</span>
-          </div>
-          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight text-text-primary">
-            Galeri Suasana Warkop
+    <div className="min-h-screen bg-canvas-obsidian text-on-surface pb-20">
+      <section className="border-b border-border-subtle py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center space-y-4">
+          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold">
+            Galeri Warkop Ya&apos;reh
           </h1>
-          <p className="text-sm sm:text-base text-text-muted max-w-xl mx-auto">
-            Gambaran suasana nyata cangkrukan, kebersamaan, dan operasional 24 jam Warkop Ya&apos;reh di Surabaya.
+          <p className="text-sm sm:text-base text-text-muted">
+            Dokumentasi outlet Jetis Kulon dan Prapen ditampilkan setelah sumber
+            foto diverifikasi.
           </p>
         </div>
       </section>
-
-      {/* Main Grid */}
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        {/* Verification policy notice */}
-        <div className="rounded-2xl border border-border-subtle bg-surface-card p-6 flex items-start gap-4">
-          <AlertCircle className="h-5 w-5 shrink-0 text-accent-amber mt-0.5" />
-          <div className="text-xs sm:text-sm text-text-muted space-y-1">
-            <div className="font-semibold text-text-primary">Komitmen Dokumentasi Autentik</div>
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-12 space-y-8">
+        {gallery.isFetching && <p role="status">Memuat dokumentasi…</p>}
+        {gallery.isError ? (
+          <div
+            role="alert"
+            className="rounded-2xl border border-border-subtle p-6 space-y-3"
+          >
             <p>
-              Kami mengutamakan kejujuran visual. Halaman galeri ini menampilkan kurasi suasana riil warkop tanpa foto stok atau rekayasa buatan. Foto resolusi tinggi langsung dari lokasi fisik Jetis Kulon dan Prapen sedang diperbarui berkala.
+              Dokumentasi belum dapat dimuat. Silakan coba lagi atau lihat
+              alamat outlet.
             </p>
-          </div>
-        </div>
-
-        {/* Atmosphere Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {scenes.map((scene, idx) => (
-            <div
-              key={idx}
-              className="rounded-3xl border border-border-subtle bg-surface-card p-6 flex flex-col justify-between space-y-6 hover:border-accent-amber/30 transition-all hover:shadow-lg"
+            <button
+              onClick={() => void gallery.refetch()}
+              className="inline-block py-3 font-semibold text-accent-amber"
             >
-              <div className="space-y-3">
-                <span className="inline-block rounded-md bg-accent-amber/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-accent-amber uppercase tracking-wider">
-                  {scene.tag}
-                </span>
-                <h3 className="font-heading text-lg font-bold text-text-primary">
-                  {scene.title}
-                </h3>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  {scene.description}
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-border-subtle flex items-center justify-between text-[11px] font-mono text-text-muted">
-                <span className="flex items-center gap-1 text-accent-amber">
-                  <MapPin className="h-3 w-3" />
-                  {scene.location}
-                </span>
-                <span>24 Jam</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Visit CTA */}
-        <div className="rounded-3xl border border-border-subtle bg-surface-secondary/40 p-8 text-center space-y-4">
-          <Coffee className="h-8 w-8 text-accent-amber mx-auto" />
-          <h3 className="font-heading text-xl sm:text-2xl font-bold text-text-primary">
-            Rasakan Langsung Suasananya
-          </h3>
-          <p className="text-xs sm:text-sm text-text-muted max-w-md mx-auto">
-            Kunjungi outlet Jetis Kulon atau Prapen kapan saja Anda berada di Surabaya. Buka 24 jam nonstop setiap hari.
-          </p>
-          <div className="pt-2">
-            <Link
-              href="/outlets"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs sm:text-sm font-semibold text-on-primary hover:bg-primary-hover transition-colors"
-            >
-              <MapPin className="h-4 w-4" />
-              Lihat Alamat & Lokasi Outlet
-            </Link>
+              Coba lagi
+            </button>
           </div>
-        </div>
+        ) : !photos.length && !gallery.isFetching ? (
+          <section className="rounded-2xl border border-border-subtle bg-surface-card p-6 sm:p-8 space-y-3">
+            <h2 className="font-heading text-xl font-bold">
+              Foto outlet belum tersedia untuk ditampilkan
+            </h2>
+            <p className="text-sm text-text-muted">
+              Belum ada foto lokasi terverifikasi yang dipublikasikan di halaman
+              ini. Foto stok, ilustrasi, dan gambar AI tidak ditampilkan sebagai
+              dokumentasi outlet.
+            </p>
+          </section>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-6">
+            {photos.map((asset) => (
+              <figure
+                key={asset.id}
+                className="rounded-2xl border border-border-subtle overflow-hidden"
+              >
+                <div className="relative aspect-[4/3]">
+                  <Image
+                    src={asset.imageUrl}
+                    alt={asset.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+                <figcaption className="p-4 space-y-2">
+                  <h2 className="font-heading font-bold">{asset.title}</h2>
+                  {asset.caption && (
+                    <p className="text-sm text-text-muted">{asset.caption}</p>
+                  )}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
+        <Link
+          href="/outlets"
+          className="inline-flex min-h-11 items-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary"
+        >
+          Lihat Alamat &amp; Lokasi Outlet
+        </Link>
       </div>
     </div>
   );
 }
-

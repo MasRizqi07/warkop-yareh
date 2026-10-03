@@ -6,7 +6,7 @@ import { RedisService } from '../../infrastructure/redis/redis.service';
 
 @ApiTags('health')
 @Public()
-@Controller('api/v1/health')
+@Controller(['api/v1/health', 'health'])
 export class HealthController {
   constructor(
     private readonly database: RawDatabaseService,
@@ -32,12 +32,17 @@ export class HealthController {
         this.database.$queryRaw`SELECT 1`,
         this.redis.ping(),
       ]);
+      if (!redisStatus.startsWith('PONG')) {
+        throw new ServiceUnavailableException(
+          'Service dependencies are unavailable',
+        );
+      }
       return {
         data: {
           status: 'ready',
           services: {
             database: 'up',
-            redis: redisStatus.startsWith('PONG') ? 'up' : 'degraded',
+            redis: 'up',
           },
           timestamp: new Date().toISOString(),
         },

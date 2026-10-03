@@ -4,7 +4,13 @@ import { mkdirSync, appendFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { PrismaClient, Role } from '@warkop-yareh/database';
+import {
+  PrismaClient,
+  Role,
+  ProductPublicationStatus,
+  FactConfidence,
+  SourceType,
+} from '@warkop-yareh/database';
 import * as bcrypt from 'bcrypt';
 import * as midtrans from 'midtrans-client';
 import cookieParser from 'cookie-parser';
@@ -120,6 +126,42 @@ async function bootstrap() {
       image: '/images/cold-brew-aren-brulee.png',
     },
   });
+  const menuFact = await prisma.businessFact.upsert({
+    where: { domain_entityKey: { domain: 'menu', entityKey: productId } },
+    update: {},
+    create: {
+      domain: 'menu',
+      entityKey: productId,
+      claim: 'Disposable browser test product only; no real menu claim',
+      value: JSON.stringify({ name: 'Browser Test Latte', price: 10000 }),
+      confidence: FactConfidence.VERIFIED,
+      capturedAt: new Date(),
+      lastVerifiedAt: new Date(),
+    },
+  });
+  const menuSource = await prisma.sourceReference.upsert({
+    where: { id: 'browser-menu-source' },
+    update: { factId: menuFact.id },
+    create: {
+      id: 'browser-menu-source',
+      factId: menuFact.id,
+      sourceType: SourceType.DIRECT_PHYSICAL_AUDIT,
+      name: 'Disposable browser-test fixture; no business claim',
+      rawExcerpt: 'Synthetic catalog fixture for isolated checkout E2E only',
+      capturedAt: new Date(),
+      verifiedBy: 'browser-admin',
+    },
+  });
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      publicationStatus: ProductPublicationStatus.PUBLISHED,
+      verifiedAt: new Date(),
+      verifiedById: 'browser-admin',
+      sourceReferenceId: menuSource.id,
+      publishedAt: new Date(),
+    },
+  });
   await prisma.branchProduct.upsert({
     where: { branchId_productId: { branchId, productId } },
     update: {
@@ -145,6 +187,32 @@ async function bootstrap() {
       supplier: 'Browser Supplier',
       leadTimeHours: 24,
       burnRatePerDay: 5,
+    },
+  });
+  const inventoryProductId = 'browser-inventory';
+  await prisma.product.upsert({
+    where: { id: inventoryProductId },
+    update: {},
+    create: {
+      id: inventoryProductId,
+      slug: inventoryProductId,
+      name: 'Browser Inventory Item',
+      description: 'Private inventory fixture',
+      price: 10000,
+      categoryId: 'browser-category',
+    },
+  });
+  await prisma.branchProduct.upsert({
+    where: { branchId_productId: { branchId, productId: inventoryProductId } },
+    update: { stockQuantity: 50, stockCapacity: 100 },
+    create: {
+      branchId,
+      productId: inventoryProductId,
+      isAvailable: true,
+      stockQuantity: 50,
+      stockCapacity: 100,
+      stockThreshold: 10,
+      stockUnit: 'kg',
     },
   });
   await prisma.table.upsert({
