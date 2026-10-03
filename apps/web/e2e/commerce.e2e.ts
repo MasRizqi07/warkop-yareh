@@ -22,10 +22,11 @@ const guestQuoteResponse = (page: Page) =>
 
 async function addCoffee(page: Page) {
   await page.goto('/menu');
+  await page.locator('button[aria-pressed]').filter({ hasText: 'Browser Test Cafe' }).click();
   await page
     .locator('article')
     .filter({ has: page.getByRole('heading', { name: 'Browser Test Latte' }) })
-    .getByRole('button', { name: 'Customize' })
+    .getByRole('button', { name: 'Tambah ke keranjang' })
     .click();
   await page
     .getByRole('dialog')
@@ -94,7 +95,7 @@ test('guest quote is public, server-authoritative, and rejects personal discount
   }
 });
 
-for (const mode of ['dine-in', 'delivery'] as const) {
+for (const mode of ['dine-in', 'takeaway'] as const) {
   test(`guest cart -> authenticated ${mode} -> server quote -> persisted order -> payment`, async ({
     page,
   }, testInfo) => {
@@ -114,12 +115,10 @@ for (const mode of ['dine-in', 'delivery'] as const) {
       total: 13_920,
     });
     await expectCartPrice(page);
-    await expect(
-      page.getByText('Masuk saat checkout untuk menerapkan voucher dan poin.')
-    ).toBeVisible();
+    await expect(page.getByText('Masuk saat checkout untuk melanjutkan pesanan.')).toBeVisible();
     await page
       .getByRole('button', {
-        name: mode === 'dine-in' ? 'Dine-In' : 'Delivery',
+        name: mode === 'dine-in' ? 'Dine-In' : 'Self Pickup',
         exact: true,
       })
       .click();
@@ -138,19 +137,12 @@ for (const mode of ['dine-in', 'delivery'] as const) {
       if (request.url().endsWith('/orders') && request.method() === 'POST')
         submittedOrders.push(request.url());
     });
-    await page
-      .getByRole('button', { name: 'Lanjut ke pembayaran', exact: true })
-      .click();
-    await expect(
-      page.getByText(
-        mode === 'dine-in'
-          ? 'Pindai QR meja untuk pesanan dine-in.'
-          : 'Isi alamat lengkap, minimal 10 karakter.',
-        { exact: true }
-      )
-    ).toBeVisible();
-    expect(submittedOrders).toHaveLength(0);
     if (mode === 'dine-in') {
+      await page
+        .getByRole('button', { name: 'Lanjut ke pembayaran', exact: true })
+        .click();
+      await expect(page.getByText('Pindai QR meja untuk pesanan dine-in.', { exact: true })).toBeVisible();
+      expect(submittedOrders).toHaveLength(0);
       await page.goto('/qr/browser-table-qr');
       await expect(page).toHaveURL(/\/table\/browser-table$/);
       await expect(
@@ -183,13 +175,6 @@ for (const mode of ['dine-in', 'delivery'] as const) {
     await expect(
       page.getByText('Service fee 5%', { exact: true }).locator('..')
     ).toContainText('600');
-    if (mode === 'delivery') {
-      const addressQuote = quoteResponse(page);
-      await page
-        .getByLabel('Alamat pengantaran')
-        .fill('Jalan Pengujian Nomor 10, Surabaya');
-      await addressQuote;
-    }
     await expect(
       page.getByRole('button', { name: 'Lanjut ke pembayaran', exact: true })
     ).toBeEnabled();
@@ -215,10 +200,10 @@ for (const mode of ['dine-in', 'delivery'] as const) {
     expect(payload).not.toHaveProperty('userId');
     expect(payload).toMatchObject({
       expectedTotal: 13920,
-      type: mode === 'dine-in' ? 'DINE_IN' : 'DELIVERY',
+      type: mode === 'dine-in' ? 'DINE_IN' : 'TAKE_AWAY',
     });
     if (mode === 'dine-in') expect(payload.tableId).toBe('browser-table');
-    else expect(payload.notes).toContain('Jalan Pengujian Nomor 10, Surabaya');
+    else expect(payload).not.toHaveProperty('tableId');
     expect(order).toMatchObject({
       subtotal: 12000,
       tax: 1320,

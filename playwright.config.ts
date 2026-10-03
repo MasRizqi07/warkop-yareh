@@ -52,6 +52,10 @@ export default defineConfig({
         MIDTRANS_IS_PRODUCTION: 'false',
         SENDGRID_API_KEY: 'browser-test-email-key',
         THROTTLE_LIMIT: '1000',
+        PUBLIC_ORDERING: 'true',
+        ONLINE_PAYMENT: 'true',
+        QR_ORDERING: 'true',
+        TABLE_ORDERING: 'true',
       },
     },
     {

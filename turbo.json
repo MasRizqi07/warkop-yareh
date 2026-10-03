@@ -3,6 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "passThroughEnv": ["DATABASE_URL", "VERCEL", "VERCEL_ENV"],
+      "env": ["NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_WS_URL", "NEXT_PUBLIC_SITE_URL", "NEXT_PUBLIC_TEST_CATALOG"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "lint": {
