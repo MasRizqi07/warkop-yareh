@@ -58,6 +58,7 @@ describe('OrdersController', () => {
       OrderingService['getPaymentStatusFromMidtrans']
     >;
     createFeedback: jest.MockedFunction<OrderingService['createFeedback']>;
+    quoteOrder: jest.MockedFunction<OrderingService['quoteOrder']>;
   };
 
   beforeAll(async () => {
@@ -68,6 +69,7 @@ describe('OrdersController', () => {
       updateOrderStatus: jest.fn(),
       getPaymentStatusFromMidtrans: jest.fn(),
       createFeedback: jest.fn(),
+      quoteOrder: jest.fn(),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -126,6 +128,35 @@ describe('OrdersController', () => {
       .expect(400);
 
     expect(orderingService.createOrder).not.toHaveBeenCalled();
+  });
+
+  it('rejects unverified promotional redemption in createOrder for customers', async () => {
+    process.env.PUBLIC_ORDERING = 'true';
+    await request(app.getHttpServer())
+      .post('/api/v1/orders')
+      .set('Idempotency-Key', 'controller-idem-promo')
+      .send({
+        branchId: 'branch_A',
+        items: [{ productId: 'prod_1', quantity: 1 }],
+        voucherCode: 'PROMO10',
+      })
+      .expect(403);
+
+    expect(orderingService.createOrder).not.toHaveBeenCalled();
+  });
+
+  it('rejects unverified promotional redemption in quoteOrder for customers', async () => {
+    process.env.PUBLIC_ORDERING = 'true';
+    await request(app.getHttpServer())
+      .post('/api/v1/orders/quote')
+      .send({
+        branchId: 'branch_A',
+        items: [{ productId: 'prod_1', quantity: 1 }],
+        loyaltyPointsUsed: 500,
+      })
+      .expect(403);
+
+    expect(orderingService.quoteOrder).not.toHaveBeenCalled();
   });
 
   it('ignores a spoofed body userId for customers', async () => {

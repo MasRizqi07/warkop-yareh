@@ -48,8 +48,8 @@ All domain models and modules have been classified into explicit operational tie
 ## 5. Database
 
 - **Additive Migrations Applied**:
-  1. `20260929000000_reality_provenance_safety`: Adds `BusinessHour`, `GalleryAsset`, `SiteContent`, `BusinessFact`, and `SourceReference`.
-  2. `20260929010000_reality_api_permissions`: Role permission matrix and audit log safety.
+  1. `20260929000000_reality_provenance_safety`: Adds provenance fields (`provenance`, `sourceUrl`, `sourceType`), makes audit timestamps nullable, and establishes reality-aligned defaults across `BusinessHour`, `GalleryAsset`, `SiteContent`, `BusinessFact`, and `SourceReference`.
+  2. `20260929010000_reality_api_permissions`: Grants explicit DML permissions (`GRANT SELECT, INSERT, UPDATE ON gallery_assets, site_contents TO api_user`) and hardens database user access.
   3. `20261002000000_product_v3_publication`: Adds `ProductPublicationStatus` enum (`DRAFT`, `REVIEW`, `VERIFIED`, `PUBLISHED`, `ARCHIVED`), verification timestamps, null-safe branch metadata, and removes misleading default operating hours.
   4. `20261002010000_archive_legacy_booking_fixtures`: Safely transitions 7 historical fictional booking products to `ARCHIVED` status without physical row deletion.
 - **Safety**: Zero destructive table drops or enum removals. Rehearsed on isolated PostgreSQL 16 `warkop_audit`. Production seed writes exactly two verified branches with 14 normalized 24-hour records and zero unverified menu items.
@@ -107,9 +107,9 @@ All domain models and modules have been classified into explicit operational tie
 
 ## 12. Security
 
-- **Payment Boundary**: Midtrans integration enforces HMAC SHA-512 signature validation, itemization sum match against gross amount, and idempotent webhook processing.
+- **Payment Boundary**: Midtrans integration enforces Midtrans SHA-512 signature verification (`SHA512(orderId + statusCode + grossAmount + serverKey)` verified via `timingSafeEqual`), itemization sum match against gross amount, and idempotent webhook processing.
 - **Authentication**: JWT access tokens with HttpOnly refresh cookies, token rotation, session revocation, and brute-force throttling.
-- **Headers & Observability**: Configured strict security headers (`nosniff`, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `strict-origin-when-cross-origin`). Structured request IDs propagated across logs; global exception filter sanitizes internal errors.
+- **Headers & Observability**: Configured strict security headers (`nosniff`, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `strict-origin-when-cross-origin`, plus `Content-Security-Policy-Report-Only` baseline). Structured request IDs propagated across logs; global exception filter sanitizes internal errors.
 - **Vulnerabilities**: Clean dependency scan (`pnpm audit --prod` reports 0 critical, 0 high, 0 low). One moderate advisory (`js-yaml` via `@nestjs/swagger`) is restricted to non-production documentation setups.
 
 ---
@@ -139,39 +139,34 @@ Comprehensive test execution verified locally:
 | Playwright Browser E2E (`pnpm test:e2e`) | 3 test files | 16 | 0 |
 | **Total Automated Tests** | — | **388** | **0** |
 
-All tests pass 100% without mocks on core business rules.
+All tests pass 100% locally without mocks on core business rules.
+
+> **Remote CI Note**: Remote GitHub Actions runs `37134755435` and `37134865907` failed to parse workflow syntax prior to runner allocation due to an extra indentation on `NEXT_PUBLIC_OPERATIONS` in `.github/workflows/ci.yml`. The syntax error has been corrected on branch `stabilization/product-v3-ci-hardening` and verified with local YAML parsers.
 
 ---
 
-## 15. CI
+## 15. CI & Stabilization
 
-- **Branch Pushed**: `codex/product-v3-reality-platform`
-- **Head SHA**: `50936b7adbe918c40f3d5dcd5537b66f240492eb`
-- **Workflow**: `.github/workflows/ci.yml` runs on PR to `main` and push to `main`.
-- Includes reality integrity audit, production isolation contract checks, migration deployment against PostgreSQL service container, typecheck, lint, monorepo build, persistence tests, API E2E, and Playwright Chromium E2E.
+- **Stabilization Branch**: `stabilization/product-v3-ci-hardening`
+- **Target Branch**: `main`
+- **Workflow**: `.github/workflows/ci.yml` triggers on PR to `main` and push to `main`.
+- **Hotfix Applied**: Corrected indentation on `NEXT_PUBLIC_OPERATIONS` in `.github/workflows/ci.yml`. Validated syntax with `yaml` and `js-yaml` parsers.
+- **Contract Hardening**: Synchronized promotional rejection on `POST /api/v1/orders/quote` for public customers to match `createOrder`. Removed misleading zero-value voucher/points discount labels in customer checkout. Removed global brand-wide phone fallback from constants.
 
 ---
 
 ## 16. Deployments
 
-- **PR Target**: `main` ← `codex/product-v3-reality-platform`
-- **Pull Request URL**: https://github.com/MasRizqi07/warkop-yareh/pull/new/codex/product-v3-reality-platform
-- Vercel Web and Admin preview builds trigger automatically on Pull Request creation.
-- Runtime preview QA checklist prepared in [03_PUBLIC_PRODUCT_AUDIT.md](03_PUBLIC_PRODUCT_AUDIT.md).
+- **PR Target**: `main` ← `stabilization/product-v3-ci-hardening`
+- **Deployment Safety**: Vercel Web and Admin preview builds succeed cleanly. Branch protection rule recommended to require green GitHub Actions CI before merge.
 
 ---
 
 ## 17. Commits
 
-All changes are partitioned into 8 atomic, descriptive commits tracking logical architectural boundaries:
-1. `04ca120` — `docs: replace legacy product specification with reality-first v3`
-2. `9f0050e` — `refactor: isolate deprecated product domains and align canonical facts`
-3. `1c5208e` — `feat: add verified menu publication workflow and additive migrations`
-4. `537a868` — `feat: harden admin menu management, gallery, and site content`
-5. `e1811a4` — `feat: enforce reality-aligned public discovery, ordering gate, and local business SEO`
-6. `4e0cded` — `security: harden ordering request validation, payment boundaries, and health observability`
-7. `79f47d4` — `test: expand reality audits, contract gates, and Playwright E2E coverage`
-8. `50936b7` — `docs: upgrade README with executive-grade product v3 presentation and operational architecture`
+Stabilization and core v3 commits:
+1. Core Reality v3 Implementation (Merged in PR #17 & PR #18)
+2. `stabilization/product-v3-ci-hardening`: Hotfix YAML syntax in `.github/workflows/ci.yml`, align customer quote promo rejection, hide zero-value discount rows, eliminate global phone fallback, and add Content-Security-Policy-Report-Only.
 
 ---
 
@@ -180,6 +175,7 @@ All changes are partitioned into 8 atomic, descriptive commits tracking logical 
 As documented in [02_SCHEMA_DECOMMISSION_PLAN.md](02_SCHEMA_DECOMMISSION_PLAN.md):
 - Historical database tables (`Reservation`, `Event`, `Community*`, `LoyaltyTransaction`, `Reward`, `FranchiseAgreement`) remain preserved in schema to prevent data loss.
 - Legacy `User` fields (`membershipTier`, `loyaltyPoints`, `referralCode`) and enum values (`DRIVE_THRU`, `DELIVERY`) remain for historical row readability.
+- Deprecated interfaces in `packages/types/index.ts` explicitly tagged as `[DEPRECATED]`.
 - Permanent Next.js redirects remain in place for legacy URLs to safeguard historical search indexing and bookmarks.
 
 ---
@@ -189,10 +185,11 @@ As documented in [02_SCHEMA_DECOMMISSION_PLAN.md](02_SCHEMA_DECOMMISSION_PLAN.md
 - **Non-Blocking**:
   - Live customer ordering and payment features remain intentionally gated (`false`) until physical store staff and menu items are verified on-site.
   - Swagger documentation module carries moderate `js-yaml` transitive advisory (mitigated as dev/staging only).
-- **Blocking**: None for PR merge review. All production migrations are additive and backward-compatible.
+- **Blocking**:
+  - Remote CI pipeline execution must complete green on GitHub Actions prior to final sign-off.
 
 ---
 
 ## 20. Final Status
 
-`PRODUCT V3 IMPLEMENTATION COMPLETE — READY FOR HUMAN MERGE REVIEW`
+`PRODUCT V3 STABILIZATION READY — SUBMITTING CI HOTFIX FOR REMOTE GREEN VERIFICATION`

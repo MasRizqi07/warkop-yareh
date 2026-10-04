@@ -2,6 +2,18 @@ import type { NextConfig } from 'next';
 import { fileURLToPath } from 'node:url';
 
 const workspaceRoot = fileURLToPath(new URL('../..', import.meta.url));
+const reportOnlyCsp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://images.unsplash.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "connect-src 'self' http://localhost:* http://127.0.0.1:* https://*.vercel.app",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
@@ -12,6 +24,7 @@ const securityHeaders = [
     value: 'camera=(), microphone=(), geolocation=()',
   },
   { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+  { key: 'Content-Security-Policy-Report-Only', value: reportOnlyCsp },
 ];
 
 const nextConfig: NextConfig = {

@@ -97,7 +97,15 @@ export interface Order {
   loyaltyPointsEarned: number;
 }
 
-// ---- Reservations ----
+/* ============================================================================
+   DEPRECATED / LEGACY STAGED DOMAINS
+   The following interfaces (Reservations, Events, Community, Blog, Loyalty,
+   Reviews) represent prototype capabilities retained strictly for backward
+   compatibility with historical database records and staged decommissioning.
+   They are unregistered from active runtime routes in Product v3.0.
+   ============================================================================ */
+
+// ---- [DEPRECATED] Reservations ----
 export interface Reservation {
   id: string;
   userId: string;
@@ -117,7 +125,7 @@ export interface TimeSlot {
   capacity: number;
 }
 
-// ---- Events ----
+// ---- [DEPRECATED] Events ----
 export type EventCategory =
   'workshop' | 'music' | 'community' | 'business' | 'art' | 'tech' | 'food';
 
@@ -149,7 +157,7 @@ export interface EventSpeaker {
   avatar: string;
 }
 
-// ---- Community ----
+// ---- [DEPRECATED] Community ----
 export interface CommunityGroup {
   id: string;
   name: string;
@@ -175,7 +183,7 @@ export interface CommunityPost {
   createdAt: string;
 }
 
-// ---- Blog ----
+// ---- [DEPRECATED] Blog ----
 export interface BlogPost {
   id: string;
   title: string;
@@ -195,7 +203,7 @@ export interface BlogPost {
   updatedAt?: string;
 }
 
-// ---- Loyalty ----
+// ---- [DEPRECATED] Loyalty ----
 export interface LoyaltyTransaction {
   id: string;
   userId: string;
@@ -218,7 +226,7 @@ export interface Reward {
   expiresAt?: string;
 }
 
-// ---- Reviews ----
+// ---- [DEPRECATED] Reviews ----
 export interface Review {
   id: string;
   userId: string;

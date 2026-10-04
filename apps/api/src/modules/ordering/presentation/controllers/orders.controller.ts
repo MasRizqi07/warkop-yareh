@@ -124,30 +124,38 @@ export class OrdersController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateOrderDto,
   ) {
+    const isGlobal = this.hasRole(user, GLOBAL_ORDER_ROLES);
+    const isBranchOperator = this.hasRole(user, BRANCH_ORDER_ROLES);
     if (
-      !this.hasRole(user, [...GLOBAL_ORDER_ROLES, ...BRANCH_ORDER_ROLES]) &&
+      !isGlobal &&
+      !isBranchOperator &&
       !isFeatureEnabled('PUBLIC_ORDERING', process.env)
     ) {
       throw new ForbiddenException('Public ordering is not available');
     }
     if (
-      !this.hasRole(user, [...GLOBAL_ORDER_ROLES, ...BRANCH_ORDER_ROLES]) &&
+      !isGlobal &&
+      !isBranchOperator &&
+      (body.voucherCode || body.loyaltyPointsUsed)
+    ) {
+      throw new ForbiddenException(
+        'Unverified promotional redemption is unavailable',
+      );
+    }
+    if (
+      !isGlobal &&
+      !isBranchOperator &&
       body.tableId &&
       !isFeatureEnabled('TABLE_ORDERING', process.env)
     ) {
       throw new ForbiddenException('Table ordering is not available');
     }
-    const branchId = this.hasRole(user, BRANCH_ORDER_ROLES)
+    const branchId = isBranchOperator
       ? this.requireAssignedBranch(user)
       : body.branchId;
     return {
       data: await this.orderingService.quoteOrder({
-        userId: this.hasRole(user, [
-          ...GLOBAL_ORDER_ROLES,
-          ...BRANCH_ORDER_ROLES,
-        ])
-          ? body.userId
-          : user.id,
+        userId: isGlobal || isBranchOperator ? body.userId : user.id,
         actorId: user.id,
         branchId,
         items: body.items,
