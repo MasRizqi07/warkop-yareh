@@ -146,7 +146,7 @@ All tests pass 100% without mocks on core business rules.
 ## 15. CI
 
 - **Branch Pushed**: `codex/product-v3-reality-platform`
-- **Head SHA**: `79f47d451d4714f6a7cf2aa24a921e0efa91d2ad`
+- **Head SHA**: `50936b7adbe918c40f3d5dcd5537b66f240492eb`
 - **Workflow**: `.github/workflows/ci.yml` runs on PR to `main` and push to `main`.
 - Includes reality integrity audit, production isolation contract checks, migration deployment against PostgreSQL service container, typecheck, lint, monorepo build, persistence tests, API E2E, and Playwright Chromium E2E.
 
@@ -163,7 +163,7 @@ All tests pass 100% without mocks on core business rules.
 
 ## 17. Commits
 
-All changes are partitioned into 7 atomic, descriptive commits tracking logical architectural boundaries:
+All changes are partitioned into 8 atomic, descriptive commits tracking logical architectural boundaries:
 1. `04ca120` — `docs: replace legacy product specification with reality-first v3`
 2. `9f0050e` — `refactor: isolate deprecated product domains and align canonical facts`
 3. `1c5208e` — `feat: add verified menu publication workflow and additive migrations`
@@ -171,6 +171,7 @@ All changes are partitioned into 7 atomic, descriptive commits tracking logical 
 5. `e1811a4` — `feat: enforce reality-aligned public discovery, ordering gate, and local business SEO`
 6. `4e0cded` — `security: harden ordering request validation, payment boundaries, and health observability`
 7. `79f47d4` — `test: expand reality audits, contract gates, and Playwright E2E coverage`
+8. `50936b7` — `docs: upgrade README with executive-grade product v3 presentation and operational architecture`
 
 ---
 
