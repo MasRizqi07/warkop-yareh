@@ -51,7 +51,7 @@ jobs:
       TABLE_ORDERING: 'true'
       NEXT_PUBLIC_QR_ORDERING: 'true'
       NEXT_PUBLIC_TABLE_ORDERING: 'true'
-        NEXT_PUBLIC_OPERATIONS: 'true'
+      NEXT_PUBLIC_OPERATIONS: 'true'
 
     steps:
       - name: Checkout

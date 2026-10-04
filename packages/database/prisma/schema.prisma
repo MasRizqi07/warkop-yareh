@@ -238,7 +238,7 @@ model BranchProduct {
 
 model Order {
   id                    String        @id @default(cuid())
-  orderNumber           String        @unique // Format: CNB-YYYYMMDD-XXXX
+  orderNumber           String        @unique // Format: WY-YYYYMMDD-XXXX
   userId                String?
   user                  User?         @relation(fields: [userId], references: [id])
   branchId              String?

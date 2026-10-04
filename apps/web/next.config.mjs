@@ -3,6 +3,19 @@ import { fileURLToPath } from 'node:url';
 const workspaceRoot = fileURLToPath(new URL('../..', import.meta.url));
 const isPreviewDeployment = process.env.VERCEL_ENV === 'preview';
 const privatePaths = ['account', 'profile', 'orders', 'order', 'cart', 'checkout', 'payment', 'otp', 'auth', 'login', 'register', 'qr', 'table', 'offline'];
+const reportOnlyCsp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.sandbox.midtrans.com https://app.midtrans.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://images.unsplash.com https://app.sandbox.midtrans.com https://app.midtrans.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "connect-src 'self' http://localhost:* http://127.0.0.1:* https://*.vercel.app https://app.sandbox.midtrans.com https://app.midtrans.com https://api.midtrans.com https://api.sandbox.midtrans.com",
+  "frame-src 'self' https://app.sandbox.midtrans.com https://app.midtrans.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://app.sandbox.midtrans.com https://app.midtrans.com",
+].join('; ');
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -12,6 +25,7 @@ const securityHeaders = [
     value: 'camera=(), microphone=(), geolocation=()',
   },
   { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+  { key: 'Content-Security-Policy-Report-Only', value: reportOnlyCsp },
 ];
 
 if (process.env.NEXT_PUBLIC_TEST_CATALOG === 'true') {

@@ -23,7 +23,10 @@ export const SITE = {
     'https://warkop-yareh-web.vercel.app'
   ),
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || '',
-  phone: process.env.NEXT_PUBLIC_CONTACT_PHONE?.trim() || '0821-3735-4606',
+  // Brand-wide general contact has no verified global phone.
+  // Outlet-specific phones are maintained in VERIFIED_BRANCHES (Prapen: '0821-3735-4606', Jetis: null).
+  phone: process.env.NEXT_PUBLIC_CONTACT_PHONE?.trim() || null,
+  prapenPhone: '0821-3735-4606',
   whatsapp: (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, ''),
   social: {
     instagram: httpUrl(process.env.NEXT_PUBLIC_INSTAGRAM_URL),
