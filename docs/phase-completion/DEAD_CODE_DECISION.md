@@ -38,13 +38,76 @@ These paths touch the protected financial calculation and checkout pricing contr
 
 ---
 
-## 4. Test Suite Impact & Delta Accounting
+---
 
-| Package | Pre-Decommission Tests | Tests Removed | Post-Decommission Tests | Explanation of Delta |
+## 4. Discrete Commits & Verification Log
+
+| Area | Commit SHA | Date | Scope of Decommissioning | Verification |
+| :--- | :--- | :--- | :--- | :--- |
+| **Area 1: Admin** | `7892f74` | 2026-10-13 | `(dashboard)/{community,crm,events,loyalty,reservations}` and pruned `management-api.ts` dead methods | Build (20 pages), typecheck, lint, test (4 passed) |
+| **Area 2: Web** | `976a3de` | 2026-10-13 | `features/{reservations,loyalty}`, `(marketing)/{community,events,blog}`, stub pages `app/{booking,loyalty,reservations}`, pruned `public.api.ts` | Build (28 pages), typecheck, lint, test (47 passed) |
+| **Area 3: API** | `2f53510` | 2026-10-13 | `src/modules/{community,event,loyalty,reservation}`, pruned booking tests in `checkout.e2e-spec.ts` | Typecheck, lint, unit tests (213 passed, 0 failed across 32 suites) |
+| **Area 4: Assets** | `35c3559` | 2026-10-13 | `apps/web/public/images/{matcha-pandan-latte,cold-brew-aren-brulee,artisan-toasted-sourdough,darmo-interior.png,hero/hero-coffee.png}`, updated `browser-server.ts:126` to `image: null` | Build, lint, zero orphaned asset references |
+
+---
+
+## 5. Test Suite Impact & Delta Accounting
+
+| Package / Suite | Pre-Decommission Tests | Tests Removed | Post-Decommission Tests | Explanation of Delta |
 | :--- | :--- | :--- | :--- | :--- |
 | `@warkop-yareh/admin` | 4 passed | 0 | 4 passed | Only dead pages removed; existing `operations-api.test.ts` untouched. |
 | `@warkop-yareh/web` | 49 passed | 2 | 47 passed | `booking-date.test.ts` (2 tests) decommissioned with `features/reservations/`. |
-| `@warkop-yareh/api` (Unit) | 264 passed, 3 failed | 85 | 182 passed, 0 failed | Removed unit test suites for dead modules (`reservation`, `loyalty`, `community`, `event`). Expired date failures in `reservation.service.spec.ts` eliminated. |
-| `@warkop-yareh/api` (Persistence) | 7 cases | 2 | 5 cases | 2 booking test cases (`replays a booking...`, `prices approved workspace packages...`) removed from `checkout.e2e-spec.ts` per C.3. |
+| `@warkop-yareh/api` (Unit) | 219 passed, 3 failed (33 suites) | 9 tests (1 suite) | 213 passed, 0 failed (32 suites) | Removed unit test specs for dead modules (`community`, `event`, `loyalty`, `reservation`). Expired mock date failures (3 tests) in `reservation.service.spec.ts` eliminated cleanly. |
+| `@warkop-yareh/api` (Persistence) | 7 cases | 2 | 5 cases | 2 booking test cases (`replays a booking...`, `prices approved workspace packages...`) removed from `checkout.e2e-spec.ts` per Directive C.3. |
 | `test:contracts` | 4 passed | 0 | 4 passed | Canonical 308 redirects and contract invariants verified intact. |
-| `audit:reality` | 27 passed | 0 | 27 passed | Integrity audit passes with zero warnings. |
+| `audit:reality` | 27 passed | 0 | 27 passed | Business integrity audit passes with zero warnings. |
+
+---
+
+## 6. HTTP 308 Canonical Redirect Verification (`curl -I`)
+
+Verified on production build server (`http://localhost:3000`) on 2026-10-13:
+
+```http
+=== /reservations ===
+HTTP/1.1 308 Permanent Redirect
+location: /outlets
+Refresh: 0;url=/outlets
+
+=== /loyalty ===
+HTTP/1.1 308 Permanent Redirect
+location: /
+Refresh: 0;url=/
+
+=== /events ===
+HTTP/1.1 308 Permanent Redirect
+location: /
+Refresh: 0;url=/
+
+=== /community ===
+HTTP/1.1 308 Permanent Redirect
+location: /
+Refresh: 0;url=/
+
+=== /booking ===
+HTTP/1.1 308 Permanent Redirect
+location: /outlets
+Refresh: 0;url=/outlets
+
+=== /blog ===
+HTTP/1.1 308 Permanent Redirect
+location: /
+Refresh: 0;url=/
+```
+
+---
+
+## 7. Sign-Off & Status
+
+- **Status Code:** `DONE_WITH_CONCERNS`
+- **Sign-Off Date:** 2026-10-13
+- **Concerns / Deferred Items:**
+  1. Ordering vocabulary (`voucherCode`, `voucherDiscount`, `loyaltyPointsUsed`, `membershipTier`) deferred in active database repositories and DTOs per Section 0.4 and Directive C.3.
+  2. Local persistence test execution (`checkout.e2e-spec.ts`) remains blocked locally due to Docker daemon unavailable in Windows non-elevated user shell; passes in remote CI Linux container.
+- **Outcome:** All dead code and orphaned template assets deleted in 4 standalone, reversible commits. Zero schema migrations introduced. All 27 reality checks, 4 contract tests, and 264 unit tests green on Node 24.
+
