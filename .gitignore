@@ -52,5 +52,6 @@ Thumbs.db
 .env.production.local
 
 test-results/
+_ci-artifacts/
 
 .kube/

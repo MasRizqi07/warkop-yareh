@@ -5,10 +5,10 @@
 
 ---
 
-## 1. Confidence Levels
 ## 1. Core Evidence Rule
 
-To prevent data hallucination and ensure strict domain integrity, all business facts must be assigned one of five standardized confidence levels:
+To prevent data hallucination and ensure strict domain integrity, all business facts must be assigned one of six standardized confidence levels.
+
 > [!IMPORTANT]
 > **Absence of evidence is not evidence of absence.**
 >
@@ -23,8 +23,6 @@ To prevent data hallucination and ensure strict domain integrity, all business f
 ## 2. Confidence Level Taxonomy
 
 ```
-[ VERIFIED ] ──────────► Backed by primary evidence (Google Maps, store audit, owner confirmation).
-                            Allowed in production databases, seeds, and public copy.
 ┌─────────────────────────┐
 │        VERIFIED         │ ──► Directly confirmed by primary authoritative evidence
 └─────────────────────────┘     (Google Maps merchant profile, owner confirmation, in-store audit).
@@ -50,33 +48,30 @@ To prevent data hallucination and ensure strict domain integrity, all business f
 └─────────────────────────┘
 ```
 
-[ PARTIALLY_VERIFIED ] ─► Secondary evidence or cultural norm; pending physical confirmation.
-                            Allowed in descriptive text with appropriate disclaimers.
+* **`VERIFIED`**: Backed by primary evidence (Google Maps merchant profile, store audit, owner confirmation). Permitted in production databases, seeds, and public copy.
+* **`PARTIALLY_VERIFIED`**: Secondary evidence or regional cultural norm; pending physical confirmation. Permitted in descriptive text with appropriate disclaimers.
+* **`UNVERIFIED`**: Unknown business fact; no current evidence. Must remain `null` or `UNKNOWN`. Never fabricate placeholder data.
+* **`VERIFIED_ABSENT`**: Proven not to exist via authoritative owner statement or direct inspection. Requires explicit negative proof citation.
+* **`DISPUTED`**: Contradicted by known reality or conflicting sources. Blocked from production deployment.
+* **`DEPRECATED`**: Obsolete or contaminated data from previous templates. Quarantined or expunged.
+
 ---
 
-[ UNVERIFIED ] ─────────► Unknown business fact.
-                            Must remain NULL or UNKNOWN. NEVER fabricate placeholder data.
 ## 3. Dynamic External Data Invariant
 
-[ DISPUTED ] ───────────► Contradicted by known reality or conflicting sources.
-                            Blocked from production deployment.
 Third-party platform data (including Google Maps ratings, review counts, opening hours, and venue price segments) represents **time-bound external observations**, not eternal constants.
 
-[ DEPRECATED ] ─────────► Obsolete or contaminated data from previous templates.
-                            Quarantined or expunged.
-```
 Whenever external data is modeled or cached, it must include temporal tracking metadata:
 1. `sourceType`: Primary source identifier (e.g. `GOOGLE_MAPS`).
 2. `sourceReference`: Specific listing URL or Plus Code.
-3. `capturedAt`: Timestamp when the data was scraped or recorded.
-4. `lastVerifiedAt`: Timestamp of the most recent validation check.
+3. `capturedAt`: Timestamp when the data was recorded (ISO 8601).
+4. `lastVerifiedAt`: Timestamp of the most recent validation check (ISO 8601).
 
 ---
 
-## 2. TypeScript Domain Contract
 ## 4. TypeScript Domain Contract
 
-The data confidence model should be represented in `@warkop-yareh/types`:
+The data confidence model is represented in `@warkop-yareh/types`:
 
 ```typescript
 export type DataConfidenceLevel =
@@ -97,12 +92,19 @@ export type BusinessSourceType =
   | 'THIRD_PARTY_PLATFORM';
 
 export interface TraceableBusinessFact<T> {
-export interface DynamicExternalFact<T> {
   value: T;
   confidence: DataConfidenceLevel;
   sourceType: BusinessSourceType;
   sourceReference: string;
   verifiedAt: string; // ISO 8601 string
+  notes?: string;
+}
+
+export interface DynamicExternalFact<T> {
+  value: T;
+  confidence: DataConfidenceLevel;
+  sourceType: BusinessSourceType;
+  sourceReference: string;
   capturedAt: string;     // ISO 8601 string
   lastVerifiedAt: string; // ISO 8601 string
   notes?: string;
@@ -111,23 +113,7 @@ export interface DynamicExternalFact<T> {
 
 ---
 
-## 3. Current Repository Entities Classified by Confidence
-## 5. Current Entity Classification Matrix (Corrected Semantics)
-
-| Entity / Field | Confidence | Source Type | Reference |
-| :--- | :--- | :--- | :--- |
-| **Brand Name ("Warkop Ya'reh")** | `VERIFIED` | `GOOGLE_MAPS` | Listings in Wonokromo & Prapen |
-| **Branch: Jetis Kulon Address** | `VERIFIED` | `GOOGLE_MAPS` | Jl. Raya Jetis Kulon I No.38 |
-| **Branch: Prapen Address & Phone**| `VERIFIED` | `GOOGLE_MAPS` | Jl. Raya Prapen No.39 / 0821-3735-4606 |
-| **24-Hour Operations** | `VERIFIED` | `GOOGLE_MAPS` | Both branch listings |
-| **Price Envelope (Rp1-25k)** | `VERIFIED` | `GOOGLE_MAPS` | Public price segment |
-| **WiFi in Outlets** | `PARTIALLY_VERIFIED` | `CUSTOMER_REVIEW` | Common amenity mentioned by visitors |
-| **Motorcycle Parking** | `PARTIALLY_VERIFIED` | `IN_STORE_OBSERVATION` | Street-level imagery |
-| **Itemized Menu & Prices** | `UNVERIFIED` | NONE | Not authenticated yet |
-| **Seating Capacity** | `UNVERIFIED` | NONE | Not measured |
-| **VIP / Meeting Rooms** | `DISPUTED` | NONE | Real warkops do not feature VIP rooms |
-| **Cold 'N Brew Gubeng Fixture** | `DEPRECATED` | NONE | Contaminated template legacy |
-| **Loyalty Tier System** | `DEPRECATED` | NONE | Contaminated template legacy |
+## 5. Current Entity Classification Matrix
 
 | Domain / Entity | Verified Reality | Confidence Status | Primary Evidence / Notes |
 | :--- | :--- | :---: | :--- |
@@ -136,13 +122,13 @@ export interface DynamicExternalFact<T> {
 | **Branch 2: Prapen** | Physical outlet | `VERIFIED` | Jl. Raya Prapen No.39, Surabaya 60239 |
 | **Operating Hours (24 Hours)** | Both branches | `VERIFIED` | Google Maps listing schedule |
 | **Services: Dine-in & Takeaway** | Counter service | `VERIFIED` | Public listing supported service flags |
-| **Prapen Telephone (`0821-3735-4606`)**| Branch phone | `VERIFIED` | Google Maps Prapen listing |
-| **Public Spending Range (Rp1–25k/org)**| Spending range | `VERIFIED` | Venue price segment, NOT item price |
-| **Jetis Kulon Telephone** | Telephone | `UNVERIFIED` | No verified listing; remains `UNKNOWN` |
+| **Prapen Telephone (`0821-3735-4606`)** | Branch phone | `VERIFIED` | Google Maps Prapen listing |
+| **Public Spending Range (Rp1–25k/org)** | Spending range | `VERIFIED` | Venue price segment, NOT item price |
+| **Jetis Kulon Telephone** | Telephone | `UNVERIFIED` | No verified listing; remains `UNKNOWN` / `null` |
 | **Item-Level Menu & Prices** | Product catalog | `UNVERIFIED` | No direct receipts/menu; seed remains empty |
 | **Public Wi-Fi** | Network access | `UNVERIFIED` | Common regional amenity; unverified |
 | **Motorcycle Parking** | Storefront | `PARTIALLY_VERIFIED` | Roadside street parking visible |
-| **Seating Capacity** | Total seats | `UNVERIFIED` | Unmeasured; never claim 80 or 150 |
+| **Seating Capacity** | Total seats | `UNVERIFIED` | Unmeasured; never claim speculative values |
 | **VIP / Meeting Rooms** | Private spaces | `UNVERIFIED` | No current evidence; unsupported |
 | **Drive-Thru** | Vehicle lane | `UNVERIFIED` | No current evidence; unsupported |
 | **Table Reservations** | Booking system | `UNVERIFIED` | No current evidence; unsupported |
