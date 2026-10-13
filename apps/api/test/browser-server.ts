@@ -123,7 +123,7 @@ async function bootstrap() {
       description: 'Fresh coffee for isolated checkout tests',
       price: 10000,
       categoryId: 'browser-category',
-      image: '/images/cold-brew-aren-brulee.png',
+      image: null,
     },
   });
   const menuFact = await prisma.businessFact.upsert({
