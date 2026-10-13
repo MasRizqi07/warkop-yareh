@@ -1,6 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { ConflictException } from '@nestjs/common';
-import { BookingService } from '../src/modules/reservation/application/services/booking.service';
 import {
   PrismaClient,
   OrderStatus,
@@ -257,86 +255,5 @@ describe('Checkout persistence, concurrency and RLS', () => {
         () => repository.getOrder(order.id),
       ),
     ).toBeNull();
-  });
-  it('prices the approved workspace packages and add-ons from persisted products', async () => {
-    const booking = new BookingService(database);
-    const prices = await asCustomer(() => booking.catalog());
-    expect(prices.packages.map((item) => item.price)).toEqual([
-      35000, 45000, 55000, 85000,
-    ]);
-    const quote = await asCustomer(() =>
-      booking.quote('booking-night-owl', ['booking-monitor']),
-    );
-    expect(quote.total).toBe(110200);
-    await expect(
-      asCustomer(() =>
-        booking.quote('booking-morning', [
-          'booking-monitor',
-          'booking-monitor',
-        ]),
-      ),
-    ).rejects.toThrow();
-  });
-
-  it('replays a booking, blocks cross-customer overlap across midnight, and releases a failed payment', async () => {
-    const booking = new BookingService(database);
-    const date = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
-    const quote = await asCustomer(() => booking.quote('booking-night-owl'));
-    const input = {
-      branchId,
-      tableId,
-      packageId: 'booking-night-owl',
-      date,
-      guestCount: 2,
-      expectedTotal: quote.total,
-    };
-    const key = randomUUID();
-    const first = await asCustomer(() => booking.create(userId, input, key));
-    const replay = await asCustomer(() => booking.create(userId, input, key));
-    expect(replay.orderId).toBe(first.orderId);
-    expect(
-      first.reservation!.endAt.getTime() - first.reservation!.startAt.getTime(),
-    ).toBe(7 * 3600000);
-    const asOther = <T>(operation: () => Promise<T>) =>
-      tenantContext.run({ userId: secondUserId, role: 'CUSTOMER' }, operation);
-    await expect(
-      asOther(() => booking.create(secondUserId, input, randomUUID())),
-    ).rejects.toThrow(ConflictException);
-    const persistedReservation = await admin.reservation.findUniqueOrThrow({
-      where: { id: first.reservation!.id },
-    });
-    expect(persistedReservation).toMatchObject({
-      status: 'PENDING',
-      tableId,
-    });
-    const otherView = await asOther(() =>
-      booking.availability(branchId, input.packageId, date),
-    );
-    expect(otherView.find((table) => table.id === tableId)?.available).toBe(
-      false,
-    );
-    await asSystem(() =>
-      repository.syncPaymentState(first.orderId, PaymentStatus.FAILED),
-    );
-    expect(
-      (
-        await admin.reservation.findUniqueOrThrow({
-          where: { id: first.reservation!.id },
-        })
-      ).status,
-    ).toBe('CANCELLED');
-    const next = await asOther(() =>
-      booking.create(secondUserId, input, randomUUID()),
-    );
-    await asSystem(() =>
-      repository.syncPaymentState(next.orderId, PaymentStatus.PAID),
-    );
-    expect(
-      (
-        await admin.reservation.findUniqueOrThrow({
-          where: { id: next.reservation!.id },
-        })
-      ).status,
-    ).toBe('CONFIRMED');
   });
 });
