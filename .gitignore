@@ -57,4 +57,4 @@ _ci-artifacts/
 .kube/
 
 evidence-raw/
-images/
+/images/
