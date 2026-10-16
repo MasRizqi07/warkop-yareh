@@ -55,3 +55,6 @@ test-results/
 _ci-artifacts/
 
 .kube/
+
+evidence-raw/
+images/
