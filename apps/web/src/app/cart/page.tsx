@@ -151,8 +151,8 @@ export default function CartPage() {
             Belum ada item di keranjang
           </h2>
           <p className="mx-auto mb-8 mt-2 max-w-sm text-sm text-text-muted">
-            Pilih sajian specialty coffee atau artisan snacks dari katalog untuk
-            memulai pesanan.
+            Pilih menu minuman atau makanan warkop dari katalog untuk memulai
+            pesanan.
           </p>
           <Link
             href="/menu"
