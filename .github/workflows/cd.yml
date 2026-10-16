@@ -298,3 +298,50 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets['DATABASE_URL'] }}
         run: pnpm --filter @warkop-yareh/database run db:migrate:deploy
+
+  # ============================================================================
+  # POST-DEPLOY SMOKE VERIFICATION (MASTER PHASE 5.1)
+  # ============================================================================
+  post-deploy-smoke:
+    name: Post-Deploy Smoke Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - deploy-staging-api
+      - deploy-staging-web
+      - deploy-staging-admin
+      - deploy-production-api
+      - deploy-production-web
+      - deploy-production-admin
+    if: always() && !cancelled() && !contains(needs.*.result, 'failure') && (inputs.service == 'all' || inputs.service == 'web' || inputs.service == 'api')
+    steps:
+      - name: Verify API health, web root, and outlets routes
+        run: |
+          API_URL="${{ inputs.target_environment == 'production' && 'https://api.warkopyareh.id' || 'https://api-staging.warkopyareh.id' }}"
+          WEB_URL="${{ inputs.target_environment == 'production' && 'https://warkop-yareh-web.vercel.app' || 'https://warkop-yareh-web.vercel.app' }}"
+
+          echo "1. Checking API health endpoint ($API_URL/health)..."
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$API_URL/health" || echo "000")
+          echo "API health response HTTP $API_STATUS"
+          if [ "$API_STATUS" != "200" ]; then
+            echo "::error ::API health check failed with HTTP $API_STATUS"
+            exit 1
+          fi
+
+          echo "2. Checking Web root route ($WEB_URL/)..."
+          WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$WEB_URL/" || echo "000")
+          echo "Web root response HTTP $WEB_STATUS"
+          if [ "$WEB_STATUS" != "200" ]; then
+            echo "::error ::Web root check failed with HTTP $WEB_STATUS"
+            exit 1
+          fi
+
+          echo "3. Checking Web outlets route ($WEB_URL/outlets)..."
+          OUTLETS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$WEB_URL/outlets" || echo "000")
+          echo "Web outlets response HTTP $OUTLETS_STATUS"
+          if [ "$OUTLETS_STATUS" != "200" ]; then
+            echo "::error ::Web outlets check failed with HTTP $OUTLETS_STATUS"
+            exit 1
+          fi
+
+          echo "Post-deploy smoke verification succeeded for API and Web endpoints."
