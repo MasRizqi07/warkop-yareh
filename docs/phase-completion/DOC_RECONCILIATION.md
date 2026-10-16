@@ -63,3 +63,19 @@ An audit of downstream files confirmed that:
 
 ### 4.2 `pnpm audit:reality`
 The audit passes 27/27 with zero failures after these changes.
+
+---
+
+## 5. Phase 3 (Revised) Evidence Intake Reconciliation
+
+**Date:** 2026-10-16  
+**Source Baseline:** Raw photographic artifacts in `evidence-raw/` (arrived in commit `6aabb9e`)
+
+| Evidence Artifact / Input | Prior / Raw Input Claim | Authoritative Reconciliation | Confidence Level | Resolution Rationale |
+| :--- | :--- | :--- | :--- | :--- |
+| Co-brand "Bebek Goreng Kak Toan" | Signage on storefront photos (`images.jpg`, `images (1).jpg`) and header on printed menus (`unnamed (1).webp`, `unnamed (2).webp`) display "WARKOP YA'REH + BEBEK GORENG KAK TOAN". Google Maps listing categorizes Jetis as "Kedai Kopi". | Recorded as operational conflict. No mention added to public site copy pending owner clarification. | `UNVERIFIED` | Relationship (joint venture, shared premises, or sub-brand) and branch applicability are unknown. |
+| Prapen Instagram (`@warkopyareh2prapen`) | Instagram profile with reel `DYhZY0gNIp1` | Recognized strictly as Prapen outlet social profile, not brand-wide. Lacks owner confirmation. | `UNVERIFIED` (`OFFICIAL_SOCIAL_MEDIA`) | Cannot be applied brand-wide to Jetis Kulon. Proposed minimal outlet-specific link pending owner verification. |
+| Bio Claim "sudah berdiri 1 tahun" | Profile bio on `@warkopyareh2prapen` states "sudah berdiri 1 tahun" | Conflict with web search snippet (14 Mar 2026 "Kak Toan 2 hadir di Surabaya Selatan") and undated snapshot. | `DISPUTED` | Rule 5 ("Shared brand does not claim an unverified founding year") remains strictly enforced. |
+| "FREE WIFI" sign (`unnamed (5).webp`) | Wall/counter printed notice stating "FREE WIFI" | Kept as unverified observation. No facility list or Wi-Fi claims added to customer web application. | `UNVERIFIED` | Exact branch, date, network availability, and customer accessibility remain unverified. |
+| Counter Payment QR Code (`unnamed (5).webp`) | Standee QR payment barcode visible on order counter | Do not claim or document specific digital payment gateway methods on public site. | `UNVERIFIED` | Destination merchant account, bank network, and branch applicability unverified. |
+| Google Maps Rating & Popular Times | Google Maps listing shows rating 3.9, 19 reviews, and peak hours 11:00–19:00 | Excluded from codebase, marketing pages, and structured data schemas. | `DYNAMIC_EXTERNAL_DATA` | Third-party temporal data subject to external fluctuations; prohibited from hardcoding by DATA_CONFIDENCE section 3. |
