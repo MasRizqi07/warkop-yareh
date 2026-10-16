@@ -131,7 +131,7 @@
 
 ## 3. Second Independent Pass Verification
 
-- **Total Transcribed Entries:** 98 items across Food and Drinks.
+- **Total Transcribed Entries:** 100 items (Food: 35 items, Drinks: 65 items).
 - **Price Discrepancy Between Pass 1 & Pass 2:** `0 cells changed`.
 - **Unreadable Cells (`?`):** Exactly 1 cell (`Ropang Aoka` in `unnamed (1).webp` due to heavy flash/light reflection).
 - **Spelling / Typographical Peculiarities Observed:**
@@ -151,6 +151,7 @@
 
 ## 4. Wall Banner Drinks Board (`images (3).jpg`)
 
+- **Classification:** `partial, names only` (no prices).
 - **Legibility:** Low resolution (516x387), prices cannot be determined with complete certainty.
 - **Visible Category Headings:**
   - `COFFE` (HOT / ICE)
